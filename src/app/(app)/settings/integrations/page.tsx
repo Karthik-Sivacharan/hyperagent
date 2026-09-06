@@ -1,5 +1,5 @@
-import { PagePlaceholder } from "@/components/app/page-placeholder";
+import { IntegrationsPage } from "@/components/settings/integrations-page";
 
 export default function Page() {
-  return <PagePlaceholder title="Integrations" />;
+  return <IntegrationsPage />;
 }
