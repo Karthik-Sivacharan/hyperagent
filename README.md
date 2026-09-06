@@ -1,36 +1,41 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Hyperagent dashboard clone
 
-## Getting Started
-
-First, run the development server:
+A pixel-faithful rebuild of the hyperagent.com dashboard (every page reachable
+from the left sidebar) on the same stack the site uses: Next.js 16 (App
+Router), Tailwind CSS v4, shadcn (radix), lucide. Phase 1 reproduces
+Hyperagent's own design exactly; phase 2 re-skins the same components with the
+Brand design language, whose token system lives alongside in
+`src/design/brand/`.
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev          # http://localhost:3000 → redirects to /threads/new
+npm run build && npm run lint
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Everything is static mock data (`src/lib/mock/`); there is no backend, auth,
+or API.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Layout
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Path | What |
+|---|---|
+| `src/app/globals.css` | Hyperagent's tokens: shadcn variables for the warm light, warm dark and dark-neutral palettes, radius scale, motion, site utilities, keyframes |
+| `src/app/layout.tsx` | Fonts (Geist, Geist Mono, Season Sans) and the pinned dark/neutral theme |
+| `src/app/(app)/` | One route per sidebar page, wrapped by the app shell |
+| `src/components/app/` | Shell: sidebar, frame, brand marks |
+| `src/components/composer/` | The message composer (home + thread pages) |
+| `src/components/<page>/` | Page-specific components |
+| `src/components/ui/` | shadcn primitives (`button.tsx` matches the site's variant strings byte for byte) |
+| `src/design/brand/` | The Brand token system, scoped under `.theme-brand` (phase 2) |
+| `docs/reference/` | Ground truth captured from hyperagent.com: compiled CSS, fonts, a DOM dump per page |
+| `docs/clone-conventions.md` | The rules every page branch follows |
 
-## Learn More
+## Theme switches
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The live account renders the dark, neutral palette, so `<html class="dark">`
+and `<body class="palette-neutral">` are pinned in `layout.tsx`. Remove
+`palette-neutral` for the site's warm dark palette, or `dark` for the warm
+light one. Adding `theme-brand` to `<body>` (once the Brand branch is merged)
+re-themes the whole app with Brand's tokens, because both systems share the
+shadcn variable names.

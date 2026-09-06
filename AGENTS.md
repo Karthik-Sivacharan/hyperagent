@@ -7,3 +7,12 @@ This version has breaking changes — APIs, conventions, and file structure may 
 This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
 
 <!-- END:nextjs-agent-rules -->
+
+# Project rules
+
+This repo clones the hyperagent.com dashboard pixel for pixel, then re-skins it
+with the Brand design language. Before changing UI, read
+`docs/clone-conventions.md` (ground truth, file layout, verification, commit
+rules) and `README.md`. Reference material for every page is in
+`docs/reference/`; copy Tailwind classes from the DOM dumps rather than
+inventing styles.
