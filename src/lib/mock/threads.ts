@@ -4,6 +4,8 @@ export type Thread = {
   summary: string;
   /** Human-relative label the site renders ("yesterday", "3 days ago"). */
   updatedLabel: string;
+  /** Compact form of the same label, shown below the `sm` breakpoint ("1d"). */
+  updatedShortLabel: string;
   updatedAt: string;
   messageCount: number;
   starred: boolean;
@@ -18,6 +20,7 @@ export const threads: Thread[] = [
     summary:
       "Began an introductory interview to explore the assistant's capabilities and establish a productive working relationship.",
     updatedLabel: "yesterday",
+    updatedShortLabel: "1d",
     updatedAt: "2026-09-04T19:21:00-07:00",
     messageCount: 3,
     starred: false,
