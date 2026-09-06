@@ -1,5 +1,5 @@
-import { PagePlaceholder } from "@/components/app/page-placeholder";
+import { LibraryPage } from "@/components/library/library-page";
 
 export default function Page() {
-  return <PagePlaceholder title="Library" />;
+  return <LibraryPage />;
 }
