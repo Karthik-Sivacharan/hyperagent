@@ -1,0 +1,15 @@
+<!--
+  hyperagent.com/threads/new overlay capture: tooltip
+  Trigger: hover a sidebar nav item while the sidebar is collapsed to the 64px rail
+  (every sidebar item and composer button carries data-slot="tooltip-trigger";
+  in the expanded sidebar the nav tooltips are suppressed, only the composer ones
+  and the collapsed rail show them).
+  Captured 2026-09-06, dark theme, neutral palette, viewport 1456x868.
+  Notes: no arrow element; side=right align=center for the rail (anchor right edge
+  x=55, wrapper x=61 => sideOffset 6); the content remaps --foreground and
+  --muted-foreground inline so nested text/kbd render on the bg-primary surface.
+-->
+
+<!-- portal root <div> rect: x=61 y=137 w=56.53 h=30
+     parent: <body> -->
+<div data-radix-popper-content-wrapper="" style="position: fixed; left: 0px; top: 0px; transform: translate(61px, 137px); min-width: max-content; --radix-popper-transform-origin: 0px 50%; will-change: transform; z-index: 50; --radix-popper-available-width: 1395px; --radix-popper-available-height: 868px; --radix-popper-anchor-width: 47px; --radix-popper-anchor-height: 32px;"><div data-side="right" data-align="center" data-state="delayed-open" data-slot="tooltip-content" class="fade-in-0 zoom-in-95 data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 pointer-events-none z-50 w-fit max-w-[282px] origin-(--radix-tooltip-content-transform-origin) animate-in overflow-hidden whitespace-normal break-words rounded-md border bg-primary px-3 py-1.5 text-primary-foreground text-xs shadow-md data-[state=closed]:animate-out" style="--foreground: var(--primary-foreground); --muted-foreground: oklch(from var(--primary-foreground) l c h / 0.72); --radix-tooltip-content-transform-origin: var(--radix-popper-transform-origin); --radix-tooltip-content-available-width: var(--radix-popper-available-width); --radix-tooltip-content-available-height: var(--radix-popper-available-height); --radix-tooltip-trigger-width: var(--radix-popper-anchor-width); --radix-tooltip-trigger-height: var(--radix-popper-anchor-height);">Inbox<span id="radix-_R_3f4p8pplb_" role="tooltip" style="position: absolute; border: 0px; width: 1px; height: 1px; padding: 0px; margin: -1px; overflow: hidden; clip: rect(0px, 0px, 0px, 0px); white-space: nowrap; overflow-wrap: normal;">Inbox</span></div></div>
