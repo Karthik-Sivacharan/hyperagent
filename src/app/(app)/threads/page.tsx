@@ -1,5 +1,6 @@
-import { PagePlaceholder } from "@/components/app/page-placeholder";
+import { threads } from "@/lib/mock/threads";
+import { ThreadsPage } from "@/components/threads/threads-page";
 
 export default function Page() {
-  return <PagePlaceholder title="Threads" />;
+  return <ThreadsPage threads={threads} />;
 }
