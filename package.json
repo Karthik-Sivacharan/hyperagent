@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "brand:gen-ramps": "node scripts/brand/gen-ramps.mjs",
+    "brand:check-contrast": "node scripts/brand/check-contrast.mjs"
   },
   "dependencies": {
     "class-variance-authority": "^0.7.1",
