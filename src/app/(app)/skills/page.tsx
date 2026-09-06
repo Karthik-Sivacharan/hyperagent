@@ -1,5 +1,10 @@
-import { PagePlaceholder } from "@/components/app/page-placeholder";
+import type { Metadata } from "next";
+import { SkillsPage } from "@/components/skills/skills-page";
+
+export const metadata: Metadata = {
+  title: "Skills | Hyperagent",
+};
 
 export default function Page() {
-  return <PagePlaceholder title="Skills" />;
+  return <SkillsPage />;
 }
