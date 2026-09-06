@@ -1,5 +1,5 @@
-import { PagePlaceholder } from "@/components/app/page-placeholder";
+import { ProjectsPage } from "@/components/projects/projects-page";
 
 export default function Page() {
-  return <PagePlaceholder title="Projects" />;
+  return <ProjectsPage />;
 }

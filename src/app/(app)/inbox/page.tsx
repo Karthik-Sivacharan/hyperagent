@@ -1,5 +1,5 @@
-import { PagePlaceholder } from "@/components/app/page-placeholder";
+import { InboxPage } from "@/components/inbox/inbox-page";
 
 export default function Page() {
-  return <PagePlaceholder title="Inbox" />;
+  return <InboxPage />;
 }

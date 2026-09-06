@@ -1,5 +1,5 @@
-import { PagePlaceholder } from "@/components/app/page-placeholder";
+import { TeamsPage } from "@/components/teams/teams-page";
 
 export default function Page() {
-  return <PagePlaceholder title="Teams" />;
+  return <TeamsPage />;
 }
