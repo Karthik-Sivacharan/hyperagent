@@ -1,5 +1,5 @@
-import { PagePlaceholder } from "@/components/app/page-placeholder";
+import { LearningPage } from "@/components/learning/learning-page";
 
 export default function Page() {
-  return <PagePlaceholder title="Learning" />;
+  return <LearningPage />;
 }
