@@ -1,5 +1,5 @@
-import { PagePlaceholder } from "@/components/app/page-placeholder";
+import { MemoriesPage } from "@/components/memories/memories-page";
 
 export default function Page() {
-  return <PagePlaceholder title="Memories" />;
+  return <MemoriesPage />;
 }
