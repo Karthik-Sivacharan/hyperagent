@@ -201,11 +201,21 @@ export function Sidebar() {
 
   // Collapse to the 64px rail. The live column has no idle transition; the
   // width animates only while toggling, so the settled DOM stays identical.
+  // The transition is set straight on the element (and a reflow flushed)
+  // before React changes the width, then removed on a timer. transitionend
+  // is not used because the label opacity transitions bubble it too early.
   const [collapsed, setCollapsed] = useState(false);
-  const [animating, setAnimating] = useState(false);
+  const columnRef = useRef<HTMLDivElement>(null);
   const toggleCollapsed = () => {
-    setAnimating(true);
+    const column = columnRef.current;
+    if (column) {
+      column.style.transition = "width 200ms ease-out";
+      void column.offsetWidth;
+    }
     setCollapsed((c) => !c);
+    window.setTimeout(() => {
+      if (column) column.style.transition = "";
+    }, 260);
   };
 
   // Drag-to-resize, clamped like the live handler (250-500px, double-click
@@ -281,14 +291,7 @@ export function Sidebar() {
         marginLeft: "env(safe-area-inset-left)",
       }}
     >
-      <div
-        className="relative h-full shrink-0"
-        style={{
-          width: collapsed ? RAIL_WIDTH : width,
-          ...(animating ? { transition: "width 200ms ease-out" } : {}),
-        }}
-        onTransitionEnd={() => setAnimating(false)}
-      >
+      <div ref={columnRef} className="relative h-full shrink-0" style={{ width: collapsed ? RAIL_WIDTH : width }}>
         <div className="absolute inset-0 z-30 overflow-hidden">
           <div className="h-full overflow-hidden">
             <div className="relative h-full overflow-hidden border-sidebar-border border-r bg-[#f5f5f5] dark:bg-sidebar">
@@ -345,7 +348,7 @@ export function Sidebar() {
 
                 <nav className={cn("flex-1 overflow-y-auto overflow-x-hidden py-2", collapsed && "scrollbar-hide", "px-2")}>
                   <div>
-                    <div className="space-y-0.5 mb-2">
+                    <div className={cn("space-y-0.5", !collapsed && "mb-2")}>
                       <NavLink href="/threads/new" icon={SquarePen} label="New thread" active={isActive("/threads/new")} collapsed={collapsed} />
                       <RailTooltip label="Search" collapsed={collapsed}>
                         <button
