@@ -1,8 +1,13 @@
 import { Composer } from "@/components/composer/composer";
+import { QuickActions } from "@/components/home/quick-actions";
+import { RecentThreads } from "@/components/home/recent-threads";
+import { FeaturedShowcase } from "@/components/home/featured-showcase";
+import { recentThreads } from "@/lib/mock/threads";
 
-// Foundation placeholder for the home screen: hero + composer only. The
-// home-page branch replaces this with the full page (quick actions, recent
-// threads, featured showcase) per docs/reference/pages/threads-new.html.
+// The home screen (hyperagent.com/threads/new): hero + composer, quick-action
+// chips, recent threads, and the featured showcase. Structure and classes
+// follow docs/reference/pages/threads-new.html; the shell owns the mobile
+// header above this scroll container.
 export default function NewThreadPage() {
   return (
     <div className="flex-1 overflow-y-auto">
@@ -15,7 +20,10 @@ export default function NewThreadPage() {
               </h1>
             </div>
             <Composer />
+            <QuickActions />
           </section>
+          <RecentThreads threads={recentThreads} />
+          <FeaturedShowcase />
         </div>
       </div>
     </div>
