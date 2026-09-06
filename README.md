@@ -14,7 +14,17 @@ npm run build && npm run lint
 ```
 
 Everything is static mock data (`src/lib/mock/`); there is no backend, auth,
-or API.
+or API. Menus, dialogs, tabs and toggles work with local state so the pages
+feel alive, but nothing persists.
+
+## Pages
+
+`/threads/new` (home), `/threads`, `/thread/[id]`, `/inbox`, `/teams`, `/skills`,
+`/memories`, `/learning`, `/projects`, `/library`, `/marketplace`, `/agents`,
+`/settings` (+ sub-page placeholders) and `/settings/integrations`, plus the
+shell overlays (⌘K search, account menu, section menus, composer menus, the
+collapsed 64px rail and drag-to-resize). `/design/brand` shows the Brand
+token swatches.
 
 ## Layout
 
@@ -28,7 +38,7 @@ or API.
 | `src/components/<page>/` | Page-specific components |
 | `src/components/ui/` | shadcn primitives (`button.tsx` matches the site's variant strings byte for byte) |
 | `src/design/brand/` | The Brand token system, scoped under `.theme-brand` (phase 2) |
-| `docs/reference/` | Ground truth captured from hyperagent.com: compiled CSS, fonts, a DOM dump per page |
+| `docs/reference/` | Ground truth captured from hyperagent.com: compiled CSS, fonts, a DOM dump per page, and `overlays/` with every captured menu, dialog and tooltip |
 | `docs/clone-conventions.md` | The rules every page branch follows |
 
 ## Theme switches
