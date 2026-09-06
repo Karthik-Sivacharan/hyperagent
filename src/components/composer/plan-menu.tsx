@@ -66,7 +66,8 @@ export function PlanMenu({
       <DropdownMenuTrigger asChild {...triggerProps}>
         {children}
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-[calc(100vw-2rem)] max-w-72">
+      {/* The live menu sits 8px below the pill (captured wrapper y=265 for a 257px anchor bottom). */}
+      <DropdownMenuContent align="end" sideOffset={8} className="w-[calc(100vw-2rem)] max-w-72">
         <DropdownMenuItem className="items-start" onSelect={() => choose("plan")}>
           <ModeBody mode="plan" selected={mode === "plan"} />
         </DropdownMenuItem>

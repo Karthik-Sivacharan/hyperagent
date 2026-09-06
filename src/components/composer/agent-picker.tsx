@@ -27,7 +27,8 @@ export function AgentPicker({ children, ...triggerProps }: React.ComponentProps<
       <DropdownMenuTrigger asChild {...triggerProps}>
         {children}
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="w-72">
+      {/* The live picker sits 6px below the pill (captured wrapper y=263 for a 257px anchor bottom). */}
+      <DropdownMenuContent align="start" sideOffset={6} className="w-72">
         <div>
           <div className="flex items-center gap-2 px-3 py-2">
             <Search className="size-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />
