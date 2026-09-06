@@ -225,7 +225,12 @@ export function Sidebar() {
   const onResizeStart = (e: ReactPointerEvent<HTMLDivElement>) => {
     e.preventDefault();
     const handle = e.currentTarget;
-    handle.setPointerCapture(e.pointerId);
+    try {
+      handle.setPointerCapture(e.pointerId);
+    } catch {
+      // Not every pointer can be captured (synthetic or already-released);
+      // the drag still works while the pointer stays over the handle.
+    }
     drag.current = { startX: e.clientX, startWidth: width };
     document.body.style.cursor = "col-resize";
     document.body.style.userSelect = "none";
