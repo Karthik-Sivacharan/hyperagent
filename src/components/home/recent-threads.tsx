@@ -3,48 +3,34 @@
 import { useState } from "react";
 import Link from "next/link";
 import { LayoutGrid, List, type LucideIcon } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import type { Thread } from "@/lib/mock/threads";
 import { ThreadCard, type ThreadLayout } from "@/components/home/thread-card";
 
 // "Recent threads" on the home screen (docs/reference/pages/threads-new.html):
-// heading, List/Grid layout toggle (a role="group" of tooltip-wrapped ghost
-// buttons, not a radix ToggleGroup), "Show all" link, and the thread list.
-// The dump was captured with the list layout selected; the grid layout is
-// this clone's own 3-column arrangement of the same card.
+// heading, List/Grid layout toggle, "Show all" link, and the thread list. The
+// dump was captured with the list layout selected; the grid layout is this
+// clone's own 3-column arrangement of the same card. Phase 2: the heading
+// takes the brand's section-heading step in the serif face, the toggle is
+// the joined pill track (a radix ToggleGroup now, so the track owns the
+// selection), "Show all" is an outline pill, and every thread is its own
+// 22px card, so the list is the brand's stack of list rows rather than one
+// bordered box (docs/brand/design.md §4, §5, §6). The header row keeps its
+// 36px height.
 
-function LayoutButton({
-  icon: Icon,
-  label,
-  active,
-  onClick,
-}: {
-  icon: LucideIcon;
-  label: string;
-  active: boolean;
-  onClick: () => void;
-}) {
+// The tooltip wraps the toggle from the inside: as the outer element the
+// toggle's `data-state="on"` (what the pill track styles on) is the one that
+// survives the prop spread, instead of the tooltip's open/closed state.
+function LayoutToggle({ value, icon: Icon, label }: { value: ThreadLayout; icon: LucideIcon; label: string }) {
   return (
     <Tooltip>
-      <TooltipTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon-xs"
-          aria-pressed={active}
-          aria-label={label}
-          onClick={onClick}
-          className={cn(
-            "size-7 rounded-[5px]",
-            active
-              ? "bg-accent text-foreground hover:bg-accent dark:bg-background dark:hover:bg-background"
-              : "text-muted-foreground",
-          )}
-        >
+      <ToggleGroupItem value={value} asChild>
+        <TooltipTrigger aria-label={label}>
           <Icon className="size-4" />
-        </Button>
-      </TooltipTrigger>
+        </TooltipTrigger>
+      </ToggleGroupItem>
       <TooltipContent>{label}</TooltipContent>
     </Tooltip>
   );
@@ -55,46 +41,44 @@ export function RecentThreads({ threads }: { threads: Thread[] }) {
 
   return (
     <section className="w-full">
-      <div className="mb-4 flex justify-between gap-2 items-center">
+      <div className="mb-4 flex min-h-9 items-center justify-between gap-2">
         <div className="min-w-0">
-          <h2 className="flex items-center gap-2 font-semibold text-lg">Recent threads</h2>
+          <h2 className="flex items-center gap-2 font-heading text-xl text-foreground">Recent threads</h2>
         </div>
         <div className="shrink-0">
           <div className="flex items-center gap-2">
             <TooltipProvider>
-              <div
-                role="group"
+              <ToggleGroup
+                type="single"
+                value={layout}
+                onValueChange={(next) => {
+                  if (next) setLayout(next as ThreadLayout);
+                }}
+                spacing={0}
                 aria-label="Layout"
-                className="inline-flex h-9 shrink-0 items-center gap-0.5 rounded-[8px] border bg-white p-[3px] shadow-xs max-sm:hidden dark:border-input dark:bg-muted"
+                className="shrink-0 max-sm:hidden"
               >
-                <LayoutButton icon={List} label="List view" active={layout === "list"} onClick={() => setLayout("list")} />
-                <LayoutButton icon={LayoutGrid} label="Grid view" active={layout === "grid"} onClick={() => setLayout("grid")} />
-              </div>
+                <LayoutToggle value="list" icon={List} label="List view" />
+                <LayoutToggle value="grid" icon={LayoutGrid} label="Grid view" />
+              </ToggleGroup>
             </TooltipProvider>
-            <Link
-              className="rounded-[8px] border border-border bg-background px-3 py-1.5 text-foreground text-sm shadow-xs transition-colors hover:bg-muted"
-              href="/threads"
-            >
-              Show all
-            </Link>
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/threads">Show all</Link>
+            </Button>
           </div>
         </div>
       </div>
 
       {layout === "list" ? (
-        <div className="overflow-hidden rounded-lg border border-border bg-background max-sm:-mx-6 max-sm:rounded-none max-sm:border-x-0 max-sm:bg-transparent">
-          <div>
-            {threads.map((thread) => (
-              <ThreadCard key={thread.id} thread={thread} />
-            ))}
-          </div>
+        <div className="flex flex-col gap-3">
+          {threads.map((thread) => (
+            <ThreadCard key={thread.id} thread={thread} />
+          ))}
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {threads.map((thread) => (
-            <div key={thread.id} className="overflow-hidden rounded-lg border border-border bg-background">
-              <ThreadCard thread={thread} layout="grid" />
-            </div>
+            <ThreadCard key={thread.id} thread={thread} layout="grid" />
           ))}
         </div>
       )}

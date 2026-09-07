@@ -1,12 +1,29 @@
-import { AppWindow, Image as ImageIcon, Search, Sparkles, Users, type LucideIcon } from "lucide-react";
+import {
+  AppWindow,
+  FileText,
+  Image as ImageIcon,
+  MapPin,
+  Presentation,
+  Search,
+  Sparkles,
+  Users,
+  Video,
+  Volume2,
+  type LucideIcon,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 // The quick-action chip row under the home composer
-// (docs/reference/pages/threads-new.html). Classes are copied verbatim; the
-// amber "Set up your agent" chip and "More..." open dialogs on the live site
-// (not captured in the dump), the others prefill the composer.
-
-const CHIP =
-  "flex cursor-pointer items-center gap-1.5 rounded-[8px] border border-border bg-background px-3 py-1.5 font-medium text-sm shadow-xs transition-colors hover:border-border/80 hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
+// (docs/reference/pages/threads-new.html). The four prompt chips prefill the
+// composer on the live site; "Set up your agent" and "More..." open the small
+// popovers captured under docs/reference/overlays/home-*-popover.html (same
+// widths, padding and items; the items are no-ops here). Phase 2 dresses the
+// row in the brand: outline pills on the hairline edge, and the tinted brand
+// chip for the set-up nudge (not the site's amber, not a solid accent), so
+// the composer's send arrow stays the view's one solid tangerine
+// (docs/brand/design.md §1, §3.2, §5, §8).
 
 const ACTIONS: { icon: LucideIcon; label: string }[] = [
   { icon: AppWindow, label: "Design a website" },
@@ -15,33 +32,74 @@ const ACTIONS: { icon: LucideIcon; label: string }[] = [
   { icon: ImageIcon, label: "Generate images" },
 ];
 
+const MORE: { icon: LucideIcon; label: string }[] = [
+  { icon: Video, label: "Video" },
+  { icon: Volume2, label: "Audio" },
+  { icon: Presentation, label: "Slides" },
+  { icon: MapPin, label: "Map" },
+  { icon: FileText, label: "Doc" },
+];
+
+// Chips keep the site's 32px height and 12px inset (the composer's pill metrics).
+const CHIP = "px-3 has-[>svg]:px-3";
+
+// Popover rows keep the site's metrics (8px corners, px-2 py-1.5, 14px) on
+// the brand's tint hover.
+const POPOVER_ITEM =
+  "flex w-full cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm text-foreground outline-none transition-[color,background-color] duration-(--duration-instant) ease-out hover:bg-tint-10 focus-visible:bg-tint-10";
+
 export function QuickActions() {
   return (
     <div className="flex flex-col items-center gap-6">
       <div className="flex flex-wrap justify-center gap-2">
-        <button
-          type="button"
-          className="flex cursor-pointer items-center gap-1.5 rounded-[8px] border px-3 py-1.5 font-medium text-sm shadow-xs border-amber-300 bg-amber-50 text-amber-900 dark:border-amber-700 dark:bg-amber-950/50 dark:text-amber-100 transition-colors hover:border-amber-400 hover:bg-amber-100 disabled:opacity-50 dark:hover:border-amber-600 dark:hover:bg-amber-900/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          aria-haspopup="dialog"
-          aria-expanded={false}
-        >
-          <Sparkles className="size-4 text-amber-600 dark:text-amber-400" aria-hidden="true" />
-          Set up your agent
-        </button>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              className={cn(
+                CHIP,
+                "bg-brand-subtle text-brand-subtle-foreground hover:bg-brand-accent/15 aria-expanded:bg-brand-accent/15",
+              )}
+            >
+              <Sparkles className="size-4 text-brand-accent" aria-hidden="true" />
+              Set up your agent
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent align="start" className="w-52 p-1.5">
+            <div className="space-y-0.5">
+              <button type="button" className={POPOVER_ITEM}>
+                Pick up where you left off
+              </button>
+              <button type="button" className={POPOVER_ITEM}>
+                Start fresh
+              </button>
+            </div>
+          </PopoverContent>
+        </Popover>
         {ACTIONS.map(({ icon: Icon, label }) => (
-          <button key={label} type="button" className={CHIP}>
+          <Button key={label} variant="outline" size="sm" className={CHIP}>
             <Icon className="size-4 text-muted-foreground" aria-hidden="true" />
             {label}
-          </button>
+          </Button>
         ))}
-        <button
-          type="button"
-          className="flex cursor-pointer items-center rounded-[8px] border border-border bg-background px-3 py-1.5 font-medium text-sm shadow-xs transition-colors hover:border-border/80 hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          aria-haspopup="dialog"
-          aria-expanded={false}
-        >
-          More...
-        </button>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="outline" size="sm" className={CHIP}>
+              More...
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-60 p-1.5">
+            <div className="space-y-0.5">
+              {MORE.map(({ icon: Icon, label }) => (
+                <button key={label} type="button" className={POPOVER_ITEM}>
+                  <Icon className="size-4 text-muted-foreground" aria-hidden="true" />
+                  {label}
+                </button>
+              ))}
+            </div>
+          </PopoverContent>
+        </Popover>
       </div>
     </div>
   );
