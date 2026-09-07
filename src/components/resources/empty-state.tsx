@@ -1,9 +1,14 @@
 import type { LucideIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 // Centered empty state shared by the resource pages. Two looks appear on
-// the site: "bubble" (Projects, Agents) puts the icon in a round
-// glass-bubble-primary tile with an xl heading; "plain" (Library, Memories)
-// shows a large faded icon with an lg heading.
+// the site: "bubble" (Projects, Agents) puts the icon in a round tile with an
+// xl heading; "plain" (Library, Memories) shows a large bare icon with an lg
+// heading. Phase 2 keeps both layouts and re-skins them: the bubble tile is a
+// tint disc with the icon on the second text tier (no ink glass), the title
+// sits on the first tier in the brand display face, the description on the
+// second, and the plain icon drops to the third tier (docs/brand/design.md
+// §4.1, §12). The action the caller passes is the ink button.
 export function EmptyState({
   icon: Icon,
   title,
@@ -21,16 +26,16 @@ export function EmptyState({
   return (
     <div className="flex flex-col items-center justify-center py-12 text-center">
       {bubble ? (
-        <div className="rounded-full glass-bubble-primary p-4 text-primary-foreground">
-          <Icon className="h-8 w-8" aria-hidden="true" />
+        <div className="flex size-16 items-center justify-center rounded-full bg-tint-10 text-muted-foreground">
+          <Icon className="size-8" aria-hidden="true" />
         </div>
       ) : (
-        <Icon className="h-12 w-12 text-muted-foreground/50" aria-hidden="true" />
+        <Icon className="size-12 text-foreground-low" aria-hidden="true" />
       )}
-      <h2 className={bubble ? "mt-4 text-xl font-semibold" : "mt-4 text-lg font-medium"}>{title}</h2>
-      <p className={bubble ? "mt-2 max-w-md text-muted-foreground" : "mt-2 text-sm text-muted-foreground"}>
-        {description}
-      </p>
+      <h2 className={cn("mt-4 font-heading text-foreground", bubble ? "text-xl font-semibold" : "text-lg font-medium")}>
+        {title}
+      </h2>
+      <p className={cn("mt-2 text-muted-foreground", bubble ? "max-w-md" : "text-sm")}>{description}</p>
       {action ? <div className="mt-4">{action}</div> : null}
     </div>
   );
