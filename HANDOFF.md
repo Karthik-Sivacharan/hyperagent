@@ -1,6 +1,7 @@
 # Handoff
 
-Written 2026-09-07 at the end of phase 2. Read this first in a new session,
+Written 2026-09-07 at the end of phase 2, after the type swap to Geist. Read
+this first in a new session,
 then `README.md`, `docs/brand/reskin-conventions.md` and
 `docs/clone-conventions.md`.
 
@@ -119,6 +120,35 @@ node scripts/dev/contact-sheet.mjs out/light out/sheet-light.png "main"
 | `scripts/brand/` | `gen-ramps.mjs`, `check-contrast.mjs`, `lint-tokens.mjs` |
 | `scripts/dev/` | `screenshot-pages.mjs`, `contact-sheet.mjs` (headless Chrome over the DevTools protocol, no dependencies) |
 
+## Open decision: the display face
+
+The app is Geist throughout on Vercel's published roles (§4 of
+`docs/brand/design.md`). The user is still choosing whether the headings
+should get a second face. Findings from checking the live sites on
+2026-09-07:
+
+- hyperagent.com sets "Let's get to work." in **Season Sans** (variable,
+  48/48 at 600, -0.01em) over Geist. airtable.com's marketing site uses
+  Season Sans for headlines, copy and buttons over Neue Haas Grotesk, with
+  Inter behind it. Both faces are commercial; the reference copy of Season
+  Sans stays in `docs/reference/fonts` for comparison only.
+- wajo.ai uses **Figtree** (600, 48px) for headlines and ledes over **Inter**
+  for UI, both free on Google Fonts. Figtree is the nearest free match to
+  Season Sans's warmth.
+- The brand prototype's original pairing was a serif display (PythiaType)
+  over Inter; the nearest free serifs are Newsreader (variable, carries the
+  450 weight), Instrument Serif (one weight) and Fraunces.
+
+Swapping only the heading face is two edits: add the loader in
+`src/design/brand/fonts.ts` and point `--font-heading` in `brand.css` at its
+variable; every title already carries `font-heading`. Check the heading
+weight afterwards: the `text-xl` and larger roles set 450, which only a
+variable face honours (`font-synthesis: none` forbids faking it).
+
+A second small question is whether the caps group labels
+(`text-label-12-caps`: sidebar sections, settings groups, palette headings)
+should become sentence case, which Vercel's own guide prefers.
+
 ## Known gaps and follow-ups
 
 - The phase-1 gaps still apply (invented grid and board layouts, a few
@@ -162,8 +192,9 @@ gates re-run after each merge.
 
 > Read HANDOFF.md, README.md and docs/brand/reskin-conventions.md in
 > ~/Projects/hyperagent. Phases 1 and 2 are merged on main: the dashboard
-> clone runs on the brand tokens in light and dark. Review every page at
-> 1456×868 in both themes (scripts/dev/screenshot-pages.mjs) and list what
-> still reads off-brand; then do plan step 5 from HANDOFF.md (retire the
-> Hyperagent palettes and unused fonts) and a phone-width pass. Keep
-> npm run brand:check-contrast and npm run brand:lint-tokens green.
+> clone runs on the brand tokens in light and dark, in Geist on Vercel's
+> type roles. First settle the open display-face decision in HANDOFF.md
+> (show me the hero and a settings page with Figtree, Newsreader and plain
+> Geist side by side); then do plan step 5 (retire the Hyperagent palettes)
+> and a phone-width pass. Keep npm run brand:check-contrast and
+> npm run brand:lint-tokens green.

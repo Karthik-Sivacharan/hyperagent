@@ -42,3 +42,6 @@ next-env.d.ts
 
 # Claude Code local tooling / worktrees
 .claude/
+
+# Market research notes (local only)
+/docs/research/
