@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Phone } from "lucide-react";
+import { IconPhone } from "@tabler/icons-react";
 import { Button } from "./button";
 import { cn } from "@/design/brand/utils";
 
@@ -28,7 +28,7 @@ export type CallButtonProps = Omit<React.ComponentProps<typeof Button>, "childre
 export function CallButton({ className, type = "button", ...props }: CallButtonProps) {
   return (
     <Button type={type} size="icon" data-slot="call-button" className={cn("size-11 bg-success text-success-foreground hover:bg-success/90", className)} {...props}>
-      <Phone aria-hidden className="size-5" />
+      <IconPhone aria-hidden className="size-5" />
     </Button>
   );
 }

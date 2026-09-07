@@ -1,4 +1,4 @@
-import { Search } from "lucide-react";
+import { IconSearch } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
 
@@ -19,7 +19,7 @@ export function SearchInput({
   return (
     <InputGroup className={cn("h-9", className)}>
       <InputGroupAddon>
-        <Search className="text-muted-foreground" aria-hidden="true" />
+        <IconSearch className="text-muted-foreground" aria-hidden="true" />
       </InputGroupAddon>
       <InputGroupInput translate="no" className={cn("notranslate h-full", inputClassName)} {...props} />
       {children}

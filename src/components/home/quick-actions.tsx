@@ -1,16 +1,16 @@
 import {
-  AppWindow,
-  FileText,
-  Image as ImageIcon,
-  MapPin,
-  Presentation,
-  Search,
-  Sparkles,
-  Users,
-  Video,
-  Volume2,
-  type LucideIcon,
-} from "lucide-react";
+  IconAppWindow,
+  IconFileText,
+  IconPhoto,
+  IconMapPin,
+  IconPresentation,
+  IconSearch,
+  IconSparkles,
+  IconUsers,
+  IconVideo,
+  IconVolume2,
+  type TablerIcon,
+} from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -25,19 +25,19 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 // the composer's send arrow stays the view's one solid tangerine
 // (docs/brand/design.md §1, §3.2, §5, §8).
 
-const ACTIONS: { icon: LucideIcon; label: string }[] = [
-  { icon: AppWindow, label: "Design a website" },
-  { icon: Users, label: "Source candidates" },
-  { icon: Search, label: "Research a topic" },
-  { icon: ImageIcon, label: "Generate images" },
+const ACTIONS: { icon: TablerIcon; label: string }[] = [
+  { icon: IconAppWindow, label: "Design a website" },
+  { icon: IconUsers, label: "Source candidates" },
+  { icon: IconSearch, label: "Research a topic" },
+  { icon: IconPhoto, label: "Generate images" },
 ];
 
-const MORE: { icon: LucideIcon; label: string }[] = [
-  { icon: Video, label: "Video" },
-  { icon: Volume2, label: "Audio" },
-  { icon: Presentation, label: "Slides" },
-  { icon: MapPin, label: "Map" },
-  { icon: FileText, label: "Doc" },
+const MORE: { icon: TablerIcon; label: string }[] = [
+  { icon: IconVideo, label: "Video" },
+  { icon: IconVolume2, label: "Audio" },
+  { icon: IconPresentation, label: "Slides" },
+  { icon: IconMapPin, label: "Map" },
+  { icon: IconFileText, label: "Doc" },
 ];
 
 // Chips keep the site's 32px height and 12px inset (the composer's pill metrics).
@@ -62,7 +62,7 @@ export function QuickActions() {
                 "bg-brand-subtle text-brand-subtle-foreground hover:bg-brand-accent/15 aria-expanded:bg-brand-accent/15",
               )}
             >
-              <Sparkles className="size-4 text-brand-accent" aria-hidden="true" />
+              <IconSparkles className="size-4 text-brand-accent" aria-hidden="true" />
               Set up your agent
             </Button>
           </PopoverTrigger>

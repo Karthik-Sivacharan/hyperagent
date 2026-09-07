@@ -4,27 +4,27 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import {
-  ArrowUpRight,
-  BookOpen,
-  Bot,
-  Brain,
-  ChevronDown,
-  ChevronRight,
-  Ellipsis,
-  FolderOpen,
-  GraduationCap,
-  Inbox,
-  MessageCircle,
-  PanelLeftClose,
-  PanelLeftOpen,
-  Plus,
-  Puzzle,
-  Search,
-  SquarePen,
-  Store,
-  Users,
-  type LucideIcon,
-} from "lucide-react";
+  IconArrowUpRight,
+  IconBook,
+  IconRobot,
+  IconBrain,
+  IconChevronDown,
+  IconChevronRight,
+  IconDots,
+  IconFolderOpen,
+  IconSchool,
+  IconInbox,
+  IconMessageCircle,
+  IconLayoutSidebarLeftCollapse,
+  IconLayoutSidebarLeftExpand,
+  IconPlus,
+  IconPuzzle,
+  IconSearch,
+  IconEdit,
+  IconBuildingStore,
+  IconUsers,
+  type TablerIcon,
+} from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -97,7 +97,7 @@ function NavLink({
   collapsed,
 }: {
   href: string;
-  icon: LucideIcon;
+  icon: TablerIcon;
   label: string;
   active?: boolean;
   muted?: boolean;
@@ -142,7 +142,7 @@ function SectionHeader({
   onToggle: () => void;
   action?: React.ReactNode;
 }) {
-  const Chevron = expanded ? ChevronDown : ChevronRight;
+  const Chevron = expanded ? IconChevronDown : IconChevronRight;
   return (
     <div className="group mb-1 flex items-center gap-1 text-label-12-caps text-foreground-low pr-1">
       <button
@@ -173,7 +173,7 @@ function RailThreadsMenu({ children, ...triggerProps }: React.ComponentProps<typ
         {recentThreads.map((thread) => (
           <DropdownMenuItem key={thread.id} asChild>
             <Link href={`/thread/${thread.id}`}>
-              <MessageCircle className="size-4" aria-hidden="true" />
+              <IconMessageCircle className="size-4" aria-hidden="true" />
               <span className="truncate text-sm">{thread.title}</span>
             </Link>
           </DropdownMenuItem>
@@ -181,7 +181,7 @@ function RailThreadsMenu({ children, ...triggerProps }: React.ComponentProps<typ
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
           <Link href="/threads">
-            <ArrowUpRight className="size-4" aria-hidden="true" />
+            <IconArrowUpRight className="size-4" aria-hidden="true" />
             <span className="text-sm">View all</span>
           </Link>
         </DropdownMenuItem>
@@ -270,7 +270,7 @@ export function Sidebar() {
           <span className="truncate font-medium text-foreground text-xs leading-4">{currentUser.name}</span>
           <span className="truncate text-muted-foreground text-xs leading-4">{currentUser.email}</span>
         </div>
-        <ChevronRight
+        <IconChevronRight
           className={cn("size-4 shrink-0 opacity-50 transition-opacity duration-200", collapsed && "opacity-0")}
           aria-hidden="true"
         />
@@ -285,7 +285,7 @@ export function Sidebar() {
         aria-label="New agent"
         className="flex cursor-pointer items-center justify-center rounded-full p-1 text-muted-foreground transition-colors hover:bg-tint-15 hover:text-foreground data-[state=open]:opacity-100 opacity-0 focus-visible:opacity-100 group-hover:opacity-100 group-has-[:focus-visible]:opacity-100"
       >
-        <Plus className="size-3.5" aria-hidden="true" />
+        <IconPlus className="size-3.5" aria-hidden="true" />
       </button>
     </NewAgentMenu>
   );
@@ -329,7 +329,7 @@ export function Sidebar() {
                           <TooltipTrigger asChild>
                             <span className="flex size-5 shrink-0 items-center justify-center">
                               <HyperagentMark className="size-5 text-primary group-hover:hidden" />
-                              <PanelLeftOpen className="hidden size-4 text-primary group-hover:block" aria-hidden="true" />
+                              <IconLayoutSidebarLeftExpand className="hidden size-4 text-primary group-hover:block" aria-hidden="true" />
                             </span>
                           </TooltipTrigger>
                           <TooltipContent side="right">Open sidebar</TooltipContent>
@@ -344,7 +344,7 @@ export function Sidebar() {
                     aria-label={collapsed ? "Pin sidebar" : "Hide sidebar"}
                     onClick={toggleCollapsed}
                   >
-                    <PanelLeftClose className="size-4" />
+                    <IconLayoutSidebarLeftCollapse className="size-4" aria-hidden="true" />
                   </Button>
                 </div>
 
@@ -356,7 +356,7 @@ export function Sidebar() {
                 <nav className={cn("flex-1 overflow-y-auto overflow-x-hidden py-2", collapsed && "scrollbar-hide", "px-2")}>
                   <div>
                     <div className={cn("space-y-0.5", !collapsed && "mb-2")}>
-                      <NavLink href="/threads/new" icon={SquarePen} label="New thread" active={isActive("/threads/new")} collapsed={collapsed} />
+                      <NavLink href="/threads/new" icon={IconEdit} label="New thread" active={isActive("/threads/new")} collapsed={collapsed} />
                       <RailTooltip label="Search" collapsed={collapsed}>
                         <button
                           type="button"
@@ -364,7 +364,7 @@ export function Sidebar() {
                           className="group flex w-full cursor-pointer items-center gap-2 overflow-hidden rounded-full text-foreground transition-[color,background-color] duration-(--duration-normal) ease-out hover:bg-tint-10 px-3.5 pr-2 py-1.5 text-sm"
                         >
                           <div className="flex shrink-0 items-center justify-center h-5 w-5">
-                            <Search className="h-4 w-4" aria-hidden="true" />
+                            <IconSearch className="h-4 w-4" aria-hidden="true" />
                           </div>
                           <NavLabel label="Search" collapsed={collapsed} grow />
                           <kbd className="min-w-[1.25rem] shrink-0 py-0.5 text-center text-muted-foreground opacity-0 transition-opacity duration-150 group-hover:opacity-100 px-1.5 text-xs">
@@ -372,7 +372,7 @@ export function Sidebar() {
                           </kbd>
                         </button>
                       </RailTooltip>
-                      <NavLink href="/inbox" icon={Inbox} label="Inbox" active={isActive("/inbox")} grow collapsed={collapsed} />
+                      <NavLink href="/inbox" icon={IconInbox} label="Inbox" active={isActive("/inbox")} grow collapsed={collapsed} />
                     </div>
 
                     {collapsed && (
@@ -385,7 +385,7 @@ export function Sidebar() {
                               className="flex w-full cursor-pointer items-center gap-2 overflow-hidden rounded-full transition-[color,background-color] duration-(--duration-normal) ease-out px-3.5 py-1.5 text-sm text-foreground hover:bg-tint-10"
                             >
                               <div className="flex shrink-0 items-center justify-center h-5 w-5">
-                                <Bot className="h-4 w-4" aria-hidden="true" />
+                                <IconRobot className="h-4 w-4" aria-hidden="true" />
                               </div>
                               <NavLabel label="Agents" collapsed />
                             </button>
@@ -399,7 +399,7 @@ export function Sidebar() {
                               className="flex w-full cursor-pointer items-center gap-2 overflow-hidden rounded-full transition-[color,background-color] duration-(--duration-normal) ease-out px-3.5 py-1.5 text-sm text-foreground hover:bg-tint-10"
                             >
                               <div className="flex shrink-0 items-center justify-center h-5 w-5">
-                                <MessageCircle className="h-4 w-4" aria-hidden="true" />
+                                <IconMessageCircle className="h-4 w-4" aria-hidden="true" />
                               </div>
                               <NavLabel label="Threads" collapsed />
                             </button>
@@ -431,7 +431,7 @@ export function Sidebar() {
                                 className="flex w-full cursor-pointer items-center gap-2 overflow-hidden rounded-full text-muted-foreground transition-[color,background-color] duration-(--duration-normal) ease-out hover:bg-tint-10 hover:text-foreground px-3.5 py-1.5 text-sm"
                               >
                                 <div className="flex shrink-0 items-center justify-center h-5 w-5">
-                                  <Plus className="h-4 w-4" aria-hidden="true" />
+                                  <IconPlus className="h-4 w-4" aria-hidden="true" />
                                 </div>
                                 <span className="whitespace-nowrap transition-opacity duration-200">New agent</span>
                               </button>
@@ -455,7 +455,7 @@ export function Sidebar() {
                                   href="/threads/new"
                                   className="flex cursor-pointer items-center justify-center rounded-full p-1 text-muted-foreground opacity-0 transition-colors hover:bg-tint-15 hover:text-foreground focus-visible:opacity-100 group-hover:opacity-100 group-has-[:focus-visible]:opacity-100"
                                 >
-                                  <Plus className="size-3.5" aria-hidden="true" />
+                                  <IconPlus className="size-3.5" aria-hidden="true" />
                                 </Link>
                               }
                             />
@@ -479,7 +479,7 @@ export function Sidebar() {
                                           >
                                             <div className="flex w-5 shrink-0 items-center justify-center h-5">
                                               <div className="relative size-4">
-                                                <MessageCircle className="size-4 text-muted-foreground" aria-hidden="true" />
+                                                <IconMessageCircle className="size-4 text-muted-foreground" aria-hidden="true" />
                                               </div>
                                             </div>
                                             <div className="min-w-0 flex-1">
@@ -497,7 +497,7 @@ export function Sidebar() {
                                                   className="size-6 bg-tint-15 hover:bg-tint-20"
                                                   aria-label={`Options for ${thread.title}`}
                                                 >
-                                                  <Ellipsis className="size-4" />
+                                                  <IconDots className="size-4" aria-hidden="true" />
                                                 </Button>
                                               </ThreadOptionsMenu>
                                             </div>
@@ -517,7 +517,7 @@ export function Sidebar() {
                                   )}
                                 >
                                   <div className="flex shrink-0 items-center justify-center h-5 w-5">
-                                    <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+                                    <IconArrowUpRight className="h-4 w-4" aria-hidden="true" />
                                   </div>
                                   <span className="whitespace-nowrap transition-opacity duration-200">View all</span>
                                 </Link>
@@ -539,9 +539,9 @@ export function Sidebar() {
                           <span className="whitespace-nowrap">Resources</span>
                         </div>
                         <div className="space-y-0.5">
-                          <NavLink href="/teams" icon={Users} label="Teams" active={isActive("/teams")} collapsed={collapsed} />
-                          <NavLink href="/skills" icon={Puzzle} label="Skills" active={isActive("/skills")} collapsed={collapsed} />
-                          <NavLink href="/memories" icon={Brain} label="Memories" active={isActive("/memories")} collapsed={collapsed} />
+                          <NavLink href="/teams" icon={IconUsers} label="Teams" active={isActive("/teams")} collapsed={collapsed} />
+                          <NavLink href="/skills" icon={IconPuzzle} label="Skills" active={isActive("/skills")} collapsed={collapsed} />
+                          <NavLink href="/memories" icon={IconBrain} label="Memories" active={isActive("/memories")} collapsed={collapsed} />
                           <RailTooltip label="Learning" collapsed={collapsed}>
                             <LearningMenu>
                               <button
@@ -553,16 +553,16 @@ export function Sidebar() {
                                 )}
                               >
                                 <div className="flex shrink-0 items-center justify-center h-5 w-5">
-                                  <GraduationCap className="h-4 w-4" aria-hidden="true" />
+                                  <IconSchool className="h-4 w-4" aria-hidden="true" />
                                 </div>
                                 <NavLabel label="Learning" collapsed={collapsed} grow />
-                                <ChevronRight className="size-4 shrink-0 opacity-50" aria-hidden="true" />
+                                <IconChevronRight className="size-4 shrink-0 opacity-50" aria-hidden="true" />
                               </button>
                             </LearningMenu>
                           </RailTooltip>
-                          <NavLink href="/projects" icon={FolderOpen} label="Projects" active={isActive("/projects")} collapsed={collapsed} />
-                          <NavLink href="/library" icon={BookOpen} label="Library" active={isActive("/library")} collapsed={collapsed} />
-                          <NavLink href="/marketplace" icon={Store} label="Marketplace" active={isActive("/marketplace")} collapsed={collapsed} />
+                          <NavLink href="/projects" icon={IconFolderOpen} label="Projects" active={isActive("/projects")} collapsed={collapsed} />
+                          <NavLink href="/library" icon={IconBook} label="Library" active={isActive("/library")} collapsed={collapsed} />
+                          <NavLink href="/marketplace" icon={IconBuildingStore} label="Marketplace" active={isActive("/marketplace")} collapsed={collapsed} />
                         </div>
                       </div>
                     </div>

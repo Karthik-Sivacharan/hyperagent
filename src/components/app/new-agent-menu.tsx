@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Compass, Copy, MessageCirclePlus, Store, Upload, WandSparkles } from "lucide-react";
+import { IconCompass, IconCopy, IconMessageCirclePlus, IconBuildingStore, IconUpload, IconWand } from "@tabler/icons-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,23 +28,23 @@ export function NewAgentMenu({ children, ...triggerProps }: React.ComponentProps
       <DropdownMenuContent side="right" align="start" className="w-64">
         <DropdownMenuItem asChild>
           <Link href="/agents">
-            <Compass className="h-4 w-4" aria-hidden="true" />
+            <IconCompass className="h-4 w-4" aria-hidden="true" />
             <span className="text-sm">Guided setup</span>
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem>
-          <MessageCirclePlus className="h-4 w-4" aria-hidden="true" />
+          <IconMessageCirclePlus className="h-4 w-4" aria-hidden="true" />
           <span className="text-sm">Create with chat</span>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
           <Link href="/agents">
-            <WandSparkles className="h-4 w-4" aria-hidden="true" />
+            <IconWand className="h-4 w-4" aria-hidden="true" />
             <span className="text-sm">Create manually</span>
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSub>
           <DropdownMenuSubTrigger>
-            <Copy className="h-4 w-4" aria-hidden="true" />
+            <IconCopy className="h-4 w-4" aria-hidden="true" />
             <span className="text-sm">Start from a template</span>
           </DropdownMenuSubTrigger>
           <DropdownMenuSubContent className="max-w-72">
@@ -61,12 +61,12 @@ export function NewAgentMenu({ children, ...triggerProps }: React.ComponentProps
         </DropdownMenuSub>
         <DropdownMenuItem asChild>
           <Link href="/marketplace">
-            <Store className="h-4 w-4" aria-hidden="true" />
+            <IconBuildingStore className="h-4 w-4" aria-hidden="true" />
             <span className="text-sm">Search the marketplace</span>
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem>
-          <Upload className="h-4 w-4" aria-hidden="true" />
+          <IconUpload className="h-4 w-4" aria-hidden="true" />
           <span className="text-sm">Import</span>
         </DropdownMenuItem>
       </DropdownMenuContent>

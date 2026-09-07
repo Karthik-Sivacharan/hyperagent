@@ -1,4 +1,4 @@
-import { Search } from "lucide-react";
+import { IconSearch } from "@tabler/icons-react";
 import { featuredAgents, featuredSkills, marketplaceCategories } from "@/lib/mock/marketplace";
 import { AgentListingCard } from "@/components/marketplace/agent-listing-card";
 import { CategoryCard } from "@/components/marketplace/category-card";
@@ -43,7 +43,7 @@ export function MarketplacePage() {
               <div className="relative w-full sm:w-80 lg:w-[420px]">
                 <SiteInput
                   type="text"
-                  icon={<Search aria-hidden="true" />}
+                  icon={<IconSearch aria-hidden="true" />}
                   placeholder="Search the marketplace"
                   aria-label="Search the marketplace"
                   defaultValue=""

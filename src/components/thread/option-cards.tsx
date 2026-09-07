@@ -1,4 +1,4 @@
-import { Bot, MessageCircleQuestionMark, Network } from "lucide-react";
+import { IconRobot, IconMessageCircleQuestion, IconNetwork } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 import type { OptionCard, OptionCardIcon } from "@/lib/mock/conversation";
 import { OpenClawIcon } from "@/components/thread/openclaw-icon";
@@ -16,11 +16,11 @@ const CARD =
 function CardIcon({ icon, className }: { icon: OptionCardIcon; className: string }) {
   switch (icon) {
     case "bot":
-      return <Bot className={className} aria-hidden="true" />;
+      return <IconRobot className={className} aria-hidden="true" />;
     case "network":
-      return <Network className={className} aria-hidden="true" />;
+      return <IconNetwork className={className} aria-hidden="true" />;
     case "message-circle-question-mark":
-      return <MessageCircleQuestionMark className={className} aria-hidden="true" />;
+      return <IconMessageCircleQuestion className={className} aria-hidden="true" />;
     case "openclaw":
       return <OpenClawIcon className={className} />;
   }

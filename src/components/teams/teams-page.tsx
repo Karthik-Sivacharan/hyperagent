@@ -1,4 +1,4 @@
-import { Plus, Users } from "lucide-react";
+import { IconPlus, IconUsers } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
 import { PageHeading } from "@/components/resources/page-heading";
 
@@ -20,7 +20,7 @@ export function TeamsPage() {
               <>
                 <Button variant="outline">Join a team</Button>
                 <Button>
-                  <Plus className="mr-1.5 size-4" aria-hidden="true" />
+                  <IconPlus className="mr-1.5 size-4" aria-hidden="true" />
                   Create team
                 </Button>
               </>
@@ -30,7 +30,7 @@ export function TeamsPage() {
         <div className="flex-1 overflow-auto p-6">
           <div className="flex h-full items-center justify-center">
             <div className="max-w-md rounded-3xl border border-dashed border-border-loud p-8 text-center">
-              <Users className="mx-auto mb-3 size-10 text-muted-foreground" aria-hidden="true" />
+              <IconUsers className="mx-auto mb-3 size-10 text-muted-foreground" aria-hidden="true" />
               <p className="font-heading text-base font-medium text-foreground">You&apos;re not on any teams yet</p>
               <p className="mt-1 text-sm text-muted-foreground">
                 Create a new team or join one with an invite code to share agents and skills.

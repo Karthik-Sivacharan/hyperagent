@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, ChevronRight, PanelRight, Star } from "lucide-react";
+import { IconChevronDown, IconChevronRight, IconLayoutSidebarRight, IconStar } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -44,7 +44,7 @@ export function ThreadHeader({ title, model, starred: initialStarred }: { title:
               <DropdownMenuTrigger asChild>
                 <button type="button" className={cn(GHOST_PILL, "flex min-w-0 max-w-full items-center gap-0.5 px-2 py-0.5")}>
                   <span className="truncate font-normal text-sm text-foreground">{title}</span>
-                  <ChevronDown className="size-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />
+                  <IconChevronDown className="size-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" className="w-56">
@@ -53,7 +53,7 @@ export function ThreadHeader({ title, model, starred: initialStarred }: { title:
                 <DropdownMenuSeparator />
                 <DropdownMenuItem>
                   Move to project
-                  <ChevronRight className="ml-auto size-4 text-muted-foreground" aria-hidden="true" />
+                  <IconChevronRight className="ml-auto size-4 text-muted-foreground" aria-hidden="true" />
                 </DropdownMenuItem>
                 <DropdownMenuItem>Share</DropdownMenuItem>
                 <DropdownMenuItem>Fork thread</DropdownMenuItem>
@@ -73,7 +73,7 @@ export function ThreadHeader({ title, model, starred: initialStarred }: { title:
             aria-pressed={starred}
             onClick={() => setStarred((s) => !s)}
           >
-            <Star className={cn("size-3.5", starred && "fill-current")} />
+            <IconStar className={cn("size-3.5", starred && "fill-current")} aria-hidden="true" />
           </Button>
         </div>
 
@@ -124,7 +124,7 @@ export function ThreadHeader({ title, model, starred: initialStarred }: { title:
             className="size-7 bg-tint-10 text-muted-foreground hover:bg-tint-15 hover:text-foreground"
             aria-label="Open panel"
           >
-            <PanelRight className="size-3.5" />
+            <IconLayoutSidebarRight className="size-3.5" aria-hidden="true" />
           </Button>
         </div>
       </div>

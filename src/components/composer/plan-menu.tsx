@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Check } from "lucide-react";
+import { IconCheck } from "@tabler/icons-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -36,7 +36,7 @@ function ModeBody({ mode, selected }: { mode: ExecutionMode; selected: boolean }
   const { label, description } = EXECUTION_MODES[mode];
   return (
     <>
-      <Check className={cn("mt-0.5 size-4 shrink-0", selected ? "text-brand-accent" : "opacity-0")} aria-hidden="true" />
+      <IconCheck className={cn("mt-0.5 size-4 shrink-0", selected ? "text-brand-accent" : "opacity-0")} aria-hidden="true" />
       <div className="min-w-0 flex-1">
         <div className={cn("text-sm text-foreground", selected ? "font-medium" : "font-normal")}>{label}</div>
         <div className="text-muted-foreground text-xs leading-4">{description}</div>
@@ -73,7 +73,7 @@ export function PlanMenu({
         </DropdownMenuItem>
         <DropdownMenuSub>
           <DropdownMenuSubTrigger className="items-start">
-            <Check className={cn("mt-0.5 size-4 shrink-0", executing ? "text-brand-accent" : "opacity-0")} aria-hidden="true" />
+            <IconCheck className={cn("mt-0.5 size-4 shrink-0", executing ? "text-brand-accent" : "opacity-0")} aria-hidden="true" />
             <div className="min-w-0 flex-1">
               <div className={cn("text-sm text-foreground", executing ? "font-medium" : "font-normal")}>Execute</div>
               <div className="text-muted-foreground text-xs leading-4">Act immediately without a plan</div>

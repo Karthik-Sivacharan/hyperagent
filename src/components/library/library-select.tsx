@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, ChevronDown } from "lucide-react";
+import { IconCheck, IconChevronDown } from "@tabler/icons-react";
 import { Select as SelectPrimitive } from "radix-ui";
 import { cn } from "@/lib/utils";
 import type { SelectOption } from "@/lib/mock/library";
@@ -44,7 +44,7 @@ export function LibrarySelect({
       >
         <SelectPrimitive.Value data-slot="select-value" />
         <SelectPrimitive.Icon asChild>
-          <ChevronDown className="size-3.5 opacity-60" aria-hidden="true" />
+          <IconChevronDown className="size-3.5 opacity-60" aria-hidden="true" />
         </SelectPrimitive.Icon>
       </SelectPrimitive.Trigger>
       <SelectPrimitive.Portal>
@@ -54,7 +54,7 @@ export function LibrarySelect({
               <SelectPrimitive.Item key={option.value} value={option.value} data-slot="select-item" className={ITEM}>
                 <span className="absolute right-2 flex size-3.5 items-center justify-center text-brand-accent">
                   <SelectPrimitive.ItemIndicator>
-                    <Check className="size-4" aria-hidden="true" />
+                    <IconCheck className="size-4" aria-hidden="true" />
                   </SelectPrimitive.ItemIndicator>
                 </span>
                 <SelectPrimitive.ItemText>{option.label}</SelectPrimitive.ItemText>

@@ -1,6 +1,6 @@
 "use client";
 
-import { Archive } from "lucide-react";
+import { IconArchive } from "@tabler/icons-react";
 import { Switch } from "@/components/ui/switch";
 
 // "Show Archived" control from the Projects and Library headers. Phase 1
@@ -24,7 +24,7 @@ export function ShowArchivedSwitch({
         htmlFor={id}
         className="flex cursor-pointer select-none items-center gap-2 text-sm font-medium text-muted-foreground transition-[color] duration-(--duration-fast) ease-out-quart peer-disabled:cursor-not-allowed peer-disabled:opacity-50 hover:text-foreground"
       >
-        <Archive className="mr-1 inline size-3.5" aria-hidden="true" />
+        <IconArchive className="mr-1 inline size-3.5" aria-hidden="true" />
         Show Archived
       </label>
     </div>

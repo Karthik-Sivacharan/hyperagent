@@ -1,24 +1,24 @@
 "use client";
 
 import {
-  Brain,
-  FileText,
-  Files,
-  FolderOpen,
-  Globe,
-  Image,
-  MapPin,
-  Paperclip,
-  Plus,
-  Presentation,
-  Puzzle,
-  Search,
-  Shapes,
-  Table,
-  Video,
-  Volume2,
-  type LucideIcon,
-} from "lucide-react";
+  IconBrain,
+  IconFileText,
+  IconFiles,
+  IconFolderOpen,
+  IconGlobe,
+  IconPhoto,
+  IconMapPin,
+  IconPaperclip,
+  IconPlus,
+  IconPresentation,
+  IconPuzzle,
+  IconSearch,
+  IconCategory,
+  IconTable,
+  IconVideo,
+  IconVolume2,
+  type TablerIcon,
+} from "@tabler/icons-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -55,15 +55,15 @@ const SKILLS = [
   "docx",
 ];
 
-const OUTPUTS: { label: string; icon: LucideIcon }[] = [
-  { label: "Image", icon: Image },
-  { label: "Video", icon: Video },
-  { label: "Audio", icon: Volume2 },
-  { label: "Webpage", icon: Globe },
-  { label: "Slides", icon: Presentation },
-  { label: "Table", icon: Table },
-  { label: "Map", icon: MapPin },
-  { label: "Doc", icon: FileText },
+const OUTPUTS: { label: string; icon: TablerIcon }[] = [
+  { label: "Image", icon: IconPhoto },
+  { label: "Video", icon: IconVideo },
+  { label: "Audio", icon: IconVolume2 },
+  { label: "Webpage", icon: IconGlobe },
+  { label: "Slides", icon: IconPresentation },
+  { label: "Table", icon: IconTable },
+  { label: "Map", icon: IconMapPin },
+  { label: "Doc", icon: IconFileText },
 ];
 
 /** Searchable list panel (w-[300px] p-0) used by the Skills / Memories / Assets subs. */
@@ -74,7 +74,7 @@ function PickerPanel({
   empty,
 }: {
   placeholder: string;
-  icon: LucideIcon;
+  icon: TablerIcon;
   items: string[];
   empty: string;
 }) {
@@ -82,7 +82,7 @@ function PickerPanel({
     <DropdownMenuSubContent className="w-[300px] p-0">
       <div className="flex w-full flex-col overflow-hidden p-1">
         <div className="flex items-center gap-2 rounded-md px-2 py-1.5">
-          <Search className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+          <IconSearch className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
           <input
             placeholder={placeholder}
             className="h-5 w-full bg-transparent text-[13px] text-foreground outline-none placeholder:text-foreground-low"
@@ -125,37 +125,37 @@ export function AddMenu({ children, ...triggerProps }: React.ComponentProps<type
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-[calc(100vw-2rem)] max-w-[300px] p-1">
         <DropdownMenuItem className="gap-2">
-          <Paperclip className="size-4" aria-hidden="true" />
+          <IconPaperclip className="size-4" aria-hidden="true" />
           <span className="text-sm">Upload files...</span>
         </DropdownMenuItem>
 
         <DropdownMenuSub>
           <DropdownMenuSubTrigger className="gap-2">
-            <Puzzle className="size-4" aria-hidden="true" />
+            <IconPuzzle className="size-4" aria-hidden="true" />
             <span className="flex-1 text-sm">Skills</span>
           </DropdownMenuSubTrigger>
-          <PickerPanel placeholder="Search skills" icon={Puzzle} items={SKILLS} empty="No skills yet" />
+          <PickerPanel placeholder="Search skills" icon={IconPuzzle} items={SKILLS} empty="No skills yet" />
         </DropdownMenuSub>
 
         <DropdownMenuSub>
           <DropdownMenuSubTrigger className="gap-2">
-            <Brain className="size-4" aria-hidden="true" />
+            <IconBrain className="size-4" aria-hidden="true" />
             <span className="flex-1 text-sm">Memories</span>
           </DropdownMenuSubTrigger>
-          <PickerPanel placeholder="Search memories" icon={Brain} items={[]} empty="No memories yet" />
+          <PickerPanel placeholder="Search memories" icon={IconBrain} items={[]} empty="No memories yet" />
         </DropdownMenuSub>
 
         <DropdownMenuSub>
           <DropdownMenuSubTrigger className="gap-2">
-            <Files className="size-4" aria-hidden="true" />
+            <IconFiles className="size-4" aria-hidden="true" />
             <span className="flex-1 text-sm">Assets</span>
           </DropdownMenuSubTrigger>
-          <PickerPanel placeholder="Search assets" icon={Files} items={[]} empty="No assets yet" />
+          <PickerPanel placeholder="Search assets" icon={IconFiles} items={[]} empty="No assets yet" />
         </DropdownMenuSub>
 
         <DropdownMenuSub>
           <DropdownMenuSubTrigger className="gap-2">
-            <Shapes className="size-4" aria-hidden="true" />
+            <IconCategory className="size-4" aria-hidden="true" />
             <span className="flex-1 text-sm">Output as...</span>
           </DropdownMenuSubTrigger>
           <DropdownMenuSubContent className="w-[200px] p-1">
@@ -170,14 +170,14 @@ export function AddMenu({ children, ...triggerProps }: React.ComponentProps<type
 
         <DropdownMenuSub>
           <DropdownMenuSubTrigger className="gap-2">
-            <FolderOpen className="size-4" aria-hidden="true" />
+            <IconFolderOpen className="size-4" aria-hidden="true" />
             <span className="flex-1 text-sm">Add to a project</span>
           </DropdownMenuSubTrigger>
           <DropdownMenuSubContent>
             <DropdownMenuItem disabled>No projects yet</DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem data-drawer-keep-open="true">
-              <Plus className="size-4" aria-hidden="true" />
+              <IconPlus className="size-4" aria-hidden="true" />
               Create new project…
             </DropdownMenuItem>
           </DropdownMenuSubContent>

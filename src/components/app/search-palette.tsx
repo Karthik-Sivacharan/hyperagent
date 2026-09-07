@@ -3,25 +3,25 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  Activity,
-  AppWindow,
-  BookOpen,
-  Bot,
-  Brain,
-  ClipboardCheck,
-  Files,
-  FolderOpen,
-  GraduationCap,
-  Inbox,
-  MessageSquare,
-  MessagesSquare,
-  Plug,
-  Puzzle,
-  Store,
-  Users,
-  Workflow,
-  type LucideIcon,
-} from "lucide-react";
+  IconActivity,
+  IconAppWindow,
+  IconBook,
+  IconRobot,
+  IconBrain,
+  IconClipboardCheck,
+  IconFiles,
+  IconFolderOpen,
+  IconSchool,
+  IconInbox,
+  IconMessage,
+  IconMessages,
+  IconPlug,
+  IconPuzzle,
+  IconBuildingStore,
+  IconUsers,
+  IconSchema,
+  type TablerIcon,
+} from "@tabler/icons-react";
 import { CommandDialog, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { recentThreads } from "@/lib/mock/threads";
 
@@ -34,25 +34,25 @@ const KBD =
 const FOOTER_KBD =
   "inline-flex h-[18px] items-center justify-center rounded-sm bg-tint-10 px-1 font-mono text-[9px]";
 
-type GoTo = { value: string; label: string; icon: LucideIcon; href?: string };
+type GoTo = { value: string; label: string; icon: TablerIcon; href?: string };
 
 const GO_TO: GoTo[] = [
-  { value: "projects", label: "Projects", icon: FolderOpen, href: "/projects" },
-  { value: "threads", label: "Threads", icon: MessageSquare, href: "/threads" },
-  { value: "inbox", label: "Inbox", icon: Inbox, href: "/inbox" },
-  { value: "agents", label: "Agents", icon: Bot, href: "/agents" },
-  { value: "command-center", label: "Command Center", icon: Activity },
-  { value: "teams", label: "Teams", icon: Users, href: "/teams" },
-  { value: "skills", label: "Skills", icon: Puzzle, href: "/skills" },
-  { value: "memories", label: "Memories", icon: Brain, href: "/memories" },
-  { value: "documents", label: "Documents", icon: Files },
-  { value: "rubrics", label: "Rubrics", icon: ClipboardCheck },
-  { value: "hyperapps", label: "HyperApps", icon: AppWindow },
-  { value: "workflows", label: "Workflows", icon: Workflow },
-  { value: "library", label: "Library", icon: BookOpen, href: "/library" },
-  { value: "learning", label: "Learning", icon: GraduationCap, href: "/learning" },
-  { value: "marketplace", label: "Marketplace", icon: Store, href: "/marketplace" },
-  { value: "integrations", label: "Integrations", icon: Plug, href: "/settings/integrations" },
+  { value: "projects", label: "Projects", icon: IconFolderOpen, href: "/projects" },
+  { value: "threads", label: "Threads", icon: IconMessage, href: "/threads" },
+  { value: "inbox", label: "Inbox", icon: IconInbox, href: "/inbox" },
+  { value: "agents", label: "Agents", icon: IconRobot, href: "/agents" },
+  { value: "command-center", label: "Command Center", icon: IconActivity },
+  { value: "teams", label: "Teams", icon: IconUsers, href: "/teams" },
+  { value: "skills", label: "Skills", icon: IconPuzzle, href: "/skills" },
+  { value: "memories", label: "Memories", icon: IconBrain, href: "/memories" },
+  { value: "documents", label: "Documents", icon: IconFiles },
+  { value: "rubrics", label: "Rubrics", icon: IconClipboardCheck },
+  { value: "hyperapps", label: "HyperApps", icon: IconAppWindow },
+  { value: "workflows", label: "Workflows", icon: IconSchema },
+  { value: "library", label: "Library", icon: IconBook, href: "/library" },
+  { value: "learning", label: "Learning", icon: IconSchool, href: "/learning" },
+  { value: "marketplace", label: "Marketplace", icon: IconBuildingStore, href: "/marketplace" },
+  { value: "integrations", label: "Integrations", icon: IconPlug, href: "/settings/integrations" },
 ];
 
 export function SearchPalette({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
@@ -110,7 +110,7 @@ export function SearchPalette({ open, onOpenChange }: { open: boolean; onOpenCha
                 onSelect={() => go(`/thread/${thread.id}`)}
               >
                 <div className="flex size-8 shrink-0 items-center justify-center">
-                  <MessagesSquare className="size-5 text-muted-foreground" aria-hidden="true" />
+                  <IconMessages className="size-5 text-muted-foreground" aria-hidden="true" />
                 </div>
                 <div className="flex min-w-0 flex-1 flex-col">
                   <span className="truncate text-foreground text-sm leading-5">{thread.title}</span>

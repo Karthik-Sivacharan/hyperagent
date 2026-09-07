@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { IconChevronDown, IconChevronRight } from "@tabler/icons-react";
 import { Collapsible as CollapsiblePrimitive } from "radix-ui";
 import { discoverSkills } from "@/lib/mock/skills";
 import { Button } from "@/components/ui/button";
@@ -18,7 +18,7 @@ import { SkillListingCard } from "@/components/marketplace/skill-listing-card";
 
 export function DiscoverSkills() {
   const [open, setOpen] = useState(true);
-  const Chevron = open ? ChevronDown : ChevronRight;
+  const Chevron = open ? IconChevronDown : IconChevronRight;
 
   return (
     <CollapsiblePrimitive.Root open={open} onOpenChange={setOpen}>

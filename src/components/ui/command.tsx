@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { Command as CommandPrimitive } from "cmdk";
-import { SearchIcon } from "lucide-react";
+import { IconSearch } from "@tabler/icons-react";
 
 import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -55,7 +55,7 @@ function CommandDialog({
 function CommandInput({ className, ...props }: React.ComponentProps<typeof CommandPrimitive.Input>) {
   return (
     <div data-slot="command-input-wrapper" className="flex h-12 items-center gap-2 border-b border-border-subtle px-3 py-1">
-      <SearchIcon className="size-5 shrink-0 text-foreground-low" />
+      <IconSearch className="size-5 shrink-0 text-foreground-low" aria-hidden="true" />
       <CommandPrimitive.Input
         data-slot="command-input"
         className={cn(

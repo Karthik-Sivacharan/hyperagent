@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { LayoutGrid, List, type LucideIcon } from "lucide-react";
+import { IconLayoutGrid, IconList, type TablerIcon } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -23,12 +23,12 @@ import { ThreadCard, type ThreadLayout } from "@/components/home/thread-card";
 // The tooltip wraps the toggle from the inside: as the outer element the
 // toggle's `data-state="on"` (what the pill track styles on) is the one that
 // survives the prop spread, instead of the tooltip's open/closed state.
-function LayoutToggle({ value, icon: Icon, label }: { value: ThreadLayout; icon: LucideIcon; label: string }) {
+function LayoutToggle({ value, icon: Icon, label }: { value: ThreadLayout; icon: TablerIcon; label: string }) {
   return (
     <Tooltip>
       <ToggleGroupItem value={value} asChild>
         <TooltipTrigger aria-label={label}>
-          <Icon className="size-4" />
+          <Icon className="size-4" aria-hidden="true" />
         </TooltipTrigger>
       </ToggleGroupItem>
       <TooltipContent>{label}</TooltipContent>
@@ -58,8 +58,8 @@ export function RecentThreads({ threads }: { threads: Thread[] }) {
                 aria-label="Layout"
                 className="shrink-0 max-sm:hidden"
               >
-                <LayoutToggle value="list" icon={List} label="List view" />
-                <LayoutToggle value="grid" icon={LayoutGrid} label="Grid view" />
+                <LayoutToggle value="list" icon={IconList} label="List view" />
+                <LayoutToggle value="grid" icon={IconLayoutGrid} label="Grid view" />
               </ToggleGroup>
             </TooltipProvider>
             <Button variant="outline" size="sm" asChild>

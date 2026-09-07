@@ -3,21 +3,21 @@
 import Link from "next/link";
 import { useTheme } from "next-themes";
 import {
-  BookOpen,
-  Check,
-  CircleQuestionMark,
-  Copy,
-  LifeBuoy,
-  LogOut,
-  MessageCircleQuestionMark,
-  Monitor,
-  Moon,
-  Plug,
-  Settings,
-  Sparkles,
-  Sun,
-  UserPlus,
-} from "lucide-react";
+  IconBook,
+  IconCheck,
+  IconHelpCircle,
+  IconCopy,
+  IconLifebuoy,
+  IconLogout,
+  IconMessageCircleQuestion,
+  IconDeviceDesktop,
+  IconMoon,
+  IconPlug,
+  IconSettings,
+  IconSparkles,
+  IconSun,
+  IconUserPlus,
+} from "@tabler/icons-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -38,10 +38,10 @@ import { TokenUsageChart } from "@/components/app/token-usage-chart";
 
 type ThemeChoice = "light" | "dark" | "system";
 
-const THEMES: { value: ThemeChoice; label: string; icon: typeof Sun }[] = [
-  { value: "light", label: "Light", icon: Sun },
-  { value: "dark", label: "Dark", icon: Moon },
-  { value: "system", label: "System", icon: Monitor },
+const THEMES: { value: ThemeChoice; label: string; icon: typeof IconSun }[] = [
+  { value: "light", label: "Light", icon: IconSun },
+  { value: "dark", label: "Dark", icon: IconMoon },
+  { value: "system", label: "System", icon: IconDeviceDesktop },
 ];
 
 const TOKEN_STATS = [
@@ -104,7 +104,7 @@ export function AccountMenu({ children }: { children: React.ReactNode }) {
 
         <DropdownMenuSub>
           <DropdownMenuSubTrigger>
-            <Sparkles className="size-4" aria-hidden="true" />
+            <IconSparkles className="size-4" aria-hidden="true" />
             85k tokens
           </DropdownMenuSubTrigger>
           <DropdownMenuSubContent className="w-[24rem] p-3">
@@ -132,20 +132,20 @@ export function AccountMenu({ children }: { children: React.ReactNode }) {
 
         <DropdownMenuItem asChild>
           <Link href="/settings/integrations">
-            <Plug className="h-4 w-4" aria-hidden="true" />
+            <IconPlug className="h-4 w-4" aria-hidden="true" />
             <span className="text-sm">Integrations</span>
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
           <Link href="/settings">
-            <Settings className="h-4 w-4" aria-hidden="true" />
+            <IconSettings className="h-4 w-4" aria-hidden="true" />
             <span className="text-sm">Settings</span>
           </Link>
         </DropdownMenuItem>
 
         <DropdownMenuSub>
           <DropdownMenuSubTrigger>
-            <Moon className="size-4" aria-hidden="true" />
+            <IconMoon className="size-4" aria-hidden="true" />
             <span className="text-sm">Theme</span>
           </DropdownMenuSubTrigger>
           <DropdownMenuSubContent>
@@ -160,7 +160,7 @@ export function AccountMenu({ children }: { children: React.ReactNode }) {
               >
                 <Icon className="h-4 w-4" aria-hidden="true" />
                 <span className="text-sm">{label}</span>
-                {theme === value && <Check className="ml-auto size-4 shrink-0 opacity-50" aria-hidden="true" />}
+                {theme === value && <IconCheck className="ml-auto size-4 shrink-0 opacity-50" aria-hidden="true" />}
               </DropdownMenuItem>
             ))}
           </DropdownMenuSubContent>
@@ -170,17 +170,17 @@ export function AccountMenu({ children }: { children: React.ReactNode }) {
 
         <DropdownMenuSub>
           <DropdownMenuSubTrigger>
-            <CircleQuestionMark className="h-4 w-4" aria-hidden="true" />
+            <IconHelpCircle className="h-4 w-4" aria-hidden="true" />
             <span className="text-sm">Help</span>
           </DropdownMenuSubTrigger>
           <DropdownMenuSubContent>
             <DropdownMenuItem>
-              <MessageCircleQuestionMark className="h-4 w-4" aria-hidden="true" />
+              <IconMessageCircleQuestion className="h-4 w-4" aria-hidden="true" />
               <span className="text-sm">Ask Hyperagent</span>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
               <a target="_blank" rel="noopener noreferrer" href="https://www.hyperagent.com/docs">
-                <BookOpen className="h-4 w-4" aria-hidden="true" />
+                <IconBook className="h-4 w-4" aria-hidden="true" />
                 <span className="text-sm">Documentation</span>
               </a>
             </DropdownMenuItem>
@@ -189,9 +189,9 @@ export function AccountMenu({ children }: { children: React.ReactNode }) {
               data-drawer-keep-open=""
               onSelect={() => void navigator.clipboard?.writeText("support@hyperagent.com")}
             >
-              <LifeBuoy className="h-4 w-4" aria-hidden="true" />
+              <IconLifebuoy className="h-4 w-4" aria-hidden="true" />
               <span className="text-sm">support@hyperagent.com</span>
-              <Copy className="ml-auto size-4 shrink-0 opacity-50" aria-hidden="true" />
+              <IconCopy className="ml-auto size-4 shrink-0 opacity-50" aria-hidden="true" />
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
               <a href="https://discord.com/invite/wN6hrjnHzg" target="_blank" rel="noopener noreferrer">
@@ -203,11 +203,11 @@ export function AccountMenu({ children }: { children: React.ReactNode }) {
         </DropdownMenuSub>
 
         <DropdownMenuItem>
-          <UserPlus className="h-4 w-4" aria-hidden="true" />
+          <IconUserPlus className="h-4 w-4" aria-hidden="true" />
           <span className="text-sm">Add account</span>
         </DropdownMenuItem>
         <DropdownMenuItem data-drawer-keep-open="">
-          <LogOut className="h-4 w-4" aria-hidden="true" />
+          <IconLogout className="h-4 w-4" aria-hidden="true" />
           <span className="text-sm">Log out</span>
         </DropdownMenuItem>
       </DropdownMenuContent>

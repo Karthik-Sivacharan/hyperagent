@@ -1,4 +1,4 @@
-import { Sparkles } from "lucide-react";
+import { IconSparkles } from "@tabler/icons-react";
 
 // A user turn: right-aligned bubble, then the "N knowledge hints · date" meta
 // line. Markup from docs/reference/pages/thread-detail.html. Phase 2 sets the
@@ -36,7 +36,7 @@ export function UserMessage({
                 type="button"
                 className="inline-flex cursor-pointer items-center gap-1 transition-[color] duration-(--duration-fast) ease-out-quart hover:text-foreground"
               >
-                <Sparkles className="size-3" aria-hidden="true" />
+                <IconSparkles className="size-3" aria-hidden="true" />
                 {knowledgeHints} knowledge hint{knowledgeHints === 1 ? "" : "s"}
               </button>
               <span aria-hidden="true">·</span>

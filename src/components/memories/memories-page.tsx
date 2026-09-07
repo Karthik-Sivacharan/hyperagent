@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Brain, ChevronDown, Ellipsis, LayoutGrid, List, ListFilter, Menu, Plus } from "lucide-react";
+import { IconBrain, IconChevronDown, IconDots, IconLayoutGrid, IconList, IconMenuDeep, IconMenu, IconPlus } from "@tabler/icons-react";
 import { Checkbox as CheckboxPrimitive } from "radix-ui";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -86,7 +86,7 @@ export function MemoriesPage() {
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <span className="flex items-center justify-center">
-                              <List className="size-4" aria-hidden="true" />
+                              <IconList className="size-4" aria-hidden="true" />
                             </span>
                           </TooltipTrigger>
                           <TooltipContent>List view</TooltipContent>
@@ -96,7 +96,7 @@ export function MemoriesPage() {
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <span className="flex items-center justify-center">
-                              <LayoutGrid className="size-4" aria-hidden="true" />
+                              <IconLayoutGrid className="size-4" aria-hidden="true" />
                             </span>
                           </TooltipTrigger>
                           <TooltipContent>Grid view</TooltipContent>
@@ -106,14 +106,14 @@ export function MemoriesPage() {
                   </Tabs>
                   <span className="inline-flex">
                     <Button size="sm">
-                      <Plus className="size-4" aria-hidden="true" />
+                      <IconPlus className="size-4" aria-hidden="true" />
                       Add memory
                     </Button>
                   </span>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" size="icon" aria-label="More actions">
-                        <Ellipsis className="size-4" aria-hidden="true" />
+                        <IconDots className="size-4" aria-hidden="true" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-44">
@@ -146,7 +146,7 @@ export function MemoriesPage() {
                           )}
                         >
                           <div className="flex size-5 shrink-0 items-center justify-center">
-                            <Brain className="size-4 shrink-0 text-foreground" aria-hidden="true" />
+                            <IconBrain className="size-4 shrink-0 text-foreground" aria-hidden="true" />
                           </div>
                           <span className="min-w-0 flex-1 truncate font-medium text-sm">{item.name}</span>
                           <span className="shrink-0 text-muted-foreground text-xs tabular-nums">{item.count}</span>
@@ -165,7 +165,7 @@ export function MemoriesPage() {
                       className="mr-3 @3xl/memories:hidden h-9 min-w-0 max-w-48 justify-start gap-2 px-2"
                       aria-haspopup="dialog"
                     >
-                      <Menu className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                      <IconMenu className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
                       <span className="truncate font-medium">{owner.name} memories</span>
                     </Button>
                     <div className="@3xl/memories:flex hidden min-w-0 items-center gap-3">
@@ -189,9 +189,9 @@ export function MemoriesPage() {
                     <div className="hidden min-w-0 items-center gap-2 ml-auto @3xl/memories:@xl/memory-list:flex">
                       <FiltersMenu active={activeFilters} onToggle={toggleFilter}>
                         <Button variant="outline" size="sm" className="h-9">
-                          <ListFilter className="size-3.5" aria-hidden="true" />
+                          <IconMenuDeep className="size-3.5" aria-hidden="true" />
                           Filters
-                          <ChevronDown className="size-3.5 opacity-60" aria-hidden="true" />
+                          <IconChevronDown className="size-3.5 opacity-60" aria-hidden="true" />
                         </Button>
                       </FiltersMenu>
                       <SearchInput
@@ -219,7 +219,7 @@ export function MemoriesPage() {
                           aria-label="Filters"
                           className="h-7 gap-1 px-1.5 text-muted-foreground hover:text-foreground"
                         >
-                          <ListFilter className="size-4" aria-hidden="true" />
+                          <IconMenuDeep className="size-4" aria-hidden="true" />
                         </Button>
                       </FiltersMenu>
                     </div>
@@ -230,12 +230,12 @@ export function MemoriesPage() {
                     <div className="flex flex-col p-6">
                       <EmptyState
                         variant="plain"
-                        icon={Brain}
+                        icon={IconBrain}
                         title="No memories yet"
                         description="Add important context you want your agents to remember."
                         action={
                           <Button size="sm">
-                            <Plus className="size-4" aria-hidden="true" />
+                            <IconPlus className="size-4" aria-hidden="true" />
                             Add memory
                           </Button>
                         }

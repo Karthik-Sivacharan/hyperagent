@@ -1,16 +1,16 @@
 import {
-  Bot,
-  ChartColumn,
-  Code,
-  Megaphone,
-  Microscope,
-  PenTool,
-  Puzzle,
-  TrendingUp,
-  UserSearch,
-  Workflow,
-  type LucideIcon,
-} from "lucide-react";
+  IconRobot,
+  IconChartColumn,
+  IconCode,
+  IconSpeakerphone,
+  IconMicroscope,
+  IconVectorBezier,
+  IconPuzzle,
+  IconTrendingUp,
+  IconUserSearch,
+  IconSchema,
+  type TablerIcon,
+} from "@tabler/icons-react";
 import type { CategoryIcon, MarketplaceCategory } from "@/lib/mock/marketplace";
 
 // "Browse by category" tile (docs/reference/pages/marketplace.html): a 5:3
@@ -20,15 +20,15 @@ import type { CategoryIcon, MarketplaceCategory } from "@/lib/mock/marketplace";
 // in the heading face. The tile's own colours come from the listing data and
 // stay, as cover art does (docs/brand/design.md §5, §6).
 
-const ICONS: Record<CategoryIcon, LucideIcon> = {
-  megaphone: Megaphone,
-  microscope: Microscope,
-  "user-search": UserSearch,
-  "trending-up": TrendingUp,
-  code: Code,
-  "pen-tool": PenTool,
-  "chart-column": ChartColumn,
-  workflow: Workflow,
+const ICONS: Record<CategoryIcon, TablerIcon> = {
+  megaphone: IconSpeakerphone,
+  microscope: IconMicroscope,
+  "user-search": IconUserSearch,
+  "trending-up": IconTrendingUp,
+  code: IconCode,
+  "pen-tool": IconVectorBezier,
+  "chart-column": IconChartColumn,
+  workflow: IconSchema,
 };
 
 const LATTICE: ("bot" | "puzzle")[][] = [
@@ -54,16 +54,16 @@ export function CategoryCard({ category }: { category: MarketplaceCategory }) {
           <div key={i} className="flex gap-2">
             {row.map((glyph, j) =>
               glyph === "bot" ? (
-                <Bot key={j} className="size-7" strokeWidth={1.5} aria-hidden="true" />
+                <IconRobot key={j} className="size-7" stroke={1.5} aria-hidden="true" />
               ) : (
-                <Puzzle key={j} className="size-7" strokeWidth={1.5} aria-hidden="true" />
+                <IconPuzzle key={j} className="size-7" stroke={1.5} aria-hidden="true" />
               ),
             )}
           </div>
         ))}
       </div>
       <div className="relative z-10 flex flex-col gap-4">
-        <Icon className="size-6 drop-shadow-sm" strokeWidth={1.75} aria-hidden="true" />
+        <Icon className="size-6 drop-shadow-sm" stroke={1.75} aria-hidden="true" />
         <div className="flex flex-col gap-0.5">
           <span className="font-heading font-medium text-2xl leading-none drop-shadow-sm">{category.name}</span>
           <span className="text-xs opacity-80 drop-shadow-sm">{category.summary}</span>

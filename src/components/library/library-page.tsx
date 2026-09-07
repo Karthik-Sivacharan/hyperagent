@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { BookOpen, Grid3x3, List } from "lucide-react";
+import { IconBook, IconGrid3x3, IconList } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -58,7 +58,7 @@ export function LibraryPage() {
                         className={viewButton("grid")}
                         onClick={() => setView("grid")}
                       >
-                        <Grid3x3 className="size-4" aria-hidden="true" />
+                        <IconGrid3x3 className="size-4" aria-hidden="true" />
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>Grid view</TooltipContent>
@@ -73,7 +73,7 @@ export function LibraryPage() {
                         className={viewButton("list")}
                         onClick={() => setView("list")}
                       >
-                        <List className="size-4" aria-hidden="true" />
+                        <IconList className="size-4" aria-hidden="true" />
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>List view</TooltipContent>
@@ -117,7 +117,7 @@ export function LibraryPage() {
         <div className="flex-1 overflow-y-auto">
           <EmptyState
             variant="plain"
-            icon={BookOpen}
+            icon={IconBook}
             title="No items found"
             description="Generated content will appear here"
           />

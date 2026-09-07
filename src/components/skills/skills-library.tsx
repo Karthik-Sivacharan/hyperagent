@@ -2,14 +2,14 @@
 
 import { useState } from "react";
 import {
-  Archive,
-  ArrowUpDown,
-  ChevronDown,
-  LayoutGrid,
-  List,
-  ListFilter,
-  Search,
-} from "lucide-react";
+  IconArchive,
+  IconArrowsUpDown,
+  IconChevronDown,
+  IconLayoutGrid,
+  IconList,
+  IconMenuDeep,
+  IconSearch,
+} from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -54,7 +54,7 @@ export function SkillsLibrary() {
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div className="relative w-full md:max-w-md">
           <SiteInput
-            icon={<Search aria-hidden="true" />}
+            icon={<IconSearch aria-hidden="true" />}
             placeholder="Search skills..."
             value={query}
             onChange={(event) => setQuery(event.target.value)}
@@ -70,26 +70,26 @@ export function SkillsLibrary() {
               aria-controls="skills-sort"
               className="h-9 w-full min-w-0 justify-between gap-2 sm:w-[160px]"
             >
-              <ArrowUpDown className="size-4 text-foreground-low" aria-hidden="true" />
+              <IconArrowsUpDown className="size-4 text-foreground-low" aria-hidden="true" />
               <span data-slot="select-value" className="flex-1 truncate text-left" style={{ pointerEvents: "none" }}>
                 {sort}
               </span>
-              <ChevronDown className="size-4 text-foreground-low" aria-hidden="true" />
+              <IconChevronDown className="size-4 text-foreground-low" aria-hidden="true" />
             </Button>
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="h-9 gap-2" aria-label="Filters">
-                <ListFilter className="size-4" aria-hidden="true" />
+                <IconMenuDeep className="size-4" aria-hidden="true" />
                 <span className="hidden sm:inline">Filters</span>
-                <ChevronDown className="size-4 text-foreground-low" aria-hidden="true" />
+                <IconChevronDown className="size-4 text-foreground-low" aria-hidden="true" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuLabel>Filters</DropdownMenuLabel>
               {skillFilters.map((filter) => (
                 <DropdownMenuItem key={filter.id} className="gap-2">
-                  <Archive className="size-4" aria-hidden="true" />
+                  <IconArchive className="size-4" aria-hidden="true" />
                   <span className="flex-1">{filter.label}</span>
                 </DropdownMenuItem>
               ))}
@@ -104,10 +104,10 @@ export function SkillsLibrary() {
             className="h-9 data-[spacing=0]:p-1"
           >
             <ToggleGroupItem value="grid" aria-label="Grid view">
-              <LayoutGrid className="size-4" aria-hidden="true" />
+              <IconLayoutGrid className="size-4" aria-hidden="true" />
             </ToggleGroupItem>
             <ToggleGroupItem value="list" aria-label="List view">
-              <List className="size-4" aria-hidden="true" />
+              <IconList className="size-4" aria-hidden="true" />
             </ToggleGroupItem>
           </ToggleGroup>
         </div>
