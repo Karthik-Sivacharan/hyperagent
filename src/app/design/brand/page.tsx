@@ -1,12 +1,12 @@
 import type { CSSProperties, ReactNode } from "react";
 import { ThemeToggle } from "./_design/theme-toggle";
 
-// Token swatch page for the scoped Brand copy, ported from brand/src/app/page.tsx.
+// Token swatch page for the Brand tokens, ported from brand/src/app/page.tsx.
 // Verification only: every token is rendered from the CSS variable itself
 // (`style={{ background: "var(--color-tangerine-500)" }}`) because Tailwind
 // cannot generate utilities for names that are not in Hyperagent's main theme
 // yet (phase 2). Tailwind classes here are layout only (grid, gap, padding)
-// plus one "scoping check" row that deliberately uses stock utilities.
+// plus one "utility check" row that deliberately uses stock utilities.
 
 const v = (name: string) => `var(--${name})`;
 
@@ -184,13 +184,13 @@ export default function BrandTokensPage() {
       <header className="mb-14 flex flex-wrap items-end justify-between gap-6">
         <div>
           <p className="mb-2" style={{ ...text("sm"), fontWeight: v("font-weight-medium"), color: v("muted-foreground") }}>
-            Brand · design tokens · scoped copy
+            Brand · design tokens · the app&apos;s root sheet
           </p>
           <h1 style={{ ...text("display", true), ...heading, color: v("foreground") }}>Token swatches</h1>
           <p className="mt-3 max-w-2xl" style={{ ...text("lg"), color: v("muted-foreground") }}>
             Primitives, semantic pairs, type, radius, shadow, motion and layout. Source of truth is{" "}
-            <code className="text-label-14-mono">src/design/brand/brand.css</code>, applied only inside{" "}
-            <code className="text-label-14-mono">.theme-brand</code>.
+            <code className="text-label-14-mono">src/design/brand/brand.css</code>, the app&apos;s{" "}
+            <code className="text-label-14-mono">:root</code>; this toggle is local.
           </p>
         </div>
         <ThemeToggle />
@@ -498,7 +498,7 @@ export default function BrandTokensPage() {
       </section>
 
       <section className="mb-14">
-        <SectionTitle sub="stock Tailwind utilities re-themed by the scope · these should show sand, not gray">Scoping check</SectionTitle>
+        <SectionTitle sub="stock Tailwind utilities resolve against the brand :root · these should show sand, not gray">Utility check</SectionTitle>
         <div className="grid grid-cols-11 gap-1">
           {["bg-neutral-50", "bg-neutral-100", "bg-neutral-200", "bg-neutral-300", "bg-neutral-400", "bg-neutral-500", "bg-neutral-600", "bg-neutral-700", "bg-neutral-800", "bg-neutral-900", "bg-neutral-950"].map((cls, i) => (
             <div key={cls} className="flex flex-col gap-1">
