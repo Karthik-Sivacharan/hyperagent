@@ -35,7 +35,7 @@ export function AgentListingCard({ agent }: { agent: AgentListing }) {
           <AgentIcon icon={agent.icon} />
           <div className="min-w-0">
             <TextTooltip text={agent.name}>
-              <h3 className="line-clamp-1 font-heading font-semibold text-2xl text-white drop-shadow-sm">
+              <h3 className="line-clamp-1 font-heading text-2xl font-medium text-white drop-shadow-sm">
                 {agent.name}
               </h3>
             </TextTooltip>

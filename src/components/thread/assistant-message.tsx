@@ -28,7 +28,7 @@ export function AssistantMessage({ id, blocks }: { id: string; blocks: MessageBl
                   // would lose, so the computed 8px is written directly. The
                   // face is the brand display serif; `text-2xl` carries the
                   // brand tracking on its own (design.md §4).
-                  <h1 key={i} className="mt-4 mb-2 font-heading font-semibold text-2xl text-foreground leading-[1.2]">
+                  <h1 key={i} className="mt-4 mb-2 font-heading text-2xl text-foreground">
                     {renderInline(block.text)}
                   </h1>
                 ) : (

@@ -5,7 +5,7 @@ import { extendTailwindMerge } from "tailwind-merge"
 // `@/lib/utils` in one way that the ui/ copies depend on:
 //
 // tailwind-merge only knows Tailwind's stock utilities. Teach it the design
-// system's custom weights (design.md §4: 450 `font-book`, 470 `font-firm`) so a
+// system's custom weight (design.md §4: 450 `font-book`, the heading weight) so a
 // component's `font-medium` base loses to a caller's `font-book` instead of
 // both surviving (and the base winning by source order).
 //
@@ -14,7 +14,7 @@ import { extendTailwindMerge } from "tailwind-merge"
 const twMerge = extendTailwindMerge({
   extend: {
     classGroups: {
-      "font-weight": ["font-book", "font-firm"],
+      "font-weight": ["font-book"],
     },
   },
 })

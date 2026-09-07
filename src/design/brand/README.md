@@ -9,9 +9,8 @@ Source: the brand prototype's own repository, kept outside this repo and never m
 | Path | What | From |
 |---|---|---|
 | `brand.css` | The token sheet: every primitive ramp, tint, semantic token, radius, shadow, type, motion, z-index and layout token, plus the scoped base styles, the `genui-prose` block, the typography role classes and the `focus-ring` / `squircle` / `skeleton` classes. Plain CSS, no Tailwind directives. | `src/app/globals.css` |
-| `fonts/` | `InterVariable.woff2`, `InterVariable-Italic.woff2`, `PythiaType-SemiBold.woff2` (PythiaType is Brand's proprietary display face: prototype use only, do not redistribute). | `src/app/fonts/` |
-| `fonts.ts` | `next/font` loaders: `brandInter` (`--font-inter`), `brandPythia` (`--font-pythia`), `brandNewsreader` (`--font-newsreader`), `brandGeistMono` (`--font-geist-mono`), and `brandFontClassName` joining all four `.variable` classes. | `src/app/layout.tsx` |
-| `utils.ts` | Brand's `cn()`: tailwind-merge extended with the `font-book` / `font-firm` weight group. The `ui/` copies import this, not `@/lib/utils`, so a caller's `font-book` beats a component's `font-medium` as it does in Brand. | `src/lib/utils.ts` |
+| `fonts.ts` | `next/font/google` loaders for Geist (`--font-geist-sans`) and Geist Mono (`--font-geist-mono`), and `brandFontClassName` joining the two `.variable` classes. Phase 2 replaced the prototype's Inter / PythiaType / Newsreader files with Geist and Vercel's published typography roles (docs/brand/design.md §4); no font files ship in this directory. | `src/app/layout.tsx` |
+| `utils.ts` | Brand's `cn()`: tailwind-merge extended with the `font-book` weight (450, the heading weight). The `ui/` copies import this, not `@/lib/utils`, so a caller's `font-book` beats a component's `font-medium` as it does in Brand. | `src/lib/utils.ts` |
 | `ui/` | Verbatim copies of Brand's shadcn primitives (23 files). Only the imports changed: `@/lib/utils` → `@/design/brand/utils`, `@/components/ui/button` → `./button`, `@/components/ui/toggle` → `./toggle`. Nothing imports them yet. | `src/components/ui/*.tsx` |
 | `../../app/design/brand/` | The token swatch page at `/design/brand` (`layout.tsx`, `page.tsx`, `_design/theme-toggle.tsx`). The layout is the only importer of `brand.css`. | `src/app/page.tsx`, `src/app/_design/theme-toggle.tsx` |
 | `../../../docs/brand/design.md` | How to consume the tokens, with a preamble on how this copy differs. | `design.md` |
@@ -27,7 +26,7 @@ Not copied:
 ## The scoping contract
 
 - Put `theme-brand` on an ancestor and the subtree is themed: `brand.css` defines every variable on `.theme-brand` (Brand's `@theme inline` primitives and its `:root` semantics, merged, names verbatim) and remaps the semantics on `.theme-brand.dark, .dark .theme-brand`. Put `dark` on the same element or any ancestor (an app-level next-themes `html.dark` works too).
-- Put `brandFontClassName` on the same element so `--font-inter` etc. are defined where the `--font-sans` / `--font-heading` / `--font-mono` stacks read them.
+- Put `brandFontClassName` on `<html>` so `--font-geist-sans` and `--font-geist-mono` are defined where the `--font-sans` / `--font-heading` / `--font-mono` stacks read them.
 - Variable names collide with Tailwind's defaults on purpose. Tailwind v4 utilities compile to `var(--…)`, so inside the scope `bg-neutral-500` is Brand's sand, `rounded-md` is `calc(var(--radius) * 0.8)`, `text-xl` is 20/28, `ease-out` is Brand's curve, `font-medium` is 500. The rest of the app never sees these values because no element outside the scope carries the class.
 - The `@layer base / components / utilities` wrappers are kept (every selector inside them is scoped). Cascade layers are standard CSS; the names merge into the layers Tailwind already declares in `src/app/globals.css`, so a scoped base rule such as `.theme-brand * { border-color: var(--border) }` loses to `border-*` utilities exactly as it does in Brand. Written as an unlayered rule it would override them on every descendant.
 - The file passes through `@tailwindcss/postcss` untouched because it contains no Tailwind directives (`@import`, `@theme`, `@utility`, `@apply`, `--spacing()` were all removed or expanded). It is safe to import from any nested layout.
@@ -78,7 +77,7 @@ Workflow for a new colour (design.md §14): add the family to `gen-ramps.mjs`, r
 
 ## Phase 2 mapping: Hyperagent shadcn tokens ↔ Brand tokens
 
-Hyperagent today ships a dark, neutral (cool gray) palette with Geist for body/UI, Season Sans for display and Geist Mono. Brand is light-canonical with a full dark mapping, sand neutrals, one tangerine accent, Inter + PythiaType (Newsreader fallback) + Geist Mono. Brand values below are light / dark; primitives are Brand's ramp steps (`neutral-950` = `#1e1e1d`, `tangerine-600` = `#be4600`, …).
+Hyperagent ships a dark, neutral (cool gray) palette with Geist for body/UI, Season Sans for display and Geist Mono. Brand is light-canonical with a full dark mapping, sand neutrals, one tangerine accent, and (since phase 2) Geist + Geist Mono on Vercel's typography roles. Brand values below are light / dark; primitives are Brand's ramp steps (`neutral-950` = `#1e1e1d`, `tangerine-600` = `#be4600`, …).
 
 | Hyperagent token | Hyperagent value (dark) | Brand token | Brand value (light / dark) | Note |
 |---|---|---|---|---|
@@ -112,9 +111,9 @@ Hyperagent today ships a dark, neutral (cool gray) palette with Geist for body/U
 | `--chart-1` … `--chart-5` | (shadcn defaults) | `--chart-1` … `--chart-6` | tangerine-500, neutral-700, blue-600, green-600, amber-600, red-600 / all lifted to the 400 step | plus `--chart-track`, `--chart-grid`, `--chart-target`, `--chart-band`, `--chart-seq-1..5` |
 | `--surface` | `#161616` | `--surface-raised` or `--surface-elevated` | `neutral-100` / `neutral-925` `#222221` · white / `neutral-900` | Hyperagent's `--surface` sits between card and accent; Brand splits that role into raised (a whisper above the canvas) and elevated (cards, composer, popovers). Decide per use |
 | `--radius` | `.875rem` (14px) | `--radius` | `10px`, multiplicative scale | Hyperagent's base radius equals Brand's `--radius-xl` (14px). Brand's `rounded-*` steps are ratios of the knob (`xs` 4, `sm` 6, `md` 8, `lg` 10, `xl` 14, `2xl` 18, `3xl` 22, `4xl` 26, `5xl` 32, `bubble` 20, `hero` 72, `squircle` 80) |
-| `--font-geist-sans` (body / UI) | Geist | `--font-sans` | Inter Variable (`--font-inter`) | |
-| Season Sans (display) | | `--font-heading` | PythiaType SemiBold (`--font-pythia`), Newsreader fallback | serif display over a sans body |
-| `--font-geist-mono` | Geist Mono | `--font-mono` | Geist Mono (`--font-geist-mono`) | identical face; both loaders expose the same variable name |
+| `--font-geist-sans` (body / UI) | Geist | `--font-sans` | Geist (`--font-geist-sans`) | same face; headings take the 450 heading weight from the `text-*` roles |
+| Season Sans (display) | | `--font-heading` / `--font-display` | Geist | one family for display and body |
+| `--font-geist-mono` | Geist Mono | `--font-mono` | Geist Mono (`--font-geist-mono`) | identical face |
 
 ### Brand tokens with no Hyperagent counterpart
 
@@ -129,6 +128,6 @@ These need a home in phase 2 (a new semantic token in Hyperagent, or a component
 - Tints: `--tint-5/7/10/12/15/20/25/40` (theme-switched base: `neutral-500` in light, `neutral-600` in dark) and their `--color-tint-*` aliases.
 - Shadow layers: `--highlight`, `--highlight-soft`, `--highlight-strong`, `--edge`; shadows `--shadow-edge/card/card-hover/avatar/rim/hero`.
 - Radius extras: `--radius-5xl/bubble/hero/squircle`.
-- Type: `--text-md`, `--text-display` (+ companions), `--font-weight-book` (450), `--font-weight-firm` (470), the role classes `text-heading-display`, `text-heading-lg`, `text-label-14-mono`, `text-label-12-mono`, `text-label-12-caps`.
+- Type: `--text-md` (13px metadata), `--text-display` (+ companions), `--font-weight-book` (450, the heading weight), the role classes `text-heading-display`, `text-heading-lg`, `text-label-14-mono`, `text-label-12-mono`, `text-label-12-caps`.
 - Motion: `--duration-*` (exit 90 · instant 100 · enter 140 · fast 150 · normal 200 · move 220 · slow 300 · reveal 400 · slide 480 · entrance 500 · stagger 80), `--ease-*` (out, out-quart, out-quint, out-layout, out-expo, in-out, linear), `--scale-press`, `--scale-press-icon`, `--scale-enter`, `--translate-enter`, `--animate-typing-dot`, `--animate-skeleton`, `--animate-ring-draw`.
 - Layout: `--container-content/wide/nav`, `--spacing-group/stack/section`, `--blur-glass`, `--z-sticky/scrim/dropdown/modal/tooltip/toast`.

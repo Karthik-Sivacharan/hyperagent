@@ -46,12 +46,12 @@ vs tangerine, grey borders vs tints), the brand wins.
    `rounded-xl` (14) popovers and small cards; `rounded-3xl` (22) cards and
    list rows; `rounded-4xl` (26) large buttons and dialogs; `rounded-5xl` (32)
    the composer and section cards. Never `rounded-[Npx]`.
-7. **Type:** Inter is the body (already the default). `font-heading` (or
-   `font-display` / `text-logo`) is PythiaType for display headings, page
-   titles and card titles; keep it off UI labels. Weights: `font-normal`,
-   `font-book` (450, subtle buttons), `font-medium` (labels, chips, tabs),
-   `font-semibold` (headings). `text-xl`+ carries the brand tracking and
-   heading weight automatically.
+7. **Type:** Geist everywhere, Geist Mono only for identifiers. `text-xl`
+   and up are heading roles: they carry Vercel's tracking and the 450
+   heading weight automatically, so write `font-heading text-2xl` and no
+   weight class. Weights: `font-normal` (body), `font-book` (450, the
+   heading weight), `font-medium` (labels, chips, tabs, buttons); never
+   `font-semibold` on a heading. `text-md` is the 13px metadata role.
 8. **Status is quiet.** Success / warning / info / destructive appear as a
    small dot or a tinted chip (`<Badge variant="success">`, `bg-success/10
    text-success`), never as a large fill. Selected checks in menus are

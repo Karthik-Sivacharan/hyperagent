@@ -26,7 +26,7 @@ export function PageHeading({
       )}
     >
       <div className="min-w-0">
-        <h1 className="font-heading text-2xl font-semibold text-foreground">{title}</h1>
+        <h1 className="font-heading text-2xl text-foreground">{title}</h1>
         {subtitle ? <p className="text-sm text-muted-foreground">{subtitle}</p> : null}
       </div>
       {actions ? <div className="flex shrink-0 items-center gap-3">{actions}</div> : null}

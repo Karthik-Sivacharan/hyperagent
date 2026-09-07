@@ -16,8 +16,8 @@
    =========================================================================== */
 
 @theme inline {
-  /* Fonts: next/font sets --font-geist-sans, --font-geist-mono and
-     --font-season-sans on <html>; the site routes every family through an
+  /* Fonts: next/font sets --font-geist-sans and --font-geist-mono on <html>
+     (src/design/brand/fonts.ts); the site routes every family through an
      "*-active" indirection so a workspace can swap faces. */
   --font-sans: var(--font-body-active), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-mono-active), ui-monospace, monospace;
@@ -180,11 +180,11 @@
   --color-chart-seq-4: var(--chart-seq-4);
   --color-chart-seq-5: var(--chart-seq-5);
 
-  /* Type: the brand weights and the two extra sizes. The `--text-*`
-     companions ride the existing text-* utilities (tracking, heading
-     weight) and only apply inside the scope, where the variables exist. */
+  /* Type: the 450 heading weight (`font-book`) and the two extra sizes. The
+     `--text-*` companions ride the existing text-* utilities (tracking,
+     heading weight) and only apply inside the scope, where the variables
+     exist. */
   --font-weight-book: var(--font-weight-book);
-  --font-weight-firm: var(--font-weight-firm);
   --text-xs--letter-spacing: var(--text-xs--letter-spacing);
   --text-sm--letter-spacing: var(--text-sm--letter-spacing);
   --text-base--letter-spacing: var(--text-base--letter-spacing);
@@ -255,10 +255,10 @@
    Unlayered on purpose: brand.css sets `--background` on this same element
    and these read it, so they track light and dark. */
 .theme-brand {
-  --font-body-active: var(--font-inter);
-  --font-ui-active: var(--font-inter);
-  --font-heading-active: var(--font-pythia), var(--font-newsreader), ui-serif, Georgia, serif;
-  --font-display-active: var(--font-pythia), var(--font-newsreader), ui-serif, Georgia, serif;
+  --font-body-active: var(--font-geist-sans);
+  --font-ui-active: var(--font-geist-sans);
+  --font-heading-active: var(--font-geist-sans);
+  --font-display-active: var(--font-geist-sans);
   --font-mono-active: var(--font-geist-mono);
 
   --bg-gradient-from: var(--background);
@@ -284,7 +284,7 @@
   --font-body-active: var(--font-geist-sans);
   --font-ui-active: var(--font-geist-sans);
   --font-heading-active: var(--font-geist-sans);
-  --font-display-active: var(--font-season-sans, var(--font-geist-sans));
+  --font-display-active: var(--font-geist-sans); /* the site's Season Sans display face is not shipped; Geist stands in */
   --font-mono-active: var(--font-geist-mono);
 
   --radius: 0.875rem;

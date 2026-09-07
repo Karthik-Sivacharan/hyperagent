@@ -6,7 +6,7 @@
 > - **The `@theme` bridge lives in `src/app/globals.css`** ("PHASE 2 BRIDGE", an `@theme inline reference` block), not in this sheet. It names every Brand-only token so the utilities below (`bg-tangerine-500`, `bg-tint-10`, `font-heading`, `ease-out-quart`, `text-display`, `rounded-5xl`, `shadow-card`, `bg-brand`, `bg-surface-secondary`, …) exist app-wide and resolve inside `.theme-brand`, which phase 2 put on `<body>`. Utilities whose names Tailwind ships by default (`bg-neutral-500`, `rounded-md`, `text-xl`, `ease-out`, `font-medium`) resolve through `var(--…)` as before. Durations and scales stay plain variables: `duration-(--duration-fast)`, `scale-(--scale-press)`.
 > - **`@utility` classes are plain classes** in the utilities layer (`.focus-ring`, `.squircle`, `.skeleton`), and `.genui-prose` / the `text-heading-*` / `text-label-*` roles are plain scoped classes. The `@layer base / components / utilities` wrappers are kept so they lose to utilities exactly as in Brand.
 > - **Theme switching is app-level.** `next-themes` puts `dark` on `<html>` (chosen from the account menu; light is the default), and `.dark .theme-brand` picks it up. The swatch page keeps its own local `dark` toggle on its wrapper (`src/app/design/brand/_design/theme-toggle.tsx`) so the sheet can be inspected in either mapping.
-> - **File paths were updated** throughout: fonts in `src/design/brand/fonts/` with loaders in `src/design/brand/fonts.ts`; the swatch page at `src/app/design/brand/page.tsx` (rendered at `/design/brand`); reference component copies in `src/design/brand/ui/`; scripts in `scripts/brand/` (`npm run brand:gen-ramps`, `npm run brand:check-contrast`); the audit at `docs/brand/brand-style-audit.md`. `chart.tsx` was not copied (it needs `recharts`, which Hyperagent does not install). See `src/design/brand/README.md` for the phase-2 token mapping table.
+> - **The type system is Geist.** Phase 2 replaced the prototype's Inter + PythiaType + Newsreader with Geist and Geist Mono and adopted Vercel's published typography roles (see §4); the loaders are in `src/design/brand/fonts.ts`. The swatch page at `src/app/design/brand/page.tsx` (rendered at `/design/brand`); reference component copies in `src/design/brand/ui/`; scripts in `scripts/brand/` (`npm run brand:gen-ramps`, `npm run brand:check-contrast`); the audit at `docs/brand/brand-style-audit.md`. `chart.tsx` was not copied (it needs `recharts`, which Hyperagent does not install). See `src/design/brand/README.md` for the phase-2 token mapping table.
 >
 > Everything below this line is Brand's text, edited only for those paths.
 
@@ -18,7 +18,7 @@
 
 - **Name:** Brand (prototype tokens; not affiliated with the brand site)
 - **Stack:** Next.js 16 (App Router) · Tailwind CSS v4 (CSS-first `@theme`, no `tailwind.config`) · shadcn/ui config (`radix-nova`, no components installed) · TypeScript
-- **Fonts:** Inter (sans) · **PythiaType SemiBold** (serif display, Brand's own face, weight 600 only, self-hosted from `src/design/brand/fonts/` via `next/font/local` — proprietary, for this work-trial prototype only; Newsreader is the declared fallback) · Geist Mono, loaded in `src/design/brand/fonts.ts`
+- **Fonts:** Geist (sans, every text role) · Geist Mono (identifiers only), both from `next/font/google` in `src/design/brand/fonts.ts`; the roles, weights and metrics follow Vercel's published typography system
 - **Color space:** OKLCH throughout
 - **Radius knob:** `--radius: 10px`, multiplicative scale
 - **Themes:** light (canonical) / dark, `next-themes` with `attribute="class"`, `defaultTheme="system"` (matches the brand site)
@@ -27,7 +27,7 @@
 
 ## 1. Philosophy
 
-Brand is **white, warm, and conversational**: a paper-white canvas, sand-tinted neutrals, a single hot tangerine accent, serif headlines over Inter, and everything shaped like a pill. It should feel like a calm chat with a person, not a dashboard.
+Brand is **white, warm, and conversational**: a paper-white canvas, sand-tinted neutrals, a single hot tangerine accent, Geist throughout with headings at the 450 heading weight, and everything shaped like a pill. It should feel like a calm chat with a person, not a dashboard.
 
 - **One accent, rarely solid.** Tangerine `oklch(0.67 0.20 42)` (`#f55d00`) marks the primary CTA, the user's chat bubble, focus rings and text selection, and nothing else. The default button is **ink**, not orange.
 - **Sand, not gray.** Neutrals carry a faint warm, yellow-leaning tint (hue ~100, chroma ≤ 0.010) so surfaces read as paper rather than steel.
@@ -53,7 +53,7 @@ primitive                 semantic (shadcn + Brand)     component
 
 1. **Primitives:** raw ramps (`--color-neutral-500`, `--color-tangerine-600`, `--color-tint-10`). Defined in `@theme inline`. Use only when building a new semantic token, for a tint fill, or for a one-off swatch.
 2. **Semantic tokens:** the shadcn contract (`--background`, `--primary`, `--muted`, `--border` …) plus Brand's own (`--surface-secondary`, `--foreground-low`, `--brand`, `--brand-accent`, `--chip`, `--chat-bubble-*`). Defined in `:root` (light) and re-mapped in `.dark`. **This is what components should use.**
-3. **Component utilities:** Tailwind classes generated from the tokens (`bg-primary`, `text-muted-foreground`, `rounded-3xl`, `shadow-lg`, `ease-out-quart`, `font-heading`).
+3. **Component utilities:** Tailwind classes generated from the tokens (`bg-primary`, `text-muted-foreground`, `rounded-3xl`, `shadow-lg`, `ease-out-quart`, `font-book`).
 
 ### `@theme inline` caveat (important)
 
@@ -186,45 +186,46 @@ Representative hex: `red-500 #e76761` · `green-500 #00b16f` · `amber-500 #cd83
 
 ## 4. Typography
 
-Three families, set as CSS variables on `<html>` by `next/font/google` and consumed by `@theme`:
+Two families, Vercel's published typography system, set as CSS variables on `<html>` by `next/font/google` (`src/design/brand/fonts.ts`) and consumed by the token sheet:
 
-- `--font-sans`: `var(--font-inter), ui-sans-serif, system-ui, sans-serif` → `font-sans` (body, UI). Inter with `opsz`; body enables Brand's alternates `cv03 cv04 cv06 cv09 cv11 ss08`.
-- `--font-heading`: `var(--font-pythia), var(--font-newsreader), ui-serif, Georgia, serif` → `font-heading`. **PythiaType SemiBold is Brand's own display face** (self-hosted in `src/design/brand/fonts/`, weight 600 only — with `font-synthesis: none` every heading weight renders the 600 face, as on the brand site). Newsreader (Google, variable weight + optical size) is the fallback and still backs `--font-serif`. The font file is proprietary: it stays in this work-trial prototype and must not be redistributed.
-- `--font-mono`: `var(--font-geist-mono), ui-monospace, …` → `font-mono` (exact match; the brand site uses Geist Mono).
+- `--font-sans`: `var(--font-geist-sans), "Geist", ui-sans-serif, system-ui, sans-serif` → `font-sans`. **Geist Sans is used for prose, headings, labels, controls, tables, KPIs, dates, counts, percentages, durations and figures.** `--font-heading` and `--font-serif` are aliases of it, so `font-heading` still marks a heading in markup without changing the face.
+- `--font-mono`: `var(--font-geist-mono), "Geist Mono", ui-monospace, …` → `font-mono`. **Geist Mono only for code, commands, paths, raw tokens, timestamps and short operational identifiers** (a region, a plan, an id). Set only the identifier in mono, never its sentence or a whole table.
 
-**Weights:** `font-normal` 400 · `font-book` 450 (subtle buttons) · `font-firm` 470 (inline reference chips) · `font-medium` 500 (labels, chips, tabs) · `font-semibold` 600 (headings).
+**Base settings** (`.theme-brand`): 16/24 at 400, no tracking, `font-feature-settings: "rlig" 1, "calt" 0, "ss11" 1`, `font-synthesis: none`, `font-kerning: normal`, `font-optical-sizing: auto`, antialiased.
 
-**Scale** (native `--text-*` tokens with paired line-height / tracking / weight; use `text-<size>`):
+**Weights:** `font-normal` 400 (body) · `font-book` 450 (**the heading weight**, Vercel's `--vbg-weight-heading`; every heading role carries it) · `font-medium` 500 (labels, chips, tabs, buttons, `strong`) · `font-semibold` 600 (reserved). No other numeric weights; emphasis is scarce.
 
-| Token | px / line-height / tracking / weight | Brand use |
-|---|---|---|
-| `display` | `clamp(36px, 10vw, 52px)` / 1.1 / -0.025em / 600 | profile name (`font-heading text-display`) |
-| `5xl` | 52 / 1.1 / -0.025em / 600 | h1 desktop |
-| `4xl` | 36 / 1.1 / -0.025em / 600 | h1 mobile |
-| `3xl` | 28 / 34 / -0.025em / 600 | tile names (md+) |
-| `2xl` | 24 / 32 / -0.025em / 500 | dialog titles ("Sign in to continue with…"); tile names are `text-[22px]` |
-| `xl` | 20 / 28 / -0.025em / 600 | section headings ("Ask me about") |
-| `lg` | 18 / 27 / -0.013em | about copy, composer (md+) |
-| `base` | 16 / 24 / -0.015em | body, suggested questions, composer |
-| `md` | 16 / 24 / -0.015em | Brand's `text-md` alias ("Follow Nir for more…"); question bubbles are `text-[15px]` |
-| `sm` | 14 / 20 / 0 | chips, tabs, buttons (add `font-medium`); tracking resets to normal |
-| `xs` | 12 / 16 / -0.02em | captions, footer |
+**Scale** (native `--text-*` tokens with paired line-height, tracking and, for headings, the 450 weight; use `text-<size>`):
 
-**Tracking:** `body` sets `letter-spacing: -0.015em` (Brand's running-copy tracking, -0.24px at 16px). Every `--text-*` token carries its own `--letter-spacing`, so `text-sm` (0) and `text-xs` (-0.02em) override it.
+| Token | px / line-height / tracking / weight | Vercel role | Use |
+|---|---|---|---|
+| `display` | `clamp(40px, 5vw, 48px)` / 1.15 / -0.06em / 450 | display | the single page-defining statement, when scale is earned |
+| `5xl` | 48 / 56 / -0.06em / 450 | heading-48 · display | hero statement |
+| `4xl` | 40 / 48 / -0.06em / 450 | heading-40 · page title | the page title |
+| `3xl` | 32 / 40 / -0.04em / 450 | heading-32 · title | page title on narrow screens, large tile names |
+| `2xl` | 24 / 32 / -0.04em / 450 | heading-24 · section | major section turns, dialog titles, the dashboard's page titles |
+| `xl` | 20 / 26 / -0.02em / 450 | heading-20 · subsection | nested structure, section headings |
+| `lg` | 18 / 28 / 0 | lede | one short orientation passage |
+| `base` | 16 / 24 / 0 | body | reading, composer, suggested questions |
+| `sm` | 14 / 20 / 0 | compact | chips, tabs, buttons, labels, table cells (500 on controls) |
+| `md` | 13 / 18 / 0 | label · metadata | captions, meta lines, subordinate evidence |
+| `xs` | 12 / 16 / 0 | | keycaps, footers, disclaimers |
 
-**Utility roles** (font-family can't ride `--text-*`): `text-heading-display` (serif fluid h1), `text-heading-lg` (serif 18px / 1.3 / 500, list-row names), `text-label-14-mono`, `text-label-12-mono` (tabular numerals), `text-label-12-caps` (Inter 12/16 / 500 / +0.06em / uppercase — the label over a *group* of cards).
+**Utility roles** (font-family and numeric treatment cannot ride `--text-*`): `text-heading-display` (fluid 40→48 at 450), `text-heading-lg` (18/28 at 450, list-row names), `text-label-14-mono` and `text-label-12-mono` (mono identifiers and figures, tabular and slashed-zero numerals), `text-label-12-caps` (12/16 at 500, +0.06em, uppercase: the label over a *group* of cards; Vercel's own reports avoid all-caps eyebrows, so use it for grouping only, never for a heading).
+
+Use tabular numerals for aligned comparisons (`tabular-nums`, or the mono label roles). Equivalent peers always share role, size, weight, line-height and numeric treatment; never resize one because its string is longer.
 
 ### 4.1 The three text tiers
 
 A page that sets everything below its headings in one grey reads as a template. Text colour carries a role, and there are exactly three:
 
-| Tier | Token | Typical face | What lives here |
+| Tier | Token | Typical role | What lives here |
 |---|---|---|---|
-| **1 — the voice** | `foreground` | serif 18–28, Inter 18 | card titles, pull quotes, a person's name, the value the visitor picked, a tab's opening line |
-| **2 — running copy** | `muted-foreground` | Inter 14–16 | sentences someone reads: ledes inside a card, captions, body |
-| **3 — labels & provenance** | `foreground-low` | `text-label-12-caps` (group labels) · `text-label-12-mono` (citations, meta) | things someone *scans*: the eyebrow over a group, the source under a fact, a dot-separated meta line |
+| **1 — the voice** | `foreground` | heading roles at 450, `base` at 400 | card titles, a person's name, the value the visitor picked, a tab's opening line |
+| **2 — running copy** | `muted-foreground` | `base` / `sm` at 400 | sentences someone reads: ledes inside a card, captions, body |
+| **3 — labels & provenance** | `foreground-low` | `text-label-12-caps` (group labels) · `text-label-12-mono` / `md` (citations, meta) | things someone *scans*: the label over a group, the source under a fact, a dot-separated meta line |
 
-Two rules follow. **A group label is never tier 2** — it is scanned, not read, so it is small, uppercase and `foreground-low`, and it never competes with the serif title under it. **On a `tint-10` ground, tier 3 drops to `muted-foreground`**: `foreground-low` measures 4.37:1 there and misses AA (§10).
+Two rules follow. **A group label is never tier 2**: it is scanned, not read, so it is small and `foreground-low`, and it never competes with the title under it. **On a `tint-10` ground, tier 3 drops to `muted-foreground`**: `foreground-low` measures 4.37:1 there and misses AA (§10).
 
 ---
 
@@ -327,7 +328,7 @@ All semantic foreground/background pairings meet **WCAG AA**; verify with `npm r
 | status (dark) | same step-9 fills | 500 fills with `neutral-950` text (≥5.2:1) | |
 | `foreground` (light) | `#21201c` | `neutral-950` `#1e1e1d` | one step serves both light ink and dark canvas (ΔL 0.009) |
 
-Substitutions: **Newsreader** for PythiaType SemiBold (proprietary). Inter and Geist Mono are exact.
+Type is Geist and Geist Mono throughout (phase 2); no proprietary faces remain in the repo.
 
 Motion respects `prefers-reduced-motion`. Focus is a 2px solid `--ring` outline, offset 2px, on `:focus-visible` only. New colours must be re-run through the auditor before merge.
 
@@ -350,7 +351,7 @@ Write like the product reads: first-person, warm, direct. the brand site speaks 
 - Do consume the highest token tier that fits: semantic over primitive, primitive over a raw value.
 - Do use `bg-tint-*` for rest / hover fills; they need no `dark:` variants.
 - Do use `brand` for anything carrying text on orange and `brand-accent` for rings, icons, selection and graphics.
-- Do put headlines and person names in `font-heading`; keep UI text in Inter at 500.
+- Do let headings take the 450 heading weight from the `text-*` role; keep UI labels, chips, tabs and buttons at 500; body at 400.
 - Do prefer `border-subtle` for separation; reserve `shadow-lg`+ for the composer, popovers and tiles.
 - Do keep product motion ≤300ms, list transition properties explicitly, and honor `prefers-reduced-motion`.
 - Don't put white text on `brand-accent` or on a 500-step status colour.
@@ -390,7 +391,7 @@ The token swatch page (`src/app/design/brand/page.tsx`, rendered at `/design/bra
 
 Decisions D4/D5 in `docs/genui-research/13-decisions-and-backlog.md`. **Brand's skin, Vercel's restraint.**
 
-**Kept from Brand:** sand + tangerine, Inter + Newsreader (+ Geist Mono), the multiplicative radius scale, glass shadows, motion values. **Taken from Vercel:** status colours only as small dots or chips (never large fills); 3-weight restraint on headings (400 / 500 / 600); hairline-as-box-shadow edges; the double focus ring; control heights 32 / 40 / 48 (`h-8` / `h-10` / `h-12`); the within-group → between-block → section spacing rule; "default to stillness" on data blocks (colour-only hover; transforms only on enter / exit / press).
+**Kept from Brand:** sand + tangerine, the multiplicative radius scale, glass shadows, motion values; type moved to Geist + Geist Mono in phase 2. **Taken from Vercel:** status colours only as small dots or chips (never large fills); 3-weight restraint on headings (400 / 500 / 600); hairline-as-box-shadow edges; the double focus ring; control heights 32 / 40 / 48 (`h-8` / `h-10` / `h-12`); the within-group → between-block → section spacing rule; "default to stillness" on data blocks (colour-only hover; transforms only on enter / exit / press).
 
 | Token | Value | Use |
 |---|---|---|

@@ -11,7 +11,8 @@ then `README.md`, `docs/brand/reskin-conventions.md` and
 - **Phase 2 is complete and merged.** `main` renders the same layout in the
   brand design language: paper-white canvas with a dark mapping, sand
   neutrals, one tangerine accent, ink buttons, pills, tint fills, hairline
-  separation, glass elevation, PythiaType display headings over Inter. There
+  separation, glass elevation, Geist throughout on Vercel's typography
+  roles (headings at the 450 heading weight, Geist Mono for identifiers). There
   is one branch (`main`), no remote, no open worktrees, and a clean tree.
 - Verification at the last commit: `npx tsc --noEmit`, `npm run lint` (no
   warnings), `npm run build`, `npm run brand:check-contrast` (WCAG AA, both
@@ -85,8 +86,14 @@ node scripts/dev/contact-sheet.mjs out/light out/sheet-light.png "main"
   `brand-accent`. The Plan pill is ink, the user chat bubble is the brand's
   tangerine bubble with white text.
 - **Group labels are caps on the third tier** (sidebar sections, settings
-  groups, palette headings, "Featured"), titles and card names are in the
-  display face, running copy on `muted-foreground`, meta on `foreground-low`.
+  groups, palette headings, "Featured"), titles and card names take the
+  450 heading weight from their `text-*` role, running copy sits on
+  `muted-foreground`, meta on `foreground-low`.
+- **Type is Geist** (swapped after the re-skin, at the user's request, from
+  the prototype's Inter + PythiaType): the families, weights and size /
+  leading / tracking roles follow Vercel's published typography system
+  (`docs/brand/design.md` §4). No font files ship in the repo any more;
+  both faces come from `next/font/google`.
 - **Status only as dots or tinted chips** (the Live dot, the inbox check,
   thumbs-up hover, the swipe-to-archive sheet); no pastel decoration.
 - **Imagery keeps its colours:** logos, agent orbs, cover art, the
@@ -98,14 +105,14 @@ node scripts/dev/contact-sheet.mjs out/light out/sheet-light.png "main"
 | Path | What |
 |---|---|
 | `src/app/globals.css` | Hyperagent tokens (kept for comparison), the phase-2 bridge, the `.theme-brand` remap, site utilities, keyframes |
-| `src/app/layout.tsx` | All fonts, `theme-brand` on `<body>`, the next-themes and tooltip providers |
+| `src/app/layout.tsx` | Geist and Geist Mono, `theme-brand` on `<body>`, the next-themes and tooltip providers |
 | `src/app/(app)/` | One route per sidebar page inside the app shell |
 | `src/components/app/` | Sidebar (menus, ⌘K palette, rail, drag-resize), app frame, account menu with the theme switch, brand marks |
 | `src/components/composer/` | Composer and its four menus |
 | `src/components/<page>/` | Page components; `resources/` holds the shared heading, search and empty-state pieces |
 | `src/components/ui/` | shadcn primitives in the brand skin (pills, tints, hairlines, glass), phase-1 API |
 | `src/lib/mock/` | All data (static) |
-| `src/design/brand/` | `brand.css`, fonts and loaders, the brand's own primitives (reference only), `README.md` with the token mapping |
+| `src/design/brand/` | `brand.css`, the Geist loaders, the brand's own primitives (reference only), `README.md` with the token mapping |
 | `src/app/design/brand/` | Swatch page at `/design/brand` |
 | `docs/brand/` | `design.md` (the brand language), `reskin-conventions.md` (the phase-2 contract), the style audit |
 | `docs/clone-conventions.md`, `docs/reference/` | The phase-1 contract and the captured ground truth |
@@ -119,10 +126,9 @@ node scripts/dev/contact-sheet.mjs out/light out/sheet-light.png "main"
   clone lacks).
 - Plan step 5 is open: once the re-skin is signed off, remove the Hyperagent
   palettes (`:root`, `.dark`, `.dark body.palette-neutral`) and the
-  `palette-neutral` switch from `globals.css`, drop the Geist and Season
-  Sans loaders from `layout.tsx` (the brand does not use them; the
-  `font-display` indirection already points at PythiaType), and let the
-  primitives leave the `.theme-brand` scope.
+  `palette-neutral` switch from `globals.css` and let the primitives leave
+  the `.theme-brand` scope. (The phase-1 fonts are already gone: the switch
+  renders its display face in Geist.)
 - Only the desktop 1456-wide layout was verified. Responsive classes were
   carried over and in places adjusted (the threads and home lists), but the
   phone layout is untested.

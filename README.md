@@ -31,7 +31,7 @@ token swatches.
 | Path | What |
 |---|---|
 | `src/app/globals.css` | Hyperagent's tokens: shadcn variables for the warm light, warm dark and dark-neutral palettes, radius scale, motion, site utilities, keyframes |
-| `src/app/layout.tsx` | Fonts (Geist, Geist Mono, Season Sans, plus the brand's Inter, PythiaType, Newsreader), `theme-brand` on `<body>`, the next-themes provider |
+| `src/app/layout.tsx` | Fonts (Geist and Geist Mono from `next/font/google`), `theme-brand` on `<body>`, the next-themes provider |
 | `src/app/(app)/` | One route per sidebar page, wrapped by the app shell |
 | `src/components/app/` | Shell: sidebar, frame, brand marks |
 | `src/components/composer/` | The message composer (home + thread pages) |

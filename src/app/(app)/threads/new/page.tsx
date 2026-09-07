@@ -15,7 +15,7 @@ export default function NewThreadPage() {
         <div className="flex w-full max-w-5xl flex-1 flex-col items-center gap-24 px-6 py-12">
           <section className="flex w-full max-w-3xl flex-col gap-6 pt-8">
             <div className="flex flex-col items-center gap-4">
-              <h1 className="font-display font-semibold tracking-[-0.01em] text-5xl text-foreground">
+              <h1 className="font-display text-5xl text-foreground">
                 Let&apos;s get to work.
               </h1>
             </div>

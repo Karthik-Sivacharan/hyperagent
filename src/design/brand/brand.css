@@ -1,5 +1,5 @@
 /* ==========================================================================
-   BRAND DESIGN TOKENS - scoped copy for Hyperagent (phase 1)
+   BRAND DESIGN TOKENS - scoped copy for Hyperagent
    ==========================================================================
 
    Source: brand/src/app/globals.css (832 lines, the single source of truth
@@ -46,25 +46,26 @@
      - A `@keyframes pulse` identical to Tailwind's is included so
        `--animate-skeleton` works even when the host app never emits it.
 
-   WHAT DOES NOT WORK YET (phase 2)
-   --------------------------------
+   HOW THE UTILITIES REACH THESE TOKENS (phase 2)
+   ----------------------------------------------
    Tailwind only generates utilities for names present in the main theme, so
-   Brand-only names have no classes here: `bg-tangerine-500`, `bg-tint-10`,
-   `font-heading`, `ease-out-quart`, `text-display`, `text-md`, `rounded-5xl`,
-   `rounded-bubble`, `shadow-card`, `max-w-content`, `gap-group`, `font-book`,
-   `animate-typing-dot`, `bg-surface-secondary`, `bg-brand`, `bg-chip`, …
-   Two more Tailwind behaviours matter for the rewiring:
-     - `shadow-*` utilities inline their value at build time (they never read
-       `var(--shadow-lg)`), so `shadow-lg` stays Tailwind's shadow inside this
-       scope. Use `style={{ boxShadow: "var(--shadow-lg)" }}` until phase 2.
-     - `text-xl` etc. only emit the `--letter-spacing` / `--font-weight`
-       companions that exist in the main theme at build time, so tracking and
-       heading weight are also phase-2 items.
-   Phase 2 adds an `@theme inline` bridge to src/app/globals.css that maps every
-   Brand-only name (tangerine, tint, sand/neutral-925/975, font-heading,
-   ease-out-quart, the surface / brand / chip semantics, the shadow and
-   spacing aliases, the text companions) so the utilities exist app-wide and
-   resolve through these variables. Until then, consume tokens with `var()`.
+   src/app/globals.css carries an `@theme inline reference` bridge ("PHASE 2
+   BRIDGE") that names every brand-only token here and points it at the
+   variable of the same name: `bg-tangerine-500`, `bg-tint-10`,
+   `text-foreground-low`, `font-book`, `text-display`, `rounded-5xl`,
+   `shadow-card`, `gap-group`, `ease-out-quart` … all resolve inside
+   `.theme-brand` (on <body>), and nothing is re-emitted on :root, so this
+   file stays the single source of truth. The `--text-*--letter-spacing` and
+   `--font-weight` companions ride the text-* utilities through that bridge.
+   Durations and scales are plain custom properties: `duration-(--duration-fast)`,
+   `scale-(--scale-press)`. The typography role classes below are plain
+   classes, not utilities: they cannot take a variant.
+
+   TYPE
+   ----
+   Geist and Geist Mono (Vercel's published typography system): the families,
+   the 450 heading weight and the size / leading / tracking roles are in the
+   TYPOGRAPHY SCALE block; docs/brand/design.md §4 is the human-readable form.
 
    Never hand-edit a ramp literal: regenerate with scripts/brand/gen-ramps.mjs
    and re-run scripts/brand/check-contrast.mjs before committing.
@@ -189,67 +190,77 @@
   --color-tint-25: var(--tint-25);  /* dark hover on inline reference chips */
   --color-tint-40: var(--tint-40);  /* dividers, dark glass badge */
 
-  /* Typography - Font families. next/font (layout.tsx) sets --font-inter,
-     --font-newsreader and --font-geist-mono on <html>; these stacks consume
-     them. Brand ships Inter Variable + PythiaType SemiBold (proprietary serif)
-     + Geist Mono; Newsreader stands in for Pythia (see design.md). */
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-heading: var(--font-pythia), var(--font-newsreader), ui-serif, Georgia, "Times New Roman", serif; /* PythiaType SemiBold (Brand's own, 600 only) → Newsreader fallback */
-  --font-serif: var(--font-newsreader), ui-serif, Georgia, "Times New Roman", serif;
-  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  /* Typography - Font families. The brand runs on Geist (Vercel's published
+     typography system): Geist Sans for prose, headings, labels, controls,
+     tables and figures; Geist Mono only for code, commands, paths, raw
+     tokens, timestamps and short identifiers. next/font (fonts.ts, on
+     <html>) sets --font-geist-sans and --font-geist-mono; these stacks
+     consume them. `--font-heading` and `--font-serif` are kept as names so
+     `font-heading` / `font-serif` still resolve: both are Geist Sans now. */
+  --font-sans: var(--font-geist-sans), "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-heading: var(--font-sans);
+  --font-serif: var(--font-sans);
+  --font-mono: var(--font-geist-mono), "Geist Mono", ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
 
-  /* Typography - weights. Brand leans on Inter's variable axis: 450 for
-     subtle buttons, 470 for inline reference chips, 500 for UI, 600 headings. */
+  /* Typography - weights, Vercel's published set: regular 400 for body,
+     450 for every heading role (`font-book`, the heading weight), medium 500
+     for labels, chips, tabs, buttons and emphasis, semibold 600 reserved.
+     No other numeric weights. */
   --font-weight-normal: 400;
-  --font-weight-book: 450;    /* subtle / secondary buttons */
-  --font-weight-firm: 470;    /* inline reference chips, emphasised copy */
-  --font-weight-medium: 500;  /* UI labels, chips, tabs */
-  --font-weight-semibold: 600; /* headings */
+  --font-weight-book: 450;     /* the Geist heading weight (Vercel --vbg-weight-heading) */
+  --font-weight-medium: 500;   /* UI labels, chips, tabs, buttons, strong */
+  --font-weight-semibold: 600; /* reserved; headings do not use it */
   --font-weight-bold: 700;
 
   /* ===== TYPOGRAPHY SCALE =====
-     Size tokens are native Tailwind --text-* utilities with paired line-height,
-     letter-spacing and (for headings) weight, matching values measured on
-     the brand site. Body sizes leave weight to the utility (font-medium etc.). */
-  --text-xs: 12px;                       /* captions, footer, disclaimers */
+     Vercel's published Geist roles mapped onto Tailwind's --text-* names, so
+     `text-<size>` carries the role's size, line-height, tracking and (for
+     headings) the 450 weight. Body sizes leave weight to the utility.
+       xs  12/16   label-12                     2xl 24/32 -0.04em 450  heading-24 / section
+       sm  14/20   compact: buttons, labels     3xl 32/40 -0.04em 450  heading-32 / title
+       md  13/18   metadata, captions           4xl 40/48 -0.06em 450  heading-40 / page title
+       base 16/24  body                         5xl 48/56 -0.06em 450  heading-48 / display
+       lg  18/28   lede                         display: fluid 40 → 48
+       xl  20/26 -0.02em 450 heading-20 / subsection */
+  --text-xs: 12px;                       /* captions, footer, disclaimers, keycaps */
   --text-xs--line-height: 16px;
-  --text-xs--letter-spacing: -0.02em;
-  --text-sm: 14px;                       /* chips, tabs, buttons, labels (weight 500) */
+  --text-xs--letter-spacing: 0;
+  --text-sm: 14px;                       /* chips, tabs, buttons, labels, table cells (weight 500 on controls) */
   --text-sm--line-height: 20px;
-  --text-sm--letter-spacing: 0;          /* buttons/labels measure `normal` - resets the body tracking */
-  --text-md: 16px;                       /* Brand's `text-md` alias (measured 16/24 on "Follow Nir for more"); 15px question bubbles are text-[15px] */
-  --text-md--line-height: 24px;
-  --text-md--letter-spacing: -0.015em;
-  --text-base: 16px;                     /* body, suggested questions, composer */
+  --text-sm--letter-spacing: 0;
+  --text-md: 13px;                       /* metadata and captions: Vercel's 13px label / metadata role */
+  --text-md--line-height: 18px;
+  --text-md--letter-spacing: 0;
+  --text-base: 16px;                     /* body, composer, suggested questions */
   --text-base--line-height: 24px;
-  --text-base--letter-spacing: -0.015em; /* -0.24px @16 - Brand tracks body copy at -0.015em (buttons reset to 0) */
-  --text-lg: 18px;                       /* about copy, composer (md+), row titles */
-  --text-lg--line-height: 27px;
-  --text-lg--letter-spacing: -0.013em;   /* -0.24px @18 (inherited px value, so the em shrinks) */
-  --text-xl: 20px;                       /* section headings ("Ask me about") */
-  --text-xl--line-height: 28px;          /* measured 20/28 (computed pass) */
-  --text-xl--letter-spacing: -0.025em;
-  --text-xl--font-weight: 600;
-  --text-2xl: 24px;                      /* dialog titles ("Sign in to continue with…"): 24/32, weight 500; tile names are text-[22px] */
+  --text-base--letter-spacing: 0;
+  --text-lg: 18px;                       /* lede: one short orientation passage */
+  --text-lg--line-height: 28px;
+  --text-lg--letter-spacing: 0;
+  --text-xl: 20px;                       /* heading-20: nested structure, section headings */
+  --text-xl--line-height: 26px;
+  --text-xl--letter-spacing: -0.02em;
+  --text-xl--font-weight: 450;
+  --text-2xl: 24px;                      /* heading-24: major section turns, dialog titles */
   --text-2xl--line-height: 32px;
-  --text-2xl--letter-spacing: -0.025em;
-  --text-2xl--font-weight: 500;
-  --text-3xl: 28px;                      /* tile names (md+) */
-  --text-3xl--line-height: 34px;
-  --text-3xl--letter-spacing: -0.025em;
-  --text-3xl--font-weight: 600;
-  --text-4xl: 36px;                      /* profile name (mobile) */
-  --text-4xl--line-height: 1.1;
-  --text-4xl--letter-spacing: -0.025em;
-  --text-4xl--font-weight: 600;
-  --text-5xl: 52px;                      /* profile name (desktop) */
-  --text-5xl--line-height: 1.1;
-  --text-5xl--letter-spacing: -0.025em;
-  --text-5xl--font-weight: 600;
-  --text-display: clamp(2.25rem, 10vw, 3.25rem); /* fluid h1: 36 → 52px, pair with font-heading */
-  --text-display--line-height: 1.1;
-  --text-display--letter-spacing: -0.025em;
-  --text-display--font-weight: 600;
+  --text-2xl--letter-spacing: -0.04em;
+  --text-2xl--font-weight: 450;
+  --text-3xl: 32px;                      /* heading-32: page title on narrow screens, tile names */
+  --text-3xl--line-height: 40px;
+  --text-3xl--letter-spacing: -0.04em;
+  --text-3xl--font-weight: 450;
+  --text-4xl: 40px;                      /* heading-40: the page title */
+  --text-4xl--line-height: 48px;
+  --text-4xl--letter-spacing: -0.06em;
+  --text-4xl--font-weight: 450;
+  --text-5xl: 48px;                      /* heading-48: the display statement */
+  --text-5xl--line-height: 56px;
+  --text-5xl--letter-spacing: -0.06em;
+  --text-5xl--font-weight: 450;
+  --text-display: clamp(2.5rem, 5vw, 3rem); /* fluid display: 40 → 48px */
+  --text-display--line-height: 1.15;
+  --text-display--letter-spacing: -0.06em;
+  --text-display--font-weight: 450;
 
   /* Shadcn color mappings */
   --color-background: var(--background);
@@ -708,36 +719,36 @@
    label roles are utility classes. Metrics mirror the measured Brand styles. */
 
 @layer utilities {
-  .theme-brand .text-heading-display { /* profile name: fluid 36→52px serif */
+  .theme-brand .text-heading-display { /* the one page-defining statement: fluid 40→48px, heading weight */
     font-family: var(--font-heading);
     font-size: var(--text-display);
-    line-height: 1.1;
-    font-weight: 600;
-    letter-spacing: -0.025em;
+    line-height: 1.15;
+    font-weight: var(--font-weight-book);
+    letter-spacing: -0.06em;
   }
-  .theme-brand .text-heading-lg { /* row / card title: 18px serif, weight 500 */
+  .theme-brand .text-heading-lg { /* row / card title: 18/28, heading weight */
     font-family: var(--font-heading);
     font-size: 18px;
-    line-height: 1.3;
-    font-weight: 500;
-    letter-spacing: -0.01em;
+    line-height: 28px;
+    font-weight: var(--font-weight-book);
+    letter-spacing: -0.02em;
   }
-  .theme-brand .text-label-14-mono {
+  .theme-brand .text-label-14-mono { /* an identifier set in mono, figures tabular and slashed-zero */
     font-family: var(--font-mono);
     font-size: 14px;
     line-height: 20px;
     font-weight: 400;
+    font-variant-numeric: tabular-nums slashed-zero;
   }
   .theme-brand .text-label-12-mono { /* figures and provenance only: a measured number, a
-       command, a version, a citation — the things tabular-nums and an even
-       advance are for. Not the face of an eyebrow any more: at 12/400 under a
-       serif title it read thin and small, so a card label that NAMES a thing is
-       `text-xs font-medium` in the sans. */
+       command, a version, a citation, the things tabular-nums and an even
+       advance are for. A card label that NAMES a thing is `text-xs
+       font-medium` in the sans. */
     font-family: var(--font-mono);
     font-size: 12px;
     line-height: 16px;
     font-weight: 400;
-    font-variant-numeric: tabular-nums;
+    font-variant-numeric: tabular-nums slashed-zero;
   }
   .theme-brand .text-label-12-caps { /* the uppercase label: over a GROUP of cards, and on
        the field labels that were already set in caps (an entity's kind, a draft
@@ -791,7 +802,7 @@
 }
 
 /* ===== GENUI PROSE =====
-   The unbubbled answer body. Inter, measured Brand metrics, hairline dividers.
+   The unbubbled answer body. Geist at the published metrics, hairline dividers.
    Serif is reserved for display headings and pull quotes. */
 
 @layer components {
@@ -806,14 +817,14 @@
     font-size: var(--text-xl);
     line-height: var(--text-xl--line-height);
     letter-spacing: var(--text-xl--letter-spacing);
-    font-weight: var(--font-weight-semibold);
+    font-weight: var(--font-weight-book);
   }
   .theme-brand .genui-prose h3 {
     margin-top: calc(var(--spacing, 0.25rem) * 5);
     font-size: var(--text-lg);
     line-height: var(--text-lg--line-height);
     letter-spacing: var(--text-lg--letter-spacing);
-    font-weight: var(--font-weight-medium);
+    font-weight: var(--font-weight-book);
   }
   .theme-brand .genui-prose h2:first-child, .theme-brand .genui-prose h3:first-child { margin-top: 0; }
   .theme-brand .genui-prose strong { font-weight: var(--font-weight-medium); }
@@ -837,13 +848,10 @@
     border-radius: var(--radius-sm);
     background-color: var(--color-tint-10);
   }
-  /* A quoted passage inside an answer, matched to quote-card.tsx: the serif
-     face and a quiet inset, with no accent rule down the left edge — a 2px
-     coloured side stripe is decoration that reads louder than the words it
-     brackets, and it was the loudest thing in the block. `font-style: italic`
-     is gone with it: `font-synthesis: none` is set on <html> and neither
-     PythiaType nor Newsreader ships an italic in the loaded weight, so it
-     styled nothing. */
+  /* A quoted passage inside an answer: a quiet inset on the secondary text
+     colour with a hairline down the left edge, no accent stripe and no
+     italic (Geist has no separate italic face and `font-synthesis: none`
+     forbids a synthesised one). */
   .theme-brand .genui-prose blockquote {
     padding-left: calc(var(--spacing, 0.25rem) * 4);
     border-left: 1px solid var(--border-subtle);
@@ -870,17 +878,21 @@
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
     font-synthesis: none;
+    font-kerning: normal;
+    font-optical-sizing: auto;
 
     /* body */
     background-color: var(--background);
     color: var(--foreground);
     font-family: var(--font-sans);
-    /* Brand tracks running copy at -0.015em (-0.24px @16); text-sm (buttons,
-       labels) resets to 0 through its --letter-spacing token */
-    letter-spacing: -0.015em;
-    /* Inter alternates Brand enables: cv03/cv04 (open a/g), cv06 (simplified u),
-       cv09 (flat-top 3), cv11 (single-storey a), ss08 */
-    font-feature-settings: "cv03", "cv04", "cv06", "cv09", "cv11", "ss08";
+    font-size: var(--text-base);
+    line-height: var(--text-base--line-height);
+    font-weight: var(--font-weight-normal);
+    /* Geist as Vercel ships it: required ligatures on, contextual alternates
+       off, stylistic set 11 on. Body copy is untracked; the heading roles
+       carry their own negative tracking through the --text-* tokens. */
+    letter-spacing: 0;
+    font-feature-settings: "rlig" 1, "calt" 0, "ss11" 1;
   }
 
   .theme-brand::selection,

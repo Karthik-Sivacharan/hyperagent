@@ -110,7 +110,7 @@ export function ThreadsPage({ threads }: { threads: Thread[] }) {
           <header className="mx-auto w-full max-w-5xl px-6 pt-6 pb-4 max-sm:px-6">
             <div className="flex w-full flex-wrap items-center justify-between gap-4">
               <div className="flex items-center gap-2">
-                <h1 className="font-heading font-semibold text-2xl text-foreground">Threads</h1>
+                <h1 className="font-heading text-2xl text-foreground">Threads</h1>
               </div>
               <Button asChild>
                 <Link href="/threads/new">

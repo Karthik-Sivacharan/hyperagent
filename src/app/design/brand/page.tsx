@@ -74,15 +74,14 @@ const TYPE: { label: string; style?: CSSProperties; className?: string; sample: 
   { label: "4xl · heading", style: { ...text("4xl", true), ...heading }, sample: "Ask me anything" },
   { label: "3xl · heading", style: { ...text("3xl", true), ...heading }, sample: "Dr. Ellen Langer" },
   { label: "2xl · heading", style: { ...text("2xl", true), ...heading }, sample: "Dr. Ellen Langer" },
-  { label: "xl · sans 600", style: text("xl", true), sample: "Ask me about" },
-  { label: "heading-lg · serif 500", className: "text-heading-lg", sample: "Guy Kawasaki" },
+  { label: "xl · heading", style: text("xl", true), sample: "Ask me about" },
+  { label: "heading-lg (class)", className: "text-heading-lg", sample: "Guy Kawasaki" },
   { label: "heading-display (class)", className: "text-heading-display", sample: "Token swatches" },
   { label: "lg · 400", style: text("lg"), sample: "I write about psychology, technology, and business and I teach and consult on behavior design." },
   { label: "base · 400", style: text("base"), sample: "How do I apply the Hook Model to my product or app?" },
-  { label: "md · 400", style: text("md"), sample: "How can I teach my kids to become indistractable?" },
+  { label: "md · 400 (13px metadata)", style: { ...text("md"), color: v("foreground-low") }, sample: "Updated 2 hours ago · 3 collaborators" },
   { label: "sm · 500", style: { ...text("sm"), fontWeight: v("font-weight-medium") }, sample: "Productivity · Behavior design · Habits" },
   { label: "sm · book 450", style: { ...text("sm"), fontWeight: v("font-weight-book") }, sample: "Share profile" },
-  { label: "base · firm 470", style: { ...text("base"), fontWeight: v("font-weight-firm") }, sample: "Hooked · Indistractable" },
   { label: "xs · 400", style: { ...text("xs"), color: v("foreground-low") }, sample: "By using this service, you agree to the Terms of Service." },
   { label: "label-14 mono", className: "text-label-14-mono", sample: "npm run brand:check-contrast" },
   { label: "label-12 mono", className: "text-label-12-mono", sample: "oklch(0.6700 0.2022 42) · tangerine-500 · 1,234.56" },
@@ -90,12 +89,11 @@ const TYPE: { label: string; style?: CSSProperties; className?: string; sample: 
 ];
 
 const FONTS: { label: string; token: string; sample: string; extra?: CSSProperties }[] = [
-  { label: "font-sans · Inter Variable", token: "font-sans", sample: "The quick brown fox jumps over the lazy dog · 0123456789" },
-  { label: "font-heading · PythiaType SemiBold", token: "font-heading", sample: "The quick brown fox jumps over the lazy dog", extra: { fontWeight: 600 } },
-  { label: "font-serif · Newsreader", token: "font-serif", sample: "The quick brown fox jumps over the lazy dog" },
+  { label: "font-sans · Geist", token: "font-sans", sample: "The quick brown fox jumps over the lazy dog · 0123456789" },
+  { label: "font-heading · Geist at 450", token: "font-heading", sample: "The quick brown fox jumps over the lazy dog", extra: { fontWeight: 450 } },
   { label: "font-mono · Geist Mono", token: "font-mono", sample: "const brand = oklch(0.67 0.2022 42);" },
 ];
-const WEIGHTS = ["normal", "book", "firm", "medium", "semibold", "bold"];
+const WEIGHTS = ["normal", "book", "medium", "semibold", "bold"];
 
 const RADII: { name: string; size: string }[] = [
   { name: "xs", size: "size-14" }, { name: "sm", size: "size-14" }, { name: "md", size: "size-14" }, { name: "lg", size: "size-14" },
@@ -311,7 +309,7 @@ export default function BrandTokensPage() {
       </section>
 
       <section className="mb-14">
-        <SectionTitle sub="Inter · PythiaType (Newsreader fallback) · Geist Mono">Type scale</SectionTitle>
+        <SectionTitle sub="Geist · Geist Mono · Vercel's published roles on the Tailwind names">Type scale</SectionTitle>
         <div className="divide-y" style={{ borderColor: v("border-subtle") }}>
           {TYPE.map((t) => (
             <div key={t.label} className="grid gap-2 py-4 sm:grid-cols-[11rem_1fr] sm:items-baseline" style={hairline}>
@@ -323,7 +321,7 @@ export default function BrandTokensPage() {
       </section>
 
       <section className="mb-14">
-        <SectionTitle sub="--font-sans · --font-heading · --font-serif · --font-mono · weights 400 → 700">Font families and weights</SectionTitle>
+        <SectionTitle sub="--font-sans · --font-heading (both Geist) · --font-mono · weights 400 / 450 / 500 / 600">Font families and weights</SectionTitle>
         <div className="divide-y" style={{ borderColor: v("border-subtle") }}>
           {FONTS.map((f) => (
             <div key={f.token} className="grid gap-2 py-4 sm:grid-cols-[14rem_1fr] sm:items-baseline" style={hairline}>
@@ -491,7 +489,7 @@ export default function BrandTokensPage() {
           <div className="mt-6 genui-prose" style={{ maxWidth: v("container-content") }}>
             <h3>genui-prose</h3>
             <p>
-              The unbubbled answer body: Inter at the measured metrics, hairline dividers, <a href="#top">underlined links</a>,{" "}
+              The unbubbled answer body: Geist at the published metrics, hairline dividers, <a href="#top">underlined links</a>,{" "}
               <code>inline code</code> on a tint and <strong>medium-weight emphasis</strong>.
             </p>
             <blockquote>Serif is reserved for display headings and pull quotes.</blockquote>
@@ -509,8 +507,8 @@ export default function BrandTokensPage() {
             </div>
           ))}
         </div>
-        <p className="mt-3 text-xl font-semibold">
-          text-xl font-semibold via Tailwind → 20 / 28 / 600 inside the scope
+        <p className="mt-3 text-xl">
+          text-xl via Tailwind → 20 / 26 / 450 / -0.02em inside the scope
         </p>
         <p className="mt-1 rounded-2xl bg-red-600 px-3 py-1 text-sm text-white">
           bg-red-600 rounded-2xl via Tailwind → Brand red-600 (#bc4441) at 18px

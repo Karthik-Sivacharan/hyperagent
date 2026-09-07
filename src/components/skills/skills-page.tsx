@@ -17,7 +17,7 @@ export function SkillsPage() {
         <header className="border-border-subtle border-b px-6 py-4">
           <div className="flex w-full flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div className="min-w-0">
-              <h1 className="font-heading font-semibold text-2xl text-foreground">Skills</h1>
+              <h1 className="font-heading text-2xl text-foreground">Skills</h1>
               <p className="text-muted-foreground text-sm">
                 Building blocks that add specific capabilities to your agents and threads.
               </p>
