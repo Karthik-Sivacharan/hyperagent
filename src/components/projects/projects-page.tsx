@@ -9,14 +9,16 @@ import { PageHeading } from "@/components/resources/page-heading";
 import { ShowArchivedSwitch } from "@/components/resources/show-archived-switch";
 
 // Transcribed from docs/reference/pages/projects.html. No projects exist on
-// the live account; the archived switch only flips local state.
+// the live account; the archived switch only flips local state. Phase 2:
+// hairline header rule, the brand switch and the ink button; the empty
+// state comes from the shared piece.
 export function ProjectsPage() {
   const [showArchived, setShowArchived] = useState(false);
 
   return (
     <div className="flex-1 overflow-y-auto">
       <div className="flex h-full flex-col">
-        <header className="border-border/50 border-b px-6 py-4">
+        <header className="border-b border-border-subtle px-6 py-4">
           <PageHeading
             title="Projects"
             actions={
