@@ -2,11 +2,16 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import localFont from "next/font/local";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { brandFontClassName } from "@/design/brand/fonts";
 import "./globals.css";
+import "@/design/brand/brand.css";
 
 // hyperagent.com loads Geist + Geist Mono through next/font/google and its
 // display face, Season Sans (variable, 300–900), through next/font/local.
 // The woff2 in ./fonts is the one the site serves (docs/reference/fonts).
+// Phase 2 adds the brand faces (Inter, PythiaType, Newsreader, Geist Mono)
+// through `brandFontClassName`; both sets stay loaded while the two skins
+// coexist.
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -34,16 +39,17 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    // The dashboard is pinned to its dark, neutral palette (what the live
-    // account renders). Drop `dark` from <html> or `palette-neutral` from
-    // <body> to see the warm light / warm dark palettes the site also ships.
+    // Phase 2: `theme-brand` on <body> re-themes the whole app with the brand
+    // tokens (src/design/brand/brand.css); the brand is light-canonical, and
+    // `dark` on <html> switches to its dark mapping. The Hyperagent palettes
+    // stay in globals.css for side-by-side comparison: swap `theme-brand` for
+    // `palette-neutral` here and add `dark` to <html> to see the phase-1 clone.
     <html
       lang="en"
-      className={`dark ${geistSans.variable} ${geistMono.variable} ${seasonSans.variable}`}
-      style={{ colorScheme: "dark" }}
+      className={`${geistSans.variable} ${geistMono.variable} ${seasonSans.variable} ${brandFontClassName}`}
       suppressHydrationWarning
     >
-      <body className="palette-neutral antialiased">
+      <body className="theme-brand antialiased">
         <TooltipProvider delayDuration={300}>{children}</TooltipProvider>
       </body>
     </html>

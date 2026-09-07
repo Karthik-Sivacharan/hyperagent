@@ -1,12 +1,11 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import "@/design/brand/brand.css";
-import { brandFontClassName } from "@/design/brand/fonts";
 import { BrandThemeShell } from "./_design/theme-toggle";
 
-// The only place the scoped Brand sheet is imported (phase 1). Everything
-// under /design/brand renders inside a `.theme-brand` wrapper that also
-// carries the next/font variable classes the token stacks read.
+// brand.css is imported once, by the root layout (phase 2). This layout only
+// adds the swatch page's own light/dark wrapper, which flips a local `dark`
+// class so the sheet can be inspected in either mapping regardless of the
+// app-level theme.
 
 export const metadata: Metadata = {
   title: "Brand tokens",
@@ -15,7 +14,7 @@ export const metadata: Metadata = {
 
 export default function BrandDesignLayout({ children }: { children: ReactNode }) {
   return (
-    <BrandThemeShell className={`${brandFontClassName} flex min-h-full flex-1 flex-col`}>
+    <BrandThemeShell className="flex min-h-full flex-1 flex-col">
       {children}
     </BrandThemeShell>
   );
