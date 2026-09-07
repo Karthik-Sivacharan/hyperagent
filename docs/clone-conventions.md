@@ -1,9 +1,11 @@
 # Cloning hyperagent.com: conventions for every page branch
 
 Phase 1 of this repo is a pixel-faithful clone of the hyperagent.com dashboard
-(every page reachable from the left sidebar). Phase 2 re-skins it with the
-Brand design language. These rules keep the parallel branches mergeable and
-the clone honest.
+(every page reachable from the left sidebar). Phase 2 re-skinned it with the
+Brand design language; its contract is `docs/brand/reskin-conventions.md`,
+which keeps rule 1's path ownership and the verification steps below and
+replaces the "copy classes verbatim" strategy with the brand tokens. These
+rules keep the parallel branches mergeable and the clone honest.
 
 ## Ground truth
 
