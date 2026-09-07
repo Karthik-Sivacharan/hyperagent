@@ -5,12 +5,16 @@ import Link from "next/link";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { Collapsible as CollapsiblePrimitive } from "radix-ui";
 import { discoverSkills } from "@/lib/mock/skills";
+import { Button } from "@/components/ui/button";
 import { SkillListingCard } from "@/components/marketplace/skill-listing-card";
 
 // "Discover and install new skills" (docs/reference/pages/skills.html): a
 // collapsible section whose heading is the trigger, a "See more" link to the
 // marketplace, and a four-up row of the marketplace's featured skills (a
-// snap-scrolling strip below xl, a 4-column grid at xl and up).
+// snap-scrolling strip below xl, a 4-column grid at xl and up). Phase 2: the
+// heading in the heading face at the section step of the brand scale (the
+// same step as the marketplace's section titles), the chevron on the third
+// tier and "See more" as the link button (docs/brand/design.md §4, §4.1).
 
 export function DiscoverSkills() {
   const [open, setOpen] = useState(true);
@@ -21,22 +25,19 @@ export function DiscoverSkills() {
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-start justify-between gap-2 mb-0 min-w-0">
           <div className="min-w-0">
-            <h2 className="flex items-center gap-2 font-semibold text-lg">
-              <CollapsiblePrimitive.Trigger className="flex min-w-0 items-center gap-2 rounded-lg py-0.5 text-left">
+            <h2 className="flex items-center gap-2 font-heading text-xl text-foreground">
+              <CollapsiblePrimitive.Trigger className="flex min-w-0 cursor-pointer items-center gap-2 rounded-full py-0.5 text-left outline-none focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background">
                 <span className="min-w-0 truncate">Discover and install new skills</span>
-                <span className="shrink-0 text-muted-foreground">
+                <span className="shrink-0 text-foreground-low">
                   <Chevron className="size-4" aria-hidden="true" />
                 </span>
               </CollapsiblePrimitive.Trigger>
             </h2>
           </div>
         </div>
-        <Link
-          className="shrink-0 font-medium text-muted-foreground text-sm underline underline-offset-4 transition-colors hover:text-foreground"
-          href="/marketplace"
-        >
-          See more
-        </Link>
+        <Button variant="link" size="sm" className="h-auto shrink-0 px-0" asChild>
+          <Link href="/marketplace">See more</Link>
+        </Button>
       </div>
       <CollapsiblePrimitive.Content className="space-y-4 pt-2">
         <div className="flex min-h-0 flex-col gap-4">
