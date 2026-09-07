@@ -15,11 +15,17 @@ import type { Thread } from "@/lib/mock/threads";
 
 // One row of the threads list (docs/reference/pages/threads.html). The whole
 // row is a link; the actions in its top-right corner fade in on hover at xl
-// and stay visible below it. The green "Archive" sheet underneath is the
+// and stay visible below it. The "Archive" sheet underneath is the
 // swipe-to-archive reveal on touch devices (opacity-0 on desktop).
+// Phase 2: each row is a 22px brand card on the resting card shadow that
+// lifts to the hover shadow; the title is the display serif on tier 1, the
+// summary tier 2, the timestamp tier 3; the actions are glass pills and the
+// archive sheet the success fill (docs/brand/design.md §4.1, §5, §6, §8).
+// On phones the cards go full-bleed and share hairline dividers, as the
+// site's rows did.
 
 const ACTION =
-  "size-7 rounded-[6px] border border-border bg-background/80 shadow-xs backdrop-blur-sm group-hover:opacity-100 focus-visible:opacity-100 group-has-[:focus-visible]:opacity-100 transition-opacity opacity-100 xl:opacity-0 xl:group-hover:opacity-100 xl:focus-visible:opacity-100 xl:group-has-[:focus-visible]:opacity-100 [@media(hover:none)]:opacity-100";
+  "size-7 bg-surface-elevated/80 text-muted-foreground shadow-edge backdrop-blur-sm hover:text-foreground aria-pressed:text-foreground group-hover:opacity-100 focus-visible:opacity-100 group-has-[:focus-visible]:opacity-100 transition-[opacity,color,background-color,transform] duration-(--duration-normal) ease-out opacity-100 xl:opacity-0 xl:group-hover:opacity-100 xl:focus-visible:opacity-100 xl:group-has-[:focus-visible]:opacity-100 [@media(hover:none)]:opacity-100";
 
 // The site shows "1d" where the wide label says "yesterday".
 function compactLabel(label: string) {
@@ -40,31 +46,31 @@ export function ThreadCard({
   onToggleStar: () => void;
 }) {
   return (
-    <div className="transition-colors duration-150 [&:hover:not(:has([data-nested-threads]:hover))]:bg-muted/40">
+    <div className="overflow-hidden rounded-3xl bg-card shadow-card transition-[box-shadow] duration-(--duration-slow) ease-out [&:hover:not(:has([data-nested-threads]:hover))]:shadow-card-hover max-sm:rounded-none max-sm:border-b max-sm:border-border-subtle max-sm:shadow-none">
       <div>
         <div className="relative overflow-hidden">
           <div
             aria-hidden="true"
-            className="absolute inset-0 flex items-center justify-end gap-2 bg-green-600 pr-6 font-medium text-sm text-white opacity-0"
+            className="absolute inset-0 flex items-center justify-end gap-2 bg-success pr-6 font-medium text-sm text-success-foreground opacity-0"
           >
             <Archive className="size-5" aria-hidden="true" />
             Archive
           </div>
           <div className="relative touch-pan-y">
             <Link
-              className="block outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
+              className="block rounded-3xl outline-none focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-inset max-sm:rounded-none"
               data-slot="context-menu-trigger"
               href={`/thread/${thread.id}`}
             >
-              <div className="group relative flex transition-colors duration-150 items-center gap-8 px-6 py-6 max-sm:gap-4 max-sm:px-6 max-sm:py-3 max-xl:pr-20">
+              <div className="group relative flex items-center gap-8 px-6 py-6 max-sm:gap-4 max-sm:px-6 max-sm:py-3 max-xl:pr-20">
                 <div className="flex min-w-0 flex-1 flex-col gap-2 max-sm:gap-1">
                   <div className="flex min-w-0 items-center gap-2">
-                    <h3 className="line-clamp-1 min-w-0 flex-1 font-medium text-foreground text-xl leading-[24px] max-sm:line-clamp-2 max-sm:text-base max-sm:leading-5">
+                    <h3 className="line-clamp-1 min-w-0 flex-1 font-heading text-foreground text-xl leading-[24px] max-sm:line-clamp-2 max-sm:text-base max-sm:leading-5">
                       {thread.title}
                     </h3>
                   </div>
                   <p className="line-clamp-2 min-w-0 text-muted-foreground text-sm leading-relaxed">{thread.summary}</p>
-                  <div className="flex min-w-0 items-center text-muted-foreground gap-2 text-sm">
+                  <div className="flex min-w-0 items-center text-foreground-low gap-2 text-sm">
                     <span className="shrink-0 sm:hidden">{compactLabel(thread.updatedLabel)}</span>
                     <span className="hidden shrink-0 sm:inline">{thread.updatedLabel}</span>
                   </div>

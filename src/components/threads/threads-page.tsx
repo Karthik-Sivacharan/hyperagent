@@ -27,6 +27,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import type { Thread } from "@/lib/mock/threads";
 import { ThreadCard } from "@/components/threads/thread-card";
@@ -34,7 +36,11 @@ import { ThreadCard } from "@/components/threads/thread-card";
 // The threads index from hyperagent.com (docs/reference/pages/threads.html):
 // title + "New thread", search, filter chips, sort, a layout toggle and the
 // list. Filters, sort and layout are local state; the menus carry the items
-// the live site lists.
+// the live site lists. Phase 2: the title is the display serif, the search
+// field the pill input group, the filters outline pills (a pressed one is
+// the active tint fill, no status hue), the layout switcher the pill toggle
+// group, "New thread" the ink button, and the rows brand cards
+// (docs/brand/design.md §1, §4, §5, §12).
 
 type SortKey = "recent" | "oldest" | "name";
 type View = "list" | "grid" | "board";
@@ -51,21 +57,19 @@ const VIEWS: { key: View; label: string; icon: LucideIcon }[] = [
   { key: "board", label: "Board view", icon: SquareKanban },
 ];
 
-// The site's outline/sm button plus its overrides, verbatim from the dump.
-const CHIP = "px-3 has-[>svg]:px-2.5 h-9 gap-2 rounded-[8px] bg-white dark:bg-muted";
+// The filter row keeps the site's 36px height on the brand's outline pill.
+const CHIP = "h-9 gap-2 px-3 has-[>svg]:px-2.5";
 
-// Pressed chips, as the live page renders them (each filter has its own tint).
-const PRESSED = {
-  starred: "border-yellow-500/40 bg-yellow-500/10 text-foreground hover:bg-yellow-500/15 dark:bg-yellow-500/15",
-  needsInput: "border-blue-500/40 bg-blue-500/10 text-foreground hover:bg-blue-500/15 dark:bg-blue-500/15",
-};
+// A pressed filter: the active tint fill with ink text.
+const PRESSED = "bg-tint-20 text-foreground hover:bg-tint-20";
 
-// The site's <Input> (an older shadcn build than src/components/ui/input.tsx).
-const INPUT =
-  "notranslate h-9 min-w-0 border px-3 py-1 font-body text-base shadow-xs outline-none transition-[color,box-shadow] selection:bg-primary selection:text-primary-foreground file:inline-flex file:h-7 file:border-0 file:bg-transparent file:font-medium file:text-foreground file:text-sm placeholder:text-muted-foreground disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm rounded-[8px] border-border bg-white dark:bg-muted focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 w-full pl-8 pr-3";
+// The tooltip trigger overwrites radix's data-state on the toggle item, so
+// the "on" look is styled from the aria-checked the single-select group sets.
+const VIEW_ITEM = "size-7 px-0 aria-checked:bg-background aria-checked:text-foreground aria-checked:shadow-xs";
 
-const LIST_FRAME =
-  "overflow-hidden rounded-lg border border-border bg-background max-sm:rounded-none max-sm:border-x-0 max-sm:bg-transparent";
+// List rows are cards a small gap apart; on phones they collapse to
+// full-bleed rows (thread-card.tsx handles the edges).
+const LIST = "flex flex-col gap-3 max-sm:gap-0";
 
 export function ThreadsPage({ threads }: { threads: Thread[] }) {
   const [query, setQuery] = useState("");
@@ -106,7 +110,7 @@ export function ThreadsPage({ threads }: { threads: Thread[] }) {
           <header className="mx-auto w-full max-w-5xl px-6 pt-6 pb-4 max-sm:px-6">
             <div className="flex w-full flex-wrap items-center justify-between gap-4">
               <div className="flex items-center gap-2">
-                <h1 className="font-display font-semibold tracking-[-0.01em] text-2xl text-foreground">Threads</h1>
+                <h1 className="font-heading font-semibold text-2xl text-foreground">Threads</h1>
               </div>
               <Button asChild>
                 <Link href="/threads/new">
@@ -120,46 +124,40 @@ export function ThreadsPage({ threads }: { threads: Thread[] }) {
           <div className="mx-auto max-w-5xl px-6 pb-16 max-sm:px-0">
             <div className="max-sm:px-6">
               <div className="@container mb-4 flex items-center justify-between gap-2">
-                <div className="relative min-w-0 flex-1 sm:max-w-[306px]">
-                  <Search
-                    className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground"
-                    aria-hidden="true"
-                  />
-                  <input
-                    data-slot="input"
+                <InputGroup className="h-9 min-w-0 flex-1 sm:max-w-[306px]">
+                  <InputGroupAddon>
+                    <Search aria-hidden="true" />
+                  </InputGroupAddon>
+                  <InputGroupInput
                     translate="no"
-                    className={INPUT}
                     placeholder="Search by name or topic"
                     aria-label="Search threads"
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                   />
-                </div>
+                </InputGroup>
 
                 <div className="flex shrink-0 items-center gap-2">
                   <Button
                     variant="outline"
                     size="sm"
-                    className={cn(CHIP, starredOnly && PRESSED.starred)}
+                    className={cn(CHIP, starredOnly && PRESSED)}
                     aria-pressed={starredOnly}
                     aria-label="Starred"
                     onClick={() => setStarredOnly((v) => !v)}
                   >
-                    <Star className={cn("size-4", starredOnly && "fill-current text-yellow-500")} aria-hidden="true" />
+                    <Star className={cn("size-4", starredOnly && "fill-current")} aria-hidden="true" />
                     <span className="@min-[760px]:inline hidden">Starred</span>
                   </Button>
                   <Button
                     variant="outline"
                     size="sm"
-                    className={cn(CHIP, needsInputOnly && PRESSED.needsInput)}
+                    className={cn(CHIP, needsInputOnly && PRESSED)}
                     aria-pressed={needsInputOnly}
                     aria-label="Needs input"
                     onClick={() => setNeedsInputOnly((v) => !v)}
                   >
-                    <MessageCircleQuestionMark
-                      className={cn("size-4", needsInputOnly && "text-blue-600")}
-                      aria-hidden="true"
-                    />
+                    <MessageCircleQuestionMark className="size-4" aria-hidden="true" />
                     <span className="@min-[760px]:inline hidden">Needs input</span>
                   </Button>
 
@@ -211,37 +209,27 @@ export function ThreadsPage({ threads }: { threads: Thread[] }) {
                     </DropdownMenuContent>
                   </DropdownMenu>
 
-                  <div
-                    role="group"
+                  <ToggleGroup
+                    type="single"
+                    spacing={0}
+                    value={view}
+                    onValueChange={(v) => {
+                      if (v) setView(v as View);
+                    }}
                     aria-label="Layout"
-                    className="inline-flex h-9 shrink-0 items-center gap-0.5 rounded-[8px] border bg-white p-[3px] shadow-xs max-sm:hidden dark:border-input dark:bg-muted"
+                    className="shrink-0 max-sm:hidden"
                   >
-                    {VIEWS.map(({ key, label, icon: Icon }) => {
-                      const active = view === key;
-                      return (
-                        <Tooltip key={key}>
-                          <TooltipTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon-xs"
-                              className={cn(
-                                "size-7 rounded-[5px]",
-                                active
-                                  ? "bg-accent text-foreground hover:bg-accent dark:bg-background dark:hover:bg-background"
-                                  : "text-muted-foreground",
-                              )}
-                              aria-pressed={active}
-                              aria-label={label}
-                              onClick={() => setView(key)}
-                            >
-                              <Icon className="size-4" aria-hidden="true" />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>{label}</TooltipContent>
-                        </Tooltip>
-                      );
-                    })}
-                  </div>
+                    {VIEWS.map(({ key, label, icon: Icon }) => (
+                      <Tooltip key={key}>
+                        <TooltipTrigger asChild>
+                          <ToggleGroupItem value={key} aria-label={label} className={VIEW_ITEM}>
+                            <Icon className="size-4" aria-hidden="true" />
+                          </ToggleGroupItem>
+                        </TooltipTrigger>
+                        <TooltipContent>{label}</TooltipContent>
+                      </Tooltip>
+                    ))}
+                  </ToggleGroup>
                 </div>
               </div>
             </div>
@@ -251,26 +239,27 @@ export function ThreadsPage({ threads }: { threads: Thread[] }) {
                 <p className="text-muted-foreground">No threads match the current filters</p>
               </div>
             ) : view === "list" ? (
-              <div className={LIST_FRAME}>
-                <div>
-                  {visible.map((thread) => (
-                    <ThreadCard
-                      key={thread.id}
-                      thread={thread}
-                      starred={!!starred[thread.id]}
-                      onToggleStar={() => toggleStar(thread.id)}
-                    />
-                  ))}
-                </div>
+              <div className={LIST}>
+                {visible.map((thread) => (
+                  <ThreadCard
+                    key={thread.id}
+                    thread={thread}
+                    starred={!!starred[thread.id]}
+                    onToggleStar={() => toggleStar(thread.id)}
+                  />
+                ))}
               </div>
             ) : view === "grid" ? (
               // Grid and board layouts are not captured in a dump (the live
-              // account renders the list); they reuse the list row inside cards.
+              // account renders the list); they reuse the list card.
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {visible.map((thread) => (
-                  <div key={thread.id} className={LIST_FRAME}>
-                    <ThreadCard thread={thread} starred={!!starred[thread.id]} onToggleStar={() => toggleStar(thread.id)} />
-                  </div>
+                  <ThreadCard
+                    key={thread.id}
+                    thread={thread}
+                    starred={!!starred[thread.id]}
+                    onToggleStar={() => toggleStar(thread.id)}
+                  />
                 ))}
               </div>
             ) : (
@@ -281,14 +270,18 @@ export function ThreadsPage({ threads }: { threads: Thread[] }) {
                   { label: "Archived", items: [] as Thread[] },
                 ].map((column) => (
                   <div key={column.label} className="flex min-w-0 flex-col gap-3">
-                    <div className="flex items-center gap-2 px-1 font-medium text-muted-foreground text-xs">
+                    {/* A group label: the caps eyebrow on tier 3 (design.md §4.1). */}
+                    <div className="flex items-center gap-2 px-1 text-label-12-caps text-foreground-low">
                       <span>{column.label}</span>
-                      <span className="rounded-full bg-muted px-1.5 py-0.5 tabular-nums">{column.items.length}</span>
+                      <span className="rounded-full bg-tint-10 px-1.5 py-0.5 tabular-nums">{column.items.length}</span>
                     </div>
                     {column.items.map((thread) => (
-                      <div key={thread.id} className={LIST_FRAME}>
-                        <ThreadCard thread={thread} starred={!!starred[thread.id]} onToggleStar={() => toggleStar(thread.id)} />
-                      </div>
+                      <ThreadCard
+                        key={thread.id}
+                        thread={thread}
+                        starred={!!starred[thread.id]}
+                        onToggleStar={() => toggleStar(thread.id)}
+                      />
                     ))}
                   </div>
                 ))}
