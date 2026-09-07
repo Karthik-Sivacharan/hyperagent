@@ -144,18 +144,17 @@ function SectionHeader({
     <Overline className="group mb-1 flex items-center gap-1 pr-1">
       {/* The caps role sits on the button itself (the button base would
           otherwise set 14px), and the ghost open/hover fills are reset: the
-          toggle is expanded at rest and only lifts its text on hover.
-          `normal-case!` reproduces what the raw button rendered: the browser's
-          button stylesheet resets `text-transform`, so these two headers have
-          always been sentence case while "Resources" is caps. Drop it to give
-          them the brand's caps. */}
+          toggle is expanded at rest and only lifts its text on hover. Before
+          the sweep these two headers rendered sentence case by accident (the
+          browser's button stylesheet reset `text-transform` on the raw
+          button); they now take the brand's caps like "Resources". */}
       <Button
         variant="ghost"
         size="none"
         aria-label={ariaLabel}
         aria-expanded={expanded}
         onClick={onToggle}
-        className="min-w-0 flex-1 justify-start gap-1 py-1 pl-3.5 text-label-12-caps normal-case! text-foreground-low hover:bg-transparent hover:text-foreground aria-expanded:bg-transparent"
+        className="min-w-0 flex-1 justify-start gap-1 py-1 pl-3.5 text-label-12-caps text-foreground-low hover:bg-transparent hover:text-foreground aria-expanded:bg-transparent"
       >
         <span className="whitespace-nowrap">{label}</span>
         <div className="flex items-center justify-center">
