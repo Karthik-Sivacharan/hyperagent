@@ -5,26 +5,37 @@
 @custom-variant dark (&:is(.dark *));
 
 /* ===========================================================================
-   HYPERAGENT DESIGN TOKENS
-   Measured from hyperagent.com on 2026-09-06 (docs/reference/css holds the
-   compiled bundles; docs/reference/pages/_tokens-eval.json.txt the runtime
-   values). Structure mirrors the site: shadcn semantic variables on :root
-   (light, warm default palette), remapped on .dark, and again on
-   .dark body.palette-neutral (the neutral palette the dashboard ships with).
-   Phase 2 (Brand re-skin) overrides the same variable names; see
-   src/design/brand/README.md once that branch lands.
+   HYPERAGENT THEME WIRING
+   In order: the Tailwind theme (`@theme inline`: the shadcn contract plus
+   the Hyperagent extras, radius offsets, motion names and animate-*
+   utilities); the PHASE 2 BRIDGE that turns every brand-only token into a
+   utility; the `:root` remap of the Hyperagent-only names the site
+   utilities read onto brand tokens; then the base layer, the site utilities
+   and the keyframes.
+
+   No palette lives here any more. src/design/brand/brand.css, imported after
+   this file by src/app/layout.tsx, is the single source of colour: light on
+   `:root`, the dark mapping on `.dark` (next-themes on <html>). The phase-1
+   palettes measured from hyperagent.com on 2026-09-06 survive only as
+   reference material (docs/reference/css, docs/reference/pages/
+   _tokens-eval.json.txt).
    =========================================================================== */
 
 @theme inline {
   /* Fonts: next/font sets --font-geist-sans and --font-geist-mono on <html>
-     (src/design/brand/fonts.ts); the site routes every family through an
-     "*-active" indirection so a workspace can swap faces. */
-  --font-sans: var(--font-body-active), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-mono-active), ui-monospace, monospace;
-  --font-heading: var(--font-heading-active), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-display-active), ui-sans-serif, system-ui, sans-serif;
-  --font-ui: var(--font-ui-active), ui-sans-serif, system-ui, sans-serif;
-  --font-body: var(--font-body-active), ui-sans-serif, system-ui, sans-serif;
+     (src/design/brand/fonts.ts). Geist is the only family the app ships;
+     the site's display face (Season Sans) is not, so font-display and
+     text-logo resolve to Geist too. These six names are the utilities
+     (font-heading, font-display, font-mono …); the `inline` theme bakes the
+     stacks into them. The brand's own --font-sans / --font-heading /
+     --font-mono stacks on the unlayered :root of brand.css are what the
+     base layer and the role classes read. */
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  --font-heading: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-ui: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-body: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
 
   /* shadcn semantic colors */
   --color-background: var(--background);
@@ -95,11 +106,11 @@
 
 /* ===========================================================================
    PHASE 2 BRIDGE: brand-only token names → Tailwind utilities
-   src/design/brand/brand.css defines every brand token on `.theme-brand`
-   (now on <body>). Tailwind only emits utilities for names it sees in the
-   main theme, so this block declares each brand-only name and points it at
-   the variable of the same name. `inline` makes the utility carry the
-   `var(--…)` reference (it resolves on the element, inside the scope);
+   src/design/brand/brand.css defines every brand token on `:root` (dark
+   mapping on `.dark`). Tailwind only emits utilities for names it sees in
+   the main theme, so this block declares each brand-only name and points it
+   at the variable of the same name. `inline` makes the utility carry the
+   `var(--…)` reference (it resolves on the element, app-wide);
    `reference` stops Tailwind from re-emitting the variables on :root, so
    brand.css stays the single source of truth and the contrast gate
    (scripts/brand/check-contrast.mjs) keeps reading one file. Names Tailwind
@@ -249,18 +260,16 @@
   --animate-ring-draw: var(--animate-ring-draw);
 }
 
-/* Hyperagent-only tokens the brand sheet never defines, remapped inside the
-   scope so the site utilities that consume them (bg-glass-gradient,
-   glass-panel, font-display / text-logo, animate-shimmer …) follow the brand.
-   Unlayered on purpose: brand.css sets `--background` on this same element
-   and these read it, so they track light and dark. */
-.theme-brand {
-  --font-body-active: var(--font-geist-sans);
-  --font-ui-active: var(--font-geist-sans);
-  --font-heading-active: var(--font-geist-sans);
-  --font-display-active: var(--font-geist-sans);
-  --font-mono-active: var(--font-geist-mono);
-
+/* Hyperagent-only names the brand sheet never defines, remapped onto brand
+   tokens so the site utilities that read them (bg-glass-gradient,
+   glass-panel, animate-shimmer, the --ease-* / --animate-* entries in the
+   theme above …) follow the brand in both themes. Unlayered on purpose, and
+   on :root because that is where brand.css sets `--background`,
+   `--brand-accent`, `--duration-*` and the rest: every var() below resolves
+   against whichever mapping (`:root` or `.dark`) is in force. The
+   non-colour values the app reads (glass, banner stack, dialog height) live
+   here too. */
+:root {
   --bg-gradient-from: var(--background);
   --bg-gradient-via: var(--background);
   --bg-gradient-to: var(--background);
@@ -277,75 +286,16 @@
   --motion-ease-standard: var(--ease-out-quart);
   --motion-ease-decelerate: var(--ease-out-expo);
   --motion-ease-accelerate: var(--ease-in-out);
-}
+  /* The two phase-1 motion values the brand never remapped, kept as they
+     were: --ease-spring and animate-card-enter read the spring; nothing
+     reads the slow duration today. */
+  --motion-duration-slow: 0.8s;
+  --motion-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 
-/* ---- Light (the site's warm default palette) ---------------------------- */
-:root {
-  --font-body-active: var(--font-geist-sans);
-  --font-ui-active: var(--font-geist-sans);
-  --font-heading-active: var(--font-geist-sans);
-  --font-display-active: var(--font-geist-sans); /* the site's Season Sans display face is not shipped; Geist stands in */
-  --font-mono-active: var(--font-geist-mono);
-
-  --radius: 0.875rem;
-
-  --background: #fbf2e6;
-  --foreground: #080503;
-  --card: #fffdfa;
-  --card-foreground: #080503;
-  --popover: #fffbf6;
-  --popover-foreground: #080503;
-  --primary: #0d0b09;
-  --primary-foreground: #fcfcfc;
-  --secondary: #f0eae3;
-  --secondary-foreground: #1b150f;
-  --muted: #ece7e1;
-  --muted-foreground: #5c534d;
-  --accent: #ebe3da;
-  --accent-foreground: #0e0a07;
-  --destructive: #e40014;
-  --border: #ddd6cd99;
-  --input: #f9f4ee;
-  --ring: #362c2480;
-  --chart-1: #3e8343;
-  --chart-2: #b44d34;
-  --chart-3: #00838a;
-  --chart-4: #a26a9d;
-  --chart-5: #876e37;
-  --sidebar: #fffdfb;
-  --sidebar-foreground: #0e0a07;
-  --sidebar-primary: #0d0b09;
-  --sidebar-primary-foreground: #fcfcfc;
-  --sidebar-accent: #f0eae3;
-  --sidebar-accent-foreground: #0e0a07;
-  --sidebar-border: #e2ddd780;
-  --sidebar-ring: #362c2466;
-  --sidebar-fade: color-mix(in oklab, var(--sidebar) 0%, transparent);
-
-  --surface: #fdf8f1;
-  --pending: #6a615b;
-  --info: #155dfc;
-  --success: #009767;
-  --warning: #dd7400;
-  --glow: #85583133;
-  --shimmer-sweep: #e4e4e4;
-
-  --bg-gradient-from: #fbf2e6;
-  --bg-gradient-via: #f9f0e7;
-  --bg-gradient-to: #f8f0e3;
-
-  --glass-blur: 12px;
+  /* Glass surfaces (glass, glass-panel, glass-card utilities) */
+  --glass-blur: var(--blur-glass);
   --glass-opacity: 0.9;
   --glass-saturate: 120%;
-
-  --motion-duration-fast: 0.15s;
-  --motion-duration-standard: 0.3s;
-  --motion-duration-emphasis: 0.5s;
-  --motion-duration-slow: 0.8s;
-  --motion-ease-standard: cubic-bezier(0.2, 0, 0, 1);
-  --motion-ease-decelerate: cubic-bezier(0, 0, 0, 1);
-  --motion-ease-accelerate: cubic-bezier(0.3, 0, 1, 1);
-  --motion-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 
   /* Banner stack the app reserves above the shell (all zero here). */
   --fixed-banner-stack-height: calc(
@@ -357,91 +307,6 @@
     90vh,
     calc(100vh - max(env(safe-area-inset-top), env(safe-area-inset-bottom)) - 1rem)
   );
-}
-
-/* ---- Dark (warm palette) ------------------------------------------------ */
-.dark {
-  color-scheme: dark;
-
-  --background: #0d0805;
-  --foreground: #eeeae5;
-  --card: #17100b;
-  --card-foreground: #eeeae5;
-  --popover: #110c08;
-  --popover-foreground: #eeeae5;
-  --primary: #eeeae5;
-  --primary-foreground: #0d0805;
-  --secondary: #201914;
-  --secondary-foreground: #eeeae5;
-  --muted: #26201c;
-  --muted-foreground: #a9a49c;
-  --accent: #2b221b;
-  --accent-foreground: #eeeae5;
-  --destructive: #f94144;
-  --border: #41393380;
-  --input: #1f1915;
-  --ring: #bc986580;
-  --chart-1: #51a556;
-  --chart-2: #df6446;
-  --chart-3: #00a5ac;
-  --chart-4: #c27cbb;
-  --chart-5: #ab8a41;
-  --sidebar: #110c08;
-  --sidebar-foreground: #eeeae5;
-  --sidebar-primary: #eeeae5;
-  --sidebar-primary-foreground: #0d0805;
-  --sidebar-accent: #251e18;
-  --sidebar-accent-foreground: #eeeae5;
-  --sidebar-border: #47413c66;
-  --sidebar-ring: #bc986566;
-
-  --surface: #1b150f;
-  --pending: #a39d96;
-  --info: #54a2ff;
-  --success: #00d294;
-  --warning: #fcbb00;
-  --glow: #c3955333;
-  --shimmer-sweep: #c4c4c4;
-
-  --bg-gradient-from: #0e0804;
-  --bg-gradient-via: #0e0906;
-  --bg-gradient-to: #0e0603;
-}
-
-/* ---- Dark, neutral palette (what the dashboard ships with) -------------- */
-.dark body.palette-neutral {
-  --background: #090909;
-  --foreground: #ebebeb;
-  --card: #121212;
-  --card-foreground: #ebebeb;
-  --popover: #0d0d0d;
-  --popover-foreground: #ebebeb;
-  --primary: #ebebeb;
-  --primary-foreground: #090909;
-  --secondary: #1b1b1b;
-  --secondary-foreground: #ebebeb;
-  --muted: #222;
-  --muted-foreground: #a4a4a4;
-  --accent: #242424;
-  --accent-foreground: #ebebeb;
-  --border: #3a3a3a80;
-  --input: #1b1b1b;
-  --ring: #9e9e9e80;
-  --sidebar: #0d0d0d;
-  --sidebar-foreground: #ebebeb;
-  --sidebar-primary: #ebebeb;
-  --sidebar-primary-foreground: #090909;
-  --sidebar-accent: #1f1f1f;
-  --sidebar-accent-foreground: #ebebeb;
-  --sidebar-border: #42424266;
-  --sidebar-ring: #9e9e9e66;
-
-  --surface: #161616;
-  --glow: #9e9e9e33;
-
-  --bg-gradient-from: #090909;
-  --bg-gradient-via: #0a0a0a;
-  --bg-gradient-to: #080808;
 }
 
 /* ===== BASE ============================================================== */
