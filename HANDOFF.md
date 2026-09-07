@@ -1,7 +1,8 @@
 # Handoff
 
-Written 2026-09-07 at the end of phase 2, after the type swap to Geist. Read
-this first in a new session,
+Written 2026-09-07 at the end of phase 2, after the type swap to Geist and
+the type-token audit against Vercel's Geist spec. Read this first in a new
+session,
 then `README.md`, `docs/brand/reskin-conventions.md` and
 `docs/clone-conventions.md`.
 
@@ -13,8 +14,10 @@ then `README.md`, `docs/brand/reskin-conventions.md` and
   brand design language: paper-white canvas with a dark mapping, sand
   neutrals, one tangerine accent, ink buttons, pills, tint fills, hairline
   separation, glass elevation, Geist throughout on Vercel's typography
-  roles (headings at the 450 heading weight, Geist Mono for identifiers). There
-  is one branch (`main`), no remote, no open worktrees, and a clean tree.
+  roles (headings at the spec's 600, Geist Mono for identifiers). There is
+  one branch (`main`), pushed to `origin`
+  (github.com/Karthik-Sivacharan/hyperagent, private), no open worktrees, and
+  a clean tree.
 - Verification at the last commit: `npx tsc --noEmit`, `npm run lint` (no
   warnings), `npm run build`, `npm run brand:check-contrast` (WCAG AA, both
   themes) and `npm run brand:lint-tokens` (zero findings) all pass. Every
@@ -42,14 +45,14 @@ node scripts/dev/contact-sheet.mjs out/light out/sheet-light.png "main"
 - `src/app/globals.css` carries the "PHASE 2 BRIDGE": an `@theme inline
   reference` block that names every brand-only token (`--color-tint-10:
   var(--tint-10)` and so on) so Tailwind emits utilities such as
-  `bg-tint-10`, `text-foreground-low`, `font-book`, `rounded-5xl`,
+  `bg-tint-10`, `text-foreground-low`, `font-strong`, `rounded-5xl`,
   `shadow-card`, `gap-group`, `ease-out-quart`; nothing is re-emitted on
   `:root`. A `.theme-brand` block below it remaps the Hyperagent-only tokens
   the brand never defines (the canvas gradient, `--surface`, `--glow`, the
   `*-active` font indirection), so `bg-glass-gradient`, `font-display` and
   `text-logo` follow the brand without touching components.
 - `src/lib/utils.ts` is the brand's `cn()`: tailwind-merge extended with the
-  `font-book` / `font-firm` weights and with the typography role classes
+  `font-strong` weight (550) and with the typography role classes
   (`text-label-12-caps` …) registered as their own group, because
   tailwind-merge otherwise reads them as text colours and drops them.
 - The Hyperagent palettes are still in `globals.css` for side-by-side
@@ -88,7 +91,7 @@ node scripts/dev/contact-sheet.mjs out/light out/sheet-light.png "main"
   tangerine bubble with white text.
 - **Group labels are caps on the third tier** (sidebar sections, settings
   groups, palette headings, "Featured"), titles and card names take the
-  450 heading weight from their `text-*` role, running copy sits on
+  600 heading weight from their `text-*` role, running copy sits on
   `muted-foreground`, meta on `foreground-low`.
 - **Type is Geist** (swapped after the re-skin, at the user's request, from
   the prototype's Inter + PythiaType): the families, weights and size /
@@ -120,34 +123,45 @@ node scripts/dev/contact-sheet.mjs out/light out/sheet-light.png "main"
 | `scripts/brand/` | `gen-ramps.mjs`, `check-contrast.mjs`, `lint-tokens.mjs` |
 | `scripts/dev/` | `screenshot-pages.mjs`, `contact-sheet.mjs` (headless Chrome over the DevTools protocol, no dependencies) |
 
-## Open decision: the display face
+## Decided 2026-09-07: no display face; Geist on Vercel's Geist roles
 
-The app is Geist throughout on Vercel's published roles (§4 of
-`docs/brand/design.md`). The user is still choosing whether the headings
-should get a second face. Findings from checking the live sites on
-2026-09-07:
+The user closed the display-face question: Geist and Geist Mono only, as
+Vercel's Geist design system specifies. The type tokens were then audited
+against the live spec (vercel.com/geist/typography, read in the browser the
+same day) and tightened:
 
-- hyperagent.com sets "Let's get to work." in **Season Sans** (variable,
-  48/48 at 600, -0.01em) over Geist. airtable.com's marketing site uses
-  Season Sans for headlines, copy and buttons over Neue Haas Grotesk, with
-  Inter behind it. Both faces are commercial; the reference copy of Season
-  Sans stays in `docs/reference/fonts` for comparison only.
-- wajo.ai uses **Figtree** (600, 48px) for headlines and ledes over **Inter**
-  for UI, both free on Google Fonts. Figtree is the nearest free match to
-  Season Sans's warmth.
-- The brand prototype's original pairing was a serif display (PythiaType)
-  over Inter; the nearest free serifs are Newsreader (variable, carries the
-  450 weight), Instrument Serif (one weight) and Fraunces.
+- The published heading roles (`text-heading-72` … `text-heading-14`) all
+  compute to **600**; labels and copy to 400, buttons to 500, `<strong>`
+  inside copy to 550, `<strong>` inside a label to 500. The brand's earlier
+  450 heading weight was not the spec: vercel.com's marketing site sets its
+  56px section headings at 450 and its hero at 400. The dashboard now follows
+  the spec through one knob, `--font-weight-heading` (600), read by every
+  heading role (`text-xl` and up, `text-display`, `text-heading-display`,
+  `text-heading-lg`, prose headings). Set it to 450 to get the marketing cut
+  back; the three inline `font-semibold` card titles in
+  `src/components/settings/integration-card.tsx` would need a hand edit.
+- Tracking and line-height already matched (the spec's px values in em:
+  -0.06em at 40px and up, -0.04em at 24 and 32, -0.02em at 20 and below).
+- `font-book` and `--font-weight-book` are gone (call sites moved to
+  `text-heading-lg` or `font-semibold`); `font-strong` (550) is the brand's
+  one custom weight utility, used for `<strong>` in prose; `--font-serif` and
+  `--font-weight-bold` are gone; `npm run brand:lint-tokens` now rejects
+  `font-thin/extralight/light/book/bold/extrabold/black/serif` in components.
+- `--font-heading` stays as an alias of the sans: `font-heading` marks a
+  heading and is the single line to change if a display face is ever
+  reconsidered. Candidates recorded at the time, for the record: Figtree,
+  Newsreader, Instrument Serif, Fraunces; the reference copy of Season Sans
+  (hyperagent.com's own display face) stays in `docs/reference/fonts` for
+  comparison only.
+- Correction to the earlier survey: wajo.ai's landing page (the local
+  `wajo-landing-page` repo) is set in STK Bureau Sans (self-hosted, Book 300)
+  with Fragment Mono, not Figtree over Inter; the Wajo product uses DM Sans
+  with DM Serif Display for headings. Across the other local projects since
+  June, the only serif-heading precedents are delphi (PythiaType over Inter,
+  Newsreader fallback) and the Wajo product.
 
-Swapping only the heading face is two edits: add the loader in
-`src/design/brand/fonts.ts` and point `--font-heading` in `brand.css` at its
-variable; every title already carries `font-heading`. Check the heading
-weight afterwards: the `text-xl` and larger roles set 450, which only a
-variable face honours (`font-synthesis: none` forbids faking it).
-
-A second small question is whether the caps group labels
-(`text-label-12-caps`: sidebar sections, settings groups, palette headings)
-should become sentence case, which Vercel's own guide prefers.
+The caps group labels (`text-label-12-caps`) stay: Vercel's own Label 12
+role carries an "AND CAPS" variant for tertiary text in busy views.
 
 ## Known gaps and follow-ups
 
@@ -191,10 +205,10 @@ gates re-run after each merge.
 ## Prompt to start the next session
 
 > Read HANDOFF.md, README.md and docs/brand/reskin-conventions.md in
-> ~/Projects/hyperagent. Phases 1 and 2 are merged on main: the dashboard
-> clone runs on the brand tokens in light and dark, in Geist on Vercel's
-> type roles. First settle the open display-face decision in HANDOFF.md
-> (show me the hero and a settings page with Figtree, Newsreader and plain
-> Geist side by side); then do plan step 5 (retire the Hyperagent palettes)
-> and a phone-width pass. Keep npm run brand:check-contrast and
-> npm run brand:lint-tokens green.
+> ~/Projects/hyperagent. Phases 1 and 2 are merged on main and pushed to
+> origin (private): the dashboard clone runs on the brand tokens in light
+> and dark, in Geist and Geist Mono on Vercel's Geist typography roles
+> (headings 600 through --font-weight-heading; the display-face question is
+> closed). Next: plan step 5 (retire the Hyperagent palettes and the
+> `*-active` font indirection from globals.css), then a phone-width pass.
+> Keep npm run brand:check-contrast and npm run brand:lint-tokens green.

@@ -10,7 +10,7 @@ Source: the brand prototype's own repository, kept outside this repo and never m
 |---|---|---|
 | `brand.css` | The token sheet: every primitive ramp, tint, semantic token, radius, shadow, type, motion, z-index and layout token, plus the scoped base styles, the `genui-prose` block, the typography role classes and the `focus-ring` / `squircle` / `skeleton` classes. Plain CSS, no Tailwind directives. | `src/app/globals.css` |
 | `fonts.ts` | `next/font/google` loaders for Geist (`--font-geist-sans`) and Geist Mono (`--font-geist-mono`), and `brandFontClassName` joining the two `.variable` classes. Phase 2 replaced the prototype's Inter / PythiaType / Newsreader files with Geist and Vercel's published typography roles (docs/brand/design.md §4); no font files ship in this directory. | `src/app/layout.tsx` |
-| `utils.ts` | Brand's `cn()`: tailwind-merge extended with the `font-book` weight (450, the heading weight). The `ui/` copies import this, not `@/lib/utils`, so a caller's `font-book` beats a component's `font-medium` as it does in Brand. | `src/lib/utils.ts` |
+| `utils.ts` | Brand's `cn()`: tailwind-merge extended with the `font-strong` weight (550, strong inside copy). The `ui/` copies import this, not `@/lib/utils`, so a caller's `font-strong` conflicts with a component's `font-medium` the way stock weights do. | `src/lib/utils.ts` |
 | `ui/` | Verbatim copies of Brand's shadcn primitives (23 files). Only the imports changed: `@/lib/utils` → `@/design/brand/utils`, `@/components/ui/button` → `./button`, `@/components/ui/toggle` → `./toggle`. Nothing imports them yet. | `src/components/ui/*.tsx` |
 | `../../app/design/brand/` | The token swatch page at `/design/brand` (`layout.tsx`, `page.tsx`, `_design/theme-toggle.tsx`). The layout is the only importer of `brand.css`. | `src/app/page.tsx`, `src/app/_design/theme-toggle.tsx` |
 | `../../../docs/brand/design.md` | How to consume the tokens, with a preamble on how this copy differs. | `design.md` |
@@ -38,7 +38,7 @@ phase 2 added an `@theme inline reference` block to `src/app/globals.css`
 ("PHASE 2 BRIDGE") that names every brand-only token and points it at the
 variable of the same name: `bg-tangerine-500`, `bg-tint-10`,
 `bg-surface-secondary`, `bg-brand`, `bg-chip`, `text-foreground-low`,
-`border-border-subtle`, `font-book`, `text-md`, `text-display`,
+`border-border-subtle`, `font-strong`, `text-md`, `text-display`,
 `rounded-5xl`, `rounded-bubble`, `shadow-card`, `shadow-edge`,
 `max-w-content`, `gap-group`, `ease-out-quart`, `animate-typing-dot` and the
 rest now exist app-wide and resolve inside `.theme-brand` (which sits on
@@ -111,7 +111,7 @@ Hyperagent ships a dark, neutral (cool gray) palette with Geist for body/UI, Sea
 | `--chart-1` … `--chart-5` | (shadcn defaults) | `--chart-1` … `--chart-6` | tangerine-500, neutral-700, blue-600, green-600, amber-600, red-600 / all lifted to the 400 step | plus `--chart-track`, `--chart-grid`, `--chart-target`, `--chart-band`, `--chart-seq-1..5` |
 | `--surface` | `#161616` | `--surface-raised` or `--surface-elevated` | `neutral-100` / `neutral-925` `#222221` · white / `neutral-900` | Hyperagent's `--surface` sits between card and accent; Brand splits that role into raised (a whisper above the canvas) and elevated (cards, composer, popovers). Decide per use |
 | `--radius` | `.875rem` (14px) | `--radius` | `10px`, multiplicative scale | Hyperagent's base radius equals Brand's `--radius-xl` (14px). Brand's `rounded-*` steps are ratios of the knob (`xs` 4, `sm` 6, `md` 8, `lg` 10, `xl` 14, `2xl` 18, `3xl` 22, `4xl` 26, `5xl` 32, `bubble` 20, `hero` 72, `squircle` 80) |
-| `--font-geist-sans` (body / UI) | Geist | `--font-sans` | Geist (`--font-geist-sans`) | same face; headings take the 450 heading weight from the `text-*` roles |
+| `--font-geist-sans` (body / UI) | Geist | `--font-sans` | Geist (`--font-geist-sans`) | same face; headings take the 600 heading weight (`--font-weight-heading`) from the `text-*` roles |
 | Season Sans (display) | | `--font-heading` / `--font-display` | Geist | one family for display and body |
 | `--font-geist-mono` | Geist Mono | `--font-mono` | Geist Mono (`--font-geist-mono`) | identical face |
 
@@ -128,6 +128,6 @@ These need a home in phase 2 (a new semantic token in Hyperagent, or a component
 - Tints: `--tint-5/7/10/12/15/20/25/40` (theme-switched base: `neutral-500` in light, `neutral-600` in dark) and their `--color-tint-*` aliases.
 - Shadow layers: `--highlight`, `--highlight-soft`, `--highlight-strong`, `--edge`; shadows `--shadow-edge/card/card-hover/avatar/rim/hero`.
 - Radius extras: `--radius-5xl/bubble/hero/squircle`.
-- Type: `--text-md` (13px metadata), `--text-display` (+ companions), `--font-weight-book` (450, the heading weight), the role classes `text-heading-display`, `text-heading-lg`, `text-label-14-mono`, `text-label-12-mono`, `text-label-12-caps`.
+- Type: `--text-md` (13px metadata), `--text-display` (+ companions), `--font-weight-strong` (550, strong inside copy), `--font-weight-heading` (600, the heading weight), the role classes `text-heading-display`, `text-heading-lg`, `text-label-14-mono`, `text-label-12-mono`, `text-label-12-caps`.
 - Motion: `--duration-*` (exit 90 · instant 100 · enter 140 · fast 150 · normal 200 · move 220 · slow 300 · reveal 400 · slide 480 · entrance 500 · stagger 80), `--ease-*` (out, out-quart, out-quint, out-layout, out-expo, in-out, linear), `--scale-press`, `--scale-press-icon`, `--scale-enter`, `--translate-enter`, `--animate-typing-dot`, `--animate-skeleton`, `--animate-ring-draw`.
 - Layout: `--container-content/wide/nav`, `--spacing-group/stack/section`, `--blur-glass`, `--z-sticky/scrim/dropdown/modal/tooltip/toast`.

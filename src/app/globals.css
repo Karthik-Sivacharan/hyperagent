@@ -180,11 +180,11 @@
   --color-chart-seq-4: var(--chart-seq-4);
   --color-chart-seq-5: var(--chart-seq-5);
 
-  /* Type: the 450 heading weight (`font-book`) and the two extra sizes. The
-     `--text-*` companions ride the existing text-* utilities (tracking,
-     heading weight) and only apply inside the scope, where the variables
-     exist. */
-  --font-weight-book: var(--font-weight-book);
+  /* Type: the 550 strong weight (`font-strong`, Vercel's weight for strong
+     inside copy) and the two extra sizes. The `--text-*` companions ride the
+     existing text-* utilities (tracking, the 600 heading weight) and only
+     apply inside the scope, where the variables exist. */
+  --font-weight-strong: var(--font-weight-strong);
   --text-xs--letter-spacing: var(--text-xs--letter-spacing);
   --text-sm--letter-spacing: var(--text-sm--letter-spacing);
   --text-base--letter-spacing: var(--text-base--letter-spacing);

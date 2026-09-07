@@ -47,11 +47,14 @@ vs tangerine, grey borders vs tints), the brand wins.
    list rows; `rounded-4xl` (26) large buttons and dialogs; `rounded-5xl` (32)
    the composer and section cards. Never `rounded-[Npx]`.
 7. **Type:** Geist everywhere, Geist Mono only for identifiers. `text-xl`
-   and up are heading roles: they carry Vercel's tracking and the 450
-   heading weight automatically, so write `font-heading text-2xl` and no
-   weight class. Weights: `font-normal` (body), `font-book` (450, the
-   heading weight), `font-medium` (labels, chips, tabs, buttons); never
-   `font-semibold` on a heading. `text-md` is the 13px metadata role.
+   and up are heading roles: they carry Vercel's tracking and the heading
+   weight (600, `--font-weight-heading`) automatically, so write
+   `font-heading text-2xl` and no weight class; card and row titles are
+   `text-heading-lg`. Weights: `font-normal` (copy, labels), `font-medium`
+   (buttons, chips, tabs, labels that name a thing), `font-strong` (550,
+   strong inside copy), `font-semibold` (600, only on a heading that sits
+   at a body size, e.g. `text-sm font-semibold`); nothing lighter than 400,
+   nothing heavier than 600. `text-md` is the 13px metadata role.
 8. **Status is quiet.** Success / warning / info / destructive appear as a
    small dot or a tinted chip (`<Badge variant="success">`, `bg-success/10
    text-success`), never as a large fill. Selected checks in menus are
@@ -71,7 +74,7 @@ vs tangerine, grey borders vs tints), the brand wins.
   outline (hairline) · ghost · chip · destructive · link; `size` default · xs ·
   sm · lg · icon · icon-xs · icon-sm · icon-lg. All pills.
 - `badge.tsx`: default · secondary · outline · ghost · link · brand · success ·
-  warning · info · destructive. `card.tsx`: 22px, `shadow-card`, serif title.
+  warning · info · destructive. `card.tsx`: 22px, `shadow-card`, `font-heading` title.
   `input.tsx`, `textarea.tsx`, `input-group.tsx` (a pill field). `tabs.tsx`
   (pill track; `variant="line"` for the underline). `switch.tsx` (ink when
   on). `toggle.tsx` / `toggle-group.tsx` (pill track when joined).
@@ -85,7 +88,7 @@ vs tangerine, grey borders vs tints), the brand wins.
   your report instead of patching it.
 - Every brand-only token has a utility: `bg-tangerine-500`, `bg-tint-10`,
   `text-foreground-low`, `border-border-subtle`, `bg-chip`, `bg-chat-bubble-user`,
-  `font-book`, `text-md`, `text-display`, `rounded-5xl`, `rounded-bubble`,
+  `font-strong`, `text-md`, `text-display`, `rounded-5xl`, `rounded-bubble`,
   `shadow-card`, `shadow-edge`, `max-w-content`, `gap-group`, `ease-out-quart`,
   `animate-skeleton` … (`src/app/globals.css`, "PHASE 2 BRIDGE"). Durations
   and scales are plain variables: `duration-(--duration-fast)`,

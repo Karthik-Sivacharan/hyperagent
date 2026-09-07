@@ -27,7 +27,7 @@
 
 ## 1. Philosophy
 
-Brand is **white, warm, and conversational**: a paper-white canvas, sand-tinted neutrals, a single hot tangerine accent, Geist throughout with headings at the 450 heading weight, and everything shaped like a pill. It should feel like a calm chat with a person, not a dashboard.
+Brand is **white, warm, and conversational**: a paper-white canvas, sand-tinted neutrals, a single hot tangerine accent, Geist throughout on Vercel's Geist roles (headings at 600), and everything shaped like a pill. It should feel like a calm chat with a person, not a dashboard.
 
 - **One accent, rarely solid.** Tangerine `oklch(0.67 0.20 42)` (`#f55d00`) marks the primary CTA, the user's chat bubble, focus rings and text selection, and nothing else. The default button is **ink**, not orange.
 - **Sand, not gray.** Neutrals carry a faint warm, yellow-leaning tint (hue ~100, chroma ≤ 0.010) so surfaces read as paper rather than steel.
@@ -53,7 +53,7 @@ primitive                 semantic (shadcn + Brand)     component
 
 1. **Primitives:** raw ramps (`--color-neutral-500`, `--color-tangerine-600`, `--color-tint-10`). Defined in `@theme inline`. Use only when building a new semantic token, for a tint fill, or for a one-off swatch.
 2. **Semantic tokens:** the shadcn contract (`--background`, `--primary`, `--muted`, `--border` …) plus Brand's own (`--surface-secondary`, `--foreground-low`, `--brand`, `--brand-accent`, `--chip`, `--chat-bubble-*`). Defined in `:root` (light) and re-mapped in `.dark`. **This is what components should use.**
-3. **Component utilities:** Tailwind classes generated from the tokens (`bg-primary`, `text-muted-foreground`, `rounded-3xl`, `shadow-lg`, `ease-out-quart`, `font-book`).
+3. **Component utilities:** Tailwind classes generated from the tokens (`bg-primary`, `text-muted-foreground`, `rounded-3xl`, `shadow-lg`, `ease-out-quart`, `font-strong`).
 
 ### `@theme inline` caveat (important)
 
@@ -186,32 +186,34 @@ Representative hex: `red-500 #e76761` · `green-500 #00b16f` · `amber-500 #cd83
 
 ## 4. Typography
 
-Two families, Vercel's published typography system, set as CSS variables on `<html>` by `next/font/google` (`src/design/brand/fonts.ts`) and consumed by the token sheet:
+Two families, as Vercel's Geist design system specifies (vercel.com/geist/typography; the roles below were read from the live page on 2026-09-07). Both are set as CSS variables on `<html>` by `next/font/google` (`src/design/brand/fonts.ts`) and consumed by the token sheet. The display-face question is closed: no second face, Geist for headings too.
 
-- `--font-sans`: `var(--font-geist-sans), "Geist", ui-sans-serif, system-ui, sans-serif` → `font-sans`. **Geist Sans is used for prose, headings, labels, controls, tables, KPIs, dates, counts, percentages, durations and figures.** `--font-heading` and `--font-serif` are aliases of it, so `font-heading` still marks a heading in markup without changing the face.
+- `--font-sans`: `var(--font-geist-sans), "Geist", ui-sans-serif, system-ui, sans-serif` → `font-sans`. **Geist Sans is used for prose, headings, labels, controls, tables, KPIs, dates, counts, percentages, durations and figures.** `--font-heading` is an alias of it: `font-heading` marks a heading in markup without changing the face, and is the one line a display face would be pointed at if that decision were ever reopened.
 - `--font-mono`: `var(--font-geist-mono), "Geist Mono", ui-monospace, …` → `font-mono`. **Geist Mono only for code, commands, paths, raw tokens, timestamps and short operational identifiers** (a region, a plan, an id). Set only the identifier in mono, never its sentence or a whole table.
 
-**Base settings** (`.theme-brand`): 16/24 at 400, no tracking, `font-feature-settings: "rlig" 1, "calt" 0, "ss11" 1`, `font-synthesis: none`, `font-kerning: normal`, `font-optical-sizing: auto`, antialiased.
+**Base settings** (`.theme-brand`): 16/24 at 400, no tracking, `font-feature-settings: "rlig" 1, "calt" 0, "ss11" 1` (what vercel.com sets on `<body>`), `font-synthesis: none` (Geist ships no italic; Vercel leaves synthesis on, the brand forbids the fake), `font-kerning: normal`, `font-optical-sizing: auto`, antialiased.
 
-**Weights:** `font-normal` 400 (body) · `font-book` 450 (**the heading weight**, Vercel's `--vbg-weight-heading`; every heading role carries it) · `font-medium` 500 (labels, chips, tabs, buttons, `strong`) · `font-semibold` 600 (reserved). No other numeric weights; emphasis is scarce.
+**Weights**, Vercel's set and nothing else: `font-normal` 400 (copy, labels) · `font-medium` 500 (buttons, chips, tabs, labels that name a thing, `<strong>` inside a label) · `font-strong` 550 (`<strong>` inside running copy; the brand's one custom weight utility) · `font-semibold` 600 (**the heading weight**; every heading role carries it through `--font-weight-heading`, so a heading never needs a weight class). Provenance: the spec's `text-heading-*` classes all compute to 600. vercel.com's marketing site sets its 56px section headings at 450 and its hero at 400; that is site styling, not the system, and `--font-weight-heading` is the one line to change if the dashboard ever wants that lighter cut. `npm run brand:lint-tokens` rejects any other weight utility.
 
-**Scale** (native `--text-*` tokens with paired line-height, tracking and, for headings, the 450 weight; use `text-<size>`):
+**Scale** (native `--text-*` tokens with paired line-height, tracking and, for headings, the heading weight; use `text-<size>`). Tracking is the spec's px value in em:
 
 | Token | px / line-height / tracking / weight | Vercel role | Use |
 |---|---|---|---|
-| `display` | `clamp(40px, 5vw, 48px)` / 1.15 / -0.06em / 450 | display | the single page-defining statement, when scale is earned |
-| `5xl` | 48 / 56 / -0.06em / 450 | heading-48 · display | hero statement |
-| `4xl` | 40 / 48 / -0.06em / 450 | heading-40 · page title | the page title |
-| `3xl` | 32 / 40 / -0.04em / 450 | heading-32 · title | page title on narrow screens, large tile names |
-| `2xl` | 24 / 32 / -0.04em / 450 | heading-24 · section | major section turns, dialog titles, the dashboard's page titles |
-| `xl` | 20 / 26 / -0.02em / 450 | heading-20 · subsection | nested structure, section headings |
-| `lg` | 18 / 28 / 0 | lede | one short orientation passage |
-| `base` | 16 / 24 / 0 | body | reading, composer, suggested questions |
-| `sm` | 14 / 20 / 0 | compact | chips, tabs, buttons, labels, table cells (500 on controls) |
-| `md` | 13 / 18 / 0 | label · metadata | captions, meta lines, subordinate evidence |
-| `xs` | 12 / 16 / 0 | | keycaps, footers, disclaimers |
+| `display` | `clamp(40px, 5vw, 48px)` / 1.15 / -0.06em / heading | heading-40 → 48, fluid | the single page-defining statement, when scale is earned |
+| `5xl` | 48 / 56 / -0.06em / heading | heading-48 | hero statement |
+| `4xl` | 40 / 48 / -0.06em / heading | heading-40 | the page title |
+| `3xl` | 32 / 40 / -0.04em / heading | heading-32 | page title on narrow screens, large tile names |
+| `2xl` | 24 / 32 / -0.04em / heading | heading-24 | major section turns, dialog titles, the dashboard's page titles |
+| `xl` | 20 / 26 / -0.02em / heading | heading-20 | nested structure, section headings |
+| `lg` | 18 / 28 / 0 | copy-18 | lede: one short orientation passage |
+| `base` | 16 / 24 / 0 | copy-16 | reading, composer, suggested questions |
+| `sm` | 14 / 20 / 0 | copy-14 · label-14 · button-14 | chips, tabs, buttons, labels, table cells (500 on controls) |
+| `md` | 13 / 18 / 0 | copy-13 | captions, meta lines, subordinate evidence |
+| `xs` | 12 / 16 / 0 | label-12 · button-12 | keycaps, footers, disclaimers |
 
-**Utility roles** (font-family and numeric treatment cannot ride `--text-*`): `text-heading-display` (fluid 40→48 at 450), `text-heading-lg` (18/28 at 450, list-row names), `text-label-14-mono` and `text-label-12-mono` (mono identifiers and figures, tabular and slashed-zero numerals), `text-label-12-caps` (12/16 at 500, +0.06em, uppercase: the label over a *group* of cards; Vercel's own reports avoid all-caps eyebrows, so use it for grouping only, never for a heading).
+Vercel's heading-16 and heading-14 (600, -0.02em) have no token: a heading that must sit at body size is `text-base font-semibold` or `text-sm font-semibold`, tracking left at 0 (the phase-1 metric). Its label-13 (13/16) and the 16/20 and 18/20 single-line labels are not carried either; the dashboard's controls keep the phase-1 heights.
+
+**Utility roles** (font-family and numeric treatment cannot ride `--text-*`): `text-heading-display` (fluid 40→48 at the heading weight), `text-heading-lg` (18/28, -0.02em, heading weight: list-row and card titles, the brand's own size between heading-16 and heading-20), `text-label-14-mono` and `text-label-12-mono` (Vercel's label-14-mono and label-12-mono: mono identifiers and figures, tabular and slashed-zero numerals), `text-label-12-caps` (12/16 at 500, +0.06em, uppercase: Vercel's "Label 12 … AND CAPS", the label over a *group* of cards; use it for grouping only, never for a heading).
 
 Use tabular numerals for aligned comparisons (`tabular-nums`, or the mono label roles). Equivalent peers always share role, size, weight, line-height and numeric treatment; never resize one because its string is longer.
 
@@ -221,7 +223,7 @@ A page that sets everything below its headings in one grey reads as a template. 
 
 | Tier | Token | Typical role | What lives here |
 |---|---|---|---|
-| **1 — the voice** | `foreground` | heading roles at 450, `base` at 400 | card titles, a person's name, the value the visitor picked, a tab's opening line |
+| **1 — the voice** | `foreground` | heading roles at 600, `base` at 400 | card titles, a person's name, the value the visitor picked, a tab's opening line |
 | **2 — running copy** | `muted-foreground` | `base` / `sm` at 400 | sentences someone reads: ledes inside a card, captions, body |
 | **3 — labels & provenance** | `foreground-low` | `text-label-12-caps` (group labels) · `text-label-12-mono` / `md` (citations, meta) | things someone *scans*: the label over a group, the source under a fact, a dot-separated meta line |
 
@@ -351,7 +353,7 @@ Write like the product reads: first-person, warm, direct. the brand site speaks 
 - Do consume the highest token tier that fits: semantic over primitive, primitive over a raw value.
 - Do use `bg-tint-*` for rest / hover fills; they need no `dark:` variants.
 - Do use `brand` for anything carrying text on orange and `brand-accent` for rings, icons, selection and graphics.
-- Do let headings take the 450 heading weight from the `text-*` role; keep UI labels, chips, tabs and buttons at 500; body at 400.
+- Do let headings take the 600 heading weight from the `text-*` role (or `text-heading-lg` for a card title); keep UI labels, chips, tabs and buttons at 500; body at 400; `<strong>` in copy at 550 (`font-strong`).
 - Do prefer `border-subtle` for separation; reserve `shadow-lg`+ for the composer, popovers and tiles.
 - Do keep product motion ≤300ms, list transition properties explicitly, and honor `prefers-reduced-motion`.
 - Don't put white text on `brand-accent` or on a 500-step status colour.

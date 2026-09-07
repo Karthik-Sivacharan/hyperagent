@@ -32,7 +32,7 @@ export function EmptyState({
       ) : (
         <Icon className="size-12 text-foreground-low" aria-hidden="true" />
       )}
-      <h2 className={cn("mt-4 font-heading text-foreground", bubble ? "text-xl" : "text-lg font-book")}>
+      <h2 className={cn("mt-4 font-heading text-foreground", bubble ? "text-xl" : "text-heading-lg")}>
         {title}
       </h2>
       <p className={cn("mt-2 text-muted-foreground", bubble ? "max-w-md" : "text-sm")}>{description}</p>

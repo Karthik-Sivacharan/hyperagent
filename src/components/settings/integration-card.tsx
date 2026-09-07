@@ -55,7 +55,7 @@ export function IntegrationCard({ integration }: { integration: Integration }) {
           <div className="flex items-center justify-between">
             <div className="flex min-w-0 flex-1 items-center gap-3">
               <Logo logo={integration.logo} />
-              <div data-slot="card-title" className="min-w-0 font-heading text-[15px] font-book text-foreground">
+              <div data-slot="card-title" className="min-w-0 font-heading text-[15px] font-semibold text-foreground">
                 <span className="whitespace-nowrap">{integration.name}</span>
               </div>
             </div>
@@ -65,7 +65,7 @@ export function IntegrationCard({ integration }: { integration: Integration }) {
           <div className="flex min-w-0 items-center justify-between gap-2">
             <div className="flex min-w-0 flex-1 items-center gap-3">
               <Logo logo={integration.logo} />
-              <div data-slot="card-title" className="min-w-0 truncate font-heading text-[15px] font-book text-foreground">
+              <div data-slot="card-title" className="min-w-0 truncate font-heading text-[15px] font-semibold text-foreground">
                 {integration.name}
               </div>
             </div>

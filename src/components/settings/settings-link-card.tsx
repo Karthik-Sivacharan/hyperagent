@@ -68,7 +68,7 @@ export function SettingsLinkCard({ card, accent = false }: { card: SettingsCard;
               <CardIcon icon={card.icon} />
             </div>
           </div>
-          <div data-slot="card-title" className="mt-4 flex items-center justify-between font-heading text-lg font-book text-foreground">
+          <div data-slot="card-title" className="mt-4 flex items-center justify-between text-heading-lg text-foreground">
             {card.title}
             <ChevronRight
               className="size-5 text-foreground-low opacity-0 transition-[opacity,transform] duration-(--duration-normal) ease-out group-hover:translate-x-1 group-hover:opacity-100"

@@ -81,7 +81,7 @@ const TYPE: { label: string; style?: CSSProperties; className?: string; sample: 
   { label: "base · 400", style: text("base"), sample: "How do I apply the Hook Model to my product or app?" },
   { label: "md · 400 (13px metadata)", style: { ...text("md"), color: v("foreground-low") }, sample: "Updated 2 hours ago · 3 collaborators" },
   { label: "sm · 500", style: { ...text("sm"), fontWeight: v("font-weight-medium") }, sample: "Productivity · Behavior design · Habits" },
-  { label: "sm · book 450", style: { ...text("sm"), fontWeight: v("font-weight-book") }, sample: "Share profile" },
+  { label: "sm · strong 550", style: { ...text("sm"), fontWeight: v("font-weight-strong") }, sample: "Share profile" },
   { label: "xs · 400", style: { ...text("xs"), color: v("foreground-low") }, sample: "By using this service, you agree to the Terms of Service." },
   { label: "label-14 mono", className: "text-label-14-mono", sample: "npm run brand:check-contrast" },
   { label: "label-12 mono", className: "text-label-12-mono", sample: "oklch(0.6700 0.2022 42) · tangerine-500 · 1,234.56" },
@@ -90,10 +90,10 @@ const TYPE: { label: string; style?: CSSProperties; className?: string; sample: 
 
 const FONTS: { label: string; token: string; sample: string; extra?: CSSProperties }[] = [
   { label: "font-sans · Geist", token: "font-sans", sample: "The quick brown fox jumps over the lazy dog · 0123456789" },
-  { label: "font-heading · Geist at 450", token: "font-heading", sample: "The quick brown fox jumps over the lazy dog", extra: { fontWeight: 450 } },
+  { label: "font-heading · Geist at the heading weight", token: "font-heading", sample: "The quick brown fox jumps over the lazy dog", extra: { fontWeight: v("font-weight-heading") } },
   { label: "font-mono · Geist Mono", token: "font-mono", sample: "const brand = oklch(0.67 0.2022 42);" },
 ];
-const WEIGHTS = ["normal", "book", "medium", "semibold", "bold"];
+const WEIGHTS = ["normal", "medium", "strong", "semibold", "heading"];
 
 const RADII: { name: string; size: string }[] = [
   { name: "xs", size: "size-14" }, { name: "sm", size: "size-14" }, { name: "md", size: "size-14" }, { name: "lg", size: "size-14" },
@@ -321,7 +321,7 @@ export default function BrandTokensPage() {
       </section>
 
       <section className="mb-14">
-        <SectionTitle sub="--font-sans · --font-heading (both Geist) · --font-mono · weights 400 / 450 / 500 / 600">Font families and weights</SectionTitle>
+        <SectionTitle sub="--font-sans · --font-heading (both Geist) · --font-mono · weights 400 / 500 / 550 / 600 (heading = 600)">Font families and weights</SectionTitle>
         <div className="divide-y" style={{ borderColor: v("border-subtle") }}>
           {FONTS.map((f) => (
             <div key={f.token} className="grid gap-2 py-4 sm:grid-cols-[14rem_1fr] sm:items-baseline" style={hairline}>
@@ -508,7 +508,7 @@ export default function BrandTokensPage() {
           ))}
         </div>
         <p className="mt-3 text-xl">
-          text-xl via Tailwind → 20 / 26 / 450 / -0.02em inside the scope
+          text-xl via Tailwind → 20 / 26 / 600 / -0.02em inside the scope
         </p>
         <p className="mt-1 rounded-2xl bg-red-600 px-3 py-1 text-sm text-white">
           bg-red-600 rounded-2xl via Tailwind → Brand red-600 (#bc4441) at 18px

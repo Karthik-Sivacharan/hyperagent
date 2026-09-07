@@ -14,6 +14,9 @@
  *     alpha are allowed
  *   • arbitrary pixel radii (rounded-[8px]) instead of the radius scale
  *   • transition-all (list the properties instead)
+ *   • weights outside Vercel's Geist set (font-normal / font-medium /
+ *     font-strong / font-semibold), the retired font-book, and font-serif,
+ *     which has no face behind it (docs/brand/design.md §4)
  *
  * Comments are stripped before matching. Files that carry third-party or
  * brand-mark artwork are allow-listed below: logos keep their colours.
@@ -54,6 +57,7 @@ const RULES = [
   },
   { name: 'arbitrary px radius', re: /\brounded(?:-[a-z]{1,2})?-\[\d+(?:\.\d+)?px\]/g },
   { name: 'transition-all', re: /\btransition-all\b/g },
+  { name: 'off-spec weight or face', re: /\bfont-(?:thin|extralight|light|book|bold|extrabold|black|serif)\b/g },
 ];
 
 function* walk(dir) {
@@ -98,4 +102,4 @@ if (findings) {
   console.error(`\n✗ ${findings} token-lint finding${findings === 1 ? '' : 's'} in ${perFile.size} file${perFile.size === 1 ? '' : 's'}`);
   process.exit(1);
 }
-console.log('✓ token lint: no raw colours, stock palette classes, px radii or transition-all in components');
+console.log('✓ token lint: no raw colours, stock palette classes, px radii, transition-all or off-spec weights in components');

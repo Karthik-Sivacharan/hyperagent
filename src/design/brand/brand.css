@@ -52,7 +52,7 @@
    src/app/globals.css carries an `@theme inline reference` bridge ("PHASE 2
    BRIDGE") that names every brand-only token here and points it at the
    variable of the same name: `bg-tangerine-500`, `bg-tint-10`,
-   `text-foreground-low`, `font-book`, `text-display`, `rounded-5xl`,
+   `text-foreground-low`, `font-strong`, `text-display`, `rounded-5xl`,
    `shadow-card`, `gap-group`, `ease-out-quart` … all resolve inside
    `.theme-brand` (on <body>), and nothing is re-emitted on :root, so this
    file stays the single source of truth. The `--text-*--letter-spacing` and
@@ -190,38 +190,49 @@
   --color-tint-25: var(--tint-25);  /* dark hover on inline reference chips */
   --color-tint-40: var(--tint-40);  /* dividers, dark glass badge */
 
-  /* Typography - Font families. The brand runs on Geist (Vercel's published
-     typography system): Geist Sans for prose, headings, labels, controls,
-     tables and figures; Geist Mono only for code, commands, paths, raw
-     tokens, timestamps and short identifiers. next/font (fonts.ts, on
-     <html>) sets --font-geist-sans and --font-geist-mono; these stacks
-     consume them. `--font-heading` and `--font-serif` are kept as names so
-     `font-heading` / `font-serif` still resolve: both are Geist Sans now. */
+  /* Typography - Font families. The brand runs on Geist, as Vercel's Geist
+     design system specifies (vercel.com/geist/typography, read 2026-09-07):
+     Geist Sans for prose, headings, labels, controls, tables and figures;
+     Geist Mono only for code, commands, paths, raw tokens, timestamps and
+     short identifiers. next/font (fonts.ts, on <html>) sets
+     --font-geist-sans and --font-geist-mono; these stacks consume them.
+     `--font-heading` is an alias of the sans: `font-heading` marks a heading
+     in markup, and this line is the single place a display face would be
+     pointed at if that decision (closed 2026-09-07) were ever reopened. */
   --font-sans: var(--font-geist-sans), "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-heading: var(--font-sans);
-  --font-serif: var(--font-sans);
   --font-mono: var(--font-geist-mono), "Geist Mono", ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
 
-  /* Typography - weights, Vercel's published set: regular 400 for body,
-     450 for every heading role (`font-book`, the heading weight), medium 500
-     for labels, chips, tabs, buttons and emphasis, semibold 600 reserved.
-     No other numeric weights. */
+  /* Typography - weights: the four Vercel's Geist roles use and nothing
+     else. Regular 400 for copy and labels, medium 500 for buttons and for
+     <strong> inside a label, 550 for <strong> inside copy, semibold 600 for
+     every heading role. `--font-weight-heading` is the one knob the heading
+     roles read (`text-xl` and up, `text-display`, the heading role classes,
+     prose headings). vercel.com's marketing site currently sets its 56px
+     section headings at 450: that is site styling, not the system, and this
+     knob is the one line to change if the spec's 600 ever reads too heavy
+     in the dashboard. */
   --font-weight-normal: 400;
-  --font-weight-book: 450;     /* the Geist heading weight (Vercel --vbg-weight-heading) */
-  --font-weight-medium: 500;   /* UI labels, chips, tabs, buttons, strong */
-  --font-weight-semibold: 600; /* reserved; headings do not use it */
-  --font-weight-bold: 700;
+  --font-weight-medium: 500;   /* buttons, chips, tabs, labels that name a thing, strong in a label */
+  --font-weight-strong: 550;   /* strong inside running copy (Vercel "Copy … with Strong") */
+  --font-weight-semibold: 600; /* the heading weight */
+  --font-weight-heading: var(--font-weight-semibold);
 
   /* ===== TYPOGRAPHY SCALE =====
-     Vercel's published Geist roles mapped onto Tailwind's --text-* names, so
+     Vercel's Geist roles mapped onto Tailwind's --text-* names, so
      `text-<size>` carries the role's size, line-height, tracking and (for
-     headings) the 450 weight. Body sizes leave weight to the utility.
-       xs  12/16   label-12                     2xl 24/32 -0.04em 450  heading-24 / section
-       sm  14/20   compact: buttons, labels     3xl 32/40 -0.04em 450  heading-32 / title
-       md  13/18   metadata, captions           4xl 40/48 -0.06em 450  heading-40 / page title
-       base 16/24  body                         5xl 48/56 -0.06em 450  heading-48 / display
-       lg  18/28   lede                         display: fluid 40 → 48
-       xl  20/26 -0.02em 450 heading-20 / subsection */
+     headings) the heading weight. Body sizes leave weight to the utility.
+     Tracking is the spec's px value in em: heading-48 -2.88px = -0.06em,
+     heading-24 -0.96px = -0.04em, heading-20 -0.4px = -0.02em.
+       xs  12/16   label-12 · button-12            2xl 24/32 -0.04em  heading-24 / section
+       sm  14/20   copy-14 · label-14 · button-14  3xl 32/40 -0.04em  heading-32 / title
+       md  13/18   copy-13: metadata, captions     4xl 40/48 -0.06em  heading-40 / page title
+       base 16/24  copy-16: body                   5xl 48/56 -0.06em  heading-48 / display
+       lg  18/28   copy-18: lede                   display: fluid 40 → 48
+       xl  20/26 -0.02em  heading-20 / subsection
+     heading-16 and heading-14 (600, -0.02em) have no token of their own: a
+     heading that must sit at body size is `text-base font-semibold` or
+     `text-sm font-semibold`, tracking left at 0 (the phase-1 metric). */
   --text-xs: 12px;                       /* captions, footer, disclaimers, keycaps */
   --text-xs--line-height: 16px;
   --text-xs--letter-spacing: 0;
@@ -240,27 +251,27 @@
   --text-xl: 20px;                       /* heading-20: nested structure, section headings */
   --text-xl--line-height: 26px;
   --text-xl--letter-spacing: -0.02em;
-  --text-xl--font-weight: 450;
+  --text-xl--font-weight: var(--font-weight-heading);
   --text-2xl: 24px;                      /* heading-24: major section turns, dialog titles */
   --text-2xl--line-height: 32px;
   --text-2xl--letter-spacing: -0.04em;
-  --text-2xl--font-weight: 450;
+  --text-2xl--font-weight: var(--font-weight-heading);
   --text-3xl: 32px;                      /* heading-32: page title on narrow screens, tile names */
   --text-3xl--line-height: 40px;
   --text-3xl--letter-spacing: -0.04em;
-  --text-3xl--font-weight: 450;
+  --text-3xl--font-weight: var(--font-weight-heading);
   --text-4xl: 40px;                      /* heading-40: the page title */
   --text-4xl--line-height: 48px;
   --text-4xl--letter-spacing: -0.06em;
-  --text-4xl--font-weight: 450;
+  --text-4xl--font-weight: var(--font-weight-heading);
   --text-5xl: 48px;                      /* heading-48: the display statement */
   --text-5xl--line-height: 56px;
   --text-5xl--letter-spacing: -0.06em;
-  --text-5xl--font-weight: 450;
+  --text-5xl--font-weight: var(--font-weight-heading);
   --text-display: clamp(2.5rem, 5vw, 3rem); /* fluid display: 40 → 48px */
   --text-display--line-height: 1.15;
   --text-display--letter-spacing: -0.06em;
-  --text-display--font-weight: 450;
+  --text-display--font-weight: var(--font-weight-heading);
 
   /* Shadcn color mappings */
   --color-background: var(--background);
@@ -723,14 +734,14 @@
     font-family: var(--font-heading);
     font-size: var(--text-display);
     line-height: 1.15;
-    font-weight: var(--font-weight-book);
+    font-weight: var(--font-weight-heading);
     letter-spacing: -0.06em;
   }
   .theme-brand .text-heading-lg { /* row / card title: 18/28, heading weight */
     font-family: var(--font-heading);
     font-size: 18px;
     line-height: 28px;
-    font-weight: var(--font-weight-book);
+    font-weight: var(--font-weight-heading);
     letter-spacing: -0.02em;
   }
   .theme-brand .text-label-14-mono { /* an identifier set in mono, figures tabular and slashed-zero */
@@ -817,17 +828,17 @@
     font-size: var(--text-xl);
     line-height: var(--text-xl--line-height);
     letter-spacing: var(--text-xl--letter-spacing);
-    font-weight: var(--font-weight-book);
+    font-weight: var(--font-weight-heading);
   }
   .theme-brand .genui-prose h3 {
     margin-top: calc(var(--spacing, 0.25rem) * 5);
     font-size: var(--text-lg);
     line-height: var(--text-lg--line-height);
     letter-spacing: var(--text-lg--letter-spacing);
-    font-weight: var(--font-weight-book);
+    font-weight: var(--font-weight-heading);
   }
   .theme-brand .genui-prose h2:first-child, .theme-brand .genui-prose h3:first-child { margin-top: 0; }
-  .theme-brand .genui-prose strong { font-weight: var(--font-weight-medium); }
+  .theme-brand .genui-prose strong { font-weight: var(--font-weight-strong); }
   .theme-brand .genui-prose ul, .theme-brand .genui-prose ol { padding-left: calc(var(--spacing, 0.25rem) * 5); }
   .theme-brand .genui-prose ul { list-style: disc; }
   .theme-brand .genui-prose ol { list-style: decimal; }
