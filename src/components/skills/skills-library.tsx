@@ -5,9 +5,9 @@ import {
   IconArchive,
   IconArrowsUpDown,
   IconChevronDown,
+  IconFilter2,
   IconLayoutGrid,
   IconList,
-  IconMenuDeep,
   IconSearch,
 } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
@@ -80,7 +80,7 @@ export function SkillsLibrary() {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="h-9 gap-2" aria-label="Filters">
-                <IconMenuDeep className="size-4" aria-hidden="true" />
+                <IconFilter2 className="size-4" aria-hidden="true" />
                 <span className="hidden sm:inline">Filters</span>
                 <IconChevronDown className="size-4 text-foreground-low" aria-hidden="true" />
               </Button>

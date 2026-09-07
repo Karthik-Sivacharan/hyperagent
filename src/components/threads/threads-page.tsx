@@ -5,13 +5,13 @@ import Link from "next/link";
 import {
   IconArrowsUpDown,
   IconChevronRight,
+  IconFilter2,
   IconLayoutGrid,
+  IconLayoutKanban,
   IconList,
-  IconMenuDeep,
   IconMessageCircleQuestion,
   IconPlus,
   IconSearch,
-  IconLayoutKanban,
   IconStar,
   type TablerIcon,
 } from "@tabler/icons-react";
@@ -182,7 +182,7 @@ export function ThreadsPage({ threads }: { threads: Thread[] }) {
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="outline" size="sm" className={CHIP} aria-label="Filters">
-                        <IconMenuDeep className="size-4" aria-hidden="true" />
+                        <IconFilter2 className="size-4" aria-hidden="true" />
                         <span className="@min-[760px]:inline hidden">Filters</span>
                       </Button>
                     </DropdownMenuTrigger>

@@ -1,7 +1,7 @@
 "use client";
 
 import type { ComponentType, ReactNode } from "react";
-import { IconArchive, IconArrowsLeftRight, IconArrowUpRight, IconBookOff, IconPencil, IconPlus, IconRefresh, IconStar } from "@tabler/icons-react";
+import { IconArchive, IconArrowsRightLeft, IconArrowUpRight, IconBookOff, IconPencil, IconPlus, IconRefresh, IconStar } from "@tabler/icons-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -84,7 +84,7 @@ function ThreadMenuItems({ thread, kit: K }: { thread: Thread; kit: Kit }) {
       </K.Item>
       <K.Sub>
         <K.SubTrigger>
-          <IconArrowsLeftRight className="size-4" aria-hidden="true" />
+          <IconArrowsRightLeft className="size-4" aria-hidden="true" />
           Move to project
         </K.SubTrigger>
         <K.SubContent>

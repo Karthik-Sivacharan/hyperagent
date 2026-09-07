@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { IconArchive, IconArrowsLeftRight, IconBookOff, IconDots, IconPencil, IconRefresh, IconStar } from "@tabler/icons-react";
+import { IconArchive, IconArrowsRightLeft, IconBookOff, IconDots, IconPencil, IconRefresh, IconStar } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -114,7 +114,7 @@ export function ThreadCard({ thread, layout = "list" }: { thread: Thread; layout
                       </DropdownMenuItem>
                       <DropdownMenuSub>
                         <DropdownMenuSubTrigger>
-                          <IconArrowsLeftRight className="size-4" aria-hidden="true" />
+                          <IconArrowsRightLeft className="size-4" aria-hidden="true" />
                           Move to project
                         </DropdownMenuSubTrigger>
                         <DropdownMenuSubContent>

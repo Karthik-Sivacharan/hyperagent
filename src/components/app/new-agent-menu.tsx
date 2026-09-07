@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { IconCompass, IconCopy, IconMessageCirclePlus, IconBuildingStore, IconUpload, IconWand } from "@tabler/icons-react";
+import { IconBuildingStore, IconCompass, IconCopy, IconMessageCirclePlus, IconUpload, IconWand } from "@tabler/icons-react";
 import {
   DropdownMenu,
   DropdownMenuContent,

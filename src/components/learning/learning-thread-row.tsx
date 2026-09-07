@@ -4,10 +4,10 @@ import { useState } from "react";
 import Link from "next/link";
 import {
   IconArrowUpRight,
+  IconBulb,
   IconChevronDown,
   IconChevronRight,
   IconClipboardCheck,
-  IconBulb,
   IconMessage2,
   IconSparkles,
 } from "@tabler/icons-react";

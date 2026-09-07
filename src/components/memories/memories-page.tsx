@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { IconBrain, IconChevronDown, IconDots, IconLayoutGrid, IconList, IconMenuDeep, IconMenu, IconPlus } from "@tabler/icons-react";
+import { IconBrain, IconChevronDown, IconDots, IconFilter2, IconLayoutGrid, IconList, IconMenu2, IconPlus } from "@tabler/icons-react";
 import { Checkbox as CheckboxPrimitive } from "radix-ui";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -165,7 +165,7 @@ export function MemoriesPage() {
                       className="mr-3 @3xl/memories:hidden h-9 min-w-0 max-w-48 justify-start gap-2 px-2"
                       aria-haspopup="dialog"
                     >
-                      <IconMenu className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                      <IconMenu2 className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
                       <span className="truncate font-medium">{owner.name} memories</span>
                     </Button>
                     <div className="@3xl/memories:flex hidden min-w-0 items-center gap-3">
@@ -189,7 +189,7 @@ export function MemoriesPage() {
                     <div className="hidden min-w-0 items-center gap-2 ml-auto @3xl/memories:@xl/memory-list:flex">
                       <FiltersMenu active={activeFilters} onToggle={toggleFilter}>
                         <Button variant="outline" size="sm" className="h-9">
-                          <IconMenuDeep className="size-3.5" aria-hidden="true" />
+                          <IconFilter2 className="size-3.5" aria-hidden="true" />
                           Filters
                           <IconChevronDown className="size-3.5 opacity-60" aria-hidden="true" />
                         </Button>
@@ -219,7 +219,7 @@ export function MemoriesPage() {
                           aria-label="Filters"
                           className="h-7 gap-1 px-1.5 text-muted-foreground hover:text-foreground"
                         >
-                          <IconMenuDeep className="size-4" aria-hidden="true" />
+                          <IconFilter2 className="size-4" aria-hidden="true" />
                         </Button>
                       </FiltersMenu>
                     </div>

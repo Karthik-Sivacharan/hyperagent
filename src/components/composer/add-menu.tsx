@@ -5,18 +5,18 @@ import {
   IconFileText,
   IconFiles,
   IconFolderOpen,
-  IconGlobe,
-  IconPhoto,
   IconMapPin,
   IconPaperclip,
+  IconPhoto,
   IconPlus,
   IconPresentation,
   IconPuzzle,
   IconSearch,
-  IconCategory,
   IconTable,
+  IconTriangleSquareCircle,
   IconVideo,
-  IconVolume2,
+  IconVolume,
+  IconWorld,
   type TablerIcon,
 } from "@tabler/icons-react";
 import {
@@ -58,8 +58,8 @@ const SKILLS = [
 const OUTPUTS: { label: string; icon: TablerIcon }[] = [
   { label: "Image", icon: IconPhoto },
   { label: "Video", icon: IconVideo },
-  { label: "Audio", icon: IconVolume2 },
-  { label: "Webpage", icon: IconGlobe },
+  { label: "Audio", icon: IconVolume },
+  { label: "Webpage", icon: IconWorld },
   { label: "Slides", icon: IconPresentation },
   { label: "Table", icon: IconTable },
   { label: "Map", icon: IconMapPin },
@@ -155,7 +155,7 @@ export function AddMenu({ children, ...triggerProps }: React.ComponentProps<type
 
         <DropdownMenuSub>
           <DropdownMenuSubTrigger className="gap-2">
-            <IconCategory className="size-4" aria-hidden="true" />
+            <IconTriangleSquareCircle className="size-4" aria-hidden="true" />
             <span className="flex-1 text-sm">Output as...</span>
           </DropdownMenuSubTrigger>
           <DropdownMenuSubContent className="w-[200px] p-1">

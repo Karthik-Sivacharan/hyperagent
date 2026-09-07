@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { IconBlocks, IconBrain, IconCheck, IconCpu, IconGauge, IconInfoCircle, IconArrowsDiagonal, IconPlug, IconBolt } from "@tabler/icons-react";
+import { IconArrowsDiagonal, IconBlocks, IconBolt, IconBrain, IconCheck, IconCpu, IconGauge, IconInfoCircle, IconPlug } from "@tabler/icons-react";
 import {
   DropdownMenu,
   DropdownMenuContent,

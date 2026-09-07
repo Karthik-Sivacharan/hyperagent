@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { IconRobot } from "@tabler/icons-react";
+import { IconRobotFace } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
 import { PageHeading } from "@/components/resources/page-heading";
 import { LearningThreadRow } from "@/components/learning/learning-thread-row";
@@ -44,7 +44,7 @@ export function LearningPage() {
                         className="mr-1 flex shrink-0 items-center justify-center rounded-full"
                         style={{ width: 16, height: 16 }}
                       >
-                        <IconRobot aria-hidden="true" style={{ width: 11, height: 11 }} />
+                        <IconRobotFace aria-hidden="true" style={{ width: 11, height: 11 }} />
                       </span>
                     ) : null}
                     {filter.label}

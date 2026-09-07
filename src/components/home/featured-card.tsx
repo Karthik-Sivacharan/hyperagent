@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { IconCoin, IconClock } from "@tabler/icons-react";
+import { IconClock, IconCoin } from "@tabler/icons-react";
 import type { FeaturedThread } from "@/lib/mock/featured";
 
 // One card of the "See what Hyperagent is capable of building" showcase

@@ -1,6 +1,7 @@
 // The settings hub as hyperagent.com/settings lists it
 // (docs/reference/pages/settings.html, captured 2026-09-06): three overline
-// sections of link cards. Icon names are the dump's `lucide-*` classes;
+// sections of link cards. Icon names are the captured dump's lucide class
+// names, resolved to Tabler icons by the ICONS table in settings-link-card.tsx;
 // "openclaw" is the brand mark copied into settings-icons.tsx. Gradient
 // classes are kept as literal strings so Tailwind picks them up.
 

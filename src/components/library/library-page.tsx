@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { IconBook, IconGrid3x3, IconList } from "@tabler/icons-react";
+import { IconBook, IconLayoutGrid, IconList } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -58,7 +58,7 @@ export function LibraryPage() {
                         className={viewButton("grid")}
                         onClick={() => setView("grid")}
                       >
-                        <IconGrid3x3 className="size-4" aria-hidden="true" />
+                        <IconLayoutGrid className="size-4" aria-hidden="true" />
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>Grid view</TooltipContent>

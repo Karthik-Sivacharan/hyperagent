@@ -6,22 +6,22 @@ import { useRef, useState, type PointerEvent as ReactPointerEvent } from "react"
 import {
   IconArrowUpRight,
   IconBook,
-  IconRobot,
   IconBrain,
+  IconBuildingStore,
   IconChevronDown,
   IconChevronRight,
   IconDots,
+  IconEdit,
   IconFolderOpen,
-  IconSchool,
   IconInbox,
-  IconMessageCircle,
   IconLayoutSidebarLeftCollapse,
   IconLayoutSidebarLeftExpand,
+  IconMessageCircle,
   IconPlus,
   IconPuzzle,
+  IconRobotFace,
+  IconSchool,
   IconSearch,
-  IconEdit,
-  IconBuildingStore,
   IconUsers,
   type TablerIcon,
 } from "@tabler/icons-react";
@@ -385,7 +385,7 @@ export function Sidebar() {
                               className="flex w-full cursor-pointer items-center gap-2 overflow-hidden rounded-full transition-[color,background-color] duration-(--duration-normal) ease-out px-3.5 py-1.5 text-sm text-foreground hover:bg-tint-10"
                             >
                               <div className="flex shrink-0 items-center justify-center h-5 w-5">
-                                <IconRobot className="h-4 w-4" aria-hidden="true" />
+                                <IconRobotFace className="h-4 w-4" aria-hidden="true" />
                               </div>
                               <NavLabel label="Agents" collapsed />
                             </button>

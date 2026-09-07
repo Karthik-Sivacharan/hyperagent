@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { IconMenu, IconEdit } from "@tabler/icons-react";
+import { IconEdit, IconMenu2 } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
 import { HyperagentMark } from "@/components/app/brand-icons";
 import { Sidebar } from "@/components/app/sidebar";
@@ -32,7 +32,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <header className="safe-area-top-below-banners w-full glass-panel border-border-subtle border-b sticky top-0 z-40 md:hidden">
             <div className="flex h-14 items-center justify-between px-4">
               <Button variant="ghost" size="icon" className="size-10 shrink-0" aria-label="Open navigation menu">
-                <IconMenu className="size-4" aria-hidden="true" />
+                <IconMenu2 className="size-4" aria-hidden="true" />
               </Button>
               <Link className="group flex items-center gap-2" href="/threads/new">
                 <HyperagentMark className="size-5 shrink-0 text-primary" />

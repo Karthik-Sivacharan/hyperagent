@@ -1,14 +1,14 @@
 import {
   IconAppWindow,
   IconFileText,
-  IconPhoto,
   IconMapPin,
+  IconPhoto,
   IconPresentation,
   IconSearch,
   IconSparkles,
   IconUsers,
   IconVideo,
-  IconVolume2,
+  IconVolume,
   type TablerIcon,
 } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
@@ -34,7 +34,7 @@ const ACTIONS: { icon: TablerIcon; label: string }[] = [
 
 const MORE: { icon: TablerIcon; label: string }[] = [
   { icon: IconVideo, label: "Video" },
-  { icon: IconVolume2, label: "Audio" },
+  { icon: IconVolume, label: "Audio" },
   { icon: IconPresentation, label: "Slides" },
   { icon: IconMapPin, label: "Map" },
   { icon: IconFileText, label: "Doc" },

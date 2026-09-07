@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { ContextMenu as ContextMenuPrimitive } from "radix-ui";
-import { IconChevronRight, IconCheck, IconCircle } from "@tabler/icons-react";
+import { IconCheck, IconChevronRight, IconCircle } from "@tabler/icons-react";
 
 import { cn } from "@/lib/utils";
 

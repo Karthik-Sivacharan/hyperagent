@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { IconRobot, IconMenuDeep, IconPlus } from "@tabler/icons-react";
+import { IconFilter2, IconPlus, IconRobotFace } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -71,7 +71,7 @@ export function AgentsPage() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm" aria-label="Filters" className="h-9 shrink-0 gap-2">
-                  <IconMenuDeep className="size-4" aria-hidden="true" />
+                  <IconFilter2 className="size-4" aria-hidden="true" />
                   <span className="hidden sm:inline">Filters</span>
                 </Button>
               </DropdownMenuTrigger>
@@ -91,7 +91,7 @@ export function AgentsPage() {
             </DropdownMenu>
           </div>
           <EmptyState
-            icon={IconRobot}
+            icon={IconRobotFace}
             title="No agents yet"
             description="Use the New agent button to create your first agent."
           />

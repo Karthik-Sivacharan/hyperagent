@@ -1,14 +1,14 @@
 import {
-  IconRobot,
-  IconChartColumn,
+  IconBrush,
+  IconChartBar,
   IconCode,
-  IconSpeakerphone,
   IconMicroscope,
-  IconVectorBezier,
   IconPuzzle,
+  IconRobotFace,
+  IconSchema,
+  IconSpeakerphone,
   IconTrendingUp,
   IconUserSearch,
-  IconSchema,
   type TablerIcon,
 } from "@tabler/icons-react";
 import type { CategoryIcon, MarketplaceCategory } from "@/lib/mock/marketplace";
@@ -19,6 +19,13 @@ import type { CategoryIcon, MarketplaceCategory } from "@/lib/mock/marketplace";
 // Phase 2: the brand's 22px `shadow-card` tile that lifts on hover, the name
 // in the heading face. The tile's own colours come from the listing data and
 // stay, as cover art does (docs/brand/design.md §5, §6).
+//
+// The icon keys are the captured dump's lucide class names, resolved here to
+// Tabler glyphs. Two resolve to a different glyph than the name suggests:
+// "pen-tool" (the vector pen nib) is a brush, because Tabler's bezier icons
+// read as boxes joined by lines and were hard to tell from the workflow
+// tile; "chart-column" is Tabler's bar chart with a baseline, the shape the
+// source glyph had, because Tabler's chart-column is a stack of dashes.
 
 const ICONS: Record<CategoryIcon, TablerIcon> = {
   megaphone: IconSpeakerphone,
@@ -26,8 +33,8 @@ const ICONS: Record<CategoryIcon, TablerIcon> = {
   "user-search": IconUserSearch,
   "trending-up": IconTrendingUp,
   code: IconCode,
-  "pen-tool": IconVectorBezier,
-  "chart-column": IconChartColumn,
+  "pen-tool": IconBrush,
+  "chart-column": IconChartBar,
   workflow: IconSchema,
 };
 
@@ -54,7 +61,7 @@ export function CategoryCard({ category }: { category: MarketplaceCategory }) {
           <div key={i} className="flex gap-2">
             {row.map((glyph, j) =>
               glyph === "bot" ? (
-                <IconRobot key={j} className="size-7" stroke={1.5} aria-hidden="true" />
+                <IconRobotFace key={j} className="size-7" stroke={1.5} aria-hidden="true" />
               ) : (
                 <IconPuzzle key={j} className="size-7" stroke={1.5} aria-hidden="true" />
               ),

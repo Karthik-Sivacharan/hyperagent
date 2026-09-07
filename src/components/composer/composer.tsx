@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { IconArrowRight, IconArrowUp, IconRobot, IconChevronDown, IconListCheck, IconMicrophone, IconPlus, IconSettings2 } from "@tabler/icons-react";
+import { IconAdjustmentsHorizontal, IconArrowRight, IconArrowUp, IconChevronDown, IconListCheck, IconMicrophone, IconPlus, IconRobotFace } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -98,7 +98,7 @@ export function Composer({
               <TooltipTrigger asChild>
                 <ThreadSettingsMenu model={model} onModelChange={setModel} effort={effort} onEffortChange={setEffort}>
                   <button type="button" aria-label="Thread settings" className={PILL}>
-                    <IconSettings2 className="size-4" aria-hidden="true" />
+                    <IconAdjustmentsHorizontal className="size-4" aria-hidden="true" />
                     <span className="inline-flex min-w-0 items-center gap-1.5 @max-lg:hidden max-sm:hidden">
                       <span className="truncate">{model}</span>
                     </span>
@@ -113,7 +113,7 @@ export function Composer({
               <div className="flex items-center gap-0.5">
                 <AgentPicker>
                   <button type="button" data-dd-action-name="Agent picker" aria-label="Use an agent" className={PILL}>
-                    <IconRobot className="size-3.5" aria-hidden="true" />
+                    <IconRobotFace className="size-3.5" aria-hidden="true" />
                     <span className="@max-lg:hidden max-sm:hidden">Agent</span>
                     <IconChevronDown className="@max-lg:hidden size-3 max-sm:hidden" aria-hidden="true" />
                   </button>

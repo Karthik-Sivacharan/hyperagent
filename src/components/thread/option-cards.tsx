@@ -1,4 +1,4 @@
-import { IconRobot, IconMessageCircleQuestion, IconNetwork } from "@tabler/icons-react";
+import { IconMessageCircleQuestion, IconRobotFace, IconSitemap } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 import type { OptionCard, OptionCardIcon } from "@/lib/mock/conversation";
 import { OpenClawIcon } from "@/components/thread/openclaw-icon";
@@ -16,9 +16,9 @@ const CARD =
 function CardIcon({ icon, className }: { icon: OptionCardIcon; className: string }) {
   switch (icon) {
     case "bot":
-      return <IconRobot className={className} aria-hidden="true" />;
+      return <IconRobotFace className={className} aria-hidden="true" />;
     case "network":
-      return <IconNetwork className={className} aria-hidden="true" />;
+      return <IconSitemap className={className} aria-hidden="true" />;
     case "message-circle-question-mark":
       return <IconMessageCircleQuestion className={className} aria-hidden="true" />;
     case "openclaw":
