@@ -1,6 +1,6 @@
-# Brand design tokens (scoped copy)
+# Brand design tokens
 
-A self-contained copy of the Brand prototype's design-token system, brought into Hyperagent without touching the app's own theme. Nothing here applies outside an element carrying the class `theme-brand`. Phase 2 rewires Hyperagent's components to these tokens; this directory is the faithful reference that rewiring reads from.
+The Brand prototype's design-token system, brought into Hyperagent in phase 1 and, since plan step 5, the app's only palette: `brand.css` is the token sheet the whole document reads. Phase 2 rewired Hyperagent's components to these tokens; this directory is the reference that rewiring reads from.
 
 Source: the brand prototype's own repository, kept outside this repo and never modified from here.
 
@@ -8,28 +8,31 @@ Source: the brand prototype's own repository, kept outside this repo and never m
 
 | Path | What | From |
 |---|---|---|
-| `brand.css` | The token sheet: every primitive ramp, tint, semantic token, radius, shadow, type, motion, z-index and layout token, plus the scoped base styles, the `genui-prose` block, the typography role classes and the `focus-ring` / `squircle` / `skeleton` classes. Plain CSS, no Tailwind directives. | `src/app/globals.css` |
+| `brand.css` | The app's token sheet: every primitive ramp, tint, semantic token, radius, shadow, type, motion, z-index and layout token on `:root`, the dark mapping on `.dark`, plus the base styles on `html`, `body` and `*`, the `genui-prose` block, the typography role classes and the `focus-ring` / `squircle` / `skeleton` classes. Plain CSS, no Tailwind directives. | `src/app/globals.css` |
 | `fonts.ts` | `next/font/google` loaders for Geist (`--font-geist-sans`) and Geist Mono (`--font-geist-mono`), and `brandFontClassName` joining the two `.variable` classes. Phase 2 replaced the prototype's Inter / PythiaType / Newsreader files with Geist and Vercel's published typography roles (docs/brand/design.md §4); no font files ship in this directory. | `src/app/layout.tsx` |
 | `utils.ts` | Brand's `cn()`: tailwind-merge extended with the `font-strong` weight (550, strong inside copy). The `ui/` copies import this, not `@/lib/utils`, so a caller's `font-strong` conflicts with a component's `font-medium` the way stock weights do. | `src/lib/utils.ts` |
 | `ui/` | Verbatim copies of Brand's shadcn primitives (23 files). Only the imports changed: `@/lib/utils` → `@/design/brand/utils`, `@/components/ui/button` → `./button`, `@/components/ui/toggle` → `./toggle`. Nothing imports them yet. | `src/components/ui/*.tsx` |
-| `../../app/design/brand/` | The token swatch page at `/design/brand` (`layout.tsx`, `page.tsx`, `_design/theme-toggle.tsx`). The layout is the only importer of `brand.css`. | `src/app/page.tsx`, `src/app/_design/theme-toggle.tsx` |
+| `../../app/design/brand/` | The token swatch page at `/design/brand` (`layout.tsx`, `page.tsx`, `_design/theme-toggle.tsx`). `brand.css` itself is imported once, by the root layout `src/app/layout.tsx`. | `src/app/page.tsx`, `src/app/_design/theme-toggle.tsx` |
 | `../../../docs/brand/design.md` | How to consume the tokens, with a preamble on how this copy differs. | `design.md` |
 | `../../../docs/brand/brand-style-audit.md` | The raw measurements from the brand site (verbatim). | `docs/brand-style-audit.md` |
 | `../../../scripts/brand/gen-ramps.mjs` | Regenerates the OKLCH ramps with `culori`; prints literals to paste into `brand.css`. | `scripts/gen-ramps.mjs` |
-| `../../../scripts/brand/check-contrast.mjs` | The WCAG AA gate (APCA reported) over every semantic pair in both themes. | `scripts/check-contrast.mjs` |
+| `../../../scripts/brand/check-contrast.mjs` | The WCAG AA gate (APCA reported) over every semantic pair in both themes; it parses `brand.css` by selector, the light block from `:root { }` and the dark block from `.dark { }`. | `scripts/check-contrast.mjs` |
 
 Not copied:
 
 - `src/components/ui/chart.tsx`: it imports `recharts`, which Hyperagent does not install. Copy it alongside a `recharts` dependency when a chart is actually needed.
 - `*.test.tsx`, `src/app/globals.test.ts`, `src/components/genui/token-lint.test.ts`: vitest is not set up here. Their intent is worth keeping in mind for phase 2: `globals.test.ts` asserts the GenUI tokens exist in both themes (`--spacing-group/stack/section`, `--blur-glass`, `--shadow-edge/card/card-hover`, `--chart-6`, `--chart-track/grid/target/band`, `--chart-seq-1..5`, the `focus-ring` and `skeleton` utilities, `.genui-prose`); `token-lint.test.ts` forbids raw hex / `rgb()` / `oklch()` literals, stock Tailwind palette colours (`bg-gray-500`, `text-zinc-…`), arbitrary `px` values and `transition-all` in component class strings.
 
-## The scoping contract
+## How the sheet is wired
 
-- Put `theme-brand` on an ancestor and the subtree is themed: `brand.css` defines every variable on `.theme-brand` (Brand's `@theme inline` primitives and its `:root` semantics, merged, names verbatim) and remaps the semantics on `.theme-brand.dark, .dark .theme-brand`. Put `dark` on the same element or any ancestor (an app-level next-themes `html.dark` works too).
-- Put `brandFontClassName` on `<html>` so `--font-geist-sans` and `--font-geist-mono` are defined where the `--font-sans` / `--font-heading` / `--font-mono` stacks read them.
-- Variable names collide with Tailwind's defaults on purpose. Tailwind v4 utilities compile to `var(--…)`, so inside the scope `bg-neutral-500` is Brand's sand, `rounded-md` is `calc(var(--radius) * 0.8)`, `text-xl` is 20/28, `ease-out` is Brand's curve, `font-medium` is 500. The rest of the app never sees these values because no element outside the scope carries the class.
-- The `@layer base / components / utilities` wrappers are kept (every selector inside them is scoped). Cascade layers are standard CSS; the names merge into the layers Tailwind already declares in `src/app/globals.css`, so a scoped base rule such as `.theme-brand * { border-color: var(--border) }` loses to `border-*` utilities exactly as it does in Brand. Written as an unlayered rule it would override them on every descendant.
-- The file passes through `@tailwindcss/postcss` untouched because it contains no Tailwind directives (`@import`, `@theme`, `@utility`, `@apply`, `--spacing()` were all removed or expanded). It is safe to import from any nested layout.
+- `brand.css` defines the primitives (Brand's `@theme inline` ramps, names verbatim) and the light semantics (Brand's `:root`) in one `:root { }` rule and remaps the semantics in `.dark { }`. `next-themes` puts `dark` on `<html>` from the account menu's Theme item (`attribute="class"`, `defaultTheme="light"`, `enableSystem` in `src/app/layout.tsx`; "system" follows the OS, the choice persists in localStorage). `<body>` carries no theme class.
+- The base styles sit where Brand had them: `html` (font smoothing, text rendering, `font-synthesis: none`, kerning, optical sizing), `body` (canvas colour, `--font-sans`, 16/24 at 400, Geist's feature settings) and `*` (border and outline colours), plus `::selection`, `::placeholder` and `:focus-visible`.
+- `brandFontClassName` goes on `<html>` so `--font-geist-sans` and `--font-geist-mono` are defined where the `--font-sans` / `--font-heading` / `--font-mono` stacks read them.
+- Variable names collide with Tailwind's defaults on purpose. Tailwind v4 utilities compile to `var(--…)`, so `bg-neutral-500` is Brand's sand, `rounded-md` is `calc(var(--radius) * 0.8)`, `text-xl` is 20/28, `ease-out` is Brand's curve and `font-medium` is 500, everywhere in the app.
+- The `@layer base / components / utilities` wrappers are kept. Cascade layers are standard CSS; the names merge into the layers Tailwind already declares in `src/app/globals.css`, so a base rule such as `* { border-color: var(--border) }` loses to `border-*` utilities exactly as it does in Brand. Written as an unlayered rule it would override them on every element.
+- `.dark` sets `color-scheme: dark` (next-themes did this on `<html>` in Brand) so native controls and scrollbars follow the theme.
+- A `@keyframes pulse` identical to Tailwind's is included so `--animate-skeleton` works even when the app never emits `animate-pulse`.
+- The file passes through `@tailwindcss/postcss` untouched because it contains no Tailwind directives (`@import`, `@theme`, `@utility`, `@apply`, `--spacing()` were all removed or expanded). The root layout imports it once, after `globals.css`.
 
 ## The phase-2 bridge (landed)
 
@@ -41,15 +44,15 @@ variable of the same name: `bg-tangerine-500`, `bg-tint-10`,
 `border-border-subtle`, `font-strong`, `text-md`, `text-display`,
 `rounded-5xl`, `rounded-bubble`, `shadow-card`, `shadow-edge`,
 `max-w-content`, `gap-group`, `ease-out-quart`, `animate-typing-dot` and the
-rest now exist app-wide and resolve inside `.theme-brand` (which sits on
-`<body>`). `reference` keeps Tailwind from re-emitting the variables on
-`:root`, so this file stays the single source of truth and the contrast gate
-keeps reading one file. The two Tailwind behaviours that needed care:
+rest now exist app-wide and read the `:root` values in `brand.css`.
+`reference` keeps Tailwind from re-emitting the variables on `:root`, so this
+file stays the single source of truth and the contrast gate keeps reading one
+file. The two Tailwind behaviours that needed care:
 
 - `shadow-*` utilities inline their value at build time, so each brand shadow
   is named in the bridge (`--shadow-lg: var(--shadow-lg)` …) and the utility
-  becomes a `var()` read of the token; `shadow-lg` inside the scope is now
-  the brand's glass composer shadow.
+  becomes a `var()` read of the token; `shadow-lg` is now the brand's glass
+  composer shadow.
 - `text-xl` etc. only emit the `--letter-spacing` / `--font-weight`
   companions that exist in the main theme at build time, so the bridge names
   those companions too; the brand's tracking and heading weights ride the
@@ -73,9 +76,11 @@ npm run brand:gen-ramps               # prints regenerated ramp literals + ancho
 node scripts/brand/check-contrast.mjs path/to/other.css   # audit another sheet
 ```
 
-Workflow for a new colour (design.md §14): add the family to `gen-ramps.mjs`, run it, paste the literals into the `.theme-brand { }` block, map a semantic token in both `.theme-brand` and `.theme-brand.dark`, add the pair to `PAIRS` in `check-contrast.mjs`, run the gate, mirror it on the swatch page.
+Workflow for a new colour (design.md §14): add the family to `gen-ramps.mjs`, run it, paste the literals into the `:root { }` block, map a semantic token in both `:root` and `.dark`, add the pair to `PAIRS` in `check-contrast.mjs`, run the gate, mirror it on the swatch page, and if the name is brand-only add it to the bridge in `src/app/globals.css`.
 
 ## Phase 2 mapping: Hyperagent shadcn tokens ↔ Brand tokens
+
+The Hyperagent values below are the phase-1 skin, kept here for the record: they left the code in plan step 5 (the last commit carrying them is `c10d36c`) and survive only in git history and as the captured reference in `docs/reference/`.
 
 Hyperagent ships a dark, neutral (cool gray) palette with Geist for body/UI, Season Sans for display and Geist Mono. Brand is light-canonical with a full dark mapping, sand neutrals, one tangerine accent, and (since phase 2) Geist + Geist Mono on Vercel's typography roles. Brand values below are light / dark; primitives are Brand's ramp steps (`neutral-950` = `#1e1e1d`, `tangerine-600` = `#be4600`, …).
 
