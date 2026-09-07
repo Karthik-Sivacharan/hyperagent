@@ -34,7 +34,7 @@ export function AgentPicker({ children, ...triggerProps }: React.ComponentProps<
             <Search className="size-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />
             <input
               placeholder="Search agents…"
-              className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+              className="flex-1 bg-transparent text-sm outline-none placeholder:text-foreground-low"
               autoComplete="off"
               type="text"
               value={query}
@@ -43,7 +43,7 @@ export function AgentPicker({ children, ...triggerProps }: React.ComponentProps<
             />
           </div>
           <DropdownMenuSeparator />
-          <DropdownMenuLabel data-slot="overline" className="font-medium text-muted-foreground text-xs uppercase tracking-wider pt-1 pb-1">
+          <DropdownMenuLabel data-slot="overline" className="text-label-12-caps text-foreground-low pt-1 pb-1">
             Starter agents
           </DropdownMenuLabel>
           {agents.map((agent) => (

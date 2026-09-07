@@ -29,7 +29,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           className="safe-area-top-below-banners-md flex flex-1 flex-col overflow-hidden"
           style={{ paddingRight: "env(safe-area-inset-right)" }}
         >
-          <header className="safe-area-top-below-banners w-full glass-panel border-border/50 border-b sticky top-0 z-40 md:hidden">
+          <header className="safe-area-top-below-banners w-full glass-panel border-border-subtle border-b sticky top-0 z-40 md:hidden">
             <div className="flex h-14 items-center justify-between px-4">
               <Button variant="ghost" size="icon" className="size-10 shrink-0" aria-label="Open navigation menu">
                 <Menu className="size-4" />

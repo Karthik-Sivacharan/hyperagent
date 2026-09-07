@@ -12,11 +12,14 @@ import { AgentPicker } from "@/components/composer/agent-picker";
 import { EXECUTION_MODES, PlanMenu, type ExecutionMode } from "@/components/composer/plan-menu";
 import { ThreadSettingsMenu, type Effort } from "@/components/composer/thread-settings-menu";
 
-// The message composer from hyperagent.com (home + thread pages). Structure
-// and classes follow docs/reference/pages/threads-new.html; the TipTap editor
-// is replaced by an auto-growing textarea with the same metrics (14px text,
-// 21px line-height, 44px min, 200px max). Every pill opens the menu captured
-// under docs/reference/overlays/composer-*.html; menus are local state only.
+// The message composer (home + thread pages). Structure follows
+// docs/reference/pages/threads-new.html: an auto-growing textarea with the
+// site's metrics (14px text, 21px line-height, 44px min, 200px max), a row of
+// pills, and the integrations strip. Phase 2 dresses it in the brand's chat
+// composer: 32px corners on the elevated surface, the glass shadow with the
+// `input` tint outline, tint pills, an ink pill for the execution mode and
+// the single tangerine action on send (docs/brand/design.md §1, §5, §6, §11).
+// Every pill opens the menu captured under docs/reference/overlays/composer-*.html.
 
 type ComposerProps = {
   placeholder?: string;
@@ -31,7 +34,7 @@ type ComposerProps = {
 };
 
 const PILL =
-  "flex h-8 cursor-pointer items-center gap-1.5 rounded-full border border-[rgba(215,215,215,0.6)] bg-background px-3 font-normal text-muted-foreground text-sm shadow-xs transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring max-sm:px-2.5";
+  "flex h-8 cursor-pointer items-center gap-1.5 rounded-full bg-tint-10 px-3 font-medium text-muted-foreground text-sm transition-[color,background-color,transform] duration-(--duration-normal) ease-out hover:bg-tint-15 hover:text-foreground aria-expanded:bg-tint-15 aria-expanded:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 motion-safe:active:scale-(--scale-press) max-sm:px-2.5";
 
 export function Composer({
   placeholder = "Ask anything or start a task…",
@@ -48,21 +51,19 @@ export function Composer({
   const [mode, setMode] = useState<ExecutionMode>(initialMode);
   const canSend = value.trim().length > 0;
   const modeLabel = EXECUTION_MODES[mode].pill;
+  const planning = mode === "plan";
 
   return (
     <div
       className={cn(
-        "relative w-full overflow-hidden rounded-2xl border bg-background transition-colors duration-200 border-border",
+        "relative w-full overflow-hidden rounded-5xl bg-surface-elevated shadow-lg ring-1 ring-input transition-[box-shadow] duration-(--duration-slow) ease-out",
         className,
       )}
-      style={{
-        boxShadow: "0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1), 0 0 24px 0px rgba(0,0,0,0)",
-      }}
     >
-      <div className="bg-background relative border-t-0">
+      <div className="relative">
         <input className="hidden" type="file" multiple />
         <div className="relative cursor-text px-4">
-          <div className="relative scrollbar-hide [&_.tiptap_.is-editor-empty:first-child::before]:!text-muted-foreground pt-3 pb-[10px] text-sm">
+          <div className="relative scrollbar-hide pt-3 pb-[10px] text-sm">
             <textarea
               aria-label="Message the agent"
               placeholder={placeholder}
@@ -75,7 +76,7 @@ export function Composer({
                 el.style.height = "auto";
                 el.style.height = `${Math.min(el.scrollHeight, 200)}px`;
               }}
-              className="block w-full min-h-[44px] max-h-[200px] resize-none overflow-y-auto bg-transparent p-0 text-sm leading-[21px] text-foreground outline-none placeholder:text-muted-foreground"
+              className="block w-full min-h-[44px] max-h-[200px] resize-none overflow-y-auto bg-transparent p-0 text-sm leading-[21px] text-foreground outline-none placeholder:text-foreground-low"
             />
           </div>
         </div>
@@ -85,13 +86,8 @@ export function Composer({
             <Tooltip>
               <TooltipTrigger asChild>
                 <AddMenu>
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    className="size-8 shrink-0 rounded-full border border-[rgba(215,215,215,0.6)] bg-background shadow-xs"
-                    aria-label="Add files or context"
-                  >
-                    <Plus className="size-4 text-muted-foreground" />
+                  <Button variant="ghost" size="icon-sm" className="size-8 shrink-0 bg-tint-10 text-muted-foreground hover:bg-tint-15 hover:text-foreground" aria-label="Add files or context">
+                    <Plus className="size-4" />
                   </Button>
                 </AddMenu>
               </TooltipTrigger>
@@ -132,8 +128,12 @@ export function Composer({
                   <button
                     type="button"
                     aria-label={`Execution mode: ${modeLabel}`}
-                    className="flex h-8 cursor-pointer items-center rounded-full font-normal text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring gap-1.5 px-3 border border-black/10"
-                    style={{ backgroundColor: "rgb(10, 22, 40)", color: "rgb(178, 208, 250)" }}
+                    className={cn(
+                      PILL,
+                      // Plan mode is the composer's stated intent, so it reads as the ink pill;
+                      // the execute modes step back to the tint chip.
+                      planning && "bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground aria-expanded:bg-primary/90 aria-expanded:text-primary-foreground",
+                    )}
                   >
                     <ListTodo className="size-3.5" aria-hidden="true" />
                     <span className="@max-lg:hidden">{modeLabel}</span>
@@ -149,7 +149,7 @@ export function Composer({
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="-ml-1.5 size-9 shrink-0 rounded-full"
+                  className="-ml-1.5 size-9 shrink-0 text-muted-foreground hover:text-foreground"
                   aria-label="Dictate"
                   aria-pressed={false}
                   data-testid="composer-voice-input-button"
@@ -163,8 +163,9 @@ export function Composer({
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
+                  variant="brand"
                   size="icon"
-                  className="size-9 shrink-0 rounded-full transition-colors"
+                  className="size-9 shrink-0 disabled:bg-tint-10 disabled:text-foreground-low disabled:opacity-100 disabled:shadow-none"
                   aria-label="Send message"
                   disabled={!canSend}
                 >
@@ -177,20 +178,16 @@ export function Composer({
         </div>
 
         {showIntegrationsFooter && (
-          <div className="flex cursor-default items-center gap-2 rounded-b-2xl bg-muted/50 px-4 py-2.5">
+          <div className="flex cursor-default items-center gap-2 rounded-b-5xl border-t border-border-subtle bg-surface-secondary px-4 py-2.5">
             <div className="flex items-center -space-x-1">
               {[AirtableLogo, GmailLogo, SlackLogo].map((Logo, i) => (
-                <div
-                  key={i}
-                  data-slot="icon-tile"
-                  className="flex shrink-0 items-center justify-center size-6 rounded-[6px] border border-muted bg-background"
-                >
+                <div key={i} data-slot="icon-tile" className="flex shrink-0 items-center justify-center size-6 rounded-md bg-background shadow-edge">
                   <Logo size={16} />
                 </div>
               ))}
             </div>
             <Link
-              className="flex items-center gap-1 text-muted-foreground text-xs transition-colors hover:text-foreground"
+              className="flex items-center gap-1 text-muted-foreground text-xs transition-colors duration-(--duration-fast) hover:text-foreground"
               href="/settings/integrations"
             >
               Connect your integrations

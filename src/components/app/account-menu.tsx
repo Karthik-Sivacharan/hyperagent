@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
+import { useTheme } from "next-themes";
 import {
   BookOpen,
   Check,
@@ -33,8 +33,8 @@ import { TokenUsageChart } from "@/components/app/token-usage-chart";
 
 // The account dropdown at the bottom of the sidebar, transcribed from
 // docs/reference/overlays/account-menu*.html: plan usage, token usage panel,
-// Integrations, Settings, Theme, Help, Add account, Log out. Theme selection is
-// local state only (the dashboard is pinned to its dark palette).
+// Integrations, Settings, Theme, Help, Add account, Log out. Phase 2 wires
+// the Theme choice to next-themes (light is the brand's canonical theme).
 
 type ThemeChoice = "light" | "dark" | "system";
 
@@ -58,7 +58,7 @@ function UsageRing() {
       aria-valuenow={0.053257875}
       aria-valuemin={0}
       aria-valuemax={100}
-      className="relative inline-flex items-center justify-center mt-0.5 shrink-0 text-blue-500"
+      className="relative inline-flex items-center justify-center mt-0.5 shrink-0 text-brand-accent"
       style={{ width: 16, height: 16 }}
     >
       <svg className="text-current" viewBox="0 0 16 16" style={{ width: 16, height: 16 }}>
@@ -74,7 +74,7 @@ function UsageRing() {
           strokeDasharray="43.982297150257104"
           strokeDashoffset="43.95887311341869"
           className="origin-center -rotate-90 transition-[stroke-dashoffset] duration-500"
-          style={{ transitionTimingFunction: "var(--motion-ease-decelerate)", transformOrigin: "center center" }}
+          style={{ transitionTimingFunction: "var(--ease-out-expo)", transformOrigin: "center center" }}
         />
       </svg>
     </div>
@@ -82,7 +82,7 @@ function UsageRing() {
 }
 
 export function AccountMenu({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<ThemeChoice>("dark");
+  const { theme, setTheme } = useTheme();
 
   return (
     <DropdownMenu>
@@ -110,16 +110,16 @@ export function AccountMenu({ children }: { children: React.ReactNode }) {
           <DropdownMenuSubContent className="w-[24rem] p-3">
             <div className="space-y-3">
               <div>
-                <h4 className="font-semibold text-sm">Token usage</h4>
+                <h4 className="font-medium text-sm">Token usage</h4>
                 <p className="mt-0.5 text-muted-foreground text-xs">Last 30 days across all your threads and agents.</p>
               </div>
               <div className="grid grid-cols-3 gap-2">
                 {TOKEN_STATS.map((stat) => (
-                  <div key={stat.label} className="rounded-[6px] border bg-muted/40 px-2.5 py-1.5">
-                    <div data-slot="overline" className="font-medium text-muted-foreground text-xs uppercase tracking-wider">
+                  <div key={stat.label} className="rounded-xl bg-surface-secondary px-2.5 py-1.5">
+                    <div data-slot="overline" className="text-label-12-caps text-foreground-low">
                       {stat.label}
                     </div>
-                    <div className="font-mono font-semibold text-sm">{stat.value}</div>
+                    <div className="text-label-14-mono font-medium">{stat.value}</div>
                   </div>
                 ))}
               </div>

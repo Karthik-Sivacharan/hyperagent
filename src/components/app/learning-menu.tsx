@@ -22,7 +22,7 @@ export function LearningMenu({ children, ...triggerProps }: React.ComponentProps
         {children}
       </DropdownMenuTrigger>
       <DropdownMenuContent side="right" align="start" className="w-48">
-        <DropdownMenuLabel className="whitespace-nowrap py-1 pr-1 pl-2 font-medium text-muted-foreground text-xs">
+        <DropdownMenuLabel className="whitespace-nowrap py-1 pr-1 pl-2 text-label-12-caps text-foreground-low">
           Learning
         </DropdownMenuLabel>
         <DropdownMenuItem asChild>
