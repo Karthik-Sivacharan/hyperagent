@@ -8,7 +8,10 @@ import { SkillListingCard } from "@/components/marketplace/skill-listing-card";
 
 // Everything inside <main> on hyperagent.com/marketplace, transcribed from
 // docs/reference/pages/marketplace.html: title + search, the hero banner,
-// "Featured agents", "Featured skills" and "Browse by category".
+// "Featured agents", "Featured skills" and "Browse by category". Phase 2:
+// the titles sit in the heading face on the brand type scale (the scale
+// carries their weight and tracking) and the search is the pill input group
+// (docs/brand/design.md §4, §5).
 
 function MarketplaceSection({
   title,
@@ -22,7 +25,7 @@ function MarketplaceSection({
   return (
     <section>
       <div id={id} className="mb-4 flex items-end justify-between gap-3">
-        <h2 className="font-display font-semibold tracking-[-0.01em] text-xl">{title}</h2>
+        <h2 className="font-heading text-xl text-foreground">{title}</h2>
       </div>
       {children}
     </section>
@@ -36,15 +39,11 @@ export function MarketplacePage() {
         <div className="flex-1 overflow-y-auto">
           <div className="mx-auto max-w-7xl space-y-10 p-8">
             <div className="flex flex-wrap items-center justify-between gap-4">
-              <h1 className="font-display font-semibold tracking-[-0.01em] text-3xl">Marketplace</h1>
+              <h1 className="font-heading text-3xl text-foreground">Marketplace</h1>
               <div className="relative w-full sm:w-80 lg:w-[420px]">
-                <Search
-                  className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
-                  aria-hidden="true"
-                />
                 <SiteInput
                   type="text"
-                  className="pr-9 pl-9"
+                  icon={<Search aria-hidden="true" />}
                   placeholder="Search the marketplace"
                   aria-label="Search the marketplace"
                   defaultValue=""
