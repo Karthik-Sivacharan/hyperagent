@@ -24,7 +24,9 @@ const FILTERS = [
 
 // Transcribed from docs/reference/pages/agents.html. The "New agent" button
 // and "Filters" are dropdown triggers on the site; both open local menus
-// here. There are no agents on the live account.
+// here. There are no agents on the live account. Phase 2: hairline header
+// rule, "New agent" the ink button, "Filters" the outline pill, the pill
+// search field and the shared empty state.
 export function AgentsPage() {
   const [query, setQuery] = useState("");
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
@@ -35,7 +37,7 @@ export function AgentsPage() {
   return (
     <div className="flex-1 overflow-y-auto">
       <div className="flex flex-col h-full">
-        <header className="flex flex-col border-border/50 border-b px-6 pt-4">
+        <header className="flex flex-col border-b border-border-subtle px-6 pt-4">
           <PageHeading
             className="pb-4"
             title="Agents"
@@ -68,12 +70,7 @@ export function AgentsPage() {
             />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  aria-label="Filters"
-                  className="h-9 shrink-0 gap-2 rounded-[8px] bg-white dark:bg-muted"
-                >
+                <Button variant="outline" size="sm" aria-label="Filters" className="h-9 shrink-0 gap-2">
                   <ListFilter className="size-4" aria-hidden="true" />
                   <span className="hidden sm:inline">Filters</span>
                 </Button>
