@@ -1,12 +1,12 @@
 "use client";
 
 import { Archive } from "lucide-react";
-import { Switch as SwitchPrimitive } from "radix-ui";
+import { Switch } from "@/components/ui/switch";
 
-// "Show Archived" control from the Projects and Library headers. The site
-// styles this switch itself (blue when on, zinc when off), not with the stock
-// shadcn switch in ui/switch.tsx, so the radix primitive is dressed here with
-// the dump's classes verbatim.
+// "Show Archived" control from the Projects and Library headers. Phase 1
+// dressed the raw radix switch with the site's blue/zinc classes; phase 2
+// hands it to the shared brand switch (ink when on, a tint track when off,
+// docs/brand/design.md §12) and keeps the label on the second text tier.
 export function ShowArchivedSwitch({
   checked,
   onCheckedChange,
@@ -18,22 +18,11 @@ export function ShowArchivedSwitch({
 }) {
   return (
     <div className="flex items-center gap-2">
-      <SwitchPrimitive.Root
-        id={id}
-        checked={checked}
-        onCheckedChange={onCheckedChange}
-        data-slot="switch"
-        className="peer inline-flex h-[1.15rem] w-8 shrink-0 cursor-pointer items-center rounded-full border shadow-xs outline-none transition-all data-[state=checked]:bg-blue-600 data-[state=unchecked]:bg-input dark:data-[state=unchecked]:bg-zinc-500 border-border/50 hover:border-border dark:data-[state=unchecked]:border-zinc-400 data-[state=checked]:hover:bg-blue-700 data-[state=unchecked]:hover:bg-muted dark:data-[state=unchecked]:hover:bg-zinc-400 focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50"
-      >
-        <SwitchPrimitive.Thumb
-          data-slot="switch-thumb"
-          className="pointer-events-none block size-4 rounded-full bg-background shadow-sm ring-0 transition-transform data-[state=checked]:translate-x-[calc(100%-2px)] data-[state=unchecked]:translate-x-0 data-[state=checked]:bg-white dark:data-[state=unchecked]:bg-foreground"
-        />
-      </SwitchPrimitive.Root>
+      <Switch id={id} checked={checked} onCheckedChange={onCheckedChange} />
       <label
         data-slot="label"
         htmlFor={id}
-        className="flex select-none items-center gap-2 font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-50 group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 cursor-pointer text-muted-foreground text-sm"
+        className="flex cursor-pointer select-none items-center gap-2 text-sm font-medium text-muted-foreground transition-[color] duration-(--duration-fast) ease-out-quart peer-disabled:cursor-not-allowed peer-disabled:opacity-50 hover:text-foreground"
       >
         <Archive className="mr-1 inline size-3.5" aria-hidden="true" />
         Show Archived
