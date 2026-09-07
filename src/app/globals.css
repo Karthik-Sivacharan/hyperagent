@@ -93,6 +93,192 @@
   --animate-pulse-breath: pulse-breath 2s ease-in-out infinite;
 }
 
+/* ===========================================================================
+   PHASE 2 BRIDGE: brand-only token names → Tailwind utilities
+   src/design/brand/brand.css defines every brand token on `.theme-brand`
+   (now on <body>). Tailwind only emits utilities for names it sees in the
+   main theme, so this block declares each brand-only name and points it at
+   the variable of the same name. `inline` makes the utility carry the
+   `var(--…)` reference (it resolves on the element, inside the scope);
+   `reference` stops Tailwind from re-emitting the variables on :root, so
+   brand.css stays the single source of truth and the contrast gate
+   (scripts/brand/check-contrast.mjs) keeps reading one file. Names Tailwind
+   ships by default (neutral/red/green/amber/blue ramps, rounded-*, text-xl,
+   ease-out, font-medium) already resolve through var() and need no entry.
+   Tokens: docs/brand/design.md; mapping table: src/design/brand/README.md.
+   =========================================================================== */
+@theme inline reference {
+  /* Tangerine, the single accent (bg-tangerine-500, text-tangerine-700 …) */
+  --color-tangerine-50: var(--color-tangerine-50);
+  --color-tangerine-100: var(--color-tangerine-100);
+  --color-tangerine-200: var(--color-tangerine-200);
+  --color-tangerine-300: var(--color-tangerine-300);
+  --color-tangerine-400: var(--color-tangerine-400);
+  --color-tangerine-500: var(--color-tangerine-500);
+  --color-tangerine-600: var(--color-tangerine-600);
+  --color-tangerine-700: var(--color-tangerine-700);
+  --color-tangerine-800: var(--color-tangerine-800);
+  --color-tangerine-900: var(--color-tangerine-900);
+  --color-tangerine-950: var(--color-tangerine-950);
+  /* The two extra sand steps (dark raised / dark sunken surfaces) */
+  --color-neutral-925: var(--color-neutral-925);
+  --color-neutral-975: var(--color-neutral-975);
+  /* Tints: translucent mid-sand, the workhorse fill (bg-tint-10, hover:bg-tint-15, border-tint-12) */
+  --color-tint-5: var(--tint-5);
+  --color-tint-7: var(--tint-7);
+  --color-tint-10: var(--tint-10);
+  --color-tint-12: var(--tint-12);
+  --color-tint-15: var(--tint-15);
+  --color-tint-20: var(--tint-20);
+  --color-tint-25: var(--tint-25);
+  --color-tint-40: var(--tint-40);
+
+  /* Semantic colours beyond the shadcn contract */
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-info-foreground: var(--info-foreground);
+  --color-surface-secondary: var(--surface-secondary);
+  --color-surface-elevated: var(--surface-elevated);
+  --color-surface-raised: var(--surface-raised);
+  --color-foreground-low: var(--foreground-low);
+  --color-foreground-inverted: var(--foreground-inverted);
+  --color-border-subtle: var(--border-subtle);
+  --color-border-loud: var(--border-loud);
+  --color-brand: var(--brand);
+  --color-brand-foreground: var(--brand-foreground);
+  --color-brand-accent: var(--brand-accent);
+  --color-brand-subtle: var(--brand-subtle);
+  --color-brand-subtle-foreground: var(--brand-subtle-foreground);
+  --color-chip: var(--chip);
+  --color-chip-foreground: var(--chip-foreground);
+  --color-chat-bubble-user: var(--chat-bubble-user);
+  --color-chat-bubble-user-foreground: var(--chat-bubble-user-foreground);
+  --color-chat-bubble-assistant: var(--chat-bubble-assistant);
+  --color-chat-bubble-assistant-foreground: var(--chat-bubble-assistant-foreground);
+  --color-selection: var(--selection);
+  --color-selection-foreground: var(--selection-foreground);
+  --color-overlay: var(--overlay);
+  --color-scrim: var(--scrim);
+  --color-highlight: var(--highlight);
+  --color-edge: var(--edge);
+  --color-mind-novice: var(--mind-novice);
+  --color-mind-skilled: var(--mind-skilled);
+  --color-mind-expert: var(--mind-expert);
+  --color-mind-master: var(--mind-master);
+  --color-mind-sage: var(--mind-sage);
+  --color-mind-legendary: var(--mind-legendary);
+  --color-mind-eternal: var(--mind-eternal);
+  --color-chart-6: var(--chart-6);
+  --color-chart-track: var(--chart-track);
+  --color-chart-grid: var(--chart-grid);
+  --color-chart-target: var(--chart-target);
+  --color-chart-band: var(--chart-band);
+  --color-chart-seq-1: var(--chart-seq-1);
+  --color-chart-seq-2: var(--chart-seq-2);
+  --color-chart-seq-3: var(--chart-seq-3);
+  --color-chart-seq-4: var(--chart-seq-4);
+  --color-chart-seq-5: var(--chart-seq-5);
+
+  /* Type: the brand weights and the two extra sizes. The `--text-*`
+     companions ride the existing text-* utilities (tracking, heading
+     weight) and only apply inside the scope, where the variables exist. */
+  --font-weight-book: var(--font-weight-book);
+  --font-weight-firm: var(--font-weight-firm);
+  --text-xs--letter-spacing: var(--text-xs--letter-spacing);
+  --text-sm--letter-spacing: var(--text-sm--letter-spacing);
+  --text-base--letter-spacing: var(--text-base--letter-spacing);
+  --text-lg--letter-spacing: var(--text-lg--letter-spacing);
+  --text-xl--letter-spacing: var(--text-xl--letter-spacing);
+  --text-xl--font-weight: var(--text-xl--font-weight);
+  --text-2xl--letter-spacing: var(--text-2xl--letter-spacing);
+  --text-2xl--font-weight: var(--text-2xl--font-weight);
+  --text-3xl--letter-spacing: var(--text-3xl--letter-spacing);
+  --text-3xl--font-weight: var(--text-3xl--font-weight);
+  --text-4xl--letter-spacing: var(--text-4xl--letter-spacing);
+  --text-4xl--font-weight: var(--text-4xl--font-weight);
+  --text-5xl--letter-spacing: var(--text-5xl--letter-spacing);
+  --text-5xl--font-weight: var(--text-5xl--font-weight);
+  --text-md: var(--text-md);
+  --text-md--line-height: var(--text-md--line-height);
+  --text-md--letter-spacing: var(--text-md--letter-spacing);
+  --text-display: var(--text-display);
+  --text-display--line-height: var(--text-display--line-height);
+  --text-display--letter-spacing: var(--text-display--letter-spacing);
+  --text-display--font-weight: var(--text-display--font-weight);
+
+  /* Radius extras (the shared steps xs–4xl coincide with the brand scale at
+     --radius: 10px, so Hyperagent's declarations above stay as the switch). */
+  --radius-5xl: var(--radius-5xl);
+  --radius-bubble: var(--radius-bubble);
+  --radius-hero: var(--radius-hero);
+  --radius-squircle: var(--radius-squircle);
+
+  /* Shadows: Tailwind inlines shadow values at build time, so each brand
+     shadow must be named here to become a utility that reads the variable. */
+  --shadow-2xs: var(--shadow-2xs);
+  --shadow-xs: var(--shadow-xs);
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+  --shadow-xl: var(--shadow-xl);
+  --shadow-2xl: var(--shadow-2xl);
+  --shadow-edge: var(--shadow-edge);
+  --shadow-card: var(--shadow-card);
+  --shadow-card-hover: var(--shadow-card-hover);
+  --shadow-avatar: var(--shadow-avatar);
+  --shadow-rim: var(--shadow-rim);
+  --shadow-hero: var(--shadow-hero);
+
+  /* Layout */
+  --container-content: var(--container-content);
+  --container-wide: var(--container-wide);
+  --container-nav: var(--container-nav);
+  --spacing-group: var(--spacing-group);
+  --spacing-stack: var(--spacing-stack);
+  --spacing-section: var(--spacing-section);
+  --blur-glass: var(--blur-glass);
+
+  /* Motion (durations and scales are plain custom props: duration-(--duration-fast)) */
+  --ease-out-quart: var(--ease-out-quart);
+  --ease-out-quint: var(--ease-out-quint);
+  --ease-out-layout: var(--ease-out-layout);
+  --ease-out-expo: var(--ease-out-expo);
+  --animate-typing-dot: var(--animate-typing-dot);
+  --animate-skeleton: var(--animate-skeleton);
+  --animate-ring-draw: var(--animate-ring-draw);
+}
+
+/* Hyperagent-only tokens the brand sheet never defines, remapped inside the
+   scope so the site utilities that consume them (bg-glass-gradient,
+   glass-panel, font-display / text-logo, animate-shimmer …) follow the brand.
+   Unlayered on purpose: brand.css sets `--background` on this same element
+   and these read it, so they track light and dark. */
+.theme-brand {
+  --font-body-active: var(--font-inter);
+  --font-ui-active: var(--font-inter);
+  --font-heading-active: var(--font-pythia), var(--font-newsreader), ui-serif, Georgia, serif;
+  --font-display-active: var(--font-pythia), var(--font-newsreader), ui-serif, Georgia, serif;
+  --font-mono-active: var(--font-geist-mono);
+
+  --bg-gradient-from: var(--background);
+  --bg-gradient-via: var(--background);
+  --bg-gradient-to: var(--background);
+
+  --surface: var(--surface-elevated);
+  --pending: var(--foreground-low);
+  --glow: color-mix(in oklab, var(--brand-accent) 20%, transparent);
+  --shimmer-sweep: var(--tint-40);
+  --sidebar-fade: color-mix(in oklab, var(--sidebar) 0%, transparent);
+
+  --motion-duration-fast: var(--duration-fast);
+  --motion-duration-standard: var(--duration-slow);
+  --motion-duration-emphasis: var(--duration-entrance);
+  --motion-ease-standard: var(--ease-out-quart);
+  --motion-ease-decelerate: var(--ease-out-expo);
+  --motion-ease-accelerate: var(--ease-in-out);
+}
+
 /* ---- Light (the site's warm default palette) ---------------------------- */
 :root {
   --font-body-active: var(--font-geist-sans);
