@@ -2,7 +2,8 @@
 
 Written 2026-09-07 at the end of plan step 5 (the brand colour tokens are
 the app's only palette) and updated the same day for the move to Tabler
-icons. Read this first in a new session, then `README.md`,
+icons and for the component system sweep. Read this first in a new
+session, then `README.md`, `docs/components.md`,
 `docs/brand/reskin-conventions.md`, `docs/brand/icons.md` and
 `docs/clone-conventions.md`.
 
@@ -32,9 +33,39 @@ icons. Read this first in a new session, then `README.md`,
   (0.03 to 0.08 percent of the pixels per page), the swatch page being
   pixel-identical in both themes. The convention is `docs/brand/icons.md`; see
   "Decided 2026-09-07: Tabler icons only" below.
-- There is one branch (`main`), pushed to `origin`
-  (github.com/Karthik-Sivacharan/hyperagent, private), no open worktrees, and
-  a clean tree.
+- **The component system sweep is done (2026-09-07).** Every piece of UI
+  is built from one component set in four tiers under `src/components/`
+  (`docs/components.md`): `ui/` (29 primitives on the brand tokens, the
+  only place `radix-ui` and `cmdk` are imported, every one with a
+  `data-slot`), `patterns/` (the four cross-page composites, formerly
+  `resources/`), the shell (`app/`, `composer/`) and the page components,
+  which hold no raw control. Nine commits on the `component-system`
+  branch, plus this docs commit: the plan; six new primitives (`select`,
+  `checkbox`, `label` from the shadcn CLI, `overline`, `icon-tile`,
+  `nav-item` by hand) and the variants the pages needed (`Button` tint /
+  pill / icon-2xs / none, `Card` asChild / size none / interactive,
+  `Input` and `Textarea` bare, `ScrollArea` viewport props, `Switch` sm),
+  with `cn()` learning the brand shadows and radii; the `resources/` to
+  `patterns/` rename; 42 overlay captures from a live sweep of
+  hyperagent.com; the select indicator slot; three migration commits
+  (the shell; home, thread and threads; the resource, settings and
+  marketplace pages) that replaced every raw control outside `ui/` (the
+  `asChild` child in option-cards is the one kept), the four hand-built
+  radix compositions and the eleven hand-written card shells with the
+  primitives; the caps fix below. The prototype's verbatim component
+  copies (`src/design/brand/ui/`, `utils.ts`) are deleted and stay in git
+  history. `npm test` now includes `src/components/components.test.ts`
+  (5 files, 39 tests), which locks the rules and checks that every
+  `data-slot` in the reference dumps (57) has a local definition; at the
+  end of the docs task tsc, lint, the token lint and vitest pass. Pixel
+  proof: every route is pixel-identical to the pre-sweep baseline at
+  1456×868, light and dark, except for the one deliberate change, the
+  sidebar group headers Agents and Recent threads taking the brand's caps
+  role like Resources (commit `572a136`), which shows on every route.
+- There is one branch (`main`); `origin`
+  (github.com/Karthik-Sivacharan/hyperagent, private) has everything up to
+  the Tabler move, the component sweep is local until pushed; no open
+  worktrees, and a clean tree.
 - Verification at the end of step 5: `npx tsc --noEmit`, `npm run lint` (no
   warnings), `npm run build` (29 routes), `npm run brand:check-contrast`
   (WCAG AA, 64 pairs per theme, zero skipped), `npm run brand:lint-tokens`
@@ -100,7 +131,13 @@ node scripts/dev/contact-sheet.mjs out/light out/sheet-light.png "main"
   `@tabler/icons-react` is in `dependencies` and `lucide-react` in no
   dependency block, and that every name imported from `@tabler/icons-react`
   is one the installed package exports (the `TablerIcon`, `Icon` and
-  `IconProps` types included). vitest 5 wants `@types/node ^22` and the repo
+  `IconProps` types included); `src/components/components.test.ts`
+  asserts the component rules: `radix-ui` and `cmdk` only under `ui/`, no
+  raw control outside `ui/` (the rendered element of an `asChild`
+  primitive and the swatch page's three motion specimens excepted), the
+  prototype copies absent, every `data-slot` in the reference dumps
+  defined under `ui/` or `patterns/`, every primitive naming a slot.
+  vitest 5 wants `@types/node ^22` and the repo
   pins `^20`, hence 4.x.
 - The phase-1 skin exists only in history: `c10d36c` is the last commit that
   carries the Hyperagent palettes; `docs/reference/` keeps the captured
@@ -154,6 +191,27 @@ node scripts/dev/contact-sheet.mjs out/light out/sheet-light.png "main"
 - Merged with `--no-ff`, worktrees removed, branches deleted, gates re-run on
   `main`.
 
+## How the component sweep was done (2026-09-07)
+
+- One worktree (`component-system`, dev server on :3001), a plan file with
+  file ownership per task (`docs/plans/2026-09-07-component-system-sweep.md`)
+  and a baseline capture of all 17 routes, light and dark, before any edit.
+- Phase 1, two read-only audits in parallel: a live sweep of hyperagent.com
+  with BrowserOS neo (every menu, dialog, select, toggle and populated
+  state; 42 new dumps under `docs/reference/overlays/`) and a local audit
+  of the component set (every primitive, every `data-slot` in the dumps,
+  every raw control and hand-built radix composition, every repeated class
+  pattern, with the exact primitive and variant that renders each one
+  identically).
+- Phase 2, one agent per task with disjoint paths and the orchestrator
+  committing by path: the primitives first (additive only, no importer
+  yet, so no pixel moves), then three migration buckets in parallel (the
+  shell; home, thread and threads; the rest), each screenshotting its
+  routes against the baseline, then the docs and the vitest lock, each
+  rule shown red against a fixture before green.
+- Phase 3, the orchestrator: the six gates, the full pixel diff, the
+  `--no-ff` merge.
+
 ## Design decisions worth knowing
 
 - **Keep the layout, change the skin.** Element trees, copy, icon sizes,
@@ -194,15 +252,19 @@ node scripts/dev/contact-sheet.mjs out/light out/sheet-light.png "main"
 | `src/app/(app)/` | One route per sidebar page inside the app shell |
 | `src/components/app/` | Sidebar (menus, ⌘K palette, rail, drag-resize), app frame, account menu with the theme switch, brand marks |
 | `src/components/composer/` | Composer and its four menus |
-| `src/components/<page>/` | Page components; `resources/` holds the shared heading, search and empty-state pieces |
-| `src/components/ui/` | shadcn primitives in the brand skin (pills, tints, hairlines, glass), phase-1 API |
+| `src/components/patterns/` | Composites of primitives used by two or more pages: `PageHeading`, `SearchInput`, `EmptyState`, `ShowArchivedSwitch` |
+| `src/components/<page>/` | Page components: layout, data wiring and composition of `ui/` and `patterns/`; never a raw control |
+| `src/components/ui/` | 29 shadcn primitives in the brand skin (pills, tints, hairlines, glass), phase-1 API; the only place `radix-ui` and `cmdk` are imported; every one carries a `data-slot` |
 | `src/components/icons.test.ts` | vitest: no lucide import under `src/`, Tabler in the dependencies, every imported icon name exists |
+| `src/components/components.test.ts` | vitest: the component rules and the `data-slot` lock (`docs/components.md` §1) |
 | `src/lib/mock/` | All data (static) |
 | `src/lib/utils.ts`, `utils.test.ts` | The brand's `cn()` and its tests |
-| `src/design/brand/` | `brand.css` (the app's token sheet), `brand.test.ts`, the Geist loaders, the brand's own primitives (reference only, nothing imports them), `README.md` with the wiring and the phase-2 mapping table |
+| `src/design/brand/` | `brand.css` (the app's token sheet), `brand.test.ts`, the Geist loaders, `README.md` with the wiring and the phase-2 mapping table |
 | `src/app/design/brand/` | Swatch page at `/design/brand` with its own local light/dark toggle |
 | `docs/brand/` | `design.md` (the brand language), `reskin-conventions.md` (the phase-2 contract), `icons.md` (Tabler only, the lucide-to-Tabler names), the style audit |
-| `docs/clone-conventions.md`, `docs/reference/` | The phase-1 contract and the captured ground truth |
+| `docs/components.md` | The component system: tiers, rules, the component map with live evidence, how to add a component, the live UI the clone lacks |
+| `docs/plans/` | Implementation plans, one file per sweep, the boxes ticked as the work landed |
+| `docs/clone-conventions.md`, `docs/reference/` | The phase-1 contract and the captured ground truth (`pages/` per route, `overlays/` per menu, dialog, popover and populated state) |
 | `scripts/brand/` | `gen-ramps.mjs`, `check-contrast.mjs`, `lint-tokens.mjs` |
 | `scripts/dev/` | `screenshot-pages.mjs`, `contact-sheet.mjs` (headless Chrome over the DevTools protocol, no dependencies) |
 | `vitest.config.mts` | node environment, `src/**/*.test.ts` |
@@ -310,8 +372,18 @@ second set for a glyph Tabler lacks. The convention is `docs/brand/icons.md`;
   `marketplaceHero.background`); prune when the data is next touched.
 - The swatch page consumes tokens through `bg-(--chip)`-style arbitrary
   values from before the bridge; it could use the plain utilities now.
-- `src/design/brand/ui/` (the brand prototype's 23 primitives, verbatim) is
-  still unimported reference material; keep it or prune it deliberately.
+- Live UI grown since the 2026-09-06 capture that the clone does not render
+  (the Starred sidebar group, star toggles and project tags on thread rows,
+  generated grid covers, Execute on the composer pill, the integrations
+  sub-menus, the referral chip, the whole thread-detail layer, the populated
+  states of the resource pages): the list with the dump for each is
+  `docs/components.md` §4. `RadioGroup` and `Progress` are the only shadcn
+  primitives those features need that `ui/` lacks.
+- Two inconsistencies left to the design owner because fixing them moves
+  pixels: the 36px toolbar buttons and the pressed chips are spelled with
+  two paddings, two gaps and two tint strengths across threads, memories,
+  agents, skills and library; the hover-revealed card actions and the
+  scroll-to-bottom pill use three glass fills (`docs/components.md` §5).
 - `components.json` says `"iconLibrary": "lucide"` because the shadcn CLI
   has no Tabler option. Output of `shadcn add` imports `lucide-react`; convert
   it to Tabler by hand (`docs/brand/icons.md`) and let `npm test` confirm.
@@ -346,16 +418,20 @@ removed afterwards.
 
 ## Prompt to start the next session
 
-> Read HANDOFF.md, README.md, docs/brand/design.md and
-> docs/brand/reskin-conventions.md in ~/Projects/hyperagent. Phases 1 and 2
-> and plan step 5 are merged on main and pushed to origin (private): the
-> dashboard clone runs on the brand tokens as its only palette, light and
-> dark, in Geist and Geist Mono on Vercel's Geist roles, with Tabler as the
-> only icon set (docs/brand/icons.md), with six gates (tsc, lint, build,
-> brand:check-contrast, brand:lint-tokens, test). Do the
-> phone-width pass: verify every route at 390×844 in light and dark with
+> Read HANDOFF.md, README.md, docs/components.md, docs/brand/design.md and
+> docs/brand/reskin-conventions.md in ~/Projects/hyperagent. Phases 1 and 2,
+> plan step 5 and the component system sweep are merged on main (push if
+> origin is behind): the dashboard clone runs on the brand tokens as its
+> only palette, light and dark, in Geist and Geist Mono on Vercel's Geist
+> roles, with Tabler as the only icon set (docs/brand/icons.md), and every
+> piece of UI is built from the primitives in src/components/ui and the
+> composites in src/components/patterns (page files hold no raw control;
+> npm test locks it), with six gates (tsc, lint, build,
+> brand:check-contrast, brand:lint-tokens, test). Do the phone-width pass:
+> verify every route at 390×844 in light and dark with
 > scripts/dev/screenshot-pages.mjs (add a viewport option), fix layout that
-> breaks using only the brand tokens and the existing primitives, keep the
+> breaks using only the brand tokens and the existing primitives (add a
+> primitive per docs/components.md §3 if one is missing), keep the
 > 1456-wide screenshots pixel-identical (capture before you start and
 > compare after), and prune the unread mock fields listed in the handoff.
 > Commit on main with the trailers in HANDOFF.md and push.

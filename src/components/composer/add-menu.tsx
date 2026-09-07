@@ -29,6 +29,7 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
 import { Tooltip, TooltipTrigger } from "@/components/ui/tooltip";
 
 // The composer's "+" menu (docs/reference/overlays/composer-add-menu*.html):
@@ -83,9 +84,10 @@ function PickerPanel({
       <div className="flex w-full flex-col overflow-hidden p-1">
         <div className="flex items-center gap-2 rounded-md px-2 py-1.5">
           <IconSearch className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-          <input
+          <Input
+            variant="bare"
             placeholder={placeholder}
-            className="h-5 w-full bg-transparent text-[13px] text-foreground outline-none placeholder:text-foreground-low"
+            className="h-5 text-[13px] md:text-[13px]"
             type="text"
             onKeyDown={(e) => e.stopPropagation()}
           />
@@ -96,15 +98,12 @@ function PickerPanel({
           {items.map((name) => (
             <Tooltip key={name}>
               <TooltipTrigger asChild>
-                <button
-                  type="button"
-                  className="flex w-full min-w-0 cursor-pointer items-center gap-2 overflow-hidden rounded-md px-2 py-1.5 text-left transition-colors duration-(--duration-instant) hover:bg-tint-10"
-                >
+                <DropdownMenuItem className="min-w-0 overflow-hidden">
                   <div className="flex size-5 shrink-0 items-center justify-center">
                     <Icon className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
                   </div>
                   <span className="min-w-0 truncate font-medium text-popover-foreground text-sm">{name}</span>
-                </button>
+                </DropdownMenuItem>
               </TooltipTrigger>
             </Tooltip>
           ))}

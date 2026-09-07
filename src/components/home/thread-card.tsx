@@ -5,6 +5,7 @@ import Link from "next/link";
 import { IconArchive, IconArrowsRightLeft, IconBookOff, IconDots, IconPencil, IconRefresh, IconStar } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,6 +15,7 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { ThreadContextMenu } from "@/components/app/thread-menu";
 import type { Thread } from "@/lib/mock/threads";
 
 // One row of the home screen's "Recent threads" list
@@ -23,7 +25,9 @@ import type { Thread } from "@/lib/mock/threads";
 // brand card (22px, the resting card shadow, the 300ms hover lift) with the
 // title in the serif face on tier 1, the summary on tier 2 and the time on
 // tier 3; the hover-revealed actions are outline icon pills
-// (docs/brand/design.md §4.1, §5, §6, §8).
+// (docs/brand/design.md §4.1, §5, §6, §8). The shell is the interactive
+// `Card` with no padding of its own (the row sets it), and the row link is
+// the trigger of the thread context menu, as on the site.
 
 export type ThreadLayout = "list" | "grid";
 
@@ -42,7 +46,7 @@ export function ThreadCard({ thread, layout = "list" }: { thread: Thread; layout
   const grid = layout === "grid";
 
   return (
-    <div className="rounded-3xl bg-card text-card-foreground shadow-card transition-[box-shadow] duration-(--duration-slow) ease-out hover:shadow-card-hover">
+    <Card size="none" variant="interactive">
       <div>
         <div className="relative overflow-hidden rounded-3xl">
           {/* Swipe-to-archive backdrop (touch only on the site). */}
@@ -54,102 +58,102 @@ export function ThreadCard({ thread, layout = "list" }: { thread: Thread; layout
             Archive
           </div>
           <div className="relative touch-pan-y">
-            <Link
-              className="block rounded-3xl outline-none focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-inset"
-              data-state="closed"
-              data-slot="context-menu-trigger"
-              href={`/thread/${thread.id}`}
-            >
-              <div
-                className={cn(
-                  "group relative flex items-center gap-8 px-6 py-6 max-sm:gap-4 max-sm:px-6 max-sm:py-3 max-xl:pr-20",
-                  grid && "h-full items-start gap-4 px-5 py-5 pr-20",
-                )}
+            <ThreadContextMenu thread={thread}>
+              <Link
+                className="block rounded-3xl outline-none focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-inset"
+                href={`/thread/${thread.id}`}
               >
-                <div className="flex min-w-0 flex-1 flex-col gap-2 max-sm:gap-1">
-                  <div className="flex min-w-0 items-center gap-2">
-                    <h3
-                      className={cn(
-                        "line-clamp-1 min-w-0 flex-1 font-heading text-xl leading-[24px] text-foreground max-sm:line-clamp-2 max-sm:text-base max-sm:leading-5",
-                        grid && "line-clamp-2 text-base leading-5",
-                      )}
-                    >
-                      {thread.title}
-                    </h3>
-                  </div>
-                  <p className="line-clamp-2 min-w-0 text-muted-foreground text-sm leading-relaxed">
-                    {thread.summary}
-                  </p>
-                  <div className="flex min-w-0 items-center gap-2 text-sm text-foreground-low">
-                    <span className="shrink-0 sm:hidden">{thread.updatedShortLabel}</span>
-                    <span className="hidden shrink-0 sm:inline">{thread.updatedLabel}</span>
-                  </div>
-                </div>
-                <div />
-                <div className="absolute right-3 flex items-center gap-1 top-3">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="icon-xs"
-                        className={ACTION}
-                        aria-label="Thread actions"
-                        onClick={(e) => e.preventDefault()}
+                <div
+                  className={cn(
+                    "group relative flex items-center gap-8 px-6 py-6 max-sm:gap-4 max-sm:px-6 max-sm:py-3 max-xl:pr-20",
+                    grid && "h-full items-start gap-4 px-5 py-5 pr-20",
+                  )}
+                >
+                  <div className="flex min-w-0 flex-1 flex-col gap-2 max-sm:gap-1">
+                    <div className="flex min-w-0 items-center gap-2">
+                      <h3
+                        className={cn(
+                          "line-clamp-1 min-w-0 flex-1 font-heading text-xl leading-[24px] text-foreground max-sm:line-clamp-2 max-sm:text-base max-sm:leading-5",
+                          grid && "line-clamp-2 text-base leading-5",
+                        )}
                       >
-                        <IconDots className="size-4" aria-hidden="true" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-auto" onClick={(e) => e.preventDefault()}>
-                      <DropdownMenuItem>
-                        <IconPencil className="size-4" aria-hidden="true" />
-                        Rename
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
-                        <IconRefresh className="size-4" aria-hidden="true" />
-                        Regenerate name
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onSelect={() => setStarred((s) => !s)}>
-                        <IconStar className="size-4" aria-hidden="true" />
-                        {starred ? "Unstar thread" : "Star thread"}
-                      </DropdownMenuItem>
-                      <DropdownMenuSub>
-                        <DropdownMenuSubTrigger>
-                          <IconArrowsRightLeft className="size-4" aria-hidden="true" />
-                          Move to project
-                        </DropdownMenuSubTrigger>
-                        <DropdownMenuSubContent>
-                          <DropdownMenuItem disabled>No projects</DropdownMenuItem>
-                        </DropdownMenuSubContent>
-                      </DropdownMenuSub>
-                      <DropdownMenuItem>
-                        <IconBookOff className="size-4" aria-hidden="true" />
-                        Exclude from knowledge
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
-                        <IconArchive className="size-4" aria-hidden="true" />
-                        Archive
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                  <Button
-                    variant="outline"
-                    size="icon-xs"
-                    className={ACTION}
-                    aria-label={starred ? "Unstar thread" : "Star thread"}
-                    aria-pressed={starred}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setStarred((s) => !s);
-                    }}
-                  >
-                    <IconStar className={cn("size-4", starred && "fill-current")} aria-hidden="true" />
-                  </Button>
+                        {thread.title}
+                      </h3>
+                    </div>
+                    <p className="line-clamp-2 min-w-0 text-muted-foreground text-sm leading-relaxed">
+                      {thread.summary}
+                    </p>
+                    <div className="flex min-w-0 items-center gap-2 text-sm text-foreground-low">
+                      <span className="shrink-0 sm:hidden">{thread.updatedShortLabel}</span>
+                      <span className="hidden shrink-0 sm:inline">{thread.updatedLabel}</span>
+                    </div>
+                  </div>
+                  <div />
+                  <div className="absolute right-3 flex items-center gap-1 top-3">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="icon-xs"
+                          className={ACTION}
+                          aria-label="Thread actions"
+                          onClick={(e) => e.preventDefault()}
+                        >
+                          <IconDots className="size-4" aria-hidden="true" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-auto" onClick={(e) => e.preventDefault()}>
+                        <DropdownMenuItem>
+                          <IconPencil className="size-4" aria-hidden="true" />
+                          Rename
+                        </DropdownMenuItem>
+                        <DropdownMenuItem>
+                          <IconRefresh className="size-4" aria-hidden="true" />
+                          Regenerate name
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onSelect={() => setStarred((s) => !s)}>
+                          <IconStar className="size-4" aria-hidden="true" />
+                          {starred ? "Unstar thread" : "Star thread"}
+                        </DropdownMenuItem>
+                        <DropdownMenuSub>
+                          <DropdownMenuSubTrigger>
+                            <IconArrowsRightLeft className="size-4" aria-hidden="true" />
+                            Move to project
+                          </DropdownMenuSubTrigger>
+                          <DropdownMenuSubContent>
+                            <DropdownMenuItem disabled>No projects</DropdownMenuItem>
+                          </DropdownMenuSubContent>
+                        </DropdownMenuSub>
+                        <DropdownMenuItem>
+                          <IconBookOff className="size-4" aria-hidden="true" />
+                          Exclude from knowledge
+                        </DropdownMenuItem>
+                        <DropdownMenuItem>
+                          <IconArchive className="size-4" aria-hidden="true" />
+                          Archive
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                    <Button
+                      variant="outline"
+                      size="icon-xs"
+                      className={ACTION}
+                      aria-label={starred ? "Unstar thread" : "Star thread"}
+                      aria-pressed={starred}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setStarred((s) => !s);
+                      }}
+                    >
+                      <IconStar className={cn("size-4", starred && "fill-current")} aria-hidden="true" />
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            </Link>
+              </Link>
+            </ThreadContextMenu>
           </div>
         </div>
       </div>
-    </div>
+    </Card>
   );
 }

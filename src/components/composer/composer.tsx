@@ -5,6 +5,9 @@ import Link from "next/link";
 import { IconAdjustmentsHorizontal, IconArrowRight, IconArrowUp, IconChevronDown, IconListCheck, IconMicrophone, IconPlus, IconRobotFace } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { IconTile } from "@/components/ui/icon-tile";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { AirtableLogo, GmailLogo, SlackLogo } from "@/components/app/brand-icons";
 import { AddMenu } from "@/components/composer/add-menu";
@@ -33,9 +36,6 @@ type ComposerProps = {
   autoFocus?: boolean;
 };
 
-const PILL =
-  "flex h-8 cursor-pointer items-center gap-1.5 rounded-full bg-tint-10 px-3 font-medium text-muted-foreground text-sm transition-[color,background-color,transform] duration-(--duration-normal) ease-out hover:bg-tint-15 hover:text-foreground aria-expanded:bg-tint-15 aria-expanded:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 motion-safe:active:scale-(--scale-press) max-sm:px-2.5";
-
 export function Composer({
   placeholder = "Ask anything or start a task…",
   showAgentPicker = true,
@@ -61,10 +61,11 @@ export function Composer({
       )}
     >
       <div className="relative">
-        <input className="hidden" type="file" multiple />
+        <Input type="file" multiple className="hidden" />
         <div className="relative cursor-text px-4">
           <div className="relative scrollbar-hide pt-3 pb-[10px] text-sm">
-            <textarea
+            <Textarea
+              variant="bare"
               aria-label="Message the agent"
               placeholder={placeholder}
               value={value}
@@ -76,7 +77,7 @@ export function Composer({
                 el.style.height = "auto";
                 el.style.height = `${Math.min(el.scrollHeight, 200)}px`;
               }}
-              className="block w-full min-h-[44px] max-h-[200px] resize-none overflow-y-auto bg-transparent p-0 text-sm leading-[21px] text-foreground outline-none placeholder:text-foreground-low"
+              className="block min-h-[44px] max-h-[200px] resize-none overflow-y-auto text-sm leading-[21px] md:text-sm"
             />
           </div>
         </div>
@@ -86,7 +87,7 @@ export function Composer({
             <Tooltip>
               <TooltipTrigger asChild>
                 <AddMenu>
-                  <Button variant="ghost" size="icon-sm" className="size-8 shrink-0 bg-tint-10 text-muted-foreground hover:bg-tint-15 hover:text-foreground" aria-label="Add files or context">
+                  <Button variant="tint" size="icon-sm" aria-label="Add files or context">
                     <IconPlus className="size-4" aria-hidden="true" />
                   </Button>
                 </AddMenu>
@@ -97,13 +98,13 @@ export function Composer({
             <Tooltip>
               <TooltipTrigger asChild>
                 <ThreadSettingsMenu model={model} onModelChange={setModel} effort={effort} onEffortChange={setEffort}>
-                  <button type="button" aria-label="Thread settings" className={PILL}>
+                  <Button variant="tint" size="pill" aria-label="Thread settings" className="max-sm:px-2.5">
                     <IconAdjustmentsHorizontal className="size-4" aria-hidden="true" />
                     <span className="inline-flex min-w-0 items-center gap-1.5 @max-lg:hidden max-sm:hidden">
                       <span className="truncate">{model}</span>
                     </span>
                     <IconChevronDown className="@max-lg:hidden size-3 max-sm:hidden" aria-hidden="true" />
-                  </button>
+                  </Button>
                 </ThreadSettingsMenu>
               </TooltipTrigger>
               <TooltipContent>Thread settings</TooltipContent>
@@ -112,11 +113,11 @@ export function Composer({
             {showAgentPicker && (
               <div className="flex items-center gap-0.5">
                 <AgentPicker>
-                  <button type="button" data-dd-action-name="Agent picker" aria-label="Use an agent" className={PILL}>
+                  <Button variant="tint" size="pill" data-dd-action-name="Agent picker" aria-label="Use an agent" className="max-sm:px-2.5">
                     <IconRobotFace className="size-3.5" aria-hidden="true" />
                     <span className="@max-lg:hidden max-sm:hidden">Agent</span>
                     <IconChevronDown className="@max-lg:hidden size-3 max-sm:hidden" aria-hidden="true" />
-                  </button>
+                  </Button>
                 </AgentPicker>
               </div>
             )}
@@ -125,20 +126,18 @@ export function Composer({
             <Tooltip>
               <TooltipTrigger asChild>
                 <PlanMenu mode={mode} onModeChange={setMode}>
-                  <button
-                    type="button"
+                  {/* Plan mode is the composer's stated intent, so it reads as the ink pill;
+                      the execute modes step back to the tint chip. */}
+                  <Button
+                    variant={planning ? "default" : "tint"}
+                    size="pill"
                     aria-label={`Execution mode: ${modeLabel}`}
-                    className={cn(
-                      PILL,
-                      // Plan mode is the composer's stated intent, so it reads as the ink pill;
-                      // the execute modes step back to the tint chip.
-                      planning && "bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground aria-expanded:bg-primary/90 aria-expanded:text-primary-foreground",
-                    )}
+                    className={cn("max-sm:px-2.5", planning && "aria-expanded:bg-primary/90")}
                   >
                     <IconListCheck className="size-3.5" aria-hidden="true" />
                     <span className="@max-lg:hidden">{modeLabel}</span>
                     <IconChevronDown className="@max-lg:hidden size-3" aria-hidden="true" />
-                  </button>
+                  </Button>
                 </PlanMenu>
               </TooltipTrigger>
               <TooltipContent>Execution mode</TooltipContent>
@@ -181,9 +180,9 @@ export function Composer({
           <div className="flex cursor-default items-center gap-2 rounded-b-5xl border-t border-border-subtle bg-surface-secondary px-4 py-2.5">
             <div className="flex items-center -space-x-1">
               {[AirtableLogo, GmailLogo, SlackLogo].map((Logo, i) => (
-                <div key={i} data-slot="icon-tile" className="flex shrink-0 items-center justify-center size-6 rounded-md bg-background shadow-edge">
+                <IconTile key={i} size="sm" tone="raised">
                   <Logo size={16} />
-                </div>
+                </IconTile>
               ))}
             </div>
             <Link

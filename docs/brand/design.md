@@ -6,7 +6,7 @@
 > - **The `@theme` bridge lives in `src/app/globals.css`** ("PHASE 2 BRIDGE", an `@theme inline reference` block), not in this sheet. It names every Brand-only token so the utilities below (`bg-tangerine-500`, `bg-tint-10`, `font-heading`, `ease-out-quart`, `text-display`, `rounded-5xl`, `shadow-card`, `bg-brand`, `bg-surface-secondary`, …) exist app-wide and read the `:root` values. Utilities whose names Tailwind ships by default (`bg-neutral-500`, `rounded-md`, `text-xl`, `ease-out`, `font-medium`) resolve through `var(--…)` as before. Durations and scales stay plain variables: `duration-(--duration-fast)`, `scale-(--scale-press)`.
 > - **`@utility` classes are plain classes** in the utilities layer (`.focus-ring`, `.squircle`, `.skeleton`), and `.genui-prose` / the `text-heading-*` / `text-label-*` roles are plain, unprefixed classes. The `@layer base / components / utilities` wrappers are kept so they lose to utilities exactly as in Brand.
 > - **Theme switching is app-level.** `next-themes` puts `dark` on `<html>` from the account menu's Theme item (light is the default, "system" follows the OS, the choice persists in localStorage), and the `.dark { }` block in `brand.css` remaps the semantics. The swatch page keeps its own local `dark` toggle on its wrapper (`src/app/design/brand/_design/theme-toggle.tsx`), which also paints `bg-background text-foreground` itself, so the sheet can be inspected in either mapping regardless of the app theme.
-> - **The type system is Geist.** Phase 2 replaced the prototype's Inter + PythiaType + Newsreader with Geist and Geist Mono and adopted Vercel's published typography roles (see §4); the loaders are in `src/design/brand/fonts.ts`. The swatch page at `src/app/design/brand/page.tsx` (rendered at `/design/brand`); reference component copies in `src/design/brand/ui/`; scripts in `scripts/brand/` (`npm run brand:gen-ramps`, `npm run brand:check-contrast`); the audit at `docs/brand/brand-style-audit.md`. `chart.tsx` was not copied (it needs `recharts`, which Hyperagent does not install). See `src/design/brand/README.md` for the phase-2 token mapping table.
+> - **The type system is Geist.** Phase 2 replaced the prototype's Inter + PythiaType + Newsreader with Geist and Geist Mono and adopted Vercel's published typography roles (see §4); the loaders are in `src/design/brand/fonts.ts`. The swatch page at `src/app/design/brand/page.tsx` (rendered at `/design/brand`); the app's primitives in `src/components/ui/` (`docs/components.md`; the prototype's verbatim component copies were retired in the component sweep and stay in git history); scripts in `scripts/brand/` (`npm run brand:gen-ramps`, `npm run brand:check-contrast`); the audit at `docs/brand/brand-style-audit.md`. `chart.tsx` was not copied (it needs `recharts`, which Hyperagent does not install). See `src/design/brand/README.md` for the phase-2 token mapping table.
 >
 > Everything below this line is Brand's text, edited only for those paths.
 
@@ -366,7 +366,7 @@ Write like the product reads: first-person, warm, direct. the brand site speaks 
 
 ## 13. Inventory
 
-No UI components are installed (by design: tokens only). `components.json` is configured for shadcn (`radix-nova`, base color `neutral`, icons `lucide`, aliases `@/components`, `@/lib`, `@/hooks`); `src/lib/utils.ts` provides `cn()`. The `lucide` entry is a CLI limitation, not the icon convention: shadcn's CLI has no Tabler option, the app renders every icon with `@tabler/icons-react`, and anything `shadcn add` emits must have its `lucide-react` imports converted to Tabler before it is committed (`docs/brand/icons.md`; `npm test` rejects a lucide import).
+The app's components live in `src/components/ui/` (29 shadcn-style primitives on these tokens) and `src/components/patterns/`; `docs/components.md` maps them. `components.json` is configured for shadcn (`radix-nova`, base color `neutral`, icons `lucide`, aliases `@/components`, `@/lib`, `@/hooks`); `src/lib/utils.ts` provides `cn()`. The `lucide` entry is a CLI limitation, not the icon convention: shadcn's CLI has no Tabler option, the app renders every icon with `@tabler/icons-react`, and anything `shadcn add` emits must have its `lucide-react` imports converted to Tabler before it is committed (`docs/brand/icons.md`; `npm test` rejects a lucide import).
 
 The token swatch page (`src/app/design/brand/page.tsx`, rendered at `/design/brand`) shows every ramp, semantic pair, type style, radius, shadow and motion token, plus the dialog layer and the Mind-score tier dots, with a light/dark toggle (`src/app/design/brand/_design/theme-toggle.tsx`).
 
@@ -381,7 +381,7 @@ The token swatch page (`src/app/design/brand/page.tsx`, rendered at `/design/bra
 4. Mirror it in `src/app/design/brand/page.tsx` so the swatch page stays accurate.
 
 **Adding a component**
-- Use the shadcn CLI / aliases in `components.json`; components land in `src/design/brand/ui/`.
+- Use the shadcn CLI / aliases in `components.json`; components land in `src/components/ui/` (`npx shadcn@latest add <name>`, then Tabler icons and the brand strings; the steps are `docs/components.md` §3).
 - Style only via semantic tokens and the radius / shadow / motion scales above.
 
 **Source of truth**

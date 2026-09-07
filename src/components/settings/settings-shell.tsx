@@ -1,15 +1,16 @@
 import Link from "next/link";
 import { IconArrowLeft } from "@tabler/icons-react";
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { PageHeading } from "@/components/patterns/page-heading";
 
 // Scroll container + centred column shared by every /settings page, and the
-// page header (optional "Back to Settings" link, title, subtitle, actions).
-// Markup is transcribed from hyperagent.com/settings and
-// /settings/integrations (docs/reference/pages/settings*.html). Phase 2: the
-// back link is a ghost pill (pulled left so its arrow still sits on the
-// column edge), the title is the brand display face on tier 1 and the
-// description is running copy on tier 2 (docs/brand/design.md §4, §4.1).
+// page header (optional "Back to Settings" link, then the shared title row:
+// title, subtitle, actions). Markup is transcribed from
+// hyperagent.com/settings and /settings/integrations
+// (docs/reference/pages/settings*.html). Phase 2: the back link is a ghost
+// pill (pulled left so its arrow still sits on the column edge), the title
+// is the brand display face on tier 1 and the description is running copy
+// on tier 2 (docs/brand/design.md §4, §4.1).
 
 export function SettingsShell({ children }: { children: React.ReactNode }) {
   return (
@@ -48,18 +49,7 @@ export function SettingsPageHeader({
           </Link>
         </Button>
       ) : null}
-      <div
-        className={cn(
-          "flex w-full flex-col gap-4 md:flex-row md:items-center md:justify-between",
-          titleRowClassName,
-        )}
-      >
-        <div className="min-w-0">
-          <h1 className="font-heading text-2xl text-foreground">{title}</h1>
-          {description ? <p className="text-sm text-muted-foreground">{description}</p> : null}
-        </div>
-        {actions ? <div className="flex shrink-0 items-center gap-3">{actions}</div> : null}
-      </div>
+      <PageHeading title={title} subtitle={description} actions={actions} className={titleRowClassName} />
       {children}
     </div>
   );

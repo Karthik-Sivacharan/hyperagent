@@ -2,6 +2,7 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { integrationLogos } from "@/components/settings/integration-logos";
 import type { Integration, IntegrationLogo } from "@/lib/mock/integrations";
 
@@ -9,11 +10,15 @@ import type { Integration, IntegrationLogo } from "@/lib/mock/integrations";
 // docs/reference/pages/settings-integrations.html. The site renders MCP and
 // native integrations with slightly different header markup (truncating
 // title + wrapped badge vs. nowrap title + bare badge); both are kept.
-// Phase 2: the brand card (22px, `shadow-card` lifting on hover), the logo
-// artwork untouched, the name on tier 1, the blurb on tier 2, the kind as a
-// tint chip in the caps label (it was already set in caps), "Connect" as the
-// ink pill and the Telegram link as the outline pill (docs/brand/design.md
-// §4.1, §5, §6).
+// Phase 2: the brand's interactive card (22px, `shadow-card` lifting on
+// hover, the page's 16px padding), the logo artwork untouched, the name on
+// tier 1 as a 15px semibold on the body's 24px line (the card title's own
+// size, weight and line are reset for it), the blurb on tier 2, the kind as
+// a tint chip in the caps label (it was already set in caps), "Connect" as
+// the ink pill and the Telegram link as the outline pill
+// (docs/brand/design.md §4.1, §5, §6).
+
+const TITLE = "min-w-0 text-[15px] font-semibold leading-6 text-foreground";
 
 function Logo({ logo }: { logo: IntegrationLogo }) {
   if (logo.type === "svg") {
@@ -43,21 +48,15 @@ export function IntegrationCard({ integration }: { integration: Integration }) {
     );
 
   return (
-    <div
-      data-slot="card"
-      className="relative flex h-full flex-col gap-6 overflow-hidden rounded-3xl bg-card py-4 text-card-foreground shadow-card transition-[box-shadow] duration-(--duration-slow) ease-out hover:shadow-card-hover"
-    >
-      <div
-        data-slot="card-header"
-        className="@container/card-header grid auto-rows-min grid-rows-[auto_auto] items-start gap-2 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6 px-4 pb-2"
-      >
+    <Card variant="interactive" size="none" className="relative h-full gap-6 py-4">
+      <CardHeader className="grid-rows-[auto_auto] gap-2 px-4 pb-2 [.border-b]:pb-6">
         {native ? (
           <div className="flex items-center justify-between">
             <div className="flex min-w-0 flex-1 items-center gap-3">
               <Logo logo={integration.logo} />
-              <div data-slot="card-title" className="min-w-0 font-heading text-[15px] font-semibold text-foreground">
+              <CardTitle className={TITLE}>
                 <span className="whitespace-nowrap">{integration.name}</span>
-              </div>
+              </CardTitle>
             </div>
             {badge}
           </div>
@@ -65,21 +64,16 @@ export function IntegrationCard({ integration }: { integration: Integration }) {
           <div className="flex min-w-0 items-center justify-between gap-2">
             <div className="flex min-w-0 flex-1 items-center gap-3">
               <Logo logo={integration.logo} />
-              <div data-slot="card-title" className="min-w-0 truncate font-heading text-[15px] font-semibold text-foreground">
-                {integration.name}
-              </div>
+              <CardTitle className={cn(TITLE, "truncate")}>{integration.name}</CardTitle>
             </div>
             <div className="flex shrink-0 flex-col items-end gap-1">{badge}</div>
           </div>
         )}
-        <div
-          data-slot="card-description"
-          className={cn("text-sm text-muted-foreground", !integration.unclamped && "line-clamp-1")}
-        >
+        <CardDescription className={cn(!integration.unclamped && "line-clamp-1")}>
           {integration.description}
-        </div>
-      </div>
-      <div data-slot="card-content" className="mt-auto px-4">
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="mt-auto px-4">
         {integration.stackedActions ? (
           <div className="w-full">
             <div className="w-full space-y-2">{action}</div>
@@ -87,7 +81,7 @@ export function IntegrationCard({ integration }: { integration: Integration }) {
         ) : (
           action
         )}
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }

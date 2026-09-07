@@ -9,6 +9,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Overline } from "@/components/ui/overline";
 
 // The "Learning" dropdown in the sidebar's Resources group
 // (docs/reference/overlays/learning-menu.html). Rubrics is not cloned, so it
@@ -22,8 +23,8 @@ export function LearningMenu({ children, ...triggerProps }: React.ComponentProps
         {children}
       </DropdownMenuTrigger>
       <DropdownMenuContent side="right" align="start" className="w-48">
-        <DropdownMenuLabel className="whitespace-nowrap py-1 pr-1 pl-2 text-label-12-caps text-foreground-low">
-          Learning
+        <DropdownMenuLabel asChild className="whitespace-nowrap py-1 pr-1 pl-2">
+          <Overline>Learning</Overline>
         </DropdownMenuLabel>
         <DropdownMenuItem asChild>
           <Link href="/learning">

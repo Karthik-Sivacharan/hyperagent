@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { IconFilter2, IconPlus, IconRobotFace } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -12,9 +13,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { EmptyState } from "@/components/resources/empty-state";
-import { PageHeading } from "@/components/resources/page-heading";
-import { SearchInput } from "@/components/resources/search-input";
+import { EmptyState } from "@/components/patterns/empty-state";
+import { PageHeading } from "@/components/patterns/page-heading";
+import { SearchInput } from "@/components/patterns/search-input";
 
 const FILTERS = [
   { id: "mine", label: "Created by me" },
@@ -55,7 +56,7 @@ export function AgentsPage() {
                     <DropdownMenuItem>Import from JSON</DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
-                <input accept=".json,application/json" className="hidden" type="file" />
+                <Input type="file" accept=".json,application/json" className="hidden" />
               </>
             }
           />

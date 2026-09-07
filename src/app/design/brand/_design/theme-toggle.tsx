@@ -1,6 +1,7 @@
 "use client";
 
 import { useSyncExternalStore, type ReactNode } from "react";
+import { Button } from "@/components/ui/button";
 
 // Light/dark switch for the Brand token swatch page, ported from
 // brand/src/app/_design/theme-toggle.tsx. The app themes itself through
@@ -73,23 +74,26 @@ export function BrandThemeShell({ className, children }: { className?: string; c
 }
 
 // Renders a neutral placeholder label until mounted so the server and client
-// markup agree (the theme is client-only). Token names are consumed through
-// Tailwind's `(--var)` arbitrary-value syntax because the Brand-only names
-// (chip, accent, ease-out-quart, scale-press …) have no utilities until phase 2.
+// markup agree (the theme is client-only). The control is the brand chip
+// button at the 40px size with the swatch page's 16px padding; `aria-pressed`
+// names the dark state for assistive tech, and the two resets keep the chip
+// fill in that state (the chip variant would otherwise paint it as ink).
 export function ThemeToggle() {
   const { theme, mounted, setTheme } = useBrandTheme();
   const isDark = mounted && theme === "dark";
 
   return (
-    <button
+    <Button
       type="button"
+      variant="chip"
+      size="lg"
       onClick={() => setTheme(isDark ? "light" : "dark")}
       aria-label={isDark ? "Switch to light theme" : "Switch to dark theme"}
       aria-pressed={isDark}
-      className="inline-flex h-10 items-center gap-2 rounded-full bg-(--chip) px-4 text-sm font-medium text-(--chip-foreground) transition-[color,background-color,box-shadow,transform] duration-(--duration-fast) ease-(--ease-out-quart) hover:bg-(--accent) hover:text-(--accent-foreground) motion-safe:active:scale-(--scale-press)"
+      className="px-4 hover:text-accent-foreground aria-pressed:bg-chip aria-pressed:text-chip-foreground"
     >
       <span aria-hidden className="size-2.5 rounded-full bg-(--brand-accent)" />
       {mounted ? (isDark ? "Dark" : "Light") : "Theme"}
-    </button>
+    </Button>
   );
 }

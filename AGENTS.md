@@ -21,3 +21,10 @@ Icons come from `@tabler/icons-react` only, never `lucide-react` or another
 set. Read `docs/brand/icons.md` before adding an icon: it has the import
 shape, the props, the accessibility rules and the table that turns a dump's
 `lucide-<name>` class into the Tabler name.
+
+UI is built from the primitives in `src/components/ui` and the composites in
+`src/components/patterns`; page, shell and route files compose them and never
+contain a raw `<button>`, `<input>`, `<textarea>`, `<select>` or `<label>`,
+and only `ui/` imports `radix-ui` or `cmdk`. Read `docs/components.md` before
+adding UI (the map, the rules, how to add a primitive); `npm test` locks the
+rules.

@@ -3,9 +3,9 @@
 import { useState } from "react";
 import Link from "next/link";
 import { IconChevronDown, IconChevronRight } from "@tabler/icons-react";
-import { Collapsible as CollapsiblePrimitive } from "radix-ui";
 import { discoverSkills } from "@/lib/mock/skills";
 import { Button } from "@/components/ui/button";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { SkillListingCard } from "@/components/marketplace/skill-listing-card";
 
 // "Discover and install new skills" (docs/reference/pages/skills.html): a
@@ -21,17 +21,17 @@ export function DiscoverSkills() {
   const Chevron = open ? IconChevronDown : IconChevronRight;
 
   return (
-    <CollapsiblePrimitive.Root open={open} onOpenChange={setOpen}>
+    <Collapsible open={open} onOpenChange={setOpen}>
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-start justify-between gap-2 mb-0 min-w-0">
           <div className="min-w-0">
             <h2 className="flex items-center gap-2 font-heading text-xl text-foreground">
-              <CollapsiblePrimitive.Trigger className="flex min-w-0 cursor-pointer items-center gap-2 rounded-full py-0.5 text-left outline-none focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background">
+              <CollapsibleTrigger className="flex min-w-0 cursor-pointer items-center gap-2 rounded-full py-0.5 text-left outline-none focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background">
                 <span className="min-w-0 truncate">Discover and install new skills</span>
                 <span className="shrink-0 text-foreground-low">
                   <Chevron className="size-4" aria-hidden="true" />
                 </span>
-              </CollapsiblePrimitive.Trigger>
+              </CollapsibleTrigger>
             </h2>
           </div>
         </div>
@@ -39,7 +39,7 @@ export function DiscoverSkills() {
           <Link href="/marketplace">See more</Link>
         </Button>
       </div>
-      <CollapsiblePrimitive.Content className="space-y-4 pt-2">
+      <CollapsibleContent className="space-y-4 pt-2">
         <div className="flex min-h-0 flex-col gap-4">
           <div className="min-h-0 flex-1 outline-none mt-0">
             <div className="scrollbar-hide -mx-1 flex snap-x snap-mandatory gap-4 overflow-x-auto px-1 py-2 xl:mx-0 xl:grid xl:grid-cols-4 xl:overflow-visible xl:px-0 xl:py-0">
@@ -54,7 +54,7 @@ export function DiscoverSkills() {
             </div>
           </div>
         </div>
-      </CollapsiblePrimitive.Content>
-    </CollapsiblePrimitive.Root>
+      </CollapsibleContent>
+    </Collapsible>
   );
 }

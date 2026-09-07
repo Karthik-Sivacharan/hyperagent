@@ -11,6 +11,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Overline } from "@/components/ui/overline";
 import { AGENT_TEMPLATES, AgentOrbTile } from "@/components/app/agent-orb";
 
 // The composer's "Agent" pill menu (docs/reference/overlays/composer-agent-picker.html):
@@ -32,9 +34,10 @@ export function AgentPicker({ children, ...triggerProps }: React.ComponentProps<
         <div>
           <div className="flex items-center gap-2 px-3 py-2">
             <IconSearch className="size-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />
-            <input
+            <Input
+              variant="bare"
               placeholder="Search agents…"
-              className="flex-1 bg-transparent text-sm outline-none placeholder:text-foreground-low"
+              className="flex-1 text-sm"
               autoComplete="off"
               type="text"
               value={query}
@@ -43,9 +46,10 @@ export function AgentPicker({ children, ...triggerProps }: React.ComponentProps<
             />
           </div>
           <DropdownMenuSeparator />
-          <DropdownMenuLabel data-slot="overline" className="text-label-12-caps text-foreground-low pt-1 pb-1">
-            Starter agents
-          </DropdownMenuLabel>
+          {/* The overline renders as the menu label (the site emits the `overline` slot here). */}
+          <Overline asChild>
+            <DropdownMenuLabel className="pt-1 pb-1">Starter agents</DropdownMenuLabel>
+          </Overline>
           {agents.map((agent) => (
             <DropdownMenuItem key={agent.name} className="items-center gap-2">
               <AgentOrbTile template={agent} />

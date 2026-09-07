@@ -71,16 +71,27 @@ vs tangerine, grey borders vs tints), the brand wins.
 ## What already exists (use it, do not edit it)
 
 - `src/components/ui/button.tsx`: `variant` default (ink) · brand · secondary ·
-  outline (hairline) · ghost · chip · destructive · link; `size` default · xs ·
-  sm · lg · icon · icon-xs · icon-sm · icon-lg. All pills.
+  outline (hairline) · ghost · tint (the toolbar pill) · chip · destructive ·
+  link; `size` default · xs · sm · lg · pill · icon · icon-2xs · icon-xs ·
+  icon-sm · icon-lg · none (the caller owns the shape). All pills.
 - `badge.tsx`: default · secondary · outline · ghost · link · brand · success ·
-  warning · info · destructive. `card.tsx`: 22px, `shadow-card`, `font-heading` title.
-  `input.tsx`, `textarea.tsx`, `input-group.tsx` (a pill field). `tabs.tsx`
-  (pill track; `variant="line"` for the underline). `switch.tsx` (ink when
-  on). `toggle.tsx` / `toggle-group.tsx` (pill track when joined).
+  warning · info · destructive. `card.tsx`: 22px, `shadow-card`, `font-heading`
+  title; `size` default · sm · none, `variant` interactive (the hover lift),
+  `asChild`. `input.tsx`, `textarea.tsx` (`variant="bare"` for an editor or a
+  menu field), `input-group.tsx` (a pill field). `select.tsx` (`SelectTrigger`
+  `variant` outline · tint, `size` sm · default). `checkbox.tsx`, `label.tsx`.
+  `tabs.tsx` (pill track; `variant="line"` for the underline). `switch.tsx`
+  (ink when on; `size="sm"`). `toggle.tsx` / `toggle-group.tsx` (pill track
+  when joined). `overline.tsx` (the caps group label), `icon-tile.tsx`
+  (`size` · `shape` · `tone`), `nav-item.tsx` (the sidebar row).
   `tooltip.tsx`, `dropdown-menu.tsx`, `context-menu.tsx`, `popover.tsx`,
   `dialog.tsx`, `sheet.tsx`, `command.tsx`, `kbd.tsx`, `separator.tsx`,
-  `skeleton.tsx`, `avatar.tsx`, `scroll-area.tsx`.
+  `skeleton.tsx`, `avatar.tsx`, `scroll-area.tsx` (`viewportRef`,
+  `viewportProps`). The full map with variants and live evidence is
+  `docs/components.md` §2.
+- `src/components/patterns/`: `PageHeading`, `SearchInput`, `EmptyState`,
+  `ShowArchivedSwitch`, the composites two or more pages share. Use them
+  before writing the row by hand.
 - The shell: `src/components/app/*`, `src/components/composer/*`,
   `src/app/layout.tsx`, `src/app/globals.css`, `src/design/brand/*`,
   `src/lib/utils.ts`. Frozen on page branches. If a primitive or the shell
@@ -134,6 +145,12 @@ vs tangerine, grey borders vs tints), the brand wins.
    stroke, so nothing moves. The dump's `lucide-<name>` class still says
    which icon; `docs/brand/icons.md` turns it into the Tabler name.
    `npm test` fails on any lucide import.
+10. **Components.** Build every control from `src/components/ui` and every
+    shared row from `src/components/patterns`; a page file never contains a
+    raw `<button>`, `<input>`, `<textarea>`, `<select>` or `<label>` (the
+    rendered element of an `asChild` primitive is the one exception) and
+    never imports `radix-ui` or `cmdk`. `npm test` locks it;
+    `docs/components.md` has the map and the steps to add a primitive.
 
 ## Screenshots
 

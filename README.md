@@ -36,12 +36,14 @@ token swatches.
 | `src/app/(app)/` | One route per sidebar page, wrapped by the app shell |
 | `src/components/app/` | Shell: sidebar, frame, brand marks |
 | `src/components/composer/` | The message composer (home + thread pages) |
-| `src/components/<page>/` | Page-specific components |
-| `src/components/ui/` | shadcn primitives, re-skinned with the brand in phase 2 (pills, tints, hairlines, glass shadows) behind the phase-1 variant and size API |
+| `src/components/patterns/` | Composites of primitives used by two or more pages (`PageHeading`, `SearchInput`, `EmptyState`, `ShowArchivedSwitch`) |
+| `src/components/<page>/` | Page components: layout and data wiring composed from `ui/` and `patterns/`, never a raw control |
+| `src/components/ui/` | 29 shadcn primitives, re-skinned with the brand in phase 2 (pills, tints, hairlines, glass shadows) behind the phase-1 variant and size API; the only place `radix-ui` and `cmdk` are imported, every one with a `data-slot` |
 | `src/design/brand/` | The Brand token system: `brand.css` is the app's only palette (light on `:root`, dark on `.dark`), bridged into Tailwind by the "PHASE 2 BRIDGE" block in `globals.css` |
 | `docs/brand/` | `design.md` (the brand language), `reskin-conventions.md` (the phase-2 page-branch contract), `icons.md` (Tabler only, and the lucide-to-Tabler names), the style audit |
 | `scripts/brand/`, `scripts/dev/` | Ramp generator, WCAG contrast gate, token lint; headless screenshot and contact-sheet scripts |
 | `docs/reference/` | Ground truth captured from hyperagent.com: compiled CSS, fonts, a DOM dump per page, and `overlays/` with every captured menu, dialog and tooltip |
+| `docs/components.md` | The component system: tiers, rules, the component map with live evidence, how to add a component, the live UI the clone lacks |
 | `docs/clone-conventions.md` | The rules every page branch follows |
 
 ## Theme switches
@@ -59,6 +61,6 @@ truth.
 ```bash
 npm run brand:check-contrast   # WCAG AA gate over the brand tokens, both themes
 npm run brand:lint-tokens      # no raw colours / stock palette classes / px radii in components
-npm test                       # the token contract (brand.css shape, bridge targets, cn()) and the icon rule
+npm test                       # the token contract (brand.css shape, bridge targets, cn()), the icon rule and the component lock (radix only under ui/, no raw controls, every live data-slot defined)
 node scripts/dev/screenshot-pages.mjs out/ http://localhost:3000   # every route, light + dark
 ```

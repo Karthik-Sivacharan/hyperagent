@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { IconBlocks, IconLayoutGrid, IconPlug, IconPlus, IconRefresh, IconSearch, IconSend, IconStar } from "@tabler/icons-react";
+import { IconBlocks, IconLayoutGrid, IconPlug, IconPlus, IconRefresh, IconSend, IconStar } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,7 +11,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
+import { Overline } from "@/components/ui/overline";
+import { SearchInput } from "@/components/patterns/search-input";
 import { SettingsPageHeader, SettingsShell } from "@/components/settings/settings-shell";
 import { IntegrationCard } from "@/components/settings/integration-card";
 import { featuredIntegrations, otherIntegrations, type Integration } from "@/lib/mock/integrations";
@@ -19,12 +20,12 @@ import { featuredIntegrations, otherIntegrations, type Integration } from "@/lib
 // /settings/integrations, transcribed from
 // docs/reference/pages/settings-integrations.html. Search filters the two
 // lists locally; Refresh and the Add menu are cosmetic (static mock data).
-// Phase 2: the search is the brand's pill input group (kept at the site's
-// 36px), Refresh and Add are outline pills, the two section labels over the
-// card grids are the caps group label on tier 3 (a group label is never
-// tier 2, docs/brand/design.md §4.1), the "Looking for a site…" hint is
-// tier-3 meta with the brand underline, and the custom-MCP tile is a dashed
-// hairline at the card radius.
+// Phase 2: the search is the shared pill field (kept at the site's 36px),
+// Refresh and Add are outline pills, the two section labels over the card
+// grids are the brand overline (a group label is never tier 2,
+// docs/brand/design.md §4.1), the "Looking for a site…" hint is tier-3 meta
+// with the brand underline, and the custom-MCP tile is a ghost button drawn
+// as a dashed hairline at the card radius.
 
 function matches(integration: Integration, query: string) {
   return (
@@ -40,7 +41,13 @@ function IntegrationGrid({ children }: { children: React.ReactNode }) {
   );
 }
 
-const SECTION_LABEL = "flex items-center gap-2 text-label-12-caps text-foreground-low";
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <Overline asChild>
+      <h2 className="flex items-center gap-2">{children}</h2>
+    </Overline>
+  );
+}
 
 export function IntegrationsPage() {
   const [query, setQuery] = useState("");
@@ -69,17 +76,12 @@ export function IntegrationsPage() {
         }
       />
 
-      <InputGroup className="mb-6 h-9">
-        <InputGroupAddon>
-          <IconSearch aria-hidden="true" />
-        </InputGroupAddon>
-        <InputGroupInput
-          translate="no"
-          placeholder="Search integrations..."
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-        />
-      </InputGroup>
+      <SearchInput
+        className="mb-6"
+        placeholder="Search integrations..."
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+      />
       <p className="mb-6 text-xs text-foreground-low">
         Looking for a site the agent signs into in its browser? Those logins live in{" "}
         <Link
@@ -97,10 +99,10 @@ export function IntegrationsPage() {
           <div className="mb-8">
             <div className="mb-4 flex items-start justify-between gap-2">
               <div className="min-w-0">
-                <h2 className={SECTION_LABEL}>
+                <SectionLabel>
                   <IconStar className="size-4" aria-hidden="true" />
                   Featured
-                </h2>
+                </SectionLabel>
               </div>
             </div>
             <IntegrationGrid>
@@ -114,10 +116,10 @@ export function IntegrationsPage() {
         <div className="mb-8">
           <div className="mb-4 flex items-center justify-between gap-2">
             <div className="min-w-0">
-              <h2 className={SECTION_LABEL}>
+              <SectionLabel>
                 <IconLayoutGrid className="size-4" aria-hidden="true" />
                 All other integrations
-              </h2>
+              </SectionLabel>
             </div>
             <div className="shrink-0">
               <DropdownMenu>
@@ -148,9 +150,10 @@ export function IntegrationsPage() {
             {others.map((integration) => (
               <IntegrationCard key={integration.slug} integration={integration} />
             ))}
-            <button
-              type="button"
-              className="flex h-full min-h-[140px] w-full cursor-pointer flex-col items-center justify-center gap-3 rounded-3xl border-2 border-dashed border-border-subtle p-6 text-muted-foreground transition-[color,border-color] duration-(--duration-normal) ease-out hover:border-border-loud hover:text-foreground"
+            <Button
+              variant="ghost"
+              size="none"
+              className="h-full min-h-[140px] w-full flex-col gap-3 rounded-3xl border-2 border-dashed border-border-subtle p-6 whitespace-normal font-normal text-muted-foreground transition-[color,border-color] hover:border-border-loud hover:bg-transparent hover:text-foreground"
             >
               <IconPlug className="size-6" aria-hidden="true" />
               <span className="flex max-w-full flex-col items-center gap-1">
@@ -159,7 +162,7 @@ export function IntegrationsPage() {
                   Connect any tool that offers an MCP server
                 </span>
               </span>
-            </button>
+            </Button>
           </IntegrationGrid>
         </div>
       </div>

@@ -13,6 +13,8 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
+import { Overline } from "@/components/ui/overline";
 import { Switch } from "@/components/ui/switch";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { ClaudeLogo, GeminiLogo, KimiLogo, OpenAILogo, ZaiLogo } from "@/components/app/brand-icons";
@@ -60,19 +62,18 @@ const PROVIDERS: { key: Provider; label: string; logo?: Logo }[] = [
   { key: "open", label: "Open weights" },
 ];
 
-const GROUP_HEADING = "flex items-center gap-1 px-2 py-1.5 text-label-12-caps text-foreground-low";
+function GroupHeading({ className, ...props }: React.ComponentProps<typeof Overline>) {
+  return <Overline className={cn("flex items-center gap-1 px-2 py-1.5", className)} {...props} />;
+}
 
 function ModelRow({ model, selected, onSelect }: { model: Model; selected: boolean; onSelect: () => void }) {
   const Logo = model.logo;
   return (
-    <button
-      type="button"
-      className="flex w-full cursor-pointer items-start gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors duration-(--duration-instant) hover:bg-tint-10"
-      aria-pressed={selected}
-      onClick={onSelect}
-    >
+    <DropdownMenuItem className="items-start" aria-pressed={selected} onSelect={onSelect}>
+      {/* The menu item tints unsized svgs; the OpenAI and Kimi marks draw in
+          currentColor, so the logo keeps the popover's text colour explicitly. */}
       <span className="flex h-5 shrink-0 items-center">
-        <Logo className="shrink-0 size-4" />
+        <Logo className="shrink-0 size-4 text-popover-foreground" />
       </span>
       <span className="min-w-0 flex-1">
         <span className="flex items-center gap-1.5">
@@ -83,7 +84,7 @@ function ModelRow({ model, selected, onSelect }: { model: Model; selected: boole
       <span className="flex h-5 shrink-0 items-center">
         <IconCheck className={cn("size-4", selected ? "text-foreground" : "opacity-0")} aria-hidden="true" />
       </span>
-    </button>
+    </DropdownMenuItem>
   );
 }
 
@@ -101,18 +102,13 @@ export function ThreadSettingsMenu({
   onEffortChange: (effort: Effort) => void;
 }) {
   const router = useRouter();
-  const [open, setOpen] = useState(false);
   const [fast, setFast] = useState(false);
   const current = MODELS.find((m) => m.name === model) ?? MODELS[1];
   const CurrentLogo = current.logo;
 
-  const pick = (name: string) => {
-    onModelChange(name);
-    setOpen(false);
-  };
-
+  // Every row is a menu item, so selecting one closes the menu on its own.
   return (
-    <DropdownMenu open={open} onOpenChange={setOpen}>
+    <DropdownMenu>
       <DropdownMenuTrigger asChild {...triggerProps}>
         {children}
       </DropdownMenuTrigger>
@@ -128,9 +124,7 @@ export function ThreadSettingsMenu({
                   <span className="truncate">{current.name}</span>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <span className="inline-flex shrink-0 items-center rounded-full bg-tint-10 px-2 py-0.5 font-medium text-xs text-muted-foreground leading-4">
-                        Latest
-                      </span>
+                      <Badge variant="secondary">Latest</Badge>
                     </TooltipTrigger>
                     <TooltipContent>Always uses the latest model in this family.</TooltipContent>
                   </Tooltip>
@@ -138,7 +132,7 @@ export function ThreadSettingsMenu({
               </span>
             </DropdownMenuSubTrigger>
             <DropdownMenuSubContent className="w-80 p-1">
-              <div className={GROUP_HEADING}>
+              <GroupHeading>
                 Latest models
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -151,12 +145,12 @@ export function ThreadSettingsMenu({
                     We&apos;ll automatically use the latest model in the selected family when you create a new thread.
                   </TooltipContent>
                 </Tooltip>
-              </div>
+              </GroupHeading>
               {MODELS.map((m) => (
-                <ModelRow key={m.name} model={m} selected={m.name === current.name} onSelect={() => pick(m.name)} />
+                <ModelRow key={m.name} model={m} selected={m.name === current.name} onSelect={() => onModelChange(m.name)} />
               ))}
               <DropdownMenuSeparator />
-              <div className={GROUP_HEADING}>All models</div>
+              <GroupHeading>All models</GroupHeading>
               {PROVIDERS.map(({ key, label, logo: Logo }) => (
                 <DropdownMenuSub key={key}>
                   <DropdownMenuSubTrigger>
@@ -165,7 +159,7 @@ export function ThreadSettingsMenu({
                   </DropdownMenuSubTrigger>
                   <DropdownMenuSubContent className="w-80 p-1">
                     {MODELS.filter((m) => m.provider === key).map((m) => (
-                      <ModelRow key={m.name} model={m} selected={m.name === current.name} onSelect={() => pick(m.name)} />
+                      <ModelRow key={m.name} model={m} selected={m.name === current.name} onSelect={() => onModelChange(m.name)} />
                     ))}
                   </DropdownMenuSubContent>
                 </DropdownMenuSub>
@@ -183,15 +177,7 @@ export function ThreadSettingsMenu({
               {EFFORTS.map((e) => {
                 const selected = e.label === effort;
                 return (
-                  <button
-                    key={e.label}
-                    type="button"
-                    className="flex w-full cursor-pointer items-start gap-2 rounded-md px-2 py-1.5 text-left transition-colors duration-(--duration-instant) hover:bg-tint-10"
-                    onClick={() => {
-                      onEffortChange(e.label);
-                      setOpen(false);
-                    }}
-                  >
+                  <DropdownMenuItem key={e.label} className="items-start" onSelect={() => onEffortChange(e.label)}>
                     <IconCheck className={cn("mt-0.5 size-4 shrink-0", selected ? "text-brand-accent" : "opacity-0")} aria-hidden="true" />
                     <div className="min-w-0 flex-1">
                       <div className={cn("truncate text-sm leading-5 text-foreground", selected ? "font-medium" : "font-normal")}>
@@ -199,7 +185,7 @@ export function ThreadSettingsMenu({
                       </div>
                       <div className="whitespace-normal text-muted-foreground text-xs leading-4">{e.description}</div>
                     </div>
-                  </button>
+                  </DropdownMenuItem>
                 );
               })}
             </DropdownMenuSubContent>
@@ -219,7 +205,7 @@ export function ThreadSettingsMenu({
               <div className="truncate text-muted-foreground text-xs leading-4">Faster output, billed at 2x token cost</div>
             </div>
             <span className="flex h-5 items-center">
-              <Switch className="scale-75" checked={fast} onCheckedChange={setFast} onClick={(e) => e.stopPropagation()} />
+              <Switch size="sm" checked={fast} onCheckedChange={setFast} onClick={(e) => e.stopPropagation()} />
             </span>
           </DropdownMenuItem>
         </div>
@@ -232,7 +218,7 @@ export function ThreadSettingsMenu({
               <span className="text-muted-foreground text-sm">17</span>
             </DropdownMenuSubTrigger>
             <DropdownMenuSubContent className="w-64 p-1">
-              <div className={GROUP_HEADING}>17 tools enabled</div>
+              <GroupHeading>17 tools enabled</GroupHeading>
             </DropdownMenuSubContent>
           </DropdownMenuSub>
         </div>
@@ -254,17 +240,10 @@ export function ThreadSettingsMenu({
         </div>
 
         <DropdownMenuSeparator />
-        <button
-          type="button"
-          className="flex w-full cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-muted-foreground text-sm transition-colors duration-(--duration-instant) hover:bg-tint-10 hover:text-foreground"
-          onClick={() => {
-            setOpen(false);
-            router.push("/settings");
-          }}
-        >
+        <DropdownMenuItem className="text-muted-foreground" onSelect={() => router.push("/settings")}>
           <IconArrowsDiagonal className="size-4" aria-hidden="true" />
           <span>Open full settings</span>
-        </button>
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

@@ -22,17 +22,19 @@ import {
   IconUsers,
   type TablerIcon,
 } from "@tabler/icons-react";
+import { Button } from "@/components/ui/button";
 import { CommandDialog, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Kbd } from "@/components/ui/kbd";
 import { recentThreads } from "@/lib/mock/threads";
 
 // The ⌘K search palette from hyperagent.com (docs/reference/overlays/search.html):
 // a cmdk dialog listing recent threads ("Past week") and a "Go to" group of
 // routes. Only local state; selecting navigates when the route exists here.
 
-const KBD =
-  "inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-sm px-1 font-mono text-[10px] bg-tint-10 text-muted-foreground leading-none";
-const FOOTER_KBD =
-  "inline-flex h-[18px] items-center justify-center rounded-sm bg-tint-10 px-1 font-mono text-[9px]";
+// The palette's keycaps are 18px, two sizes below the 20px `Kbd`: the row
+// hints at 10px, the footer legend at 9px.
+const KBD = "h-[18px] min-w-[18px] text-[10px] font-normal leading-none";
+const FOOTER_KBD = "h-[18px] min-w-0 text-[9px] font-normal";
 
 type GoTo = { value: string; label: string; icon: TablerIcon; href?: string };
 
@@ -121,31 +123,32 @@ export function SearchPalette({ open, onOpenChange }: { open: boolean; onOpenCha
                   </span>
                   <div className="hidden items-center gap-2.5 text-[11px] text-muted-foreground group-data-[selected=true]:flex">
                     <span className="flex items-center gap-1.5 group-data-[modifier=held]/cmdk:hidden">
-                      <kbd className={KBD}>↵</kbd>open
+                      <Kbd className={KBD}>↵</Kbd>open
                     </span>
                     <span className="hidden items-center gap-1.5 group-data-[modifier=held]/cmdk:flex">
                       <span className="flex items-center gap-0.5">
-                        <kbd className={KBD}>⌘</kbd>
-                        <kbd className={KBD}>↵</kbd>
+                        <Kbd className={KBD}>⌘</Kbd>
+                        <Kbd className={KBD}>↵</Kbd>
                       </span>
                       open in new tab
                     </span>
                     <span className="h-3 w-px bg-border-loud" aria-hidden="true" />
-                    <button
-                      type="button"
+                    <Button
+                      variant="ghost"
+                      size="none"
                       aria-label="Copy link"
-                      className="flex items-center gap-1.5 rounded hover:text-foreground"
+                      className="gap-1.5 rounded font-normal text-[11px] text-muted-foreground hover:bg-transparent hover:text-foreground"
                       onClick={(e) => {
                         e.stopPropagation();
                         void navigator.clipboard?.writeText(`${window.location.origin}/thread/${thread.id}`);
                       }}
                     >
                       <span className="flex items-center gap-0.5">
-                        <kbd className={KBD}>⌘</kbd>
-                        <kbd className={KBD}>C</kbd>
+                        <Kbd className={KBD}>⌘</Kbd>
+                        <Kbd className={KBD}>C</Kbd>
                       </span>
                       copy
-                    </button>
+                    </Button>
                   </div>
                 </div>
               </CommandItem>
@@ -172,16 +175,16 @@ export function SearchPalette({ open, onOpenChange }: { open: boolean; onOpenCha
       </div>
       <div className="flex items-center gap-3 border-t border-border-subtle bg-surface-secondary px-3 pt-1.5 pb-2 text-[11px] text-muted-foreground">
         <span className="flex items-center gap-1">
-          <kbd className={FOOTER_KBD}>↑</kbd>
-          <kbd className={FOOTER_KBD}>↓</kbd>
+          <Kbd className={FOOTER_KBD}>↑</Kbd>
+          <Kbd className={FOOTER_KBD}>↓</Kbd>
           <span className="ml-0.5">navigate</span>
         </span>
         <span className="flex items-center gap-1">
-          <kbd className={FOOTER_KBD}>↵</kbd>
+          <Kbd className={FOOTER_KBD}>↵</Kbd>
           <span className="ml-0.5">open</span>
         </span>
         <span className="flex items-center gap-1">
-          <kbd className={FOOTER_KBD}>esc</kbd>
+          <Kbd className={FOOTER_KBD}>esc</Kbd>
           <span className="ml-0.5">close</span>
         </span>
       </div>

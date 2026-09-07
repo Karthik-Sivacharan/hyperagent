@@ -1,5 +1,6 @@
 import { IconMessageCircleQuestion, IconRobotFace, IconSitemap } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
+import { Card } from "@/components/ui/card";
 import type { OptionCard, OptionCardIcon } from "@/lib/mock/conversation";
 import { OpenClawIcon } from "@/components/thread/openclaw-icon";
 
@@ -8,10 +9,12 @@ import { OpenClawIcon } from "@/components/thread/openclaw-icon";
 // on the resting card shadow; the chosen one is lifted to the hover shadow
 // with a hairline ring on the foreground and keeps its text tiers (title on
 // tier 1, icon and lede on tier 2), the passed-over ones drop wholly to tier 3
-// instead of fading (docs/brand/design.md §4.1, §5, §6). The transparent
-// border keeps the phase-1 box so the grid does not move.
-const CARD =
-  "flex cursor-pointer flex-col items-start justify-start gap-1 rounded-3xl border border-transparent bg-card px-4 py-3 text-left shadow-card transition-[box-shadow,color,background-color] duration-(--duration-slow) ease-out focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:cursor-default";
+// instead of fading (docs/brand/design.md §4.1, §5, §6). Each card is the
+// `Card` shell with a button as its element; the transparent border keeps
+// the phase-1 box so the grid does not move, and the card owns no padding
+// of its own (`size="none"`). `overflow-visible` lifts the shell's rounded
+// clip: nothing here overflows, and the clip alone re-rasterises the icon
+// strokes (a measurable anti-aliasing shift against the baseline).
 
 function CardIcon({ icon, className }: { icon: OptionCardIcon; className: string }) {
   switch (icon) {
@@ -34,24 +37,28 @@ export function OptionCards({ cards }: { cards: OptionCard[] }) {
           <div className="space-y-3">
             <div className="grid gap-3 sm:grid-cols-2">
               {cards.map((card) => (
-                <button
+                <Card
                   key={card.id}
-                  type="button"
-                  disabled
-                  aria-pressed={card.selected ? "true" : "false"}
-                  className={cn(CARD, card.selected && "shadow-card-hover ring-1 ring-foreground")}
+                  asChild
+                  size="none"
+                  className={cn(
+                    "cursor-pointer items-start justify-start gap-1 overflow-visible border border-transparent px-4 py-3 text-left transition-[box-shadow,color,background-color] duration-(--duration-slow) ease-out focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:cursor-default",
+                    card.selected && "shadow-card-hover ring-1 ring-foreground",
+                  )}
                 >
-                  <CardIcon
-                    icon={card.icon}
-                    className={cn("size-5 shrink-0", card.selected ? "text-muted-foreground" : "text-foreground-low")}
-                  />
-                  <span className={cn("font-medium text-sm", card.selected ? "text-foreground" : "text-foreground-low")}>
-                    {card.title}
-                  </span>
-                  <span className={cn("text-sm", card.selected ? "text-muted-foreground" : "text-foreground-low")}>
-                    {card.description}
-                  </span>
-                </button>
+                  <button type="button" disabled aria-pressed={card.selected ? "true" : "false"}>
+                    <CardIcon
+                      icon={card.icon}
+                      className={cn("size-5 shrink-0", card.selected ? "text-muted-foreground" : "text-foreground-low")}
+                    />
+                    <span className={cn("font-medium text-sm", card.selected ? "text-foreground" : "text-foreground-low")}>
+                      {card.title}
+                    </span>
+                    <span className={cn("text-sm", card.selected ? "text-muted-foreground" : "text-foreground-low")}>
+                      {card.description}
+                    </span>
+                  </button>
+                </Card>
               ))}
             </div>
           </div>

@@ -1,16 +1,17 @@
-import { IconSearch } from "@tabler/icons-react";
 import { featuredAgents, featuredSkills, marketplaceCategories } from "@/lib/mock/marketplace";
+import { PageHeading } from "@/components/patterns/page-heading";
+import { SearchInput } from "@/components/patterns/search-input";
 import { AgentListingCard } from "@/components/marketplace/agent-listing-card";
 import { CategoryCard } from "@/components/marketplace/category-card";
 import { MarketplaceHero } from "@/components/marketplace/marketplace-hero";
-import { SiteInput } from "@/components/marketplace/site-input";
 import { SkillListingCard } from "@/components/marketplace/skill-listing-card";
 
 // Everything inside <main> on hyperagent.com/marketplace, transcribed from
 // docs/reference/pages/marketplace.html: title + search, the hero banner,
 // "Featured agents", "Featured skills" and "Browse by category". Phase 2:
 // the titles sit in the heading face on the brand type scale (the scale
-// carries their weight and tracking) and the search is the pill input group
+// carries their weight and tracking; the page title one step up, `text-3xl`)
+// and the search is the shared pill field with its icon on the third tier
 // (docs/brand/design.md §4, §5).
 
 function MarketplaceSection({
@@ -38,18 +39,22 @@ export function MarketplacePage() {
       <div className="flex h-full flex-col overflow-hidden">
         <div className="flex-1 overflow-y-auto">
           <div className="mx-auto max-w-7xl space-y-10 p-8">
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <h1 className="font-heading text-3xl text-foreground">Marketplace</h1>
-              <div className="relative w-full sm:w-80 lg:w-[420px]">
-                <SiteInput
-                  type="text"
-                  icon={<IconSearch aria-hidden="true" />}
-                  placeholder="Search the marketplace"
-                  aria-label="Search the marketplace"
-                  defaultValue=""
-                />
-              </div>
-            </div>
+            <PageHeading
+              className="flex-row flex-wrap items-center justify-between"
+              titleClassName="text-3xl"
+              title="Marketplace"
+              actions={
+                <div className="relative w-full sm:w-80 lg:w-[420px]">
+                  <SearchInput
+                    type="text"
+                    iconClassName="text-foreground-low"
+                    placeholder="Search the marketplace"
+                    aria-label="Search the marketplace"
+                    defaultValue=""
+                  />
+                </div>
+              }
+            />
 
             <MarketplaceHero />
 

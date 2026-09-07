@@ -1,5 +1,6 @@
 import { IconDownload, IconStar } from "@tabler/icons-react";
 import { Badge } from "@/components/ui/badge";
+import { IconTile } from "@/components/ui/icon-tile";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import type { ListingAuthor, ListingTags } from "@/lib/mock/marketplace";
 
@@ -47,12 +48,9 @@ export function AuthorAvatar({ author }: { author: ListingAuthor }) {
   // A letter on a tint ground: the third tier steps up to muted-foreground
   // there (design.md §4.1).
   return (
-    <div
-      data-slot="icon-tile"
-      className="flex shrink-0 items-center justify-center size-5 rounded-full bg-tint-10 text-muted-foreground font-medium text-[10px]"
-    >
+    <IconTile size="xs" shape="circle" tone="tint">
       {author.name.charAt(0).toUpperCase()}
-    </div>
+    </IconTile>
   );
 }
 
