@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowDown } from "lucide-react";
 import { ScrollArea as ScrollAreaPrimitive } from "radix-ui";
 import { cn } from "@/lib/utils";
@@ -16,6 +16,10 @@ import { UserMessage } from "@/components/thread/user-message";
 // The thread detail screen from hyperagent.com (docs/reference/pages/
 // thread-detail.html): a rounded panel holding the top bar, a radix scroll
 // area with the conversation pinned to its bottom edge, and the composer.
+// Phase 2: the panel is a 22px paper card edged with the brand hairline; the
+// site's per-thread accent (a navy that tinted the bubble and the send
+// button) is gone, the shared composer carries its own skin and the user
+// bubble is the brand's (docs/brand/design.md §1, §5).
 //
 // The dump also carries, at z-0 behind the chat column, a blurred radial
 // gradient backdrop (`background-color: rgb(183, 172, 180)` plus three
@@ -72,21 +76,13 @@ export function ThreadView({ thread, conversation }: { thread: Thread; conversat
     if (el) setAtBottom(el.scrollHeight - el.scrollTop - el.clientHeight < SCROLL_END_THRESHOLD);
   };
 
-  // The thread accent tints the send button (the site sets its colour inline
-  // per thread). <Composer> has no prop for it, so the primary tokens are
-  // re-pointed for the composer subtree only.
-  const composerAccent = {
-    "--primary": conversation.accent.send,
-    "--primary-foreground": conversation.accent.sendForeground,
-  } as CSSProperties;
-
   return (
     <div className="flex-1 overflow-y-auto md:pt-2 md:pr-2 md:pb-2">
       <div className="relative flex h-full flex-col">
-        <div className="relative flex min-h-0 min-w-0 flex-1 overflow-clip rounded-[16px] border border-black/[0.08]">
-          <div className="relative z-10 h-full min-h-0 bg-muted min-w-0 flex-1 transition-[width] duration-300 ease-out">
+        <div className="relative flex min-h-0 min-w-0 flex-1 overflow-clip rounded-3xl border border-border-subtle">
+          <div className="relative z-10 h-full min-h-0 bg-surface-secondary min-w-0 flex-1 transition-[width] duration-(--duration-slow) ease-out">
             <div className="safe-area-bottom relative flex h-full min-w-0 flex-col bg-background">
-              <div className="relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden border-border border-r bg-background">
+              <div className="relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden border-border-subtle border-r bg-background">
                 <ThreadHeader title={thread.title} model={conversation.model} starred={thread.starred} />
 
                 <ScrollAreaPrimitive.Root data-slot="scroll-area" className="relative overflow-hidden min-h-0 min-w-0 flex-1">
@@ -94,7 +90,7 @@ export function ThreadView({ thread, conversation }: { thread: Thread; conversat
                     ref={viewportRef}
                     data-slot="scroll-area-viewport"
                     onScroll={handleScroll}
-                    className="size-full overflow-auto rounded-[inherit] outline-none transition-[color,box-shadow] focus-visible:outline-1 focus-visible:ring-[3px] focus-visible:ring-ring/50 [overflow-anchor:none] pb-10 [&>div]:!flex [&>div]:!flex-col [&>div]:!justify-end [&>div]:!min-h-full"
+                    className="size-full overflow-auto rounded-[inherit] outline-none transition-[color,box-shadow] duration-(--duration-fast) ease-out-quart focus-visible:outline-1 focus-visible:ring-[3px] focus-visible:ring-ring/50 [overflow-anchor:none] pb-10 [&>div]:!flex [&>div]:!flex-col [&>div]:!justify-end [&>div]:!min-h-full"
                   >
                     <div className="min-w-0 space-y-2 pt-4 mx-auto w-full max-w-[816px] px-6">
                       {groupTurns(conversation.items).map((turn, i) => {
@@ -106,7 +102,6 @@ export function ThreadView({ thread, conversation }: { thread: Thread; conversat
                               text={turn.item.text}
                               knowledgeHints={turn.item.knowledgeHints}
                               sentAtLabel={turn.item.sentAtLabel}
-                              accent={conversation.accent.bubble}
                             />
                           );
                         }
@@ -133,17 +128,18 @@ export function ThreadView({ thread, conversation }: { thread: Thread; conversat
                   <div className="pointer-events-none absolute right-0 bottom-full left-0 h-8 bg-gradient-to-t from-background to-background/0" />
                   <div
                     className={cn(
-                      "pointer-events-none absolute right-0 bottom-full left-0 z-10 mb-2 flex justify-center transition-all duration-200",
+                      "pointer-events-none absolute right-0 bottom-full left-0 z-10 mb-2 flex justify-center transition-[opacity,transform] duration-(--duration-normal) ease-out",
                       atBottom ? "translate-y-2 opacity-0" : "translate-y-0 opacity-100",
                     )}
                   >
+                    {/* A floating glass pill: the raised-control shadow over a hairline ring (design.md §6). */}
                     <button
                       type="button"
                       tabIndex={-1}
                       aria-hidden={atBottom}
                       onClick={() => scrollToBottom("smooth")}
                       className={cn(
-                        "flex items-center gap-1.5 rounded-full border border-border/50 bg-background/90 px-4 py-2 text-muted-foreground text-xs shadow-md backdrop-blur-sm transition-colors hover:bg-background hover:text-foreground",
+                        "flex items-center gap-1.5 rounded-full bg-surface-elevated/90 px-4 py-2 text-muted-foreground text-xs shadow-md ring-1 ring-border-subtle backdrop-blur-sm transition-[color,background-color] duration-(--duration-fast) ease-out-quart hover:bg-surface-elevated hover:text-foreground",
                         atBottom ? "pointer-events-none" : "pointer-events-auto cursor-pointer",
                       )}
                     >
@@ -156,9 +152,7 @@ export function ThreadView({ thread, conversation }: { thread: Thread; conversat
                       <div className="pointer-events-none absolute -top-9 right-3 z-20">
                         <div className="pointer-events-auto" />
                       </div>
-                      <div style={composerAccent}>
-                        <Composer placeholder="Add a follow-up..." showAgentPicker={false} className="shrink-0" />
-                      </div>
+                      <Composer placeholder="Add a follow-up..." showAgentPicker={false} className="shrink-0" />
                     </div>
                   </div>
                 </div>

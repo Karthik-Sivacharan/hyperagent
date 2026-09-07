@@ -2,37 +2,31 @@ import { Copy, GitFork, ThumbsDown, ThumbsUp } from "lucide-react";
 
 // The hover toolbar under an assistant message (thumbs, copy, fork). Markup
 // from docs/reference/pages/thread-detail.html; it fades in on `group-hover`
-// of the message row.
+// of the message row. Phase 2: round icon buttons resting on the third text
+// tier; the feedback pair hovers to the quiet status tints (`bg-success/10
+// text-success`, the sanctioned status use), copy and fork to a sand tint
+// (docs/brand/design.md §1, §5, §8).
+const ACTION =
+  "cursor-pointer rounded-full p-1 text-foreground-low transition-[color,background-color] duration-(--duration-fast) ease-out-quart";
+
 export function MessageActions() {
   return (
-    <div className="flex items-center justify-between gap-1 mt-0.5 opacity-0 transition-opacity group-hover:opacity-100">
+    <div className="flex items-center justify-between gap-1 mt-0.5 opacity-0 transition-opacity duration-(--duration-normal) ease-out group-hover:opacity-100">
       <div className="flex items-center gap-1">
-        <button
-          type="button"
-          aria-label="Good response"
-          className="rounded p-1 transition-colors cursor-pointer text-muted-foreground/50 hover:bg-green-500/20 hover:text-green-600 dark:hover:text-green-400"
-        >
+        <button type="button" aria-label="Good response" className={`${ACTION} hover:bg-success/10 hover:text-success`}>
           <ThumbsUp className="size-3.5" aria-hidden="true" />
         </button>
-        <button
-          type="button"
-          aria-label="Bad response"
-          className="rounded p-1 transition-colors cursor-pointer text-muted-foreground/50 hover:bg-amber-500/20 hover:text-amber-600 dark:hover:text-amber-400"
-        >
+        <button type="button" aria-label="Bad response" className={`${ACTION} hover:bg-warning/10 hover:text-warning`}>
           <ThumbsDown className="size-3.5" aria-hidden="true" />
         </button>
-        <button
-          type="button"
-          aria-label="Copy message"
-          className="cursor-pointer rounded p-1 transition-colors text-muted-foreground/50 hover:bg-muted/50 hover:text-foreground"
-        >
+        <button type="button" aria-label="Copy message" className={`${ACTION} hover:bg-tint-10 hover:text-foreground`}>
           <Copy className="size-3.5" aria-hidden="true" />
         </button>
         <span className="inline-flex">
           <button
             type="button"
             aria-label="Fork from here"
-            className="cursor-pointer rounded p-1 text-muted-foreground/50 transition-colors hover:bg-muted/50 hover:text-foreground disabled:pointer-events-none disabled:text-muted-foreground/30"
+            className={`${ACTION} hover:bg-tint-10 hover:text-foreground disabled:pointer-events-none disabled:opacity-50`}
           >
             <GitFork className="size-3.5" aria-hidden="true" />
           </button>
