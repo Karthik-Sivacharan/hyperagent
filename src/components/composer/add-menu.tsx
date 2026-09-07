@@ -81,16 +81,16 @@ function PickerPanel({
   return (
     <DropdownMenuSubContent className="w-[300px] p-0">
       <div className="flex w-full flex-col overflow-hidden p-1">
-        <div className="flex items-center gap-2 rounded-sm px-2 py-1.5">
+        <div className="flex items-center gap-2 rounded-md px-2 py-1.5">
           <Search className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
           <input
             placeholder={placeholder}
-            className="h-5 w-full bg-transparent text-[13px] text-muted-foreground outline-none placeholder:text-muted-foreground"
+            className="h-5 w-full bg-transparent text-[13px] text-foreground outline-none placeholder:text-foreground-low"
             type="text"
             onKeyDown={(e) => e.stopPropagation()}
           />
         </div>
-        <div className="mx-2 my-1 h-px bg-border" />
+        <div className="mx-2 my-1 h-px bg-border-subtle" />
         <div className="max-h-[280px] overflow-y-auto">
           {items.length === 0 && <div className="px-2 py-1.5 text-muted-foreground text-sm">{empty}</div>}
           {items.map((name) => (
@@ -98,7 +98,7 @@ function PickerPanel({
               <TooltipTrigger asChild>
                 <button
                   type="button"
-                  className="flex w-full min-w-0 cursor-pointer items-center gap-2 overflow-hidden rounded-sm px-2 py-1.5 text-left transition-colors hover:bg-accent"
+                  className="flex w-full min-w-0 cursor-pointer items-center gap-2 overflow-hidden rounded-md px-2 py-1.5 text-left transition-colors duration-(--duration-instant) hover:bg-tint-10"
                 >
                   <div className="flex size-5 shrink-0 items-center justify-center">
                     <Icon className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />

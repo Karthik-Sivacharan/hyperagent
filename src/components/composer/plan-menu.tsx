@@ -36,9 +36,9 @@ function ModeBody({ mode, selected }: { mode: ExecutionMode; selected: boolean }
   const { label, description } = EXECUTION_MODES[mode];
   return (
     <>
-      <Check className={cn("mt-0.5 size-4 shrink-0", selected ? "text-blue-500" : "opacity-0")} aria-hidden="true" />
+      <Check className={cn("mt-0.5 size-4 shrink-0", selected ? "text-brand-accent" : "opacity-0")} aria-hidden="true" />
       <div className="min-w-0 flex-1">
-        <div className={cn("text-sm", selected ? "font-medium text-blue-500" : "font-normal text-foreground")}>{label}</div>
+        <div className={cn("text-sm text-foreground", selected ? "font-medium" : "font-normal")}>{label}</div>
         <div className="text-muted-foreground text-xs leading-4">{description}</div>
       </div>
     </>
@@ -73,9 +73,9 @@ export function PlanMenu({
         </DropdownMenuItem>
         <DropdownMenuSub>
           <DropdownMenuSubTrigger className="items-start">
-            <Check className={cn("mt-0.5 size-4 shrink-0", executing ? "text-blue-500" : "opacity-0")} aria-hidden="true" />
+            <Check className={cn("mt-0.5 size-4 shrink-0", executing ? "text-brand-accent" : "opacity-0")} aria-hidden="true" />
             <div className="min-w-0 flex-1">
-              <div className={cn("text-sm", executing ? "font-medium text-blue-500" : "font-normal text-foreground")}>Execute</div>
+              <div className={cn("text-sm text-foreground", executing ? "font-medium" : "font-normal")}>Execute</div>
               <div className="text-muted-foreground text-xs leading-4">Act immediately without a plan</div>
             </div>
           </DropdownMenuSubTrigger>

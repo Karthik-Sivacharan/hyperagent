@@ -4,33 +4,35 @@ import { cva, type VariantProps } from "class-variance-authority";
 
 import { cn } from "@/lib/utils";
 
-// hyperagent.com's button: stock shadcn (radix) button plus `cursor-pointer`,
-// `shrink-0` and `font-ui` in the base. Variant and size strings are copied
-// from the site's rendered markup (see docs/reference/pages/*.html, buttons
-// carry data-variant / data-size), so <Button> output matches byte for byte.
+// Phase 2: the brand button. Every control is a pill, the default is INK and
+// `brand` (tangerine) is the single CTA; hover fills are tints, motion is the
+// 150ms quart-out with press feedback under motion-safe (docs/brand/design.md
+// §5, §8). The size API is Hyperagent's (default / xs / sm / lg / icon /
+// icon-xs / icon-sm / icon-lg) with the phase-1 heights, so page layouts keep
+// their metrics; only the skin changes.
 const buttonVariants = cva(
-  "inline-flex shrink-0 cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-md font-medium font-ui text-sm outline-none transition-all focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0",
+  "group/button inline-flex shrink-0 cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-full font-medium text-sm select-none outline-none transition-[color,background-color,box-shadow,transform] duration-(--duration-fast) ease-out-quart focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background motion-safe:active:scale-(--scale-press) disabled:pointer-events-none disabled:opacity-50 aria-invalid:ring-2 aria-invalid:ring-destructive/40 [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0",
   {
     variants: {
       variant: {
         default: "bg-primary text-primary-foreground hover:bg-primary/90",
-        destructive:
-          "bg-destructive text-white hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:bg-destructive/60 dark:focus-visible:ring-destructive/40",
-        outline:
-          "border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50",
-        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
-        ghost: "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
-        link: "text-primary underline-offset-4 hover:underline",
+        brand: "bg-brand text-brand-foreground shadow-sm hover:bg-brand/90",
+        destructive: "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:ring-destructive/30",
+        outline: "bg-background text-foreground shadow-edge hover:bg-tint-10 aria-expanded:bg-tint-10",
+        secondary: "bg-surface-secondary text-foreground hover:bg-tint-15 aria-expanded:bg-tint-15",
+        ghost: "text-foreground hover:bg-tint-10 aria-expanded:bg-tint-10",
+        chip: "bg-chip text-chip-foreground hover:bg-accent hover:text-foreground aria-pressed:bg-primary aria-pressed:text-primary-foreground",
+        link: "text-foreground underline-offset-4 hover:underline",
       },
       size: {
         default: "h-9 px-4 py-2 has-[>svg]:px-3",
-        xs: "h-7 gap-1 rounded-md px-2.5 text-xs has-[>svg]:px-2",
-        sm: "h-8 gap-1.5 rounded-md px-3 has-[>svg]:px-2.5",
-        lg: "h-10 rounded-md px-6 has-[>svg]:px-4",
-        icon: "size-9",
-        "icon-xs": "size-6",
-        "icon-sm": "size-8",
-        "icon-lg": "size-10",
+        xs: "h-7 gap-1 px-2.5 text-xs has-[>svg]:px-2",
+        sm: "h-8 gap-1.5 px-3 has-[>svg]:px-2.5",
+        lg: "h-10 px-6 has-[>svg]:px-4",
+        icon: "size-9 motion-safe:active:scale-(--scale-press-icon)",
+        "icon-xs": "size-6 motion-safe:active:scale-(--scale-press-icon)",
+        "icon-sm": "size-8 motion-safe:active:scale-(--scale-press-icon)",
+        "icon-lg": "size-10 motion-safe:active:scale-(--scale-press-icon)",
       },
     },
     defaultVariants: {

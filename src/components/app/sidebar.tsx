@@ -44,10 +44,12 @@ import { ThreadContextMenu, ThreadOptionsMenu } from "@/components/app/thread-me
 import { currentUser } from "@/lib/mock/user";
 import { recentThreads } from "@/lib/mock/threads";
 
-// Markup and classes are transcribed from hyperagent.com's sidebar
+// Markup is transcribed from hyperagent.com's sidebar
 // (docs/reference/pages/threads-new.html for the expanded column,
-// docs/reference/overlays/sidebar-collapsed.html for the 64px rail). Keep the
-// class strings verbatim; they are the source of the pixel match. Every menu,
+// docs/reference/overlays/sidebar-collapsed.html for the 64px rail); the
+// layout and metrics are kept. Phase 2 re-skins it with the brand language:
+// the sidebar surface token, pill rows with tint hover / active fills,
+// group labels as caps on the third text tier, brand motion. Every menu,
 // tooltip and toggle is local state only.
 
 const SIDEBAR_WIDTH = 256;
@@ -56,7 +58,7 @@ const SIDEBAR_MAX = 500;
 const RAIL_WIDTH = 64;
 
 const NAV_ITEM =
-  "flex w-full cursor-pointer items-center gap-2 overflow-hidden rounded-[8px] transition-all duration-200 ease-out px-3.5 py-1.5 text-sm";
+  "flex w-full cursor-pointer items-center gap-2 overflow-hidden rounded-full transition-[color,background-color] duration-(--duration-normal) ease-out px-3.5 py-1.5 text-sm";
 
 /** Every nav item is a tooltip trigger; the tooltip only renders on the rail. */
 function RailTooltip({ label, collapsed, children }: { label: string; collapsed: boolean; children: React.ReactNode }) {
@@ -109,10 +111,10 @@ function NavLink({
         className={cn(
           NAV_ITEM,
           active
-            ? "bg-primary/10 text-foreground"
+            ? "bg-tint-15 font-medium text-foreground"
             : muted
-              ? "text-muted-foreground hover:bg-accent hover:text-foreground"
-              : "text-foreground hover:bg-accent",
+              ? "text-muted-foreground hover:bg-tint-10 hover:text-foreground"
+              : "text-foreground hover:bg-tint-10",
         )}
       >
         <div className="flex shrink-0 items-center justify-center h-5 w-5">
@@ -142,13 +144,13 @@ function SectionHeader({
 }) {
   const Chevron = expanded ? ChevronDown : ChevronRight;
   return (
-    <div className="group mb-1 flex items-center gap-1 font-medium text-muted-foreground pr-1 text-xs">
+    <div className="group mb-1 flex items-center gap-1 text-label-12-caps text-foreground-low pr-1">
       <button
         type="button"
         aria-label={ariaLabel}
         aria-expanded={expanded}
         onClick={onToggle}
-        className="flex min-w-0 flex-1 cursor-pointer items-center gap-1 rounded-[6px] py-1 pl-3.5 transition-colors hover:text-foreground"
+        className="flex min-w-0 flex-1 cursor-pointer items-center gap-1 rounded-full py-1 pl-3.5 transition-colors duration-(--duration-fast) hover:text-foreground"
       >
         <span className="whitespace-nowrap">{label}</span>
         <div className="flex items-center justify-center">
@@ -254,7 +256,7 @@ export function Sidebar() {
         type="button"
         data-variant="ghost"
         data-size="default"
-        className="inline-flex shrink-0 items-center whitespace-nowrap font-medium font-ui outline-none transition-all focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0 dark:hover:bg-accent/50 h-auto w-full cursor-pointer justify-start gap-2 overflow-hidden rounded-[8px] px-2 text-muted-foreground hover:bg-accent hover:text-foreground has-[>svg]:px-2 py-1.5 text-sm"
+        className="inline-flex shrink-0 items-center whitespace-nowrap font-medium outline-none transition-[color,background-color] duration-(--duration-normal) ease-out focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0 h-auto w-full cursor-pointer justify-start gap-2 overflow-hidden rounded-2xl px-2 text-muted-foreground hover:bg-tint-10 hover:text-foreground has-[>svg]:px-2 py-1.5 text-sm"
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
@@ -281,7 +283,7 @@ export function Sidebar() {
       <button
         type="button"
         aria-label="New agent"
-        className="flex cursor-pointer items-center justify-center rounded-[6px] p-1 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground data-[state=open]:opacity-100 opacity-0 focus-visible:opacity-100 group-hover:opacity-100 group-has-[:focus-visible]:opacity-100"
+        className="flex cursor-pointer items-center justify-center rounded-full p-1 text-muted-foreground transition-colors hover:bg-tint-15 hover:text-foreground data-[state=open]:opacity-100 opacity-0 focus-visible:opacity-100 group-hover:opacity-100 group-has-[:focus-visible]:opacity-100"
       >
         <Plus className="size-3.5" aria-hidden="true" />
       </button>
@@ -299,7 +301,7 @@ export function Sidebar() {
       <div ref={columnRef} className="relative h-full shrink-0" style={{ width: collapsed ? RAIL_WIDTH : width }}>
         <div className="absolute inset-0 z-30 overflow-hidden">
           <div className="h-full overflow-hidden">
-            <div className="relative h-full overflow-hidden border-sidebar-border border-r bg-[#f5f5f5] dark:bg-sidebar">
+            <div className="relative h-full overflow-hidden border-sidebar-border border-r bg-sidebar">
               <div className="flex h-full flex-col">
                 {/* Header: logo + collapse */}
                 <div className="mt-1 flex shrink-0 items-center gap-2 overflow-hidden pl-[22px] h-14 pr-3">
@@ -321,7 +323,7 @@ export function Sidebar() {
                         type="button"
                         aria-label="Open sidebar"
                         onClick={toggleCollapsed}
-                        className="group absolute top-1/2 left-0 -ml-3.5 flex -translate-y-1/2 cursor-pointer items-center rounded-[8px] px-3.5 py-1.5 transition-all duration-200 ease-out hover:bg-accent"
+                        className="group absolute top-1/2 left-0 -ml-3.5 flex -translate-y-1/2 cursor-pointer items-center rounded-full px-3.5 py-1.5 transition-[color,background-color] duration-(--duration-normal) ease-out hover:bg-tint-10"
                       >
                         <Tooltip>
                           <TooltipTrigger asChild>
@@ -338,7 +340,7 @@ export function Sidebar() {
                   <Button
                     variant="ghost"
                     size="icon-xs"
-                    className={cn("size-6 rounded-[6px] text-muted-foreground duration-200", collapsed && "pointer-events-none opacity-0")}
+                    className={cn("size-6 text-muted-foreground duration-(--duration-normal)", collapsed && "pointer-events-none opacity-0")}
                     aria-label={collapsed ? "Pin sidebar" : "Hide sidebar"}
                     onClick={toggleCollapsed}
                   >
@@ -348,7 +350,7 @@ export function Sidebar() {
 
                 <div
                   aria-hidden="true"
-                  className="pointer-events-none relative z-10 -mb-6 h-6 shrink-0 bg-gradient-to-t transition-opacity duration-150 from-[#f5f5f500] to-[#f5f5f5] dark:from-sidebar-fade dark:to-sidebar opacity-0"
+                  className="pointer-events-none relative z-10 -mb-6 h-6 shrink-0 bg-gradient-to-t transition-opacity duration-150 from-sidebar-fade to-sidebar opacity-0"
                 />
 
                 <nav className={cn("flex-1 overflow-y-auto overflow-x-hidden py-2", collapsed && "scrollbar-hide", "px-2")}>
@@ -359,7 +361,7 @@ export function Sidebar() {
                         <button
                           type="button"
                           onClick={() => setSearchOpen(true)}
-                          className="group flex w-full cursor-pointer items-center gap-2 overflow-hidden rounded-[8px] text-foreground transition-all duration-200 ease-out hover:bg-accent px-3.5 pr-2 py-1.5 text-sm"
+                          className="group flex w-full cursor-pointer items-center gap-2 overflow-hidden rounded-full text-foreground transition-[color,background-color] duration-(--duration-normal) ease-out hover:bg-tint-10 px-3.5 pr-2 py-1.5 text-sm"
                         >
                           <div className="flex shrink-0 items-center justify-center h-5 w-5">
                             <Search className="h-4 w-4" aria-hidden="true" />
@@ -380,7 +382,7 @@ export function Sidebar() {
                             <button
                               type="button"
                               aria-label="Agents"
-                              className="flex w-full cursor-pointer items-center gap-2 overflow-hidden rounded-[8px] transition-all duration-200 ease-out px-3.5 py-1.5 text-sm text-foreground hover:bg-accent"
+                              className="flex w-full cursor-pointer items-center gap-2 overflow-hidden rounded-full transition-[color,background-color] duration-(--duration-normal) ease-out px-3.5 py-1.5 text-sm text-foreground hover:bg-tint-10"
                             >
                               <div className="flex shrink-0 items-center justify-center h-5 w-5">
                                 <Bot className="h-4 w-4" aria-hidden="true" />
@@ -394,7 +396,7 @@ export function Sidebar() {
                             <button
                               type="button"
                               aria-label="Threads"
-                              className="flex w-full cursor-pointer items-center gap-2 overflow-hidden rounded-[8px] transition-all duration-200 ease-out px-3.5 py-1.5 text-sm text-foreground hover:bg-accent"
+                              className="flex w-full cursor-pointer items-center gap-2 overflow-hidden rounded-full transition-[color,background-color] duration-(--duration-normal) ease-out px-3.5 py-1.5 text-sm text-foreground hover:bg-tint-10"
                             >
                               <div className="flex shrink-0 items-center justify-center h-5 w-5">
                                 <MessageCircle className="h-4 w-4" aria-hidden="true" />
@@ -426,7 +428,7 @@ export function Sidebar() {
                             <NewAgentMenu>
                               <button
                                 type="button"
-                                className="flex w-full cursor-pointer items-center gap-2 overflow-hidden rounded-[8px] text-muted-foreground transition-all duration-200 ease-out hover:bg-accent hover:text-foreground px-3.5 py-1.5 text-sm"
+                                className="flex w-full cursor-pointer items-center gap-2 overflow-hidden rounded-full text-muted-foreground transition-[color,background-color] duration-(--duration-normal) ease-out hover:bg-tint-10 hover:text-foreground px-3.5 py-1.5 text-sm"
                               >
                                 <div className="flex shrink-0 items-center justify-center h-5 w-5">
                                   <Plus className="h-4 w-4" aria-hidden="true" />
@@ -451,7 +453,7 @@ export function Sidebar() {
                                 <Link
                                   aria-label="New thread"
                                   href="/threads/new"
-                                  className="flex cursor-pointer items-center justify-center rounded-[6px] p-1 text-muted-foreground opacity-0 transition-colors hover:bg-accent hover:text-foreground focus-visible:opacity-100 group-hover:opacity-100 group-has-[:focus-visible]:opacity-100"
+                                  className="flex cursor-pointer items-center justify-center rounded-full p-1 text-muted-foreground opacity-0 transition-colors hover:bg-tint-15 hover:text-foreground focus-visible:opacity-100 group-hover:opacity-100 group-has-[:focus-visible]:opacity-100"
                                 >
                                   <Plus className="size-3.5" aria-hidden="true" />
                                 </Link>
@@ -467,8 +469,8 @@ export function Sidebar() {
                                         <div
                                           tabIndex={-1}
                                           className={cn(
-                                            "group relative flex items-center rounded-[8px] transition-all duration-200 ease-out text-foreground",
-                                            active ? "bg-primary/10" : "hover:bg-accent",
+                                            "group relative flex items-center rounded-full transition-[color,background-color] duration-(--duration-normal) ease-out text-foreground",
+                                            active ? "bg-tint-15 font-medium" : "hover:bg-tint-10",
                                           )}
                                         >
                                           <Link
@@ -492,7 +494,7 @@ export function Sidebar() {
                                                 <Button
                                                   variant="ghost"
                                                   size="icon"
-                                                  className="size-6 rounded-[6px] bg-accent dark:hover:bg-accent"
+                                                  className="size-6 bg-tint-15 hover:bg-tint-20"
                                                   aria-label={`Options for ${thread.title}`}
                                                 >
                                                   <Ellipsis className="size-4" />
@@ -509,9 +511,9 @@ export function Sidebar() {
                                 <Link
                                   href="/threads"
                                   className={cn(
-                                    "flex w-full cursor-pointer items-center gap-2 overflow-hidden rounded-[8px]",
-                                    isActive("/threads") ? "bg-primary/10 text-foreground" : "text-muted-foreground",
-                                    "transition-all duration-200 ease-out hover:bg-accent hover:text-foreground px-3.5 py-1.5 text-sm",
+                                    "flex w-full cursor-pointer items-center gap-2 overflow-hidden rounded-full",
+                                    isActive("/threads") ? "bg-tint-15 font-medium text-foreground" : "text-muted-foreground",
+                                    "transition-[color,background-color] duration-(--duration-normal) ease-out hover:bg-tint-10 hover:text-foreground px-3.5 py-1.5 text-sm",
                                   )}
                                 >
                                   <div className="flex shrink-0 items-center justify-center h-5 w-5">
@@ -530,7 +532,7 @@ export function Sidebar() {
                           className={cn(
                             "mb-1",
                             !collapsed && "flex",
-                            "items-center gap-1 py-1 pl-3.5 font-medium text-muted-foreground pr-1 text-xs",
+                            "items-center gap-1 py-1 pl-3.5 text-label-12-caps text-foreground-low pr-1",
                             collapsed && "hidden",
                           )}
                         >
@@ -547,7 +549,7 @@ export function Sidebar() {
                                 aria-label="Learning"
                                 className={cn(
                                   NAV_ITEM,
-                                  isActive("/learning") ? "bg-primary/10 text-foreground" : "text-foreground hover:bg-accent",
+                                  isActive("/learning") ? "bg-tint-15 font-medium text-foreground" : "text-foreground hover:bg-tint-10",
                                 )}
                               >
                                 <div className="flex shrink-0 items-center justify-center h-5 w-5">
@@ -569,7 +571,7 @@ export function Sidebar() {
 
                 <div
                   aria-hidden="true"
-                  className="pointer-events-none relative z-10 -mt-6 h-6 shrink-0 bg-gradient-to-b transition-opacity duration-150 from-[#f5f5f500] to-[#f5f5f5] dark:from-sidebar-fade dark:to-sidebar opacity-0"
+                  className="pointer-events-none relative z-10 -mt-6 h-6 shrink-0 bg-gradient-to-b transition-opacity duration-150 from-sidebar-fade to-sidebar opacity-0"
                 />
 
                 {/* Account */}
@@ -597,7 +599,7 @@ export function Sidebar() {
                   onPointerDown={onResizeStart}
                   onDoubleClick={() => setWidth(SIDEBAR_WIDTH)}
                 >
-                  <div className="h-8 w-[3px] rounded-full transition-colors bg-transparent group-hover:bg-muted-foreground/25" />
+                  <div className="h-8 w-[3px] rounded-full transition-colors bg-transparent group-hover:bg-tint-40" />
                 </div>
               )}
             </div>

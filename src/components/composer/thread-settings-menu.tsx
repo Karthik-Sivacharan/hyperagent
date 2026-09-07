@@ -60,14 +60,14 @@ const PROVIDERS: { key: Provider; label: string; logo?: Logo }[] = [
   { key: "open", label: "Open weights" },
 ];
 
-const GROUP_HEADING = "flex items-center gap-1 px-2 py-1.5 font-medium text-muted-foreground text-xs";
+const GROUP_HEADING = "flex items-center gap-1 px-2 py-1.5 text-label-12-caps text-foreground-low";
 
 function ModelRow({ model, selected, onSelect }: { model: Model; selected: boolean; onSelect: () => void }) {
   const Logo = model.logo;
   return (
     <button
       type="button"
-      className="flex w-full cursor-pointer items-start gap-2 rounded-sm px-2 py-1.5 text-left text-sm transition-colors hover:bg-accent"
+      className="flex w-full cursor-pointer items-start gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors duration-(--duration-instant) hover:bg-tint-10"
       aria-pressed={selected}
       onClick={onSelect}
     >
@@ -119,7 +119,7 @@ export function ThreadSettingsMenu({
       <DropdownMenuContent align="start" className="w-[calc(100vw-2rem)] max-w-80 p-1">
         <div className="">
           <DropdownMenuSub>
-            <DropdownMenuSubTrigger className="flex items-center gap-2 rounded-sm pl-2 pr-1 py-1.5" data-dd-action-name="Model picker">
+            <DropdownMenuSubTrigger className="flex items-center gap-2 pl-2 pr-1 py-1.5" data-dd-action-name="Model picker">
               <Brain className="size-4" aria-hidden="true" />
               <span className="flex-1 text-sm">Model</span>
               <span className="text-muted-foreground text-sm">
@@ -128,7 +128,7 @@ export function ThreadSettingsMenu({
                   <span className="truncate">{current.name}</span>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <span className="inline-flex shrink-0 items-center rounded-[4px] border border-border bg-transparent px-[8px] py-[2px] font-normal text-[12px] text-muted-foreground leading-[16px]">
+                      <span className="inline-flex shrink-0 items-center rounded-full bg-tint-10 px-2 py-0.5 font-medium text-xs text-muted-foreground leading-4">
                         Latest
                       </span>
                     </TooltipTrigger>
@@ -186,15 +186,15 @@ export function ThreadSettingsMenu({
                   <button
                     key={e.label}
                     type="button"
-                    className="flex w-full items-start gap-2 rounded-sm px-2 py-1.5 text-left transition-colors hover:bg-accent"
+                    className="flex w-full cursor-pointer items-start gap-2 rounded-md px-2 py-1.5 text-left transition-colors duration-(--duration-instant) hover:bg-tint-10"
                     onClick={() => {
                       onEffortChange(e.label);
                       setOpen(false);
                     }}
                   >
-                    <Check className={cn("mt-0.5 size-4 shrink-0", selected ? "text-blue-500" : "opacity-0")} aria-hidden="true" />
+                    <Check className={cn("mt-0.5 size-4 shrink-0", selected ? "text-brand-accent" : "opacity-0")} aria-hidden="true" />
                     <div className="min-w-0 flex-1">
-                      <div className={cn("truncate text-sm leading-5", selected ? "font-medium text-blue-500" : "font-normal text-foreground")}>
+                      <div className={cn("truncate text-sm leading-5 text-foreground", selected ? "font-medium" : "font-normal")}>
                         {e.label}
                       </div>
                       <div className="whitespace-normal text-muted-foreground text-xs leading-4">{e.description}</div>
@@ -256,7 +256,7 @@ export function ThreadSettingsMenu({
         <DropdownMenuSeparator />
         <button
           type="button"
-          className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-muted-foreground text-sm transition-colors hover:bg-accent hover:text-foreground"
+          className="flex w-full cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-muted-foreground text-sm transition-colors duration-(--duration-instant) hover:bg-tint-10 hover:text-foreground"
           onClick={() => {
             setOpen(false);
             router.push("/settings");

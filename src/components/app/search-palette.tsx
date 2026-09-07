@@ -30,9 +30,9 @@ import { recentThreads } from "@/lib/mock/threads";
 // routes. Only local state; selecting navigates when the route exists here.
 
 const KBD =
-  "inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-[4px] px-1 font-mono text-[10px] border bg-background text-muted-foreground leading-none shadow-sm";
+  "inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-sm px-1 font-mono text-[10px] bg-tint-10 text-muted-foreground leading-none";
 const FOOTER_KBD =
-  "inline-flex h-[18px] items-center justify-center rounded border bg-muted px-1 font-mono text-[9px]";
+  "inline-flex h-[18px] items-center justify-center rounded-sm bg-tint-10 px-1 font-mono text-[9px]";
 
 type GoTo = { value: string; label: string; icon: LucideIcon; href?: string };
 
@@ -105,7 +105,7 @@ export function SearchPalette({ open, onOpenChange }: { open: boolean; onOpenCha
               <CommandItem
                 key={thread.id}
                 value={thread.id}
-                className="!pr-3 flex h-12 items-center gap-2 overflow-hidden rounded-md px-2 py-1.5 group"
+                className="!pr-3 flex h-12 items-center gap-2 overflow-hidden rounded-xl px-2 py-1.5 group"
                 data-copy-thread-id={thread.id}
                 onSelect={() => go(`/thread/${thread.id}`)}
               >
@@ -130,7 +130,7 @@ export function SearchPalette({ open, onOpenChange }: { open: boolean; onOpenCha
                       </span>
                       open in new tab
                     </span>
-                    <span className="h-3 w-px bg-border" aria-hidden="true" />
+                    <span className="h-3 w-px bg-border-loud" aria-hidden="true" />
                     <button
                       type="button"
                       aria-label="Copy link"
@@ -156,7 +156,7 @@ export function SearchPalette({ open, onOpenChange }: { open: boolean; onOpenCha
               <CommandItem
                 key={value}
                 value={value}
-                className="!pr-3 flex h-12 items-center gap-2 overflow-hidden rounded-md px-2 py-1.5 group"
+                className="!pr-3 flex h-12 items-center gap-2 overflow-hidden rounded-xl px-2 py-1.5 group"
                 onSelect={() => go(href)}
               >
                 <div className="flex size-8 shrink-0 items-center justify-center">
@@ -170,7 +170,7 @@ export function SearchPalette({ open, onOpenChange }: { open: boolean; onOpenCha
           </CommandGroup>
         </CommandList>
       </div>
-      <div className="flex items-center gap-3 rounded-b-lg border-t bg-muted/40 px-3 pt-1.5 pb-2 text-[11px] text-muted-foreground">
+      <div className="flex items-center gap-3 border-t border-border-subtle bg-surface-secondary px-3 pt-1.5 pb-2 text-[11px] text-muted-foreground">
         <span className="flex items-center gap-1">
           <kbd className={FOOTER_KBD}>↑</kbd>
           <kbd className={FOOTER_KBD}>↓</kbd>
