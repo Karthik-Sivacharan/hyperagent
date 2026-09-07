@@ -21,7 +21,7 @@ Source: the brand prototype's own repository, kept outside this repo and never m
 Not copied:
 
 - `src/components/ui/chart.tsx`: it imports `recharts`, which Hyperagent does not install. Copy it alongside a `recharts` dependency when a chart is actually needed.
-- `*.test.tsx`, `src/app/globals.test.ts`, `src/components/genui/token-lint.test.ts`: vitest is not set up here. Their intent is worth keeping in mind for phase 2: `globals.test.ts` asserts the GenUI tokens exist in both themes (`--spacing-group/stack/section`, `--blur-glass`, `--shadow-edge/card/card-hover`, `--chart-6`, `--chart-track/grid/target/band`, `--chart-seq-1..5`, the `focus-ring` and `skeleton` utilities, `.genui-prose`); `token-lint.test.ts` forbids raw hex / `rgb()` / `oklch()` literals, stock Tailwind palette colours (`bg-gray-500`, `text-zinc-…`), arbitrary `px` values and `transition-all` in component class strings.
+- `*.test.tsx`, `src/app/globals.test.ts`, `src/components/genui/token-lint.test.ts`: the token-presence test now lives at `src/design/brand/brand.test.ts` and `src/app/globals.test.ts` (`npm test`), and the lint as `scripts/brand/lint-tokens.mjs`. Their intent is worth keeping in mind for phase 2: `globals.test.ts` asserts the GenUI tokens exist in both themes (`--spacing-group/stack/section`, `--blur-glass`, `--shadow-edge/card/card-hover`, `--chart-6`, `--chart-track/grid/target/band`, `--chart-seq-1..5`, the `focus-ring` and `skeleton` utilities, `.genui-prose`); `token-lint.test.ts` forbids raw hex / `rgb()` / `oklch()` literals, stock Tailwind palette colours (`bg-gray-500`, `text-zinc-…`), arbitrary `px` values and `transition-all` in component class strings.
 
 ## How the sheet is wired
 
