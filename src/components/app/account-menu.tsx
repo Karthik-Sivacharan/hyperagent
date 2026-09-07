@@ -28,6 +28,7 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Overline } from "@/components/ui/overline";
 import { DiscordLogo } from "@/components/app/brand-icons";
 import { TokenUsageChart } from "@/components/app/token-usage-chart";
 
@@ -116,9 +117,7 @@ export function AccountMenu({ children }: { children: React.ReactNode }) {
               <div className="grid grid-cols-3 gap-2">
                 {TOKEN_STATS.map((stat) => (
                   <div key={stat.label} className="rounded-xl bg-surface-secondary px-2.5 py-1.5">
-                    <div data-slot="overline" className="text-label-12-caps text-foreground-low">
-                      {stat.label}
-                    </div>
+                    <Overline>{stat.label}</Overline>
                     <div className="text-label-14-mono font-medium">{stat.value}</div>
                   </div>
                 ))}

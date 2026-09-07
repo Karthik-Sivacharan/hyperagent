@@ -34,6 +34,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Kbd } from "@/components/ui/kbd";
+import { NavItem } from "@/components/ui/nav-item";
+import { Overline } from "@/components/ui/overline";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { HyperagentMark } from "@/components/app/brand-icons";
 import { AccountMenu } from "@/components/app/account-menu";
@@ -57,8 +61,9 @@ const SIDEBAR_MIN = 250;
 const SIDEBAR_MAX = 500;
 const RAIL_WIDTH = 64;
 
-const NAV_ITEM =
-  "flex w-full cursor-pointer items-center gap-2 overflow-hidden rounded-full transition-[color,background-color] duration-(--duration-normal) ease-out px-3.5 py-1.5 text-sm";
+/** The group headers' 22px actions: hidden until the header is hovered or focused. */
+const HEADER_ACTION =
+  "text-muted-foreground opacity-0 hover:bg-tint-15 hover:text-foreground focus-visible:opacity-100 group-hover:opacity-100 group-has-[:focus-visible]:opacity-100";
 
 /** Every nav item is a tooltip trigger; the tooltip only renders on the rail. */
 function RailTooltip({ label, collapsed, children }: { label: string; collapsed: boolean; children: React.ReactNode }) {
@@ -106,22 +111,14 @@ function NavLink({
 }) {
   return (
     <RailTooltip label={label} collapsed={collapsed}>
-      <Link
-        href={href}
-        className={cn(
-          NAV_ITEM,
-          active
-            ? "bg-tint-15 font-medium text-foreground"
-            : muted
-              ? "text-muted-foreground hover:bg-tint-10 hover:text-foreground"
-              : "text-foreground hover:bg-tint-10",
-        )}
-      >
-        <div className="flex shrink-0 items-center justify-center h-5 w-5">
-          <Icon className="h-4 w-4" aria-hidden="true" />
-        </div>
-        <NavLabel label={label} collapsed={collapsed} grow={grow} />
-      </Link>
+      <NavItem asChild active={active} tone={muted ? "muted" : "default"}>
+        <Link href={href}>
+          <div className="flex shrink-0 items-center justify-center h-5 w-5">
+            <Icon className="h-4 w-4" aria-hidden="true" />
+          </div>
+          <NavLabel label={label} collapsed={collapsed} grow={grow} />
+        </Link>
+      </NavItem>
     </RailTooltip>
   );
 }
@@ -144,21 +141,29 @@ function SectionHeader({
 }) {
   const Chevron = expanded ? IconChevronDown : IconChevronRight;
   return (
-    <div className="group mb-1 flex items-center gap-1 text-label-12-caps text-foreground-low pr-1">
-      <button
-        type="button"
+    <Overline className="group mb-1 flex items-center gap-1 pr-1">
+      {/* The caps role sits on the button itself (the button base would
+          otherwise set 14px), and the ghost open/hover fills are reset: the
+          toggle is expanded at rest and only lifts its text on hover.
+          `normal-case!` reproduces what the raw button rendered: the browser's
+          button stylesheet resets `text-transform`, so these two headers have
+          always been sentence case while "Resources" is caps. Drop it to give
+          them the brand's caps. */}
+      <Button
+        variant="ghost"
+        size="none"
         aria-label={ariaLabel}
         aria-expanded={expanded}
         onClick={onToggle}
-        className="flex min-w-0 flex-1 cursor-pointer items-center gap-1 rounded-full py-1 pl-3.5 transition-colors duration-(--duration-fast) hover:text-foreground"
+        className="min-w-0 flex-1 justify-start gap-1 py-1 pl-3.5 text-label-12-caps normal-case! text-foreground-low hover:bg-transparent hover:text-foreground aria-expanded:bg-transparent"
       >
         <span className="whitespace-nowrap">{label}</span>
         <div className="flex items-center justify-center">
           <Chevron className="size-3" aria-hidden="true" />
         </div>
-      </button>
+      </Button>
       {action}
-    </div>
+    </Overline>
   );
 }
 
@@ -252,11 +257,10 @@ export function Sidebar() {
 
   const accountButton = (
     <AccountMenu>
-      <button
-        type="button"
-        data-variant="ghost"
-        data-size="default"
-        className="inline-flex shrink-0 items-center whitespace-nowrap font-medium outline-none transition-[color,background-color] duration-(--duration-normal) ease-out focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0 h-auto w-full cursor-pointer justify-start gap-2 overflow-hidden rounded-2xl px-2 text-muted-foreground hover:bg-tint-10 hover:text-foreground has-[>svg]:px-2 py-1.5 text-sm"
+      <Button
+        variant="ghost"
+        size="none"
+        className="h-auto w-full justify-start gap-2 overflow-hidden rounded-2xl px-2 py-1.5 text-muted-foreground duration-(--duration-normal) ease-out hover:text-foreground"
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
@@ -274,19 +278,15 @@ export function Sidebar() {
           className={cn("size-4 shrink-0 opacity-50 transition-opacity duration-200", collapsed && "opacity-0")}
           aria-hidden="true"
         />
-      </button>
+      </Button>
     </AccountMenu>
   );
 
   const newAgentPlus = (
     <NewAgentMenu>
-      <button
-        type="button"
-        aria-label="New agent"
-        className="flex cursor-pointer items-center justify-center rounded-full p-1 text-muted-foreground transition-colors hover:bg-tint-15 hover:text-foreground data-[state=open]:opacity-100 opacity-0 focus-visible:opacity-100 group-hover:opacity-100 group-has-[:focus-visible]:opacity-100"
-      >
+      <Button variant="ghost" size="icon-2xs" aria-label="New agent" className={cn(HEADER_ACTION, "data-[state=open]:opacity-100")}>
         <IconPlus className="size-3.5" aria-hidden="true" />
-      </button>
+      </Button>
     </NewAgentMenu>
   );
 
@@ -319,11 +319,12 @@ export function Sidebar() {
                       </span>
                     </Link>
                     {collapsed && (
-                      <button
-                        type="button"
+                      <Button
+                        variant="ghost"
+                        size="none"
                         aria-label="Open sidebar"
                         onClick={toggleCollapsed}
-                        className="group absolute top-1/2 left-0 -ml-3.5 flex -translate-y-1/2 cursor-pointer items-center rounded-full px-3.5 py-1.5 transition-[color,background-color] duration-(--duration-normal) ease-out hover:bg-tint-10"
+                        className="group absolute top-1/2 left-0 -ml-3.5 -translate-y-1/2 px-3.5 py-1.5 duration-(--duration-normal) ease-out"
                       >
                         <Tooltip>
                           <TooltipTrigger asChild>
@@ -334,7 +335,7 @@ export function Sidebar() {
                           </TooltipTrigger>
                           <TooltipContent side="right">Open sidebar</TooltipContent>
                         </Tooltip>
-                      </button>
+                      </Button>
                     )}
                   </div>
                   <Button
@@ -358,19 +359,16 @@ export function Sidebar() {
                     <div className={cn("space-y-0.5", !collapsed && "mb-2")}>
                       <NavLink href="/threads/new" icon={IconEdit} label="New thread" active={isActive("/threads/new")} collapsed={collapsed} />
                       <RailTooltip label="Search" collapsed={collapsed}>
-                        <button
-                          type="button"
-                          onClick={() => setSearchOpen(true)}
-                          className="group flex w-full cursor-pointer items-center gap-2 overflow-hidden rounded-full text-foreground transition-[color,background-color] duration-(--duration-normal) ease-out hover:bg-tint-10 px-3.5 pr-2 py-1.5 text-sm"
-                        >
+                        <NavItem className="group pr-2" onClick={() => setSearchOpen(true)}>
                           <div className="flex shrink-0 items-center justify-center h-5 w-5">
                             <IconSearch className="h-4 w-4" aria-hidden="true" />
                           </div>
                           <NavLabel label="Search" collapsed={collapsed} grow />
-                          <kbd className="min-w-[1.25rem] shrink-0 py-0.5 text-center text-muted-foreground opacity-0 transition-opacity duration-150 group-hover:opacity-100 px-1.5 text-xs">
+                          {/* A bare hint, not a keycap: no fill, no weight, revealed on hover. */}
+                          <Kbd className="h-auto shrink-0 bg-transparent px-1.5 py-0.5 font-normal opacity-0 transition-opacity duration-150 group-hover:opacity-100">
                             ⌘K
-                          </kbd>
-                        </button>
+                          </Kbd>
+                        </NavItem>
                       </RailTooltip>
                       <NavLink href="/inbox" icon={IconInbox} label="Inbox" active={isActive("/inbox")} grow collapsed={collapsed} />
                     </div>
@@ -379,30 +377,22 @@ export function Sidebar() {
                       <>
                         <RailTooltip label="Agents" collapsed>
                           <NewAgentMenu>
-                            <button
-                              type="button"
-                              aria-label="Agents"
-                              className="flex w-full cursor-pointer items-center gap-2 overflow-hidden rounded-full transition-[color,background-color] duration-(--duration-normal) ease-out px-3.5 py-1.5 text-sm text-foreground hover:bg-tint-10"
-                            >
+                            <NavItem aria-label="Agents">
                               <div className="flex shrink-0 items-center justify-center h-5 w-5">
                                 <IconRobotFace className="h-4 w-4" aria-hidden="true" />
                               </div>
                               <NavLabel label="Agents" collapsed />
-                            </button>
+                            </NavItem>
                           </NewAgentMenu>
                         </RailTooltip>
                         <RailTooltip label="Threads" collapsed>
                           <RailThreadsMenu>
-                            <button
-                              type="button"
-                              aria-label="Threads"
-                              className="flex w-full cursor-pointer items-center gap-2 overflow-hidden rounded-full transition-[color,background-color] duration-(--duration-normal) ease-out px-3.5 py-1.5 text-sm text-foreground hover:bg-tint-10"
-                            >
+                            <NavItem aria-label="Threads">
                               <div className="flex shrink-0 items-center justify-center h-5 w-5">
                                 <IconMessageCircle className="h-4 w-4" aria-hidden="true" />
                               </div>
                               <NavLabel label="Threads" collapsed />
-                            </button>
+                            </NavItem>
                           </RailThreadsMenu>
                         </RailTooltip>
                       </>
@@ -419,24 +409,21 @@ export function Sidebar() {
                           action={
                             <>
                               {newAgentPlus}
-                              <input type="file" accept=".json,application/json" className="hidden" />
+                              <Input type="file" accept=".json,application/json" className="hidden" />
                             </>
                           }
                         />
                         {agentsOpen && (
                           <div className="space-y-0.5">
                             <NewAgentMenu>
-                              <button
-                                type="button"
-                                className="flex w-full cursor-pointer items-center gap-2 overflow-hidden rounded-full text-muted-foreground transition-[color,background-color] duration-(--duration-normal) ease-out hover:bg-tint-10 hover:text-foreground px-3.5 py-1.5 text-sm"
-                              >
+                              <NavItem tone="muted">
                                 <div className="flex shrink-0 items-center justify-center h-5 w-5">
                                   <IconPlus className="h-4 w-4" aria-hidden="true" />
                                 </div>
                                 <span className="whitespace-nowrap transition-opacity duration-200">New agent</span>
-                              </button>
+                              </NavItem>
                             </NewAgentMenu>
-                            <input accept=".json,application/json" className="hidden" type="file" />
+                            <Input type="file" accept=".json,application/json" className="hidden" />
                           </div>
                         )}
                       </div>
@@ -450,13 +437,11 @@ export function Sidebar() {
                               ariaLabel={threadsOpen ? "Collapse threads" : "Expand threads"}
                               onToggle={() => setThreadsOpen((o) => !o)}
                               action={
-                                <Link
-                                  aria-label="New thread"
-                                  href="/threads/new"
-                                  className="flex cursor-pointer items-center justify-center rounded-full p-1 text-muted-foreground opacity-0 transition-colors hover:bg-tint-15 hover:text-foreground focus-visible:opacity-100 group-hover:opacity-100 group-has-[:focus-visible]:opacity-100"
-                                >
-                                  <IconPlus className="size-3.5" aria-hidden="true" />
-                                </Link>
+                                <Button variant="ghost" size="icon-2xs" asChild className={HEADER_ACTION}>
+                                  <Link aria-label="New thread" href="/threads/new">
+                                    <IconPlus className="size-3.5" aria-hidden="true" />
+                                  </Link>
+                                </Button>
                               }
                             />
                             {threadsOpen && (
@@ -508,19 +493,14 @@ export function Sidebar() {
                                   );
                                 })}
                                 {/* "View all" is the one nav row without a tooltip trigger on the live site. */}
-                                <Link
-                                  href="/threads"
-                                  className={cn(
-                                    "flex w-full cursor-pointer items-center gap-2 overflow-hidden rounded-full",
-                                    isActive("/threads") ? "bg-tint-15 font-medium text-foreground" : "text-muted-foreground",
-                                    "transition-[color,background-color] duration-(--duration-normal) ease-out hover:bg-tint-10 hover:text-foreground px-3.5 py-1.5 text-sm",
-                                  )}
-                                >
-                                  <div className="flex shrink-0 items-center justify-center h-5 w-5">
-                                    <IconArrowUpRight className="h-4 w-4" aria-hidden="true" />
-                                  </div>
-                                  <span className="whitespace-nowrap transition-opacity duration-200">View all</span>
-                                </Link>
+                                <NavItem asChild active={isActive("/threads")} tone="muted">
+                                  <Link href="/threads">
+                                    <div className="flex shrink-0 items-center justify-center h-5 w-5">
+                                      <IconArrowUpRight className="h-4 w-4" aria-hidden="true" />
+                                    </div>
+                                    <span className="whitespace-nowrap transition-opacity duration-200">View all</span>
+                                  </Link>
+                                </NavItem>
                               </div>
                             )}
                           </div>
@@ -528,36 +508,22 @@ export function Sidebar() {
 
                       {/* Resources */}
                       <div className={collapsed ? "mt-1" : "mt-3"}>
-                        <div
-                          className={cn(
-                            "mb-1",
-                            !collapsed && "flex",
-                            "items-center gap-1 py-1 pl-3.5 text-label-12-caps text-foreground-low pr-1",
-                            collapsed && "hidden",
-                          )}
-                        >
+                        <Overline className={cn("mb-1", !collapsed && "flex", "items-center gap-1 py-1 pl-3.5 pr-1", collapsed && "hidden")}>
                           <span className="whitespace-nowrap">Resources</span>
-                        </div>
+                        </Overline>
                         <div className="space-y-0.5">
                           <NavLink href="/teams" icon={IconUsers} label="Teams" active={isActive("/teams")} collapsed={collapsed} />
                           <NavLink href="/skills" icon={IconPuzzle} label="Skills" active={isActive("/skills")} collapsed={collapsed} />
                           <NavLink href="/memories" icon={IconBrain} label="Memories" active={isActive("/memories")} collapsed={collapsed} />
                           <RailTooltip label="Learning" collapsed={collapsed}>
                             <LearningMenu>
-                              <button
-                                type="button"
-                                aria-label="Learning"
-                                className={cn(
-                                  NAV_ITEM,
-                                  isActive("/learning") ? "bg-tint-15 font-medium text-foreground" : "text-foreground hover:bg-tint-10",
-                                )}
-                              >
+                              <NavItem aria-label="Learning" active={isActive("/learning")}>
                                 <div className="flex shrink-0 items-center justify-center h-5 w-5">
                                   <IconSchool className="h-4 w-4" aria-hidden="true" />
                                 </div>
                                 <NavLabel label="Learning" collapsed={collapsed} grow />
                                 <IconChevronRight className="size-4 shrink-0 opacity-50" aria-hidden="true" />
-                              </button>
+                              </NavItem>
                             </LearningMenu>
                           </RailTooltip>
                           <NavLink href="/projects" icon={IconFolderOpen} label="Projects" active={isActive("/projects")} collapsed={collapsed} />
