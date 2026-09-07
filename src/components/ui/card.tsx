@@ -1,4 +1,6 @@
 import * as React from "react";
+import { Slot } from "radix-ui";
+import { cva, type VariantProps } from "class-variance-authority";
 
 import { cn } from "@/lib/utils";
 
@@ -6,15 +8,50 @@ import { cn } from "@/lib/utils";
 // box-shadow instead of a ring, and the serif heading face on the title
 // (docs/brand/design.md §5, §6, §15). Spacing keeps Hyperagent's 16px so page
 // layouts do not move.
-function Card({ className, size = "default", ...props }: React.ComponentProps<"div"> & { size?: "default" | "sm" }) {
+//
+// Component sweep additions: `size="none"` zeroes `--card-spacing` (the page
+// keeps its own padding), `variant="interactive"` is the hover lift every
+// clickable card shares (slow duration, ease-out, `shadow-card-hover`), and
+// `asChild` lets a link, a list item or a button be the shell.
+const cardVariants = cva(
+  "group/card flex flex-col gap-(--card-spacing) overflow-hidden rounded-3xl bg-card py-(--card-spacing) text-sm text-card-foreground shadow-card has-data-[slot=card-footer]:pb-0 has-[>img:first-child]:pt-0 *:[img:first-child]:rounded-t-3xl *:[img:last-child]:rounded-b-3xl",
+  {
+    variants: {
+      size: {
+        default: "[--card-spacing:--spacing(4)]",
+        sm: "[--card-spacing:--spacing(3)]",
+        none: "[--card-spacing:0]",
+      },
+      variant: {
+        default: "",
+        interactive: "transition-[box-shadow] duration-(--duration-slow) ease-out hover:shadow-card-hover",
+      },
+    },
+    defaultVariants: {
+      size: "default",
+      variant: "default",
+    },
+  },
+);
+
+function Card({
+  className,
+  size = "default",
+  variant = "default",
+  asChild = false,
+  ...props
+}: React.ComponentProps<"div"> &
+  VariantProps<typeof cardVariants> & {
+    asChild?: boolean;
+  }) {
+  const Comp = asChild ? Slot.Root : "div";
+
   return (
-    <div
+    <Comp
       data-slot="card"
       data-size={size}
-      className={cn(
-        "group/card flex flex-col gap-(--card-spacing) overflow-hidden rounded-3xl bg-card py-(--card-spacing) text-sm text-card-foreground shadow-card [--card-spacing:--spacing(4)] has-data-[slot=card-footer]:pb-0 has-[>img:first-child]:pt-0 data-[size=sm]:[--card-spacing:--spacing(3)] data-[size=sm]:has-data-[slot=card-footer]:pb-0 *:[img:first-child]:rounded-t-3xl *:[img:last-child]:rounded-b-3xl",
-        className,
-      )}
+      data-variant={variant}
+      className={cn(cardVariants({ size, variant, className }))}
       {...props}
     />
   );
@@ -71,4 +108,4 @@ function CardFooter({ className, ...props }: React.ComponentProps<"div">) {
   );
 }
 
-export { Card, CardHeader, CardFooter, CardTitle, CardAction, CardDescription, CardContent };
+export { Card, CardHeader, CardFooter, CardTitle, CardAction, CardDescription, CardContent, cardVariants };
