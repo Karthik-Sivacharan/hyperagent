@@ -1,8 +1,10 @@
 # Handoff
 
 Written 2026-09-07 at the end of plan step 5 (the brand colour tokens are
-the app's only palette). Read this first in a new session, then `README.md`,
-`docs/brand/reskin-conventions.md` and `docs/clone-conventions.md`.
+the app's only palette) and updated the same day for the move to Tabler
+icons. Read this first in a new session, then `README.md`,
+`docs/brand/reskin-conventions.md`, `docs/brand/icons.md` and
+`docs/clone-conventions.md`.
 
 ## Where things stand
 
@@ -20,10 +22,20 @@ the app's only palette). Read this first in a new session, then `README.md`,
   route screenshots (17 routes, light and dark) are pixel-identical to the
   capture taken before the change, and the two that differ are the swatch
   page, whose header copy had to stop saying "scoped copy".
+- **Icons are Tabler only (2026-09-07).** `@tabler/icons-react` replaced
+  `lucide-react` in the 54 files that imported it (commit `8523a2c`, a
+  ts-morph codemod), `lucide-react` is gone from the dependencies, decorative
+  icons carry `aria-hidden="true"` explicitly, and
+  `src/components/icons.test.ts` locks the rule. Same grid and stroke, so
+  the layout did not move: at the merge all six gates pass and the 34 route
+  screenshots differ from the pre-change capture only inside icon glyphs
+  (0.03 to 0.08 percent of the pixels per page), the swatch page being
+  pixel-identical in both themes. The convention is `docs/brand/icons.md`; see
+  "Decided 2026-09-07: Tabler icons only" below.
 - There is one branch (`main`), pushed to `origin`
   (github.com/Karthik-Sivacharan/hyperagent, private), no open worktrees, and
   a clean tree.
-- Verification at the last commit: `npx tsc --noEmit`, `npm run lint` (no
+- Verification at the end of step 5: `npx tsc --noEmit`, `npm run lint` (no
   warnings), `npm run build` (29 routes), `npm run brand:check-contrast`
   (WCAG AA, 64 pairs per theme, zero skipped), `npm run brand:lint-tokens`
   (zero findings) and `npm test` (3 files, 22 tests) all pass.
@@ -83,8 +95,13 @@ node scripts/dev/contact-sheet.mjs out/light out/sheet-light.png "main"
   400, `--ring` following it); `src/app/globals.test.ts` asserts globals.css
   has no palette, no scope class, no `*-active` indirection, and that every
   bridge entry points at a token brand.css declares;
-  `src/lib/utils.test.ts` covers `cn()`. vitest 5 wants `@types/node ^22`
-  and the repo pins `^20`, hence 4.x.
+  `src/lib/utils.test.ts` covers `cn()`; `src/components/icons.test.ts`
+  asserts that no `.ts` / `.tsx` under `src/` imports `lucide-react`, that
+  `@tabler/icons-react` is in `dependencies` and `lucide-react` in no
+  dependency block, and that every name imported from `@tabler/icons-react`
+  is one the installed package exports (the `TablerIcon`, `Icon` and
+  `IconProps` types included). vitest 5 wants `@types/node ^22` and the repo
+  pins `^20`, hence 4.x.
 - The phase-1 skin exists only in history: `c10d36c` is the last commit that
   carries the Hyperagent palettes; `docs/reference/` keeps the captured
   ground truth.
@@ -179,11 +196,12 @@ node scripts/dev/contact-sheet.mjs out/light out/sheet-light.png "main"
 | `src/components/composer/` | Composer and its four menus |
 | `src/components/<page>/` | Page components; `resources/` holds the shared heading, search and empty-state pieces |
 | `src/components/ui/` | shadcn primitives in the brand skin (pills, tints, hairlines, glass), phase-1 API |
+| `src/components/icons.test.ts` | vitest: no lucide import under `src/`, Tabler in the dependencies, every imported icon name exists |
 | `src/lib/mock/` | All data (static) |
 | `src/lib/utils.ts`, `utils.test.ts` | The brand's `cn()` and its tests |
 | `src/design/brand/` | `brand.css` (the app's token sheet), `brand.test.ts`, the Geist loaders, the brand's own primitives (reference only, nothing imports them), `README.md` with the wiring and the phase-2 mapping table |
 | `src/app/design/brand/` | Swatch page at `/design/brand` with its own local light/dark toggle |
-| `docs/brand/` | `design.md` (the brand language), `reskin-conventions.md` (the phase-2 contract), the style audit |
+| `docs/brand/` | `design.md` (the brand language), `reskin-conventions.md` (the phase-2 contract), `icons.md` (Tabler only, the lucide-to-Tabler names), the style audit |
 | `docs/clone-conventions.md`, `docs/reference/` | The phase-1 contract and the captured ground truth |
 | `scripts/brand/` | `gen-ramps.mjs`, `check-contrast.mjs`, `lint-tokens.mjs` |
 | `scripts/dev/` | `screenshot-pages.mjs`, `contact-sheet.mjs` (headless Chrome over the DevTools protocol, no dependencies) |
@@ -229,6 +247,56 @@ same day) and tightened:
 The caps group labels (`text-label-12-caps`) stay: Vercel's own Label 12
 role carries an "AND CAPS" variant for tertiary text in busy views.
 
+## Decided 2026-09-07: Tabler icons only
+
+The user closed the icon question the same day: from now on this repo uses
+Tabler icons (`@tabler/icons-react`) and nothing else, no `lucide-react`, no
+second set for a glyph Tabler lacks. The convention is `docs/brand/icons.md`;
+`AGENTS.md`, `README.md`, `docs/clone-conventions.md` and
+`docs/brand/reskin-conventions.md` point at it.
+
+- **Why.** One library, so stroke weights and corner radii match across a
+  view; a larger set, with a filled variant for most glyphs, so a starred or
+  selected state has a real icon instead of a CSS fill; the same 24-unit
+  grid, 2px stroke and round caps as lucide, so the swap changed no size, no
+  spacing and no layout.
+- **What changed.** Commit `8523a2c`: a ts-morph codemod (language-service
+  renames) over the 54 files that imported `lucide-react`. Its message
+  counts 251 import renames, 73 names by adding the `Icon` prefix and 41
+  through a lucide-to-Tabler name map (now the table in
+  `docs/brand/icons.md`), plus `LucideIcon` to `TablerIcon`, `strokeWidth`
+  to `stroke` on the three sites that set a custom weight, and an explicit
+  `aria-hidden="true"` on the 35 decorative icons lucide used to hide on its
+  own (Tabler adds nothing). `lucide-react` left the dependencies. A hand
+  review after the codemod (three agents, one per page group, each glyph
+  checked against the lucide original side by side) changed twelve names:
+  Bot to `IconRobotFace` (head only, like lucide's), Shapes to
+  `IconTriangleSquareCircle`, ListFilter to `IconFilter2`, ArrowRightLeft to
+  `IconArrowsRightLeft`, PenTool to `IconBrush`, and seven prefix names whose
+  Tabler namesake draws a different picture (Menu to `IconMenu2`, Settings2
+  to `IconAdjustmentsHorizontal`, Globe to `IconWorld`, Volume2 to
+  `IconVolume`, Network to `IconSitemap`, ChartColumn to `IconChartBar`,
+  Grid3x3 to `IconLayoutGrid`). The table in `docs/brand/icons.md` is the
+  final map. The DOM
+  dumps still show the site's `lucide-<name>` classes and stay the ground
+  truth for which icon a page uses.
+- **What did not change.** `components.json` keeps `"iconLibrary":
+  "lucide"` because shadcn's CLI supports only lucide, radix, hugeicons and
+  phosphor; anything `shadcn add` emits therefore imports `lucide-react` and
+  must be converted before it is committed. Next 16 has
+  `@tabler/icons-react` in its default `optimizePackageImports`, so no
+  config was needed for per-icon imports.
+- **The gate.** `src/components/icons.test.ts`, in `npm test`, fails if any
+  `.ts` / `.tsx` under `src/` imports `lucide-react`, if `lucide-react` sits
+  in any dependency block or `@tabler/icons-react` is missing from
+  `dependencies`, or if a name imported from `@tabler/icons-react` is not one
+  the installed package exports. At the merge: tsc, lint (no
+  warnings), build, contrast (WCAG AA, 64 pairs per theme), token lint and
+  vitest (4 files, 29 tests) pass; the 17 routes captured light and dark at
+  1456×868 differ from the pre-change capture only inside icon glyphs (0.03
+  to 0.08 percent of the pixels per page), and the swatch page is
+  pixel-identical in both themes.
+
 ## Known gaps and follow-ups
 
 - The phase-1 gaps still apply (invented grid and board layouts, a few
@@ -244,6 +312,9 @@ role carries an "AND CAPS" variant for tertiary text in busy views.
   values from before the bridge; it could use the plain utilities now.
 - `src/design/brand/ui/` (the brand prototype's 23 primitives, verbatim) is
   still unimported reference material; keep it or prune it deliberately.
+- `components.json` says `"iconLibrary": "lucide"` because the shadcn CLI
+  has no Tabler option. Output of `shadcn add` imports `lucide-react`; convert
+  it to Tabler by hand (`docs/brand/icons.md`) and let `npm test` confirm.
 - `docs/brand/design.md` §15 says `.genui-prose` is "see globals.css"; it
   lives in `brand.css`.
 - The brand prototype also has a copy lint (a script plus a vitest file
@@ -279,8 +350,9 @@ removed afterwards.
 > docs/brand/reskin-conventions.md in ~/Projects/hyperagent. Phases 1 and 2
 > and plan step 5 are merged on main and pushed to origin (private): the
 > dashboard clone runs on the brand tokens as its only palette, light and
-> dark, in Geist and Geist Mono on Vercel's Geist roles, with six gates
-> (tsc, lint, build, brand:check-contrast, brand:lint-tokens, test). Do the
+> dark, in Geist and Geist Mono on Vercel's Geist roles, with Tabler as the
+> only icon set (docs/brand/icons.md), with six gates (tsc, lint, build,
+> brand:check-contrast, brand:lint-tokens, test). Do the
 > phone-width pass: verify every route at 390×844 in light and dark with
 > scripts/dev/screenshot-pages.mjs (add a viewport option), fix layout that
 > breaks using only the brand tokens and the existing primitives, keep the

@@ -126,6 +126,14 @@ vs tangerine, grey borders vs tints), the brand wins.
 8. **Naming.** The token system is called **brand** everywhere inside this
    repo: identifiers, comments, commit messages. Never write the source
    system's name.
+9. **Icons.** Tabler only (`@tabler/icons-react`), never `lucide-react` or
+   another set, so stroke weights and radii match across a view. A
+   decorative icon carries `aria-hidden="true"` (Tabler does not add it); an
+   icon-only control carries an `aria-label` that names the action. Sizes
+   and stroke weights stay as the dump has them: same 24 grid, same 2px
+   stroke, so nothing moves. The dump's `lucide-<name>` class still says
+   which icon; `docs/brand/icons.md` turns it into the Tabler name.
+   `npm test` fails on any lucide import.
 
 ## Screenshots
 
