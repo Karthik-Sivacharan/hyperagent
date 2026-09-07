@@ -31,21 +31,29 @@ token swatches.
 | Path | What |
 |---|---|
 | `src/app/globals.css` | Hyperagent's tokens: shadcn variables for the warm light, warm dark and dark-neutral palettes, radius scale, motion, site utilities, keyframes |
-| `src/app/layout.tsx` | Fonts (Geist, Geist Mono, Season Sans) and the pinned dark/neutral theme |
+| `src/app/layout.tsx` | Fonts (Geist, Geist Mono, Season Sans, plus the brand's Inter, PythiaType, Newsreader), `theme-brand` on `<body>`, the next-themes provider |
 | `src/app/(app)/` | One route per sidebar page, wrapped by the app shell |
 | `src/components/app/` | Shell: sidebar, frame, brand marks |
 | `src/components/composer/` | The message composer (home + thread pages) |
 | `src/components/<page>/` | Page-specific components |
 | `src/components/ui/` | shadcn primitives (`button.tsx` matches the site's variant strings byte for byte) |
-| `src/design/brand/` | The Brand token system, scoped under `.theme-brand` (phase 2) |
+| `src/design/brand/` | The Brand token system, scoped under `.theme-brand`; bridged into Tailwind by the "PHASE 2 BRIDGE" block in `globals.css` |
+| `docs/brand/` | `design.md` (the brand language), `reskin-conventions.md` (the phase-2 page-branch contract), the style audit |
+| `scripts/brand/`, `scripts/dev/` | Ramp generator, WCAG contrast gate, token lint; headless screenshot and contact-sheet scripts |
 | `docs/reference/` | Ground truth captured from hyperagent.com: compiled CSS, fonts, a DOM dump per page, and `overlays/` with every captured menu, dialog and tooltip |
 | `docs/clone-conventions.md` | The rules every page branch follows |
 
 ## Theme switches
 
-The live account renders the dark, neutral palette, so `<html class="dark">`
-and `<body class="palette-neutral">` are pinned in `layout.tsx`. Remove
-`palette-neutral` for the site's warm dark palette, or `dark` for the warm
-light one. Adding `theme-brand` to `<body>` (once the Brand branch is merged)
-re-themes the whole app with Brand's tokens, because both systems share the
-shadcn variable names.
+Phase 2 puts `theme-brand` on `<body>`, so the whole app runs on the brand
+tokens; light is the default and the account menu's Theme item switches to
+dark or system through `next-themes` (a `dark` class on `<html>`). The
+Hyperagent palettes are still in `globals.css` for side-by-side comparison:
+swap `theme-brand` for `palette-neutral` on `<body>` in `layout.tsx` and pick
+Dark to see the phase-1 clone exactly as the live account renders it.
+
+```bash
+npm run brand:check-contrast   # WCAG AA gate over the brand tokens, both themes
+npm run brand:lint-tokens      # no raw colours / stock palette classes / px radii in components
+node scripts/dev/screenshot-pages.mjs out/ http://localhost:3000   # every route, light + dark
+```

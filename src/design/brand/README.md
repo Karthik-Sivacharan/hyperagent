@@ -1,4 +1,4 @@
-# Brand design tokens (scoped copy, phase 1)
+# Brand design tokens (scoped copy)
 
 A self-contained copy of the Brand prototype's design-token system, brought into Hyperagent without touching the app's own theme. Nothing here applies outside an element carrying the class `theme-brand`. Phase 2 rewires Hyperagent's components to these tokens; this directory is the faithful reference that rewiring reads from.
 
@@ -32,16 +32,38 @@ Not copied:
 - The `@layer base / components / utilities` wrappers are kept (every selector inside them is scoped). Cascade layers are standard CSS; the names merge into the layers Tailwind already declares in `src/app/globals.css`, so a scoped base rule such as `.theme-brand * { border-color: var(--border) }` loses to `border-*` utilities exactly as it does in Brand. Written as an unlayered rule it would override them on every descendant.
 - The file passes through `@tailwindcss/postcss` untouched because it contains no Tailwind directives (`@import`, `@theme`, `@utility`, `@apply`, `--spacing()` were all removed or expanded). It is safe to import from any nested layout.
 
-## What does not work until phase 2
+## The phase-2 bridge (landed)
 
-Tailwind only generates utilities for names present in the main theme (`src/app/globals.css`), so Brand-only names have no classes yet: `bg-tangerine-500`, `bg-tint-10`, `bg-surface-secondary`, `bg-brand`, `bg-chip`, `text-foreground-low`, `border-border-subtle`, `font-heading`, `font-book`, `ease-out-quart`, `text-display`, `text-md`, `rounded-5xl`, `rounded-bubble`, `rounded-hero`, `shadow-card`, `max-w-content`, `gap-group`, `animate-typing-dot`, and so on. Two Tailwind behaviours also matter:
+Tailwind only generates utilities for names present in the main theme, so
+phase 2 added an `@theme inline reference` block to `src/app/globals.css`
+("PHASE 2 BRIDGE") that names every brand-only token and points it at the
+variable of the same name: `bg-tangerine-500`, `bg-tint-10`,
+`bg-surface-secondary`, `bg-brand`, `bg-chip`, `text-foreground-low`,
+`border-border-subtle`, `font-book`, `text-md`, `text-display`,
+`rounded-5xl`, `rounded-bubble`, `shadow-card`, `shadow-edge`,
+`max-w-content`, `gap-group`, `ease-out-quart`, `animate-typing-dot` and the
+rest now exist app-wide and resolve inside `.theme-brand` (which sits on
+`<body>`). `reference` keeps Tailwind from re-emitting the variables on
+`:root`, so this file stays the single source of truth and the contrast gate
+keeps reading one file. The two Tailwind behaviours that needed care:
 
-- `shadow-*` utilities inline their value at build time (they never read `var(--shadow-lg)`), so `shadow-lg` inside the scope is still Tailwind's shadow.
-- `text-xl` etc. only emit the `--letter-spacing` / `--font-weight` companions that exist in the main theme at build time, so Brand's tracking and heading weights do not ride the `text-*` classes yet.
+- `shadow-*` utilities inline their value at build time, so each brand shadow
+  is named in the bridge (`--shadow-lg: var(--shadow-lg)` …) and the utility
+  becomes a `var()` read of the token; `shadow-lg` inside the scope is now
+  the brand's glass composer shadow.
+- `text-xl` etc. only emit the `--letter-spacing` / `--font-weight`
+  companions that exist in the main theme at build time, so the bridge names
+  those companions too; the brand's tracking and heading weights ride the
+  `text-*` classes.
 
-Until the bridge lands, consume tokens with `var()`: `style={{ background: "var(--color-tangerine-500)" }}`, or Tailwind's arbitrary-value form `bg-(--brand) ease-(--ease-out-quart) duration-(--duration-fast) shadow-(--shadow-card)`. The swatch page does exactly this.
-
-**Phase 2 plan.** Add an `@theme inline` bridge to `src/app/globals.css` so Tailwind knows the Brand-only namespaces and emits utilities for them. For the semantic names the bridge is the same shape Brand already uses (`--color-brand: var(--brand)`, `--color-tint-10: var(--tint-10)`, `--color-surface-secondary: var(--surface-secondary)`, …); for the value-carrying names (the tangerine / neutral-925 / neutral-975 ramp steps, `--font-heading`, `--ease-out-quart`, `--shadow-card`, `--radius-5xl`, `--text-display` and its companions, `--container-*`, `--spacing-group/stack/section`, `--animate-*`) either move those declarations from `.theme-brand` into the bridge (so `:root` owns the value and `.theme-brand` becomes a no-op for them) or alias them to a differently named variable the scope keeps. Once the bridge exists every utility resolves app-wide, the swatch page can drop its inline `var()` styles, and the primitives can leave the scope when Hyperagent's own palette is retired.
+Durations and scales are plain custom properties (no Tailwind namespace):
+`duration-(--duration-fast)`, `scale-(--scale-press)`. The typography role
+classes (`text-label-12-caps` …) are plain classes in this sheet, not
+utilities: they cannot take a variant such as `[&_h2]:text-label-12-caps`,
+and `src/lib/utils.ts` registers them with tailwind-merge so `cn()` does not
+read them as text colours. `npm run brand:lint-tokens` is the gate that keeps
+components on the tokens (no raw colours, stock palette classes, px radii or
+`transition-all`).
 
 ## Running the scripts
 
