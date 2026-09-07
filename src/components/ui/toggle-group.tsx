@@ -70,7 +70,7 @@ function ToggleGroupItem({
       data-size={context.size || size}
       data-spacing={context.spacing}
       className={cn(
-        "shrink-0 focus:z-10 focus-visible:z-10 group-data-[spacing=0]/toggle-group:h-7 group-data-[spacing=0]/toggle-group:min-w-7 group-data-[spacing=0]/toggle-group:px-2 group-data-[spacing=0]/toggle-group:data-[state=on]:bg-background group-data-[spacing=0]/toggle-group:data-[state=on]:shadow-xs group-data-[spacing=0]/toggle-group:has-data-[icon=inline-end]:pr-1.5 group-data-[spacing=0]/toggle-group:has-data-[icon=inline-start]:pl-1.5",
+        "shrink-0 focus:z-10 focus-visible:z-10 group-data-[spacing=0]/toggle-group:h-7 group-data-[spacing=0]/toggle-group:min-w-7 group-data-[spacing=0]/toggle-group:px-2 group-data-[spacing=0]/toggle-group:data-[state=on]:bg-background group-data-[spacing=0]/toggle-group:data-[state=on]:shadow-xs group-data-[spacing=0]/toggle-group:aria-checked:bg-background group-data-[spacing=0]/toggle-group:aria-checked:shadow-xs group-data-[spacing=0]/toggle-group:has-data-[icon=inline-end]:pr-1.5 group-data-[spacing=0]/toggle-group:has-data-[icon=inline-start]:pl-1.5",
         toggleVariants({
           variant: context.variant || variant,
           size: context.size || size,
