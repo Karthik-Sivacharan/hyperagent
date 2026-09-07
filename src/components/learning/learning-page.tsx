@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { IconRobotFace } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
-import { PageHeading } from "@/components/resources/page-heading";
+import { PageHeading } from "@/components/patterns/page-heading";
 import { LearningThreadRow } from "@/components/learning/learning-thread-row";
 import { learningAgentFilters, learningThreads } from "@/lib/mock/learning";
 

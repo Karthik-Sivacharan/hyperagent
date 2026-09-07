@@ -1,6 +1,6 @@
 import { IconPlus, IconUsers } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
-import { PageHeading } from "@/components/resources/page-heading";
+import { PageHeading } from "@/components/patterns/page-heading";
 
 // Transcribed from docs/reference/pages/teams.html: bordered header with
 // join/create actions, then the dashed "no teams" card centered in the body.

@@ -1,5 +1,5 @@
 import { IconChecks } from "@tabler/icons-react";
-import { PageHeading } from "@/components/resources/page-heading";
+import { PageHeading } from "@/components/patterns/page-heading";
 
 // Transcribed from docs/reference/pages/inbox.html. The live account has
 // nothing pending, so the page is the title and its all-clear empty state.

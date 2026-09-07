@@ -5,10 +5,10 @@ import { IconBook, IconLayoutGrid, IconList } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { EmptyState } from "@/components/resources/empty-state";
-import { PageHeading } from "@/components/resources/page-heading";
-import { SearchInput } from "@/components/resources/search-input";
-import { ShowArchivedSwitch } from "@/components/resources/show-archived-switch";
+import { EmptyState } from "@/components/patterns/empty-state";
+import { PageHeading } from "@/components/patterns/page-heading";
+import { SearchInput } from "@/components/patterns/search-input";
+import { ShowArchivedSwitch } from "@/components/patterns/show-archived-switch";
 import { LibrarySelect } from "@/components/library/library-select";
 import {
   librarySortOptions,

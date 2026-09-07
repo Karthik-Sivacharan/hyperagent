@@ -4,9 +4,9 @@ import { useState } from "react";
 import Link from "next/link";
 import { IconFolderOpen, IconPlus } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
-import { EmptyState } from "@/components/resources/empty-state";
-import { PageHeading } from "@/components/resources/page-heading";
-import { ShowArchivedSwitch } from "@/components/resources/show-archived-switch";
+import { EmptyState } from "@/components/patterns/empty-state";
+import { PageHeading } from "@/components/patterns/page-heading";
+import { ShowArchivedSwitch } from "@/components/patterns/show-archived-switch";
 
 // Transcribed from docs/reference/pages/projects.html. No projects exist on
 // the live account; the archived switch only flips local state. Phase 2:

@@ -16,9 +16,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { EmptyState } from "@/components/resources/empty-state";
-import { PageHeading } from "@/components/resources/page-heading";
-import { SearchInput } from "@/components/resources/search-input";
+import { EmptyState } from "@/components/patterns/empty-state";
+import { PageHeading } from "@/components/patterns/page-heading";
+import { SearchInput } from "@/components/patterns/search-input";
 import { memoryFilters, memoryOwners } from "@/lib/mock/memories";
 
 // Transcribed from docs/reference/pages/memories.html. The two-pane body is

@@ -12,9 +12,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { EmptyState } from "@/components/resources/empty-state";
-import { PageHeading } from "@/components/resources/page-heading";
-import { SearchInput } from "@/components/resources/search-input";
+import { EmptyState } from "@/components/patterns/empty-state";
+import { PageHeading } from "@/components/patterns/page-heading";
+import { SearchInput } from "@/components/patterns/search-input";
 
 const FILTERS = [
   { id: "mine", label: "Created by me" },
