@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { IconFilter2, IconPlus, IconRobotFace } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -55,7 +56,7 @@ export function AgentsPage() {
                     <DropdownMenuItem>Import from JSON</DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
-                <input accept=".json,application/json" className="hidden" type="file" />
+                <Input type="file" accept=".json,application/json" className="hidden" />
               </>
             }
           />

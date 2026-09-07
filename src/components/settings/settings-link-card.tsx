@@ -13,19 +13,22 @@ import {
   IconUsers,
   type TablerIcon,
 } from "@tabler/icons-react";
-import { cn } from "@/lib/utils";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { IconTile } from "@/components/ui/icon-tile";
 import { OpenClawMark } from "@/components/settings/settings-icons";
 import type { SettingsCard, SettingsCardIcon } from "@/lib/mock/settings";
 
 // One link card on the settings hub: icon tile, title with a chevron that
 // slides in on hover, description. Structure transcribed from
-// docs/reference/pages/settings.html. Phase 2 dresses it as the brand card:
-// 22px corners, the hairline `shadow-card` at rest lifting to
-// `shadow-card-hover`, the serif title on tier 1 and the description on
+// docs/reference/pages/settings.html. Phase 2 dresses it as the brand's
+// interactive card: 22px corners, the hairline `shadow-card` at rest lifting
+// to `shadow-card-hover`, the title in the row-title role on tier 1 (the
+// role class outranks the card title's base size) and the description on
 // tier 2. The site's pastel tiles and hover gradient wash were hue as
 // decoration, which the brand does not do (docs/brand/design.md §1, §12):
-// the tile is a tint disc with the icon on tier 2, and at most one card on
-// the page may carry the tinted brand surface via `accent`.
+// the tile is the 48px soft `IconTile` on a tint with the icon on tier 2,
+// and at most one card on the page may carry the tinted brand surface via
+// `accent`. The card keeps the hub's 24px padding and gap.
 
 const ICONS: Record<Exclude<SettingsCardIcon, "openclaw">, TablerIcon> = {
   user: IconUser,
@@ -49,39 +52,25 @@ function CardIcon({ icon }: { icon: SettingsCardIcon }) {
 export function SettingsLinkCard({ card, accent = false }: { card: SettingsCard; accent?: boolean }) {
   return (
     <Link href={card.href}>
-      <div
-        data-slot="card"
-        className="group relative flex h-full cursor-pointer flex-col gap-6 overflow-hidden rounded-3xl bg-card py-6 text-card-foreground shadow-card transition-[box-shadow] duration-(--duration-slow) ease-out hover:shadow-card-hover"
-      >
-        <div
-          data-slot="card-header"
-          className="@container/card-header grid auto-rows-min grid-rows-[auto_auto] items-start gap-2 px-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6 relative pb-2"
-        >
+      <Card variant="interactive" size="none" className="group relative h-full cursor-pointer gap-6 py-6">
+        <CardHeader className="relative grid-rows-[auto_auto] gap-2 px-6 pb-2 [.border-b]:pb-6">
           <div className="flex items-start justify-between">
-            <div
-              data-slot="icon-tile"
-              className={cn(
-                "rounded-xl p-3",
-                accent ? "bg-brand-subtle text-brand-subtle-foreground" : "bg-tint-10 text-muted-foreground",
-              )}
-            >
+            <IconTile size="lg" shape="soft" tone={accent ? "brand" : "tint"}>
               <CardIcon icon={card.icon} />
-            </div>
+            </IconTile>
           </div>
-          <div data-slot="card-title" className="mt-4 flex items-center justify-between text-heading-lg text-foreground">
+          <CardTitle className="mt-4 flex items-center justify-between text-heading-lg text-foreground">
             {card.title}
             <IconChevronRight
               className="size-5 text-foreground-low opacity-0 transition-[opacity,transform] duration-(--duration-normal) ease-out group-hover:translate-x-1 group-hover:opacity-100"
               aria-hidden="true"
             />
-          </div>
-        </div>
-        <div data-slot="card-content" className="relative px-6">
-          <div data-slot="card-description" className="text-sm leading-relaxed text-muted-foreground">
-            {card.description}
-          </div>
-        </div>
-      </div>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="relative px-6">
+          <CardDescription className="leading-relaxed">{card.description}</CardDescription>
+        </CardContent>
+      </Card>
     </Link>
   );
 }

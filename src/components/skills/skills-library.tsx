@@ -1,17 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import {
-  IconArchive,
-  IconArrowsUpDown,
-  IconChevronDown,
-  IconFilter2,
-  IconLayoutGrid,
-  IconList,
-  IconSearch,
-} from "@tabler/icons-react";
+import { IconArchive, IconArrowsUpDown, IconChevronDown, IconFilter2, IconLayoutGrid, IconList } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,27 +12,31 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { SiteInput } from "@/components/marketplace/site-input";
+import { SearchInput } from "@/components/patterns/search-input";
 import { skillFilters, skillSortOptions, skillTabs, userSkills, type SkillTab } from "@/lib/mock/skills";
 
 // The "Your skills / Team skills / Shared with you" tabs, the search + sort +
 // filters + view toolbar, and the tab panels (docs/reference/pages/
 // skills.html). The account owns no skills, so each panel is the empty state.
 // Phase 2 keeps the toolbar's 36px row and swaps every control for its brand
-// primitive: pill tabs on a tint track, the pill input group, the sort and
-// filter buttons as hairline outline pills, the view switcher as a joined
-// pill toggle group, the empty state on the second text tier
-// (docs/brand/design.md §4.1, §5).
+// primitive: pill tabs on a tint track, the shared pill search field (icon
+// on the third tier, as the site had it), the sort as the outline select
+// (below `lg` only; docs/reference/overlays/skills-sort-select.html holds
+// its open state), the filter button as a hairline outline pill, the view
+// switcher as a joined pill toggle group, the empty state on the second text
+// tier, and each skill as the 22px brand card (docs/brand/design.md §4.1, §5).
 
 type View = "grid" | "list";
+type SortOption = (typeof skillSortOptions)[number];
 
 export function SkillsLibrary() {
   const [tab, setTab] = useState<SkillTab>("personal");
   const [view, setView] = useState<View>("list");
   const [query, setQuery] = useState("");
-  const [sort] = useState<(typeof skillSortOptions)[number]>("Most recent");
+  const [sort, setSort] = useState<SortOption>("Most recent");
 
   return (
     <Tabs value={tab} onValueChange={(value) => setTab(value as SkillTab)} className="min-h-0 space-y-4">
@@ -53,8 +50,8 @@ export function SkillsLibrary() {
 
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div className="relative w-full md:max-w-md">
-          <SiteInput
-            icon={<IconSearch aria-hidden="true" />}
+          <SearchInput
+            iconClassName="text-foreground-low"
             placeholder="Search skills..."
             value={query}
             onChange={(event) => setQuery(event.target.value)}
@@ -62,20 +59,23 @@ export function SkillsLibrary() {
         </div>
         <div className="flex items-center gap-2 sm:justify-end sm:gap-3">
           <div className="min-w-0 flex-1 lg:hidden">
-            <Button
-              type="button"
-              variant="outline"
-              role="combobox"
-              aria-expanded={false}
-              aria-controls="skills-sort"
-              className="h-9 w-full min-w-0 justify-between gap-2 sm:w-[160px]"
-            >
-              <IconArrowsUpDown className="size-4 text-foreground-low" aria-hidden="true" />
-              <span data-slot="select-value" className="flex-1 truncate text-left" style={{ pointerEvents: "none" }}>
-                {sort}
-              </span>
-              <IconChevronDown className="size-4 text-foreground-low" aria-hidden="true" />
-            </Button>
+            <Select value={sort} onValueChange={(value) => setSort(value as SortOption)}>
+              <SelectTrigger
+                variant="outline"
+                aria-label="Sort"
+                className="h-9 w-full min-w-0 justify-between gap-2 sm:w-[160px]"
+              >
+                <IconArrowsUpDown className="size-4 text-foreground-low" aria-hidden="true" />
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {skillSortOptions.map((option) => (
+                  <SelectItem key={option} value={option}>
+                    {option}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -126,10 +126,12 @@ export function SkillsLibrary() {
               ) : (
                 <ul className={cn(view === "grid" ? "grid gap-4 sm:grid-cols-2 lg:grid-cols-3" : "flex flex-col gap-2")}>
                   {skills.map((skill) => (
-                    <li key={skill.id} className="rounded-3xl bg-card p-5 shadow-card">
-                      <div className="font-heading font-medium text-base leading-snug text-foreground">{skill.name}</div>
-                      <p className="line-clamp-2 text-muted-foreground text-sm">{skill.description}</p>
-                    </li>
+                    <Card key={skill.id} asChild size="none" className="p-5">
+                      <li>
+                        <div className="font-heading font-medium text-base leading-snug text-foreground">{skill.name}</div>
+                        <p className="line-clamp-2 text-muted-foreground text-sm">{skill.description}</p>
+                      </li>
+                    </Card>
                   ))}
                 </ul>
               )}

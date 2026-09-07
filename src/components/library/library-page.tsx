@@ -4,17 +4,18 @@ import { useState } from "react";
 import { IconBook, IconLayoutGrid, IconList } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { EmptyState } from "@/components/patterns/empty-state";
 import { PageHeading } from "@/components/patterns/page-heading";
 import { SearchInput } from "@/components/patterns/search-input";
 import { ShowArchivedSwitch } from "@/components/patterns/show-archived-switch";
-import { LibrarySelect } from "@/components/library/library-select";
 import {
   librarySortOptions,
   librarySourceOptions,
   libraryTypeOptions,
   libraryVisibilityOptions,
+  type SelectOption,
 } from "@/lib/mock/library";
 
 // Transcribed from docs/reference/pages/library.html: header with the
@@ -22,7 +23,41 @@ import {
 // empty state (the live account has no generated content yet). Phase 2:
 // hairline rule under the header, the grid/list pair as ghost icon pills
 // with an active tint fill, the shared pill search field (the site's
-// separate muted treatment converges on it) and tint pill selects.
+// separate muted treatment converges on it) and the brand select as a small
+// tint pill for each filter.
+
+// One toolbar filter: the 32px tint select trigger over the option list. The
+// menu is never open in the capture; docs/reference/overlays/library-select-*.html
+// hold the open state.
+function FilterSelect({
+  label,
+  value,
+  onValueChange,
+  options,
+  className,
+}: {
+  label: string;
+  value: string;
+  onValueChange: (value: string) => void;
+  options: SelectOption[];
+  className?: string;
+}) {
+  return (
+    <Select value={value} onValueChange={onValueChange}>
+      <SelectTrigger variant="tint" size="sm" aria-label={label} className={className}>
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        {options.map((option) => (
+          <SelectItem key={option.value} value={option.value}>
+            {option.label}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+}
+
 export function LibraryPage() {
   const [showArchived, setShowArchived] = useState(false);
   const [view, setView] = useState<"grid" | "list">("grid");
@@ -90,22 +125,22 @@ export function LibraryPage() {
               onChange={(event) => setQuery(event.target.value)}
             />
             <div className="flex items-center gap-2 overflow-x-auto sm:gap-4">
-              <LibrarySelect ariaLabel="Sort" value={sort} onValueChange={setSort} options={librarySortOptions} />
-              <LibrarySelect
-                ariaLabel="Type"
+              <FilterSelect label="Sort" value={sort} onValueChange={setSort} options={librarySortOptions} />
+              <FilterSelect
+                label="Type"
                 value={type}
                 onValueChange={setType}
                 options={libraryTypeOptions}
                 className="gap-1.5"
               />
-              <LibrarySelect
-                ariaLabel="Visibility"
+              <FilterSelect
+                label="Visibility"
                 value={visibility}
                 onValueChange={setVisibility}
                 options={libraryVisibilityOptions}
               />
-              <LibrarySelect
-                ariaLabel="Source"
+              <FilterSelect
+                label="Source"
                 value={source}
                 onValueChange={setSource}
                 options={librarySourceOptions}

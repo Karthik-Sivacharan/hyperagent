@@ -1,12 +1,15 @@
 "use client";
 
 import { IconArchive } from "@tabler/icons-react";
+import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 
 // "Show Archived" control from the Projects and Library headers. Phase 1
 // dressed the raw radix switch with the site's blue/zinc classes; phase 2
 // hands it to the shared brand switch (ink when on, a tint track when off,
-// docs/brand/design.md §12) and keeps the label on the second text tier.
+// docs/brand/design.md §12) and the brand label, kept on the second text tier
+// and lifting to the first on hover. The label keeps its 20px line (no
+// `leading-none`): it sets the height of the header row on both pages.
 export function ShowArchivedSwitch({
   checked,
   onCheckedChange,
@@ -19,14 +22,13 @@ export function ShowArchivedSwitch({
   return (
     <div className="flex items-center gap-2">
       <Switch id={id} checked={checked} onCheckedChange={onCheckedChange} />
-      <label
-        data-slot="label"
+      <Label
         htmlFor={id}
-        className="flex cursor-pointer select-none items-center gap-2 text-sm font-medium text-muted-foreground transition-[color] duration-(--duration-fast) ease-out-quart peer-disabled:cursor-not-allowed peer-disabled:opacity-50 hover:text-foreground"
+        className="cursor-pointer text-muted-foreground transition-[color] duration-(--duration-fast) ease-out-quart hover:text-foreground"
       >
         <IconArchive className="mr-1 inline size-3.5" aria-hidden="true" />
         Show Archived
-      </label>
+      </Label>
     </div>
   );
 }

@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import { IconBrain, IconChevronDown, IconDots, IconFilter2, IconLayoutGrid, IconList, IconMenu2, IconPlus } from "@tabler/icons-react";
-import { Checkbox as CheckboxPrimitive } from "radix-ui";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -24,12 +24,10 @@ import { memoryFilters, memoryOwners } from "@/lib/mock/memories";
 // Transcribed from docs/reference/pages/memories.html. The two-pane body is
 // container-query driven (`@container/memories`): the owner column and the
 // wide toolbar show from 3xl up, the narrow search row below that. Phase 2:
-// the view toggle is the brand pill tab track, the owner rows are tint chips
-// (hairline at rest, a stronger tint when selected), the select-all box is an
-// ink checkbox with the `input` tint outline, the count sits on the third
-// text tier, and every divider is a hairline (docs/brand/design.md §4.1, §5).
-const CHECKBOX =
-  "peer size-4 shrink-0 cursor-pointer rounded-sm border border-input outline-none transition-[color,background-color,border-color,box-shadow] duration-(--duration-fast) ease-out-quart hover:border-border-loud focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/25 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 data-[state=checked]:border-primary data-[state=indeterminate]:border-primary data-[state=checked]:bg-primary data-[state=indeterminate]:bg-primary data-[state=checked]:text-primary-foreground data-[state=indeterminate]:text-primary-foreground";
+// the view toggle is the brand pill tab track, the owner rows are ghost
+// pills (hairline at rest, a stronger tint when selected), the select-all
+// box is the brand checkbox, the count sits on the third text tier, and
+// every divider is a hairline (docs/brand/design.md §4.1, §5).
 
 function FiltersMenu({
   active,
@@ -135,14 +133,15 @@ export function MemoriesPage() {
                     const selected = item.id === ownerId;
                     return (
                       <div key={item.id}>
-                        <button
-                          type="button"
+                        <Button
+                          variant="ghost"
+                          size="none"
                           aria-current={selected || undefined}
                           aria-label={`${item.name}, ${item.count} memories`}
                           onClick={() => setOwnerId(item.id)}
                           className={cn(
-                            "flex w-full cursor-pointer items-center gap-2 rounded-full p-2.5 text-left outline-none transition-[color,background-color,box-shadow] duration-(--duration-fast) ease-out-quart focus-visible:ring-2 focus-visible:ring-ring/50",
-                            selected ? "bg-tint-15 text-foreground" : "shadow-edge hover:bg-tint-10",
+                            "w-full justify-start gap-2 p-2.5 text-left font-normal",
+                            selected ? "bg-tint-15 text-foreground hover:bg-tint-15" : "shadow-edge",
                           )}
                         >
                           <div className="flex size-5 shrink-0 items-center justify-center">
@@ -150,7 +149,7 @@ export function MemoriesPage() {
                           </div>
                           <span className="min-w-0 flex-1 truncate font-medium text-sm">{item.name}</span>
                           <span className="shrink-0 text-muted-foreground text-xs tabular-nums">{item.count}</span>
-                        </button>
+                        </Button>
                       </div>
                     );
                   })}
@@ -172,12 +171,7 @@ export function MemoriesPage() {
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <span className="flex items-center">
-                            <CheckboxPrimitive.Root
-                              disabled={owner.count === 0}
-                              aria-label="Select all memories"
-                              data-slot="checkbox"
-                              className={CHECKBOX}
-                            />
+                            <Checkbox disabled={owner.count === 0} aria-label="Select all memories" />
                           </span>
                         </TooltipTrigger>
                         <TooltipContent>No memories to select</TooltipContent>
