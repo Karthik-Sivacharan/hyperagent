@@ -11,6 +11,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
 import { SettingsPageHeader, SettingsShell } from "@/components/settings/settings-shell";
 import { IntegrationCard } from "@/components/settings/integration-card";
 import { featuredIntegrations, otherIntegrations, type Integration } from "@/lib/mock/integrations";
@@ -18,11 +19,12 @@ import { featuredIntegrations, otherIntegrations, type Integration } from "@/lib
 // /settings/integrations, transcribed from
 // docs/reference/pages/settings-integrations.html. Search filters the two
 // lists locally; Refresh and the Add menu are cosmetic (static mock data).
-
-// The site's shadcn Input (older than src/components/ui/input.tsx: h-9,
-// rounded-md, bg-muted), copied verbatim.
-const SEARCH_INPUT =
-  "notranslate h-9 w-full min-w-0 border border-input px-3 py-1 font-body text-base shadow-xs outline-none transition-[color,box-shadow] selection:bg-primary selection:text-primary-foreground file:inline-flex file:h-7 file:border-0 file:bg-transparent file:font-medium file:text-foreground file:text-sm placeholder:text-muted-foreground disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm rounded-md bg-muted dark:bg-input/30 focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 pl-9";
+// Phase 2: the search is the brand's pill input group (kept at the site's
+// 36px), Refresh and Add are outline pills, the two section labels over the
+// card grids are the caps group label on tier 3 (a group label is never
+// tier 2, docs/brand/design.md §4.1), the "Looking for a site…" hint is
+// tier-3 meta with the brand underline, and the custom-MCP tile is a dashed
+// hairline at the card radius.
 
 function matches(integration: Integration, query: string) {
   return (
@@ -37,6 +39,8 @@ function IntegrationGrid({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
+
+const SECTION_LABEL = "flex items-center gap-2 text-label-12-caps text-foreground-low";
 
 export function IntegrationsPage() {
   const [query, setQuery] = useState("");
@@ -59,29 +63,29 @@ export function IntegrationsPage() {
         backHref="/settings"
         actions={
           <Button variant="outline" size="sm" onClick={refresh} disabled={refreshing}>
-            <RefreshCw className={cn("mr-2 size-4", refreshing && "animate-spin")} aria-hidden="true" />
+            <RefreshCw className={cn("size-4", refreshing && "animate-spin")} aria-hidden="true" />
             Refresh
           </Button>
         }
       />
 
-      <div className="relative mb-6">
-        <Search
-          className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
-          aria-hidden="true"
-        />
-        <input
-          data-slot="input"
+      <InputGroup className="mb-6 h-9">
+        <InputGroupAddon>
+          <Search aria-hidden="true" />
+        </InputGroupAddon>
+        <InputGroupInput
           translate="no"
-          className={SEARCH_INPUT}
           placeholder="Search integrations..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
-      </div>
-      <p className="mb-6 text-muted-foreground text-xs">
+      </InputGroup>
+      <p className="mb-6 text-xs text-foreground-low">
         Looking for a site the agent signs into in its browser? Those logins live in{" "}
-        <Link className="underline underline-offset-2 hover:text-foreground" href="/settings/security#browser-logins">
+        <Link
+          className="underline underline-offset-4 decoration-border-loud transition-[color,text-decoration-color] duration-(--duration-fast) ease-out-quart hover:text-foreground hover:decoration-foreground"
+          href="/settings/security#browser-logins"
+        >
           Browser logins
         </Link>
         .
@@ -93,8 +97,8 @@ export function IntegrationsPage() {
           <div className="mb-8">
             <div className="mb-4 flex items-start justify-between gap-2">
               <div className="min-w-0">
-                <h2 className="flex items-center gap-2 font-semibold text-lg">
-                  <Star className="size-5 text-amber-500" aria-hidden="true" />
+                <h2 className={SECTION_LABEL}>
+                  <Star className="size-4" aria-hidden="true" />
                   Featured
                 </h2>
               </div>
@@ -108,10 +112,10 @@ export function IntegrationsPage() {
         ) : null}
 
         <div className="mb-8">
-          <div className="mb-4 flex items-start justify-between gap-2">
+          <div className="mb-4 flex items-center justify-between gap-2">
             <div className="min-w-0">
-              <h2 className="flex items-center gap-2 font-semibold text-lg">
-                <LayoutGrid className="size-5 text-muted-foreground" aria-hidden="true" />
+              <h2 className={SECTION_LABEL}>
+                <LayoutGrid className="size-4" aria-hidden="true" />
                 All other integrations
               </h2>
             </div>
@@ -123,7 +127,7 @@ export function IntegrationsPage() {
                     Add
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="min-w-[8rem] w-auto rounded-md border">
+                <DropdownMenuContent align="end" className="min-w-[8rem] w-auto">
                   <DropdownMenuItem>
                     <Plug aria-hidden="true" />
                     Add custom MCP server
@@ -146,12 +150,12 @@ export function IntegrationsPage() {
             ))}
             <button
               type="button"
-              className="flex h-full min-h-[140px] w-full cursor-pointer flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed p-6 border-muted-foreground/30 text-muted-foreground transition-colors duration-200 hover:border-muted-foreground/60 hover:text-foreground"
+              className="flex h-full min-h-[140px] w-full cursor-pointer flex-col items-center justify-center gap-3 rounded-3xl border-2 border-dashed border-border-subtle p-6 text-muted-foreground transition-[color,border-color] duration-(--duration-normal) ease-out hover:border-border-loud hover:text-foreground"
             >
               <Plug className="size-6" aria-hidden="true" />
               <span className="flex max-w-full flex-col items-center gap-1">
-                <span className="max-w-full truncate font-medium text-sm">Add custom MCP server</span>
-                <span className="text-center text-muted-foreground text-xs">
+                <span className="max-w-full truncate text-sm font-medium">Add custom MCP server</span>
+                <span className="text-center text-xs text-foreground-low">
                   Connect any tool that offers an MCP server
                 </span>
               </span>

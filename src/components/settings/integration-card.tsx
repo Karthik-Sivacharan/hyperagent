@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { integrationLogos } from "@/components/settings/integration-logos";
 import type { Integration, IntegrationLogo } from "@/lib/mock/integrations";
@@ -8,11 +9,11 @@ import type { Integration, IntegrationLogo } from "@/lib/mock/integrations";
 // docs/reference/pages/settings-integrations.html. The site renders MCP and
 // native integrations with slightly different header markup (truncating
 // title + wrapped badge vs. nowrap title + bare badge); both are kept.
-// Card/badge class strings are inlined because the site's shadcn Card and
-// Badge are older than the ones in src/components/ui/.
-
-const BADGE =
-  "inline-flex w-fit items-center justify-center gap-1 overflow-hidden whitespace-nowrap border py-0.5 font-ui transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&>svg]:pointer-events-none [&>svg]:size-3 [a&]:hover:bg-accent [a&]:hover:text-accent-foreground h-4 shrink-0 rounded-[4px] px-1.5 font-normal text-[9px] text-muted-foreground uppercase tracking-wide";
+// Phase 2: the brand card (22px, `shadow-card` lifting on hover), the logo
+// artwork untouched, the name on tier 1, the blurb on tier 2, the kind as a
+// tint chip in the caps label (it was already set in caps), "Connect" as the
+// ink pill and the Telegram link as the outline pill (docs/brand/design.md
+// §4.1, §5, §6).
 
 function Logo({ logo }: { logo: IntegrationLogo }) {
   if (logo.type === "svg") {
@@ -26,17 +27,17 @@ function Logo({ logo }: { logo: IntegrationLogo }) {
 export function IntegrationCard({ integration }: { integration: Integration }) {
   const native = integration.kind === "native";
   const badge = (
-    <span data-slot="badge" className={BADGE}>
+    <Badge variant="secondary" className="shrink-0 text-label-12-caps">
       {native ? "Native" : "MCP"}
-    </span>
+    </Badge>
   );
   const action =
     integration.action === "telegram" ? (
-      <Button asChild variant="default" size="sm" className="w-full cursor-pointer">
+      <Button asChild variant="outline" size="sm" className="w-full">
         <Link href="/agents">Set up on an agent</Link>
       </Button>
     ) : (
-      <Button variant="default" size="sm" className="w-full cursor-pointer">
+      <Button variant="default" size="sm" className="w-full">
         Connect
       </Button>
     );
@@ -44,7 +45,7 @@ export function IntegrationCard({ integration }: { integration: Integration }) {
   return (
     <div
       data-slot="card"
-      className="flex flex-col gap-6 rounded-xl border bg-card text-card-foreground shadow-sm relative h-full overflow-hidden py-4 transition-all duration-200 hover:shadow-md"
+      className="relative flex h-full flex-col gap-6 overflow-hidden rounded-3xl bg-card py-4 text-card-foreground shadow-card transition-[box-shadow] duration-(--duration-slow) ease-out hover:shadow-card-hover"
     >
       <div
         data-slot="card-header"
@@ -54,7 +55,7 @@ export function IntegrationCard({ integration }: { integration: Integration }) {
           <div className="flex items-center justify-between">
             <div className="flex min-w-0 flex-1 items-center gap-3">
               <Logo logo={integration.logo} />
-              <div data-slot="card-title" className="font-heading font-semibold min-w-0 text-[15px]">
+              <div data-slot="card-title" className="min-w-0 font-heading text-[15px] font-semibold text-foreground">
                 <span className="whitespace-nowrap">{integration.name}</span>
               </div>
             </div>
@@ -64,7 +65,7 @@ export function IntegrationCard({ integration }: { integration: Integration }) {
           <div className="flex min-w-0 items-center justify-between gap-2">
             <div className="flex min-w-0 flex-1 items-center gap-3">
               <Logo logo={integration.logo} />
-              <div data-slot="card-title" className="font-heading font-semibold min-w-0 truncate text-[15px]">
+              <div data-slot="card-title" className="min-w-0 truncate font-heading text-[15px] font-semibold text-foreground">
                 {integration.name}
               </div>
             </div>
@@ -73,12 +74,12 @@ export function IntegrationCard({ integration }: { integration: Integration }) {
         )}
         <div
           data-slot="card-description"
-          className={cn("font-body text-sm", !integration.unclamped && "line-clamp-1", "text-foreground")}
+          className={cn("text-sm text-muted-foreground", !integration.unclamped && "line-clamp-1")}
         >
           {integration.description}
         </div>
       </div>
-      <div data-slot="card-content" className="px-4 mt-auto">
+      <div data-slot="card-content" className="mt-auto px-4">
         {integration.stackedActions ? (
           <div className="w-full">
             <div className="w-full space-y-2">{action}</div>
