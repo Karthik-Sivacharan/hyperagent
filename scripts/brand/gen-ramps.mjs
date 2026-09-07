@@ -5,7 +5,7 @@
  * Every hue rides ONE shared lightness ramp (50→950) anchored to values
  * measured on the brand site (see docs/brand/brand-style-audit.md). Chroma follows a
  * per-family envelope and is clamped into the sRGB gamut, so the printed
- * OKLCH literals are safe to paste into the `.theme-brand { }` block of
+ * OKLCH literals are safe to paste into the `:root { }` block of
  * src/design/brand/brand.css. Prints hex round-trips
  * so anchors can be checked against the audit.
  *

@@ -3,9 +3,12 @@
 import { useSyncExternalStore, type ReactNode } from "react";
 
 // Light/dark switch for the Brand token swatch page, ported from
-// brand/src/app/_design/theme-toggle.tsx. Brand used next-themes on <html>;
-// this copy keeps the theme LOCAL to the `.theme-brand` wrapper so the rest
-// of Hyperagent is untouched: a `dark` class on the wrapper, remembered in
+// brand/src/app/_design/theme-toggle.tsx. The app themes itself through
+// next-themes on <html>; this switch keeps a second, LOCAL theme for the
+// swatch page so the sheet can be inspected in either mapping whatever the
+// app-level choice: a `dark` class on the page wrapper (brand.css's `.dark`
+// rule re-maps the tokens for that subtree, and `dark:` utilities follow
+// through `@custom-variant dark (&:is(.dark *))`), remembered in
 // localStorage, with the OS preference as the first-visit default.
 //
 // The store is read through useSyncExternalStore so the server snapshot
@@ -57,11 +60,13 @@ export function useBrandTheme() {
   return { theme, mounted, setTheme: writeTheme };
 }
 
-/** The `.theme-brand` wrapper; flips its own `dark` class. */
+/** The swatch page wrapper: flips its own `dark` class and paints itself from
+ *  the tokens (`bg-background text-foreground`) so the local theme shows even
+ *  when <html> carries the other one. */
 export function BrandThemeShell({ className, children }: { className?: string; children: ReactNode }) {
   const { theme } = useBrandTheme();
   return (
-    <div className={["theme-brand", theme === "dark" ? "dark" : "", className ?? ""].filter(Boolean).join(" ")}>
+    <div className={[theme === "dark" ? "dark" : "", "bg-background text-foreground", className ?? ""].filter(Boolean).join(" ")}>
       {children}
     </div>
   );
