@@ -36,7 +36,7 @@ token swatches.
 | `src/components/app/` | Shell: sidebar, frame, brand marks |
 | `src/components/composer/` | The message composer (home + thread pages) |
 | `src/components/<page>/` | Page-specific components |
-| `src/components/ui/` | shadcn primitives (`button.tsx` matches the site's variant strings byte for byte) |
+| `src/components/ui/` | shadcn primitives, re-skinned with the brand in phase 2 (pills, tints, hairlines, glass shadows) behind the phase-1 variant and size API |
 | `src/design/brand/` | The Brand token system, scoped under `.theme-brand`; bridged into Tailwind by the "PHASE 2 BRIDGE" block in `globals.css` |
 | `docs/brand/` | `design.md` (the brand language), `reskin-conventions.md` (the phase-2 page-branch contract), the style audit |
 | `scripts/brand/`, `scripts/dev/` | Ramp generator, WCAG contrast gate, token lint; headless screenshot and contact-sheet scripts |
