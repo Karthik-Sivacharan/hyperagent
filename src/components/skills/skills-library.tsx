@@ -10,7 +10,6 @@ import {
   ListFilter,
   Search,
 } from "lucide-react";
-import { Tabs as TabsPrimitive } from "radix-ui";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,21 +19,19 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { SiteInput } from "@/components/marketplace/site-input";
 import { skillFilters, skillSortOptions, skillTabs, userSkills, type SkillTab } from "@/lib/mock/skills";
 
 // The "Your skills / Team skills / Shared with you" tabs, the search + sort +
 // filters + view toolbar, and the tab panels (docs/reference/pages/
 // skills.html). The account owns no skills, so each panel is the empty state.
-
-// The site's tab trigger: shadcn's, restyled as plain text that turns
-// semibold when active. Verbatim from the dump.
-const TAB_TRIGGER =
-  "inline-flex items-center justify-center gap-1.5 whitespace-nowrap border-transparent transition-[color,box-shadow] focus-visible:border-ring focus-visible:outline-1 focus-visible:outline-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:border-border dark:text-muted-foreground dark:data-[state=active]:border-input dark:data-[state=active]:bg-input/30 dark:data-[state=active]:text-foreground [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0 h-auto flex-none rounded-none border-0 bg-transparent px-0 py-0 font-medium text-base text-muted-foreground shadow-none data-[state=active]:bg-transparent data-[state=active]:font-semibold data-[state=active]:text-foreground data-[state=active]:shadow-none";
-
-// The sort <Select> trigger (only shown below lg). Verbatim from the dump.
-const SELECT_TRIGGER =
-  "flex items-center justify-between gap-2 whitespace-nowrap rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 data-[size=default]:h-9 data-[size=sm]:h-8 data-[placeholder]:text-muted-foreground *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2 dark:bg-input/30 dark:aria-invalid:ring-destructive/40 dark:hover:bg-input/50 [&_svg:not([class*='size-'])]:size-4 [&_svg:not([class*='text-'])]:text-muted-foreground [&_svg]:pointer-events-none [&_svg]:shrink-0 w-full min-w-0 sm:w-[160px]";
+// Phase 2 keeps the toolbar's 36px row and swaps every control for its brand
+// primitive: pill tabs on a tint track, the pill input group, the sort and
+// filter buttons as hairline outline pills, the view switcher as a joined
+// pill toggle group, the empty state on the second text tier
+// (docs/brand/design.md §4.1, §5).
 
 type View = "grid" | "list";
 
@@ -45,36 +42,19 @@ export function SkillsLibrary() {
   const [sort] = useState<(typeof skillSortOptions)[number]>("Most recent");
 
   return (
-    <TabsPrimitive.Root
-      value={tab}
-      onValueChange={(value) => setTab(value as SkillTab)}
-      data-slot="tabs"
-      className="flex min-h-0 flex-col gap-2 space-y-4"
-    >
-      <TabsPrimitive.List
-        data-slot="tabs-list"
-        className="inline-flex items-center text-muted-foreground scrollbar-hide h-auto w-full justify-start gap-4 overflow-x-auto rounded-none bg-transparent p-0 sm:gap-6"
-      >
+    <Tabs value={tab} onValueChange={(value) => setTab(value as SkillTab)} className="min-h-0 space-y-4">
+      <TabsList>
         {skillTabs.map((item) => (
-          <TabsPrimitive.Trigger
-            key={item.value}
-            value={item.value}
-            data-slot="tabs-trigger"
-            className={TAB_TRIGGER}
-          >
+          <TabsTrigger key={item.value} value={item.value}>
             {item.label}
-          </TabsPrimitive.Trigger>
+          </TabsTrigger>
         ))}
-      </TabsPrimitive.List>
+      </TabsList>
 
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div className="relative w-full md:max-w-md">
-          <Search
-            className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground"
-            aria-hidden="true"
-          />
           <SiteInput
-            className="w-full pl-8 pr-3"
+            icon={<Search aria-hidden="true" />}
             placeholder="Search skills..."
             value={query}
             onChange={(event) => setQuery(event.target.value)}
@@ -82,28 +62,27 @@ export function SkillsLibrary() {
         </div>
         <div className="flex items-center gap-2 sm:justify-end sm:gap-3">
           <div className="min-w-0 flex-1 lg:hidden">
-            <button
+            <Button
               type="button"
+              variant="outline"
               role="combobox"
               aria-expanded={false}
               aria-controls="skills-sort"
-              data-slot="select-trigger"
-              data-size="default"
-              className={SELECT_TRIGGER}
+              className="h-9 w-full min-w-0 justify-between gap-2 sm:w-[160px]"
             >
-              <ArrowUpDown className="size-4 text-muted-foreground" aria-hidden="true" />
-              <span data-slot="select-value" style={{ pointerEvents: "none" }}>
+              <ArrowUpDown className="size-4 text-foreground-low" aria-hidden="true" />
+              <span data-slot="select-value" className="flex-1 truncate text-left" style={{ pointerEvents: "none" }}>
                 {sort}
               </span>
-              <ChevronDown className="size-4 opacity-50" aria-hidden="true" />
-            </button>
+              <ChevronDown className="size-4 text-foreground-low" aria-hidden="true" />
+            </Button>
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="h-9 gap-2 border-input" aria-label="Filters">
+              <Button variant="outline" className="h-9 gap-2" aria-label="Filters">
                 <ListFilter className="size-4" aria-hidden="true" />
                 <span className="hidden sm:inline">Filters</span>
-                <ChevronDown className="size-4 text-muted-foreground" aria-hidden="true" />
+                <ChevronDown className="size-4 text-foreground-low" aria-hidden="true" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
@@ -116,31 +95,21 @@ export function SkillsLibrary() {
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
-          <div className="flex h-9 rounded-md border border-input shadow-xs">
-            <Button
-              variant="ghost"
-              size="icon"
-              className={cn("size-9 h-full w-9 rounded-r-none", view === "grid" && "bg-muted")}
-              aria-label="Grid view"
-              aria-pressed={view === "grid"}
-              onClick={() => setView("grid")}
-            >
+          <ToggleGroup
+            type="single"
+            spacing={0}
+            value={view}
+            onValueChange={(value) => value && setView(value as View)}
+            aria-label="View"
+            className="h-9 data-[spacing=0]:p-1"
+          >
+            <ToggleGroupItem value="grid" aria-label="Grid view">
               <LayoutGrid className="size-4" aria-hidden="true" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className={cn(
-                "size-9 h-full w-9 rounded-l-none border-input border-l",
-                view === "list" && "bg-muted",
-              )}
-              aria-label="List view"
-              aria-pressed={view === "list"}
-              onClick={() => setView("list")}
-            >
+            </ToggleGroupItem>
+            <ToggleGroupItem value="list" aria-label="List view">
               <List className="size-4" aria-hidden="true" />
-            </Button>
-          </div>
+            </ToggleGroupItem>
+          </ToggleGroup>
         </div>
       </div>
 
@@ -150,29 +119,24 @@ export function SkillsLibrary() {
           (skill) => !needle || skill.name.toLowerCase().includes(needle),
         );
         return (
-          <TabsPrimitive.Content
-            key={item.value}
-            value={item.value}
-            data-slot="tabs-content"
-            className="min-h-0 flex-1 outline-none"
-          >
-            <div aria-busy="false" className="transition-opacity">
+          <TabsContent key={item.value} value={item.value} className="min-h-0">
+            <div aria-busy="false" className="transition-opacity duration-(--duration-normal) ease-out">
               {skills.length === 0 ? (
-                <div className="px-4 py-8 text-center text-muted-foreground">No skills found</div>
+                <div className="px-4 py-8 text-center text-base text-muted-foreground">No skills found</div>
               ) : (
                 <ul className={cn(view === "grid" ? "grid gap-4 sm:grid-cols-2 lg:grid-cols-3" : "flex flex-col gap-2")}>
                   {skills.map((skill) => (
-                    <li key={skill.id} className="rounded-[16px] border border-border bg-card p-5">
-                      <div className="font-semibold text-base text-foreground">{skill.name}</div>
+                    <li key={skill.id} className="rounded-3xl bg-card p-5 shadow-card">
+                      <div className="font-heading font-medium text-base leading-snug text-foreground">{skill.name}</div>
                       <p className="line-clamp-2 text-muted-foreground text-sm">{skill.description}</p>
                     </li>
                   ))}
                 </ul>
               )}
             </div>
-          </TabsPrimitive.Content>
+          </TabsContent>
         );
       })}
-    </TabsPrimitive.Root>
+    </Tabs>
   );
 }
