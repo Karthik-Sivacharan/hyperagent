@@ -10,13 +10,13 @@ Source: the brand prototype's own repository, kept outside this repo and never m
 |---|---|---|
 | `brand.css` | The app's token sheet: every primitive ramp, tint, semantic token, radius, shadow, type, motion, z-index and layout token on `:root`, the dark mapping on `.dark`, plus the base styles on `html`, `body` and `*`, the `genui-prose` block, the typography role classes and the `focus-ring` / `squircle` / `skeleton` classes. Plain CSS, no Tailwind directives. | `src/app/globals.css` |
 | `fonts.ts` | `next/font/google` loaders for Geist (`--font-geist-sans`) and Geist Mono (`--font-geist-mono`), and `brandFontClassName` joining the two `.variable` classes. Phase 2 replaced the prototype's Inter / PythiaType / Newsreader files with Geist and Vercel's published typography roles (docs/brand/design.md §4); no font files ship in this directory. | `src/app/layout.tsx` |
-| `utils.ts` | Brand's `cn()`: tailwind-merge extended with the `font-strong` weight (550, strong inside copy). The `ui/` copies import this, not `@/lib/utils`, so a caller's `font-strong` conflicts with a component's `font-medium` the way stock weights do. | `src/lib/utils.ts` |
-| `ui/` | Verbatim copies of Brand's shadcn primitives (23 files). Only the imports changed: `@/lib/utils` → `@/design/brand/utils`, `@/components/ui/button` → `./button`, `@/components/ui/toggle` → `./toggle`. Nothing imports them yet. | `src/components/ui/*.tsx` |
 | `../../app/design/brand/` | The token swatch page at `/design/brand` (`layout.tsx`, `page.tsx`, `_design/theme-toggle.tsx`). `brand.css` itself is imported once, by the root layout `src/app/layout.tsx`. | `src/app/page.tsx`, `src/app/_design/theme-toggle.tsx` |
 | `../../../docs/brand/design.md` | How to consume the tokens, with a preamble on how this copy differs. | `design.md` |
 | `../../../docs/brand/brand-style-audit.md` | The raw measurements from the brand site (verbatim). | `docs/brand-style-audit.md` |
 | `../../../scripts/brand/gen-ramps.mjs` | Regenerates the OKLCH ramps with `culori`; prints literals to paste into `brand.css`. | `scripts/gen-ramps.mjs` |
 | `../../../scripts/brand/check-contrast.mjs` | The WCAG AA gate (APCA reported) over every semantic pair in both themes; it parses `brand.css` by selector, the light block from `:root { }` and the dark block from `.dark { }`. | `scripts/check-contrast.mjs` |
+
+Retired in the component system sweep (2026-09-07): `utils.ts` (the prototype's `cn()`, folded into `src/lib/utils.ts` in phase 2) and `ui/` (verbatim copies of the prototype's 23 shadcn primitives, which nothing ever imported). The app's one component set is `src/components/ui/` (29 primitives on these tokens; `docs/components.md`), and `src/components/components.test.ts` fails if the folder or an import of it comes back. Both stay in git history (`git log --all -- src/design/brand/ui`).
 
 Not copied:
 
