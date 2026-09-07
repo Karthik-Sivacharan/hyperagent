@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowRight, ArrowUp, Bot, ChevronDown, ListTodo, Mic, Plus, Settings2 } from "lucide-react";
+import { IconAdjustmentsHorizontal, IconArrowRight, IconArrowUp, IconChevronDown, IconListCheck, IconMicrophone, IconPlus, IconRobotFace } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -87,7 +87,7 @@ export function Composer({
               <TooltipTrigger asChild>
                 <AddMenu>
                   <Button variant="ghost" size="icon-sm" className="size-8 shrink-0 bg-tint-10 text-muted-foreground hover:bg-tint-15 hover:text-foreground" aria-label="Add files or context">
-                    <Plus className="size-4" />
+                    <IconPlus className="size-4" aria-hidden="true" />
                   </Button>
                 </AddMenu>
               </TooltipTrigger>
@@ -98,11 +98,11 @@ export function Composer({
               <TooltipTrigger asChild>
                 <ThreadSettingsMenu model={model} onModelChange={setModel} effort={effort} onEffortChange={setEffort}>
                   <button type="button" aria-label="Thread settings" className={PILL}>
-                    <Settings2 className="size-4" aria-hidden="true" />
+                    <IconAdjustmentsHorizontal className="size-4" aria-hidden="true" />
                     <span className="inline-flex min-w-0 items-center gap-1.5 @max-lg:hidden max-sm:hidden">
                       <span className="truncate">{model}</span>
                     </span>
-                    <ChevronDown className="@max-lg:hidden size-3 max-sm:hidden" aria-hidden="true" />
+                    <IconChevronDown className="@max-lg:hidden size-3 max-sm:hidden" aria-hidden="true" />
                   </button>
                 </ThreadSettingsMenu>
               </TooltipTrigger>
@@ -113,9 +113,9 @@ export function Composer({
               <div className="flex items-center gap-0.5">
                 <AgentPicker>
                   <button type="button" data-dd-action-name="Agent picker" aria-label="Use an agent" className={PILL}>
-                    <Bot className="size-3.5" aria-hidden="true" />
+                    <IconRobotFace className="size-3.5" aria-hidden="true" />
                     <span className="@max-lg:hidden max-sm:hidden">Agent</span>
-                    <ChevronDown className="@max-lg:hidden size-3 max-sm:hidden" aria-hidden="true" />
+                    <IconChevronDown className="@max-lg:hidden size-3 max-sm:hidden" aria-hidden="true" />
                   </button>
                 </AgentPicker>
               </div>
@@ -135,9 +135,9 @@ export function Composer({
                       planning && "bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground aria-expanded:bg-primary/90 aria-expanded:text-primary-foreground",
                     )}
                   >
-                    <ListTodo className="size-3.5" aria-hidden="true" />
+                    <IconListCheck className="size-3.5" aria-hidden="true" />
                     <span className="@max-lg:hidden">{modeLabel}</span>
-                    <ChevronDown className="@max-lg:hidden size-3" aria-hidden="true" />
+                    <IconChevronDown className="@max-lg:hidden size-3" aria-hidden="true" />
                   </button>
                 </PlanMenu>
               </TooltipTrigger>
@@ -154,7 +154,7 @@ export function Composer({
                   aria-pressed={false}
                   data-testid="composer-voice-input-button"
                 >
-                  <Mic className="size-4" />
+                  <IconMicrophone className="size-4" aria-hidden="true" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>Dictate</TooltipContent>
@@ -169,7 +169,7 @@ export function Composer({
                   aria-label="Send message"
                   disabled={!canSend}
                 >
-                  <ArrowUp className="size-4" />
+                  <IconArrowUp className="size-4" aria-hidden="true" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>Send message</TooltipContent>
@@ -191,7 +191,7 @@ export function Composer({
               href="/settings/integrations"
             >
               Connect your integrations
-              <ArrowRight className="size-3" aria-hidden="true" />
+              <IconArrowRight className="size-3" aria-hidden="true" />
             </Link>
           </div>
         )}

@@ -13,7 +13,7 @@ rules keep the parallel branches mergeable and the clone honest.
   of the live page (dark theme, neutral palette, viewport 1456×868, captured
   2026-09-06) with Tailwind classes intact. Copy class strings verbatim. This is
   the pixel strategy: the site is Next.js + Tailwind v4 + shadcn (radix) + lucide,
-  exactly our stack, so its classes compile unchanged here.
+  our stack apart from the icon set, so its classes compile unchanged here.
 - **Compiled CSS:** `docs/reference/css/*.css` (grep it when a class in a dump is
   not a stock Tailwind utility). Site-specific utilities already ported to
   `src/app/globals.css`: `text-logo`, `font-ui/display/body`, `glass*`,
@@ -26,10 +26,13 @@ rules keep the parallel branches mergeable and the clone honest.
   the account: do not send messages, create, edit, connect, or delete anything.
   Screenshot both at 1456×868 and compare; use `evaluate` to read computed
   styles when a value is unclear.
-- **Icons:** lucide-react. The dump's `lucide-<name>` class tells you the icon
-  (`lucide-square-pen` → `SquarePen`). Non-lucide SVGs (logos, brand marks) are
-  copied verbatim into a component under `src/components/<page>/` or
-  `src/components/app/brand-icons.tsx`.
+- **Icons:** the dump's `lucide-<name>` class still tells you which icon the
+  site uses, but the component you write is the Tabler equivalent from
+  `@tabler/icons-react` (`lucide-square-pen` is `IconEdit`,
+  `lucide-chevron-right` is `IconChevronRight`); the naming rule and the
+  lucide-to-Tabler table are in `docs/brand/icons.md`. Non-icon SVGs (logos,
+  brand marks) are copied verbatim into a component under
+  `src/components/<page>/` or `src/components/app/brand-icons.tsx`.
 - **Images:** download remote images the page shows into `public/img/<page>/`
   (curl; they are public CDN assets) and reference them locally. Signed S3 URLs
   expire; grab them from the live tab if the dump's have expired.

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Blocks, LayoutGrid, Plug, Plus, RefreshCw, Search, Send, Star } from "lucide-react";
+import { IconBlocks, IconLayoutGrid, IconPlug, IconPlus, IconRefresh, IconSearch, IconSend, IconStar } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -63,7 +63,7 @@ export function IntegrationsPage() {
         backHref="/settings"
         actions={
           <Button variant="outline" size="sm" onClick={refresh} disabled={refreshing}>
-            <RefreshCw className={cn("size-4", refreshing && "animate-spin")} aria-hidden="true" />
+            <IconRefresh className={cn("size-4", refreshing && "animate-spin")} aria-hidden="true" />
             Refresh
           </Button>
         }
@@ -71,7 +71,7 @@ export function IntegrationsPage() {
 
       <InputGroup className="mb-6 h-9">
         <InputGroupAddon>
-          <Search aria-hidden="true" />
+          <IconSearch aria-hidden="true" />
         </InputGroupAddon>
         <InputGroupInput
           translate="no"
@@ -98,7 +98,7 @@ export function IntegrationsPage() {
             <div className="mb-4 flex items-start justify-between gap-2">
               <div className="min-w-0">
                 <h2 className={SECTION_LABEL}>
-                  <Star className="size-4" aria-hidden="true" />
+                  <IconStar className="size-4" aria-hidden="true" />
                   Featured
                 </h2>
               </div>
@@ -115,7 +115,7 @@ export function IntegrationsPage() {
           <div className="mb-4 flex items-center justify-between gap-2">
             <div className="min-w-0">
               <h2 className={SECTION_LABEL}>
-                <LayoutGrid className="size-4" aria-hidden="true" />
+                <IconLayoutGrid className="size-4" aria-hidden="true" />
                 All other integrations
               </h2>
             </div>
@@ -123,21 +123,21 @@ export function IntegrationsPage() {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" size="sm" aria-label="Add integration">
-                    <Plus className="size-4" aria-hidden="true" />
+                    <IconPlus className="size-4" aria-hidden="true" />
                     Add
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="min-w-[8rem] w-auto">
                   <DropdownMenuItem>
-                    <Plug aria-hidden="true" />
+                    <IconPlug aria-hidden="true" />
                     Add custom MCP server
                   </DropdownMenuItem>
                   <DropdownMenuItem>
-                    <Send aria-hidden="true" />
+                    <IconSend aria-hidden="true" />
                     Request an integration
                   </DropdownMenuItem>
                   <DropdownMenuItem>
-                    <Blocks aria-hidden="true" />
+                    <IconBlocks aria-hidden="true" />
                     Create a skill
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -152,7 +152,7 @@ export function IntegrationsPage() {
               type="button"
               className="flex h-full min-h-[140px] w-full cursor-pointer flex-col items-center justify-center gap-3 rounded-3xl border-2 border-dashed border-border-subtle p-6 text-muted-foreground transition-[color,border-color] duration-(--duration-normal) ease-out hover:border-border-loud hover:text-foreground"
             >
-              <Plug className="size-6" aria-hidden="true" />
+              <IconPlug className="size-6" aria-hidden="true" />
               <span className="flex max-w-full flex-col items-center gap-1">
                 <span className="max-w-full truncate text-sm font-medium">Add custom MCP server</span>
                 <span className="text-center text-xs text-foreground-low">

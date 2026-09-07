@@ -1,4 +1,4 @@
-import { Download, Star } from "lucide-react";
+import { IconDownload, IconStar } from "@tabler/icons-react";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import type { ListingAuthor, ListingTags } from "@/lib/mock/marketplace";
@@ -88,11 +88,11 @@ export function ListingStatPills({ stars, installs }: { stars: number; installs:
   return (
     <div className="flex flex-wrap items-center gap-y-4 overflow-hidden whitespace-nowrap max-h-4 gap-x-3 text-label-12-mono text-foreground-low shrink-0">
       <span className="flex items-center gap-1" aria-label={`${stars} stars`}>
-        <Star className="shrink-0 size-4" aria-hidden="true" />
+        <IconStar className="shrink-0 size-4" aria-hidden="true" />
         {stars}
       </span>
       <span className="flex items-center gap-1" aria-label={`${installs} installs`}>
-        <Download className="size-4 shrink-0" aria-hidden="true" />
+        <IconDownload className="size-4 shrink-0" aria-hidden="true" />
         {installs}
       </span>
     </div>

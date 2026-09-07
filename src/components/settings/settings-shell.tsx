@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { IconArrowLeft } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
@@ -43,7 +43,7 @@ export function SettingsPageHeader({
       {backHref ? (
         <Button asChild variant="ghost" size="sm" className="-ml-3 mb-4 text-muted-foreground hover:text-foreground">
           <Link href={backHref}>
-            <ArrowLeft className="size-4" aria-hidden="true" />
+            <IconArrowLeft className="size-4" aria-hidden="true" />
             {backLabel}
           </Link>
         </Button>

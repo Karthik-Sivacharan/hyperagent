@@ -1,4 +1,4 @@
-import type { LucideIcon } from "lucide-react";
+import type { TablerIcon } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 
 // Centered empty state shared by the resource pages. Two looks appear on
@@ -16,7 +16,7 @@ export function EmptyState({
   action,
   variant = "bubble",
 }: {
-  icon: LucideIcon;
+  icon: TablerIcon;
   title: string;
   description: string;
   action?: React.ReactNode;

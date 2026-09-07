@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { Dialog as DialogPrimitive } from "radix-ui";
-import { X } from "lucide-react";
+import { IconX } from "@tabler/icons-react";
 
 import { Button } from "./button";
 import { cn } from "@/design/brand/utils";
@@ -68,7 +68,7 @@ function DialogContent({
               aria-label="Close"
               className="absolute top-4 right-4 text-muted-foreground hover:text-foreground"
             >
-              <X className="size-4" />
+              <IconX className="size-4" aria-hidden="true" />
             </Button>
           </DialogPrimitive.Close>
         )}

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Archive, ArrowRightLeft, BookX, Ellipsis, Pencil, RefreshCw, Star } from "lucide-react";
+import { IconArchive, IconArrowsRightLeft, IconBookOff, IconDots, IconPencil, IconRefresh, IconStar } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -50,7 +50,7 @@ export function ThreadCard({ thread, layout = "list" }: { thread: Thread; layout
             aria-hidden="true"
             className="absolute inset-0 flex items-center justify-end gap-2 bg-success pr-6 font-medium text-sm text-success-foreground opacity-0"
           >
-            <Archive className="size-5" aria-hidden="true" />
+            <IconArchive className="size-5" aria-hidden="true" />
             Archive
           </div>
           <div className="relative touch-pan-y">
@@ -96,25 +96,25 @@ export function ThreadCard({ thread, layout = "list" }: { thread: Thread; layout
                         aria-label="Thread actions"
                         onClick={(e) => e.preventDefault()}
                       >
-                        <Ellipsis className="size-4" />
+                        <IconDots className="size-4" aria-hidden="true" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-auto" onClick={(e) => e.preventDefault()}>
                       <DropdownMenuItem>
-                        <Pencil className="size-4" />
+                        <IconPencil className="size-4" aria-hidden="true" />
                         Rename
                       </DropdownMenuItem>
                       <DropdownMenuItem>
-                        <RefreshCw className="size-4" />
+                        <IconRefresh className="size-4" aria-hidden="true" />
                         Regenerate name
                       </DropdownMenuItem>
                       <DropdownMenuItem onSelect={() => setStarred((s) => !s)}>
-                        <Star className="size-4" />
+                        <IconStar className="size-4" aria-hidden="true" />
                         {starred ? "Unstar thread" : "Star thread"}
                       </DropdownMenuItem>
                       <DropdownMenuSub>
                         <DropdownMenuSubTrigger>
-                          <ArrowRightLeft className="size-4" />
+                          <IconArrowsRightLeft className="size-4" aria-hidden="true" />
                           Move to project
                         </DropdownMenuSubTrigger>
                         <DropdownMenuSubContent>
@@ -122,11 +122,11 @@ export function ThreadCard({ thread, layout = "list" }: { thread: Thread; layout
                         </DropdownMenuSubContent>
                       </DropdownMenuSub>
                       <DropdownMenuItem>
-                        <BookX className="size-4" />
+                        <IconBookOff className="size-4" aria-hidden="true" />
                         Exclude from knowledge
                       </DropdownMenuItem>
                       <DropdownMenuItem>
-                        <Archive className="size-4" />
+                        <IconArchive className="size-4" aria-hidden="true" />
                         Archive
                       </DropdownMenuItem>
                     </DropdownMenuContent>
@@ -142,7 +142,7 @@ export function ThreadCard({ thread, layout = "list" }: { thread: Thread; layout
                       setStarred((s) => !s);
                     }}
                   >
-                    <Star className={cn("size-4", starred && "fill-current")} />
+                    <IconStar className={cn("size-4", starred && "fill-current")} aria-hidden="true" />
                   </Button>
                 </div>
               </div>

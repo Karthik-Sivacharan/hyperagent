@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ClipboardCheck, Sparkles } from "lucide-react";
+import { IconClipboardCheck, IconSparkles } from "@tabler/icons-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,13 +27,13 @@ export function LearningMenu({ children, ...triggerProps }: React.ComponentProps
         </DropdownMenuLabel>
         <DropdownMenuItem asChild>
           <Link href="/learning">
-            <Sparkles className="size-4" aria-hidden="true" />
+            <IconSparkles className="size-4" aria-hidden="true" />
             Improvements
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
           <Link href="/learning">
-            <ClipboardCheck className="size-4" aria-hidden="true" />
+            <IconClipboardCheck className="size-4" aria-hidden="true" />
             Rubrics
           </Link>
         </DropdownMenuItem>

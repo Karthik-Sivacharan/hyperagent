@@ -1,4 +1,4 @@
-import { CheckCheck } from "lucide-react";
+import { IconChecks } from "@tabler/icons-react";
 import { PageHeading } from "@/components/resources/page-heading";
 
 // Transcribed from docs/reference/pages/inbox.html. The live account has
@@ -14,7 +14,7 @@ export function InboxPage() {
           <PageHeading title="Inbox" />
         </div>
         <div className="flex flex-1 flex-col items-center justify-center gap-3 px-6 text-center">
-          <CheckCheck className="size-8 text-success" aria-hidden="true" />
+          <IconChecks className="size-8 text-success" aria-hidden="true" />
           <div className="font-heading text-[15px] font-medium text-foreground">Nothing needs your attention</div>
           <div className="text-[13px] text-muted-foreground">
             Approvals, agent questions, and failing schedules will show up here.

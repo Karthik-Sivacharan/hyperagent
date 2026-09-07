@@ -3,18 +3,18 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import {
-  ArrowUpDown,
-  ChevronRight,
-  LayoutGrid,
-  List,
-  ListFilter,
-  MessageCircleQuestionMark,
-  Plus,
-  Search,
-  SquareKanban,
-  Star,
-  type LucideIcon,
-} from "lucide-react";
+  IconArrowsUpDown,
+  IconChevronRight,
+  IconFilter2,
+  IconLayoutGrid,
+  IconLayoutKanban,
+  IconList,
+  IconMessageCircleQuestion,
+  IconPlus,
+  IconSearch,
+  IconStar,
+  type TablerIcon,
+} from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -51,10 +51,10 @@ const SORTS: { key: SortKey; label: string }[] = [
   { key: "name", label: "Name" },
 ];
 
-const VIEWS: { key: View; label: string; icon: LucideIcon }[] = [
-  { key: "list", label: "List view", icon: List },
-  { key: "grid", label: "Grid view", icon: LayoutGrid },
-  { key: "board", label: "Board view", icon: SquareKanban },
+const VIEWS: { key: View; label: string; icon: TablerIcon }[] = [
+  { key: "list", label: "List view", icon: IconList },
+  { key: "grid", label: "Grid view", icon: IconLayoutGrid },
+  { key: "board", label: "Board view", icon: IconLayoutKanban },
 ];
 
 // The filter row keeps the site's 36px height on the brand's outline pill.
@@ -114,7 +114,7 @@ export function ThreadsPage({ threads }: { threads: Thread[] }) {
               </div>
               <Button asChild>
                 <Link href="/threads/new">
-                  <Plus aria-hidden="true" />
+                  <IconPlus aria-hidden="true" />
                   New thread
                 </Link>
               </Button>
@@ -126,7 +126,7 @@ export function ThreadsPage({ threads }: { threads: Thread[] }) {
               <div className="@container mb-4 flex items-center justify-between gap-2">
                 <InputGroup className="h-9 min-w-0 flex-1 sm:max-w-[306px]">
                   <InputGroupAddon>
-                    <Search aria-hidden="true" />
+                    <IconSearch aria-hidden="true" />
                   </InputGroupAddon>
                   <InputGroupInput
                     translate="no"
@@ -146,7 +146,7 @@ export function ThreadsPage({ threads }: { threads: Thread[] }) {
                     aria-label="Starred"
                     onClick={() => setStarredOnly((v) => !v)}
                   >
-                    <Star className={cn("size-4", starredOnly && "fill-current")} aria-hidden="true" />
+                    <IconStar className={cn("size-4", starredOnly && "fill-current")} aria-hidden="true" />
                     <span className="@min-[760px]:inline hidden">Starred</span>
                   </Button>
                   <Button
@@ -157,14 +157,14 @@ export function ThreadsPage({ threads }: { threads: Thread[] }) {
                     aria-label="Needs input"
                     onClick={() => setNeedsInputOnly((v) => !v)}
                   >
-                    <MessageCircleQuestionMark className="size-4" aria-hidden="true" />
+                    <IconMessageCircleQuestion className="size-4" aria-hidden="true" />
                     <span className="@min-[760px]:inline hidden">Needs input</span>
                   </Button>
 
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="outline" size="sm" className={CHIP} aria-label={`Sort by ${sortLabel}`}>
-                        <ArrowUpDown className="size-4" aria-hidden="true" />
+                        <IconArrowsUpDown className="size-4" aria-hidden="true" />
                         <span className="@min-[760px]:inline hidden">{sortLabel}</span>
                       </Button>
                     </DropdownMenuTrigger>
@@ -182,7 +182,7 @@ export function ThreadsPage({ threads }: { threads: Thread[] }) {
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="outline" size="sm" className={CHIP} aria-label="Filters">
-                        <ListFilter className="size-4" aria-hidden="true" />
+                        <IconFilter2 className="size-4" aria-hidden="true" />
                         <span className="@min-[760px]:inline hidden">Filters</span>
                       </Button>
                     </DropdownMenuTrigger>
@@ -203,7 +203,7 @@ export function ThreadsPage({ threads }: { threads: Thread[] }) {
                       {["Agent", "Project", "Invocation"].map((label) => (
                         <DropdownMenuItem key={label}>
                           {label}
-                          <ChevronRight className="ml-auto size-4 text-muted-foreground" aria-hidden="true" />
+                          <IconChevronRight className="ml-auto size-4 text-muted-foreground" aria-hidden="true" />
                         </DropdownMenuItem>
                       ))}
                     </DropdownMenuContent>

@@ -1,18 +1,18 @@
 import Link from "next/link";
 import {
-  Bell,
-  ChevronRight,
-  CreditCard,
-  Download,
-  Gift,
-  KeyRound,
-  Plug,
-  Settings,
-  Shield,
-  User,
-  Users,
-  type LucideIcon,
-} from "lucide-react";
+  IconBell,
+  IconChevronRight,
+  IconCreditCard,
+  IconDownload,
+  IconGift,
+  IconKey,
+  IconPlug,
+  IconSettings,
+  IconShield,
+  IconUser,
+  IconUsers,
+  type TablerIcon,
+} from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 import { OpenClawMark } from "@/components/settings/settings-icons";
 import type { SettingsCard, SettingsCardIcon } from "@/lib/mock/settings";
@@ -27,17 +27,17 @@ import type { SettingsCard, SettingsCardIcon } from "@/lib/mock/settings";
 // the tile is a tint disc with the icon on tier 2, and at most one card on
 // the page may carry the tinted brand surface via `accent`.
 
-const ICONS: Record<Exclude<SettingsCardIcon, "openclaw">, LucideIcon> = {
-  user: User,
-  settings: Settings,
-  shield: Shield,
-  bell: Bell,
-  users: Users,
-  plug: Plug,
-  download: Download,
-  "key-round": KeyRound,
-  "credit-card": CreditCard,
-  gift: Gift,
+const ICONS: Record<Exclude<SettingsCardIcon, "openclaw">, TablerIcon> = {
+  user: IconUser,
+  settings: IconSettings,
+  shield: IconShield,
+  bell: IconBell,
+  users: IconUsers,
+  plug: IconPlug,
+  download: IconDownload,
+  "key-round": IconKey,
+  "credit-card": IconCreditCard,
+  gift: IconGift,
 };
 
 function CardIcon({ icon }: { icon: SettingsCardIcon }) {
@@ -70,7 +70,7 @@ export function SettingsLinkCard({ card, accent = false }: { card: SettingsCard;
           </div>
           <div data-slot="card-title" className="mt-4 flex items-center justify-between text-heading-lg text-foreground">
             {card.title}
-            <ChevronRight
+            <IconChevronRight
               className="size-5 text-foreground-low opacity-0 transition-[opacity,transform] duration-(--duration-normal) ease-out group-hover:translate-x-1 group-hover:opacity-100"
               aria-hidden="true"
             />

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Archive, ChevronRight, Ellipsis, Star } from "lucide-react";
+import { IconArchive, IconChevronRight, IconDots, IconStar } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -53,7 +53,7 @@ export function ThreadCard({
             aria-hidden="true"
             className="absolute inset-0 flex items-center justify-end gap-2 bg-success pr-6 font-medium text-sm text-success-foreground opacity-0"
           >
-            <Archive className="size-5" aria-hidden="true" />
+            <IconArchive className="size-5" aria-hidden="true" />
             Archive
           </div>
           <div className="relative touch-pan-y">
@@ -87,7 +87,7 @@ export function ThreadCard({
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" size="icon" className={ACTION} aria-label="Thread actions">
-                        <Ellipsis className="size-4" />
+                        <IconDots className="size-4" aria-hidden="true" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-56">
@@ -96,7 +96,7 @@ export function ThreadCard({
                       <DropdownMenuSeparator />
                       <DropdownMenuItem>
                         Move to project
-                        <ChevronRight className="ml-auto size-4 text-muted-foreground" aria-hidden="true" />
+                        <IconChevronRight className="ml-auto size-4 text-muted-foreground" aria-hidden="true" />
                       </DropdownMenuItem>
                       <DropdownMenuItem>Share</DropdownMenuItem>
                       <DropdownMenuItem>Fork thread</DropdownMenuItem>
@@ -115,7 +115,7 @@ export function ThreadCard({
                     aria-pressed={starred}
                     onClick={onToggleStar}
                   >
-                    <Star className={cn("size-4", starred && "fill-current")} />
+                    <IconStar className={cn("size-4", starred && "fill-current")} aria-hidden="true" />
                   </Button>
                 </div>
               </div>

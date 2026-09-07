@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Blocks, Brain, Check, Cpu, Gauge, Info, Maximize2, Plug, Zap } from "lucide-react";
+import { IconArrowsDiagonal, IconBlocks, IconBolt, IconBrain, IconCheck, IconCpu, IconGauge, IconInfoCircle, IconPlug } from "@tabler/icons-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -81,7 +81,7 @@ function ModelRow({ model, selected, onSelect }: { model: Model; selected: boole
         <span className="block truncate text-muted-foreground text-xs leading-4">{model.description}</span>
       </span>
       <span className="flex h-5 shrink-0 items-center">
-        <Check className={cn("size-4", selected ? "text-foreground" : "opacity-0")} aria-hidden="true" />
+        <IconCheck className={cn("size-4", selected ? "text-foreground" : "opacity-0")} aria-hidden="true" />
       </span>
     </button>
   );
@@ -120,7 +120,7 @@ export function ThreadSettingsMenu({
         <div className="">
           <DropdownMenuSub>
             <DropdownMenuSubTrigger className="flex items-center gap-2 pl-2 pr-1 py-1.5" data-dd-action-name="Model picker">
-              <Brain className="size-4" aria-hidden="true" />
+              <IconBrain className="size-4" aria-hidden="true" />
               <span className="flex-1 text-sm">Model</span>
               <span className="text-muted-foreground text-sm">
                 <span className="inline-flex min-w-0 items-center gap-1.5">
@@ -142,7 +142,7 @@ export function ThreadSettingsMenu({
                 Latest models
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Info
+                    <IconInfoCircle
                       className="size-3"
                       aria-label="We'll automatically use the latest model in the selected family when you create a new thread."
                     />
@@ -160,7 +160,7 @@ export function ThreadSettingsMenu({
               {PROVIDERS.map(({ key, label, logo: Logo }) => (
                 <DropdownMenuSub key={key}>
                   <DropdownMenuSubTrigger>
-                    {Logo ? <Logo className="shrink-0 size-4" /> : <Cpu className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />}
+                    {Logo ? <Logo className="shrink-0 size-4" /> : <IconCpu className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />}
                     <span className="flex-1 text-sm">{label}</span>
                   </DropdownMenuSubTrigger>
                   <DropdownMenuSubContent className="w-80 p-1">
@@ -175,7 +175,7 @@ export function ThreadSettingsMenu({
 
           <DropdownMenuSub>
             <DropdownMenuSubTrigger>
-              <Gauge className="size-4" aria-hidden="true" />
+              <IconGauge className="size-4" aria-hidden="true" />
               <span className="flex-1 text-sm">Reasoning effort</span>
               <span className="text-muted-foreground text-sm">{effort}</span>
             </DropdownMenuSubTrigger>
@@ -192,7 +192,7 @@ export function ThreadSettingsMenu({
                       setOpen(false);
                     }}
                   >
-                    <Check className={cn("mt-0.5 size-4 shrink-0", selected ? "text-brand-accent" : "opacity-0")} aria-hidden="true" />
+                    <IconCheck className={cn("mt-0.5 size-4 shrink-0", selected ? "text-brand-accent" : "opacity-0")} aria-hidden="true" />
                     <div className="min-w-0 flex-1">
                       <div className={cn("truncate text-sm leading-5 text-foreground", selected ? "font-medium" : "font-normal")}>
                         {e.label}
@@ -212,7 +212,7 @@ export function ThreadSettingsMenu({
             }}
           >
             <span className="flex h-5 items-center">
-              <Zap className="size-4" aria-hidden="true" />
+              <IconBolt className="size-4" aria-hidden="true" />
             </span>
             <div className="min-w-0 flex-1">
               <div className="truncate text-popover-foreground text-sm leading-5">Fast inference</div>
@@ -227,7 +227,7 @@ export function ThreadSettingsMenu({
         <div className="">
           <DropdownMenuSub>
             <DropdownMenuSubTrigger>
-              <Blocks className="size-4" aria-hidden="true" />
+              <IconBlocks className="size-4" aria-hidden="true" />
               <span className="flex-1 text-sm">Tools</span>
               <span className="text-muted-foreground text-sm">17</span>
             </DropdownMenuSubTrigger>
@@ -240,13 +240,13 @@ export function ThreadSettingsMenu({
         <div className="">
           <DropdownMenuSub>
             <DropdownMenuSubTrigger>
-              <Plug className="size-4" aria-hidden="true" />
+              <IconPlug className="size-4" aria-hidden="true" />
               <span className="flex-1 text-sm">Integrations</span>
               <span className="text-muted-foreground text-sm">Any</span>
             </DropdownMenuSubTrigger>
             <DropdownMenuSubContent className="w-64 p-1">
               <DropdownMenuItem>
-                <Check className="size-4 text-foreground" aria-hidden="true" />
+                <IconCheck className="size-4 text-foreground" aria-hidden="true" />
                 <span className="text-sm">Any</span>
               </DropdownMenuItem>
             </DropdownMenuSubContent>
@@ -262,7 +262,7 @@ export function ThreadSettingsMenu({
             router.push("/settings");
           }}
         >
-          <Maximize2 className="size-4" aria-hidden="true" />
+          <IconArrowsDiagonal className="size-4" aria-hidden="true" />
           <span>Open full settings</span>
         </button>
       </DropdownMenuContent>

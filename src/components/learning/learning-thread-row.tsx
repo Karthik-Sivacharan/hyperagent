@@ -3,14 +3,14 @@
 import { useState } from "react";
 import Link from "next/link";
 import {
-  ArrowUpRight,
-  ChevronDown,
-  ChevronRight,
-  ClipboardCheck,
-  Lightbulb,
-  MessageSquareText,
-  Sparkles,
-} from "lucide-react";
+  IconArrowUpRight,
+  IconBulb,
+  IconChevronDown,
+  IconChevronRight,
+  IconClipboardCheck,
+  IconMessage2,
+  IconSparkles,
+} from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -48,7 +48,7 @@ function RowAction({
 
 export function LearningThreadRow({ thread }: { thread: Thread }) {
   const [open, setOpen] = useState(false);
-  const Chevron = open ? ChevronDown : ChevronRight;
+  const Chevron = open ? IconChevronDown : IconChevronRight;
 
   return (
     <div className="overflow-hidden rounded-3xl bg-card shadow-card">
@@ -75,16 +75,16 @@ export function LearningThreadRow({ thread }: { thread: Thread }) {
           <div className="shrink-0 pr-4">
             <div className="flex items-center gap-1">
               <RowAction label="Give feedback" href={`/thread/${thread.id}?feedback=true`}>
-                <MessageSquareText className="size-4" aria-hidden="true" />
+                <IconMessage2 className="size-4" aria-hidden="true" />
               </RowAction>
               <RowAction label="Extract learnings" href={`/thread/${thread.id}?learn=true`}>
-                <Lightbulb className="size-4" aria-hidden="true" />
+                <IconBulb className="size-4" aria-hidden="true" />
               </RowAction>
               <RowAction label="Generate skill">
-                <Sparkles className="size-4" aria-hidden="true" />
+                <IconSparkles className="size-4" aria-hidden="true" />
               </RowAction>
               <RowAction label="Evaluate" href={`/thread/${thread.id}?eval=true`}>
-                <ClipboardCheck className="size-4" aria-hidden="true" />
+                <IconClipboardCheck className="size-4" aria-hidden="true" />
               </RowAction>
             </div>
           </div>
@@ -97,7 +97,7 @@ export function LearningThreadRow({ thread }: { thread: Thread }) {
               className="mt-2 inline-flex items-center gap-1 text-sm text-foreground hover:underline"
             >
               Open thread
-              <ArrowUpRight className="size-3.5" aria-hidden="true" />
+              <IconArrowUpRight className="size-3.5" aria-hidden="true" />
             </Link>
           </div>
         </CollapsibleContent>

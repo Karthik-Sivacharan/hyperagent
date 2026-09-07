@@ -1,7 +1,7 @@
 "use client";
 
 import type { ComponentType, ReactNode } from "react";
-import { Archive, ArrowRightLeft, ArrowUpRight, BookX, Pencil, Plus, RefreshCw, Star } from "lucide-react";
+import { IconArchive, IconArrowsRightLeft, IconArrowUpRight, IconBookOff, IconPencil, IconPlus, IconRefresh, IconStar } from "@tabler/icons-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -65,33 +65,33 @@ function ThreadMenuItems({ thread, kit: K }: { thread: Thread; kit: Kit }) {
     <>
       <K.Item asChild>
         <a href={`/thread/${thread.id}`} target="_blank" rel="noopener noreferrer">
-          <ArrowUpRight className="size-4" aria-hidden="true" />
+          <IconArrowUpRight className="size-4" aria-hidden="true" />
           Open in new tab
         </a>
       </K.Item>
       <K.Item>
-        <Pencil className="size-4" aria-hidden="true" />
+        <IconPencil className="size-4" aria-hidden="true" />
         Rename
       </K.Item>
       <K.Item data-drawer-keep-open="true">
-        <RefreshCw className="size-4" aria-hidden="true" />
+        <IconRefresh className="size-4" aria-hidden="true" />
         Regenerate name
       </K.Item>
       <K.Separator />
       <K.Item data-drawer-keep-open="true">
-        <Star className="size-4" aria-hidden="true" />
+        <IconStar className="size-4" aria-hidden="true" />
         Star thread
       </K.Item>
       <K.Sub>
         <K.SubTrigger>
-          <ArrowRightLeft className="size-4" aria-hidden="true" />
+          <IconArrowsRightLeft className="size-4" aria-hidden="true" />
           Move to project
         </K.SubTrigger>
         <K.SubContent>
           <K.Item disabled>No projects yet</K.Item>
           <K.Separator />
           <K.Item data-drawer-keep-open="true">
-            <Plus className="size-4" aria-hidden="true" />
+            <IconPlus className="size-4" aria-hidden="true" />
             Create new project…
           </K.Item>
         </K.SubContent>
@@ -99,12 +99,12 @@ function ThreadMenuItems({ thread, kit: K }: { thread: Thread; kit: Kit }) {
       <K.Separator />
       <span className="block">
         <K.Item data-drawer-keep-open="true">
-          <BookX className="size-4" aria-hidden="true" />
+          <IconBookOff className="size-4" aria-hidden="true" />
           Exclude from knowledge
         </K.Item>
       </span>
       <K.Item>
-        <Archive className="size-4" aria-hidden="true" />
+        <IconArchive className="size-4" aria-hidden="true" />
         Archive
       </K.Item>
     </>

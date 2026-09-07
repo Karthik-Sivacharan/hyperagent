@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { PenLine, Search } from "lucide-react";
+import { IconBallpen, IconSearch } from "@tabler/icons-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,7 +31,7 @@ export function AgentPicker({ children, ...triggerProps }: React.ComponentProps<
       <DropdownMenuContent align="start" sideOffset={6} className="w-72">
         <div>
           <div className="flex items-center gap-2 px-3 py-2">
-            <Search className="size-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />
+            <IconSearch className="size-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />
             <input
               placeholder="Search agents…"
               className="flex-1 bg-transparent text-sm outline-none placeholder:text-foreground-low"
@@ -58,7 +58,7 @@ export function AgentPicker({ children, ...triggerProps }: React.ComponentProps<
           <DropdownMenuSeparator />
           <DropdownMenuItem asChild className="items-center gap-2">
             <Link href="/agents">
-              <PenLine className="mx-1 size-4" aria-hidden="true" />
+              <IconBallpen className="mx-1 size-4" aria-hidden="true" />
               <span className="text-sm">Create from scratch</span>
             </Link>
           </DropdownMenuItem>

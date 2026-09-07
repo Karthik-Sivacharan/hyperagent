@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ArrowDown } from "lucide-react";
+import { IconArrowDown } from "@tabler/icons-react";
 import { ScrollArea as ScrollAreaPrimitive } from "radix-ui";
 import { cn } from "@/lib/utils";
 import { ScrollBar } from "@/components/ui/scroll-area";
@@ -143,7 +143,7 @@ export function ThreadView({ thread, conversation }: { thread: Thread; conversat
                         atBottom ? "pointer-events-none" : "pointer-events-auto cursor-pointer",
                       )}
                     >
-                      <ArrowDown className="size-3.5" aria-hidden="true" />
+                      <IconArrowDown className="size-3.5" aria-hidden="true" />
                       Scroll to bottom
                     </button>
                   </div>

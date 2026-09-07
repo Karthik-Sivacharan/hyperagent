@@ -16,3 +16,8 @@ with the Brand design language. Before changing UI, read
 rules) and `README.md`. Reference material for every page is in
 `docs/reference/`; copy Tailwind classes from the DOM dumps rather than
 inventing styles.
+
+Icons come from `@tabler/icons-react` only, never `lucide-react` or another
+set. Read `docs/brand/icons.md` before adding an icon: it has the import
+shape, the props, the accessibility rules and the table that turns a dump's
+`lucide-<name>` class into the Tabler name.

@@ -1,4 +1,4 @@
-import { Plus } from "lucide-react";
+import { IconPlus } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
 import { DiscoverSkills } from "@/components/skills/discover-skills";
 import { SkillsLibrary } from "@/components/skills/skills-library";
@@ -24,7 +24,7 @@ export function SkillsPage() {
             </div>
             <div className="flex shrink-0 items-center gap-3">
               <Button type="button" className="gap-1">
-                <Plus className="size-4" aria-hidden="true" />
+                <IconPlus className="size-4" aria-hidden="true" />
                 Create skill
               </Button>
             </div>

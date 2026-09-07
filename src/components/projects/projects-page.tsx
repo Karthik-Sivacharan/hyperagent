@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { FolderOpen, Plus } from "lucide-react";
+import { IconFolderOpen, IconPlus } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/resources/empty-state";
 import { PageHeading } from "@/components/resources/page-heading";
@@ -26,7 +26,7 @@ export function ProjectsPage() {
                 <ShowArchivedSwitch checked={showArchived} onCheckedChange={setShowArchived} />
                 <Button asChild className="gap-2">
                   <Link href="/projects/new">
-                    <Plus className="size-4" aria-hidden="true" />
+                    <IconPlus className="size-4" aria-hidden="true" />
                     New Project
                   </Link>
                 </Button>
@@ -36,13 +36,13 @@ export function ProjectsPage() {
         </header>
         <div className="flex-1 overflow-auto p-6">
           <EmptyState
-            icon={FolderOpen}
+            icon={IconFolderOpen}
             title="No projects yet"
             description="Create a project to group related threads and share context. Each project has a shared document and file registry."
             action={
               <Button asChild className="gap-2">
                 <Link href="/projects/new">
-                  <Plus className="size-4" aria-hidden="true" />
+                  <IconPlus className="size-4" aria-hidden="true" />
                   Create your first project
                 </Link>
               </Button>

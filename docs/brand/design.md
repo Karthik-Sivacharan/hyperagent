@@ -366,7 +366,7 @@ Write like the product reads: first-person, warm, direct. the brand site speaks 
 
 ## 13. Inventory
 
-No UI components are installed (by design: tokens only). `components.json` is configured for shadcn (`radix-nova`, base color `neutral`, icons `lucide`, aliases `@/components`, `@/lib`, `@/hooks`); `src/lib/utils.ts` provides `cn()`.
+No UI components are installed (by design: tokens only). `components.json` is configured for shadcn (`radix-nova`, base color `neutral`, icons `lucide`, aliases `@/components`, `@/lib`, `@/hooks`); `src/lib/utils.ts` provides `cn()`. The `lucide` entry is a CLI limitation, not the icon convention: shadcn's CLI has no Tabler option, the app renders every icon with `@tabler/icons-react`, and anything `shadcn add` emits must have its `lucide-react` imports converted to Tabler before it is committed (`docs/brand/icons.md`; `npm test` rejects a lucide import).
 
 The token swatch page (`src/app/design/brand/page.tsx`, rendered at `/design/brand`) shows every ramp, semantic pair, type style, radius, shadow and motion token, plus the dialog layer and the Mind-score tier dots, with a light/dark toggle (`src/app/design/brand/_design/theme-toggle.tsx`).
 

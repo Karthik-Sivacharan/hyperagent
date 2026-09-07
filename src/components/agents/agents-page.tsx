@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Bot, ListFilter, Plus } from "lucide-react";
+import { IconFilter2, IconPlus, IconRobotFace } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -46,7 +46,7 @@ export function AgentsPage() {
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button className="gap-2">
-                      <Plus className="size-4" aria-hidden="true" />
+                      <IconPlus className="size-4" aria-hidden="true" />
                       New agent
                     </Button>
                   </DropdownMenuTrigger>
@@ -71,7 +71,7 @@ export function AgentsPage() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm" aria-label="Filters" className="h-9 shrink-0 gap-2">
-                  <ListFilter className="size-4" aria-hidden="true" />
+                  <IconFilter2 className="size-4" aria-hidden="true" />
                   <span className="hidden sm:inline">Filters</span>
                 </Button>
               </DropdownMenuTrigger>
@@ -91,7 +91,7 @@ export function AgentsPage() {
             </DropdownMenu>
           </div>
           <EmptyState
-            icon={Bot}
+            icon={IconRobotFace}
             title="No agents yet"
             description="Use the New agent button to create your first agent."
           />

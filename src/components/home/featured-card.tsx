@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { BadgeDollarSign, Clock } from "lucide-react";
+import { IconClock, IconCoin } from "@tabler/icons-react";
 import type { FeaturedThread } from "@/lib/mock/featured";
 
 // One card of the "See what Hyperagent is capable of building" showcase
@@ -39,11 +39,11 @@ export function FeaturedCard({ thread, priority }: { thread: FeaturedThread; pri
           <p className="text-muted-foreground text-sm leading-relaxed">{thread.description}</p>
           <div className="flex flex-wrap items-center gap-3 pt-1">
             <span className={META}>
-              <Clock className="size-3" aria-hidden="true" />
+              <IconClock className="size-3" aria-hidden="true" />
               {thread.duration}
             </span>
             <span className={META}>
-              <BadgeDollarSign className="size-3" aria-hidden="true" />
+              <IconCoin className="size-3" aria-hidden="true" />
               {thread.cost}
             </span>
           </div>

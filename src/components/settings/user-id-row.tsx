@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Copy } from "lucide-react";
+import { IconCheck, IconCopy } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { currentUser } from "@/lib/mock/user";
@@ -48,7 +48,7 @@ export function UserIdRow() {
               aria-label="Copy user ID"
               onClick={copy}
             >
-              {copied ? <Check className="size-3" /> : <Copy className="size-3" />}
+              {copied ? <IconCheck className="size-3" aria-hidden="true" /> : <IconCopy className="size-3" aria-hidden="true" />}
             </Button>
           </TooltipTrigger>
           <TooltipContent>{copied ? "Copied" : "Copy user ID"}</TooltipContent>
