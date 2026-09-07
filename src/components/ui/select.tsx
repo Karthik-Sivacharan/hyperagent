@@ -112,7 +112,7 @@ function SelectItem({ className, children, ...props }: React.ComponentProps<type
   return (
     <SelectPrimitive.Item data-slot="select-item" className={cn(ITEM, className)} {...props}>
       <span className="absolute right-2 flex size-3.5 items-center justify-center text-brand-accent">
-        <SelectPrimitive.ItemIndicator>
+        <SelectPrimitive.ItemIndicator data-slot="select-item-indicator">
           <IconCheck className="size-4" aria-hidden="true" />
         </SelectPrimitive.ItemIndicator>
       </span>
