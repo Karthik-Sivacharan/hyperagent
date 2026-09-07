@@ -1,5 +1,5 @@
 /* ==========================================================================
-   BRAND DESIGN TOKENS - scoped copy for Hyperagent
+   BRAND DESIGN TOKENS - the app's token sheet
    ==========================================================================
 
    Source: brand/src/app/globals.css (832 lines, the single source of truth
@@ -8,41 +8,51 @@
    scripts/brand/gen-ramps.mjs and scripts/brand/check-contrast.mjs
    (`npm run brand:gen-ramps`, `npm run brand:check-contrast`).
 
-   SCOPING CONTRACT
-   ----------------
-   Nothing in this file applies outside an element carrying the class
-   `theme-brand`. Put it on an ancestor (a route layout's wrapper div) and
-   the whole subtree is re-themed; add `dark` to that same element, or to any
-   ancestor of it, for the dark mapping. The rest of the app is untouched.
+   WHERE THE TOKENS LIVE
+   ---------------------
+   This file is the only palette in the app. The primitives and the light
+   semantics are declared on `:root`; the dark mapping is declared on `.dark`,
+   which next-themes toggles on <html> (attribute="class", chosen from the
+   account menu, "system" follows the OS). `.dark` has the same specificity
+   as `:root`, so it MUST stay after the `:root` rule in this file: source
+   order is what makes the dark mapping win. The swatch page at /design/brand
+   also puts `dark` on its own wrapper to flip the sheet locally; the same
+   `.dark` rule re-maps the variables for that subtree.
+
+   The root layout imports this file after src/app/globals.css, which holds
+   the Tailwind theme wiring, the PHASE 2 BRIDGE and the `:root` remap of
+   the Hyperagent-only names (`--surface`, `--glow`, `--bg-gradient-*`,
+   `--motion-*` …) onto the tokens defined here.
 
    What changed from the source, and only this:
      - `@import "tailwindcss" / "tw-animate-css" / "shadcn/tailwind.css"` and
        `@custom-variant dark` are dropped. This file is plain CSS; it passes
-       through @tailwindcss/postcss untouched (no Tailwind directives), so it
-       is safe to import from a nested Next.js layout.
-     - `@theme inline { … }` became the `.theme-brand { … }` rule below, with
+       through @tailwindcss/postcss untouched (no Tailwind directives).
+     - `@theme inline { … }` became part of the `:root { … }` rule below, with
        every variable name kept verbatim (`--color-neutral-50`,
        `--color-tangerine-500`, `--color-tint-10`, `--font-sans`, `--radius-*`,
        `--shadow-*`, `--ease-*`, `--text-*`, `--font-weight-*`, …). Names that
        collide with Tailwind's defaults collide ON PURPOSE: Tailwind v4
        utilities such as `bg-neutral-500`, `rounded-md`, `text-xl`, `ease-out`
-       and `font-medium` compile to `var(--color-neutral-500)` etc., so inside
-       `.theme-brand` they resolve to Brand's values.
+       and `font-medium` compile to `var(--color-neutral-500)` etc., and this
+       unlayered `:root` outranks the `@layer theme` values Tailwind emits, so
+       they resolve to Brand's values everywhere.
      - `:root { … }` (light semantics) is merged into that same rule, after the
-       primitives; `.dark { … }` became `.theme-brand.dark, .dark .theme-brand`.
+       primitives; `.dark { … }` is `.dark { … }` here too.
      - `@utility focus-ring / squircle / skeleton` became plain classes with
        their `@apply` lists expanded; `--spacing(n)` (a Tailwind function)
        became `calc(var(--spacing, 0.25rem) * n)`.
-     - The `@layer base / components / utilities` wrappers are KEPT (with every
-       selector scoped under `.theme-brand`). Cascade layers are standard CSS
-       and the names merge into the layers Tailwind already declares in
-       src/app/globals.css. This is deliberate: an unlayered rule beats every
-       layered one, so a plain `.theme-brand * { border-color: … }` would
-       override `border-*` utilities on every descendant, and a plain
-       `.genui-prose h2 { font-weight: … }` would beat `font-normal`. Layered,
-       they lose to utilities exactly as they do in Brand.
-     - `color-scheme` is set on the wrapper (next-themes did this on <html>
-       in Brand) so native controls and scrollbars follow the theme.
+     - The `@layer base / components / utilities` wrappers are KEPT. Cascade
+       layers are standard CSS and the names merge into the layers Tailwind
+       already declares in src/app/globals.css. This is deliberate: an
+       unlayered rule beats every layered one, so a plain
+       `* { border-color: … }` would override `border-*` utilities on every
+       element, and a plain `.genui-prose h2 { font-weight: … }` would beat
+       `font-normal`. Layered, they lose to utilities exactly as they do in
+       Brand. Within the shared `base` layer this file comes after
+       globals.css, so its `body` and `*` rules win the ties.
+     - `color-scheme` is set on `:root` / `.dark` (next-themes did this on
+       <html> in Brand) so native controls and scrollbars follow the theme.
      - A `@keyframes pulse` identical to Tailwind's is included so
        `--animate-skeleton` works even when the host app never emits it.
 
@@ -53,9 +63,9 @@
    BRIDGE") that names every brand-only token here and points it at the
    variable of the same name: `bg-tangerine-500`, `bg-tint-10`,
    `text-foreground-low`, `font-strong`, `text-display`, `rounded-5xl`,
-   `shadow-card`, `gap-group`, `ease-out-quart` … all resolve inside
-   `.theme-brand` (on <body>), and nothing is re-emitted on :root, so this
-   file stays the single source of truth. The `--text-*--letter-spacing` and
+   `shadow-card`, `gap-group`, `ease-out-quart` … all resolve app-wide
+   against this `:root`, and nothing is re-emitted by Tailwind, so this file
+   stays the single source of truth. The `--text-*--letter-spacing` and
    `--font-weight` companions ride the text-* utilities through that bridge.
    Durations and scales are plain custom properties: `duration-(--duration-fast)`,
    `scale-(--scale-press)`. The typography role classes below are plain
@@ -64,14 +74,14 @@
    TYPE
    ----
    Geist and Geist Mono (Vercel's published typography system): the families,
-   the 450 heading weight and the size / leading / tracking roles are in the
+   the 600 heading weight and the size / leading / tracking roles are in the
    TYPOGRAPHY SCALE block; docs/brand/design.md §4 is the human-readable form.
 
    Never hand-edit a ramp literal: regenerate with scripts/brand/gen-ramps.mjs
    and re-run scripts/brand/check-contrast.mjs before committing.
    ========================================================================== */
 
-.theme-brand {
+:root {
   /* ===== BRAND DESIGN TOKENS =====
      Values are measured from the brand site (docs/brand-style-audit.md) and
      regenerated by scripts/gen-ramps.mjs. Every hue rides ONE shared
@@ -474,7 +484,7 @@
 
   /* ===== SHADCN SEMANTIC TOKENS (light, Brand's `:root`) ===== */
 
-  color-scheme: light; /* next-themes set this on <html> in Brand; here it rides the wrapper */
+  color-scheme: light; /* next-themes toggles `dark` on <html>; light is the default mapping */
 
   --background: oklch(1 0 0); /* pure white canvas (Brand --surface-primary) */
   --foreground: var(--color-neutral-950);
@@ -600,12 +610,12 @@
 }
 
 /* ===== DARK MAPPING (Brand's `.dark`) =====
-   Primitives never change; only the semantic mapping does. Either put `dark`
-   on the `.theme-brand` element itself or on any ancestor (an app-level
-   next-themes `html.dark` works too). */
+   Primitives never change; only the semantic mapping does. next-themes puts
+   `dark` on <html> for the whole app; the swatch page puts it on its own
+   wrapper to flip just that subtree. Same specificity as `:root`, so this
+   rule must stay below it. */
 
-.theme-brand.dark,
-.dark .theme-brand {
+.dark {
   color-scheme: dark;
 
   --background: var(--color-neutral-950); /* #1e1e1d - Brand's dark --surface-primary */
@@ -730,28 +740,28 @@
    label roles are utility classes. Metrics mirror the measured Brand styles. */
 
 @layer utilities {
-  .theme-brand .text-heading-display { /* the one page-defining statement: fluid 40→48px, heading weight */
+  .text-heading-display { /* the one page-defining statement: fluid 40→48px, heading weight */
     font-family: var(--font-heading);
     font-size: var(--text-display);
     line-height: 1.15;
     font-weight: var(--font-weight-heading);
     letter-spacing: -0.06em;
   }
-  .theme-brand .text-heading-lg { /* row / card title: 18/28, heading weight */
+  .text-heading-lg { /* row / card title: 18/28, heading weight */
     font-family: var(--font-heading);
     font-size: 18px;
     line-height: 28px;
     font-weight: var(--font-weight-heading);
     letter-spacing: -0.02em;
   }
-  .theme-brand .text-label-14-mono { /* an identifier set in mono, figures tabular and slashed-zero */
+  .text-label-14-mono { /* an identifier set in mono, figures tabular and slashed-zero */
     font-family: var(--font-mono);
     font-size: 14px;
     line-height: 20px;
     font-weight: 400;
     font-variant-numeric: tabular-nums slashed-zero;
   }
-  .theme-brand .text-label-12-mono { /* figures and provenance only: a measured number, a
+  .text-label-12-mono { /* figures and provenance only: a measured number, a
        command, a version, a citation, the things tabular-nums and an even
        advance are for. A card label that NAMES a thing is `text-xs
        font-medium` in the sans. */
@@ -761,7 +771,7 @@
     font-weight: 400;
     font-variant-numeric: tabular-nums slashed-zero;
   }
-  .theme-brand .text-label-12-caps { /* the uppercase label: over a GROUP of cards, and on
+  .text-label-12-caps { /* the uppercase label: over a GROUP of cards, and on
        the field labels that were already set in caps (an entity's kind, a draft
        fact, a stamp's date). Same 12/16 metric and weight as the sentence-case
        `text-xs font-medium` eyebrow; only the case and the tracking are new,
@@ -785,27 +795,27 @@
      controls inside cards where the base outline would clip.
      Was: @apply outline-none focus-visible:ring-2 focus-visible:ring-brand-accent
           focus-visible:ring-offset-2 focus-visible:ring-offset-background */
-  .theme-brand .focus-ring {
+  .focus-ring {
     outline-style: none;
   }
-  .theme-brand .focus-ring:focus-visible {
+  .focus-ring:focus-visible {
     box-shadow: 0 0 0 2px var(--background), 0 0 0 4px var(--brand-accent);
   }
 
   /* Skeleton fill: a tint, so it reads on the canvas and on cards in both themes. */
   /* Brand's avatar shape: `corner-shape: squircle` where supported (Chrome 139+),
      a 28% radius everywhere else. Apply to the avatar root and any overlay. */
-  .theme-brand .squircle {
+  .squircle {
     corner-shape: squircle;
     border-radius: var(--radius-squircle);
   }
   @supports not (corner-shape: squircle) {
-    .theme-brand .squircle {
+    .squircle {
       border-radius: 28%;
     }
   }
   /* Was: @apply animate-skeleton rounded-md bg-tint-10 */
-  .theme-brand .skeleton {
+  .skeleton {
     animation: var(--animate-skeleton);
     border-radius: var(--radius-md);
     background-color: var(--color-tint-10);
@@ -817,42 +827,42 @@
    Serif is reserved for display headings and pull quotes. */
 
 @layer components {
-  .theme-brand .genui-prose {
+  .genui-prose {
     font-size: var(--text-base);
     line-height: var(--text-base--line-height);
     color: var(--foreground);
   }
-  .theme-brand .genui-prose > * + * { margin-top: calc(var(--spacing, 0.25rem) * 3); }
-  .theme-brand .genui-prose h2 {
+  .genui-prose > * + * { margin-top: calc(var(--spacing, 0.25rem) * 3); }
+  .genui-prose h2 {
     margin-top: calc(var(--spacing, 0.25rem) * 6);
     font-size: var(--text-xl);
     line-height: var(--text-xl--line-height);
     letter-spacing: var(--text-xl--letter-spacing);
     font-weight: var(--font-weight-heading);
   }
-  .theme-brand .genui-prose h3 {
+  .genui-prose h3 {
     margin-top: calc(var(--spacing, 0.25rem) * 5);
     font-size: var(--text-lg);
     line-height: var(--text-lg--line-height);
     letter-spacing: var(--text-lg--letter-spacing);
     font-weight: var(--font-weight-heading);
   }
-  .theme-brand .genui-prose h2:first-child, .theme-brand .genui-prose h3:first-child { margin-top: 0; }
-  .theme-brand .genui-prose strong { font-weight: var(--font-weight-strong); }
-  .theme-brand .genui-prose ul, .theme-brand .genui-prose ol { padding-left: calc(var(--spacing, 0.25rem) * 5); }
-  .theme-brand .genui-prose ul { list-style: disc; }
-  .theme-brand .genui-prose ol { list-style: decimal; }
-  .theme-brand .genui-prose li + li { margin-top: calc(var(--spacing, 0.25rem) * 1); }
-  .theme-brand .genui-prose li::marker { color: var(--foreground-low); }
-  .theme-brand .genui-prose a {
+  .genui-prose h2:first-child, .genui-prose h3:first-child { margin-top: 0; }
+  .genui-prose strong { font-weight: var(--font-weight-strong); }
+  .genui-prose ul, .genui-prose ol { padding-left: calc(var(--spacing, 0.25rem) * 5); }
+  .genui-prose ul { list-style: disc; }
+  .genui-prose ol { list-style: decimal; }
+  .genui-prose li + li { margin-top: calc(var(--spacing, 0.25rem) * 1); }
+  .genui-prose li::marker { color: var(--foreground-low); }
+  .genui-prose a {
     text-decoration: underline;
     text-underline-offset: 4px;
     text-decoration-color: var(--border-loud);
     transition: text-decoration-color var(--duration-fast) var(--ease-out-quart);
   }
-  .theme-brand .genui-prose a:hover { text-decoration-color: var(--foreground); }
-  .theme-brand .genui-prose hr { border: 0; border-top: 1px solid var(--border-subtle); margin-block: calc(var(--spacing, 0.25rem) * 6); }
-  .theme-brand .genui-prose code {
+  .genui-prose a:hover { text-decoration-color: var(--foreground); }
+  .genui-prose hr { border: 0; border-top: 1px solid var(--border-subtle); margin-block: calc(var(--spacing, 0.25rem) * 6); }
+  .genui-prose code {
     font-family: var(--font-mono);
     font-size: 0.875em;
     padding: 0.1em 0.4em;
@@ -863,7 +873,7 @@
      colour with a hairline down the left edge, no accent stripe and no
      italic (Geist has no separate italic face and `font-synthesis: none`
      forbids a synthesised one). */
-  .theme-brand .genui-prose blockquote {
+  .genui-prose blockquote {
     padding-left: calc(var(--spacing, 0.25rem) * 4);
     border-left: 1px solid var(--border-subtle);
     font-family: var(--font-heading);
@@ -872,27 +882,29 @@
 }
 
 /* ===== BASE STYLES =====
-   Brand set these on `*`, `html` and `body`. Here the wrapper plays both
-   html and body; the inheritable properties (font smoothing, text-rendering,
-   font-synthesis, colour, family, tracking, feature settings) flow down. */
+   Brand set these on `*`, `html` and `body`, and so does this file. They sit
+   in the `base` layer alongside the `html, body` and `*` rules of
+   src/app/globals.css; this file is imported after it, so these win the
+   ties (family, feature settings, outline colour). The inheritable
+   properties (font smoothing, text-rendering, font-synthesis, colour,
+   family, tracking, feature settings) flow down from html and body. */
 
 @layer base {
-  .theme-brand,
-  .theme-brand * {
+  * {
     border-color: var(--border);
     outline-color: var(--ring);
   }
 
-  .theme-brand {
-    /* html */
+  html {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
     font-synthesis: none;
     font-kerning: normal;
     font-optical-sizing: auto;
+  }
 
-    /* body */
+  body {
     background-color: var(--background);
     color: var(--foreground);
     font-family: var(--font-sans);
@@ -906,19 +918,18 @@
     font-feature-settings: "rlig" 1, "calt" 0, "ss11" 1;
   }
 
-  .theme-brand::selection,
-  .theme-brand ::selection {
+  ::selection {
     background-color: var(--selection);
     color: var(--selection-foreground);
   }
 
-  .theme-brand ::placeholder {
+  ::placeholder {
     color: var(--foreground-low);
   }
 
   /* Visible focus for keyboard users only; ring colour is the brand orange.
      Low specificity (:where) so components can swap in a box-shadow ring. */
-  .theme-brand :where(:focus-visible) {
+  :where(:focus-visible) {
     outline: 2px solid var(--ring);
     outline-offset: 2px;
   }
@@ -946,10 +957,9 @@
 /* ===== REDUCED MOTION ===== */
 
 @media (prefers-reduced-motion: reduce) {
-  .theme-brand,
-  .theme-brand *,
-  .theme-brand *::before,
-  .theme-brand *::after {
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;

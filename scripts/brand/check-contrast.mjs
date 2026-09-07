@@ -2,9 +2,9 @@
 /**
  * check-contrast.mjs - Design-token accessibility checker
  * ------------------------------------------------------------------
- * Two checks, run against src/design/brand/brand.css (the scoped Brand
- * token sheet; primitives + light semantics live in `.theme-brand { }`,
- * the dark mapping in `.theme-brand.dark, .dark .theme-brand { }`):
+ * Two checks, run against src/design/brand/brand.css (the app's Brand
+ * token sheet; primitives + light semantics live in `:root { }`, the dark
+ * mapping in `.dark { }`):
  *
  *   CHECK 1: Scale validation (50–950 primitives)
  *     • monotonic lightness (each step strictly darker than the last)
@@ -12,7 +12,7 @@
  *     • distance guarantee (step N vs N+500 ≥ 4.5:1, N vs N+400 ≥ 3:1)
  *     • carrier check (which steps safely hold white vs black text @ AA)
  *
- *   CHECK 2: Semantic pair matrix (.theme-brand AND .theme-brand.dark)
+ *   CHECK 2: Semantic pair matrix (:root AND .dark)
  *     • every foreground/background pairing that renders together
  *     • per-type threshold: text 4.5:1, large/UI 3:1, non-text 3:1
  *
@@ -73,13 +73,13 @@ function decls(body) {
   return out;
 }
 
-// In the scoped sheet the primitives (Brand's `@theme inline`) and the light
-// semantics (Brand's `:root`) share one `.theme-brand { }` rule, so both
-// lookups read the same block; the dark mapping is its own rule.
-const lightVars = decls(block('\\.theme-brand'));
+// In the app's sheet the primitives (Brand's `@theme inline`) and the light
+// semantics (Brand's `:root`) share one `:root { }` rule, so both lookups
+// read the same block; the dark mapping is the `.dark { }` rule.
+const lightVars = decls(block(':root'));
 const themeVars = lightVars; // primitives + aliases
 const rootVars = lightVars; // light semantics
-const darkVars = decls(block('\\.theme-brand\\.dark[^{]*'));
+const darkVars = decls(block('\\.dark'));
 
 // Resolve a token name to a concrete color string, following var() chains.
 // Lookup order: dark mode falls back to the light block (semantics, then primitives).
@@ -334,7 +334,7 @@ function printScales() {
 }
 
 function printPairs(theme) {
-  console.log(c.bold(`\n━━ CHECK 2 · Semantic pairs · ${theme === 'dark' ? '.theme-brand.dark' : '.theme-brand'} ━━`));
+  console.log(c.bold(`\n━━ CHECK 2 · Semantic pairs · ${theme === 'dark' ? '.dark' : ':root'} ━━`));
   console.log(
     c.dim('   ' + 'pair'.padEnd(40) + 'type   WCAG   gate  APCA')
   );
