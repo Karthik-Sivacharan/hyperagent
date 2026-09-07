@@ -163,16 +163,62 @@ same day) and tightened:
 The caps group labels (`text-label-12-caps`) stay: Vercel's own Label 12
 role carries an "AND CAPS" variant for tertiary text in busy views.
 
+## Next: plan step 5, the brand colour tokens become the only palette
+
+Not started. Colour is currently defined twice, and the brand wins only by
+scoping:
+
+- `src/app/globals.css` still carries the phase-1 Hyperagent palettes: the
+  warm light default on `:root`, the warm dark on `.dark` and the neutral
+  dark on `.dark body.palette-neutral` (about 165 lines), plus the
+  `--font-*-active` indirection on `:root` and in the `.theme-brand` remap
+  block. They exist only so that swapping `theme-brand` for
+  `palette-neutral` on `<body>` (`src/app/layout.tsx`) shows the phase-1
+  clone for comparison.
+- `src/design/brand/brand.css` defines every brand token under
+  `.theme-brand` (47 scoped selectors) and its dark mapping under
+  `.dark .theme-brand`, so it outranks the root palettes.
+
+The step, now that the re-skin is signed off:
+
+1. Delete the three palette blocks and the `--font-*-active` lines from
+   `globals.css`; delete the comparison comment and the `theme-brand` class
+   from `layout.tsx`.
+2. In `brand.css`, move the light tokens from `.theme-brand` to `:root` and
+   the dark mapping from `.dark .theme-brand` to `.dark`; drop the
+   `.theme-brand` prefix from the base styles, the prose block and the role
+   classes. The Hyperagent-only names the site utilities still read
+   (`--bg-gradient-*`, `--surface`, `--glow`, `--shimmer-sweep`,
+   `--sidebar-fade`, `--motion-*`, `--font-display` / `--font-ui` /
+   `--font-body`) must keep a definition: fold the `.theme-brand` remap
+   block in `globals.css` into `:root`, or point the utilities at the brand
+   tokens directly.
+3. `scripts/brand/check-contrast.mjs` parses `brand.css`: check how it finds
+   the light and dark blocks before renaming the selectors. Update
+   `docs/brand/design.md` §2 (how to consume tokens),
+   `src/design/brand/README.md` (the "put `theme-brand` on an ancestor"
+   paragraph and the bridge section) and `docs/brand/reskin-conventions.md`.
+4. Gates: `npx tsc --noEmit`, `npm run lint`, `npm run build`,
+   `npm run brand:check-contrast`, `npm run brand:lint-tokens`; then
+   `node scripts/dev/screenshot-pages.mjs` against the dev server (one is
+   usually already running on :3000) and a contact sheet against a set
+   captured before the change. Nothing should move or change colour.
+
+Colour rules to keep while doing it (`docs/brand/design.md` §3 and §12):
+the primary button is ink (`--primary` = neutral-950 light / neutral-100
+dark), not orange; tangerine is the accent and appears once per view.
+`--brand` (tangerine-600) is the only text-bearing orange fill,
+`--brand-accent` (tangerine-500, lifted to 400 in dark) is for rings,
+icons, selection and graphics, `--brand-subtle` (tangerine-50 / 950) is
+the tinted surface. Thirteen components use these today; the swatch page
+at `/design/brand` shows every token in both themes.
+
 ## Known gaps and follow-ups
 
 - The phase-1 gaps still apply (invented grid and board layouts, a few
   menu sub-panels, the referral banner, routes the site links to but the
   clone lacks).
-- Plan step 5 is open: once the re-skin is signed off, remove the Hyperagent
-  palettes (`:root`, `.dark`, `.dark body.palette-neutral`) and the
-  `palette-neutral` switch from `globals.css` and let the primitives leave
-  the `.theme-brand` scope. (The phase-1 fonts are already gone: the switch
-  renders its display face in Geist.)
+- Plan step 5 is next; see the section above.
 - Only the desktop 1456-wide layout was verified. Responsive classes were
   carried over and in places adjusted (the threads and home lists), but the
   phone layout is untested.
@@ -204,11 +250,18 @@ gates re-run after each merge.
 
 ## Prompt to start the next session
 
-> Read HANDOFF.md, README.md and docs/brand/reskin-conventions.md in
-> ~/Projects/hyperagent. Phases 1 and 2 are merged on main and pushed to
-> origin (private): the dashboard clone runs on the brand tokens in light
-> and dark, in Geist and Geist Mono on Vercel's Geist typography roles
-> (headings 600 through --font-weight-heading; the display-face question is
-> closed). Next: plan step 5 (retire the Hyperagent palettes and the
-> `*-active` font indirection from globals.css), then a phone-width pass.
-> Keep npm run brand:check-contrast and npm run brand:lint-tokens green.
+> Read HANDOFF.md, README.md, docs/brand/design.md (§2, §3, §12) and
+> docs/brand/reskin-conventions.md in ~/Projects/hyperagent. Phases 1 and 2
+> are merged on main and pushed to origin (private): the dashboard clone
+> runs on the brand tokens in light and dark, in Geist and Geist Mono on
+> Vercel's Geist roles; the type work is closed. Do plan step 5 from the
+> handoff: make the brand colour tokens the only palette. Remove the
+> Hyperagent palettes and the *-active font indirection from
+> src/app/globals.css and the theme-brand comparison switch from
+> src/app/layout.tsx; move the brand tokens in src/design/brand/brand.css
+> from .theme-brand to :root and .dark; keep the primary button ink and
+> tangerine as the single accent per view. Prove nothing moved: screenshot
+> before you start, re-run npx tsc --noEmit, npm run lint, npm run build,
+> npm run brand:check-contrast and npm run brand:lint-tokens, then
+> screenshot again and compare. Commit on main with the trailers in
+> HANDOFF.md and push.
