@@ -27,7 +27,7 @@ for (let i = 0; i < 50; i++) { try { targets = await fetch(`http://127.0.0.1:${p
 const ws = new WebSocket(targets.find((t) => t.type === "page").webSocketDebuggerUrl);
 await new Promise((r) => (ws.onopen = r));
 let id = 0; const pending = new Map(); const waiters = new Set();
-ws.onmessage = (m) => { const msg = JSON.parse(m.data); if (msg.id && pending.has(msg.id)) { const p = pending.get(msg.id); pending.delete(msg.id); msg.error ? p.reject(new Error(msg.error.message)) : p.resolve(msg.result); } else if (msg.method) for (const w of waiters) w(msg); };
+ws.onmessage = (m) => { const msg = JSON.parse(m.data); if (msg.id && pending.has(msg.id)) { const p = pending.get(msg.id); pending.delete(msg.id); if (msg.error) p.reject(new Error(msg.error.message)); else p.resolve(msg.result); } else if (msg.method) for (const w of waiters) w(msg); };
 const send = (method, params = {}) => new Promise((resolve, reject) => { const mid = ++id; pending.set(mid, { resolve, reject }); ws.send(JSON.stringify({ id: mid, method, params })); });
 const waitEvent = (method) => new Promise((resolve) => { const w = (msg) => { if (msg.method === method) { waiters.delete(w); resolve(msg.params); } }; waiters.add(w); });
 await send("Page.enable");
