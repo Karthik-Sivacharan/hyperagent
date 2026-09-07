@@ -1,10 +1,10 @@
 # Brand style audit (the brand site)
 
-Raw extraction of the design language behind `https://www.the brand site/nireyal`, with `https://www.the brand site/explore` and the `the brand site` homepage as cross-checks. Captured 2026-08-26.
+Raw extraction of the design language behind the brand site's public profile page, with its explore page and homepage as cross-checks. Captured 2026-08-26.
 
 **Method.** The Chrome extension was not connected (three failed attempts), so the fallback path was used: the three pages were fetched with `curl`, all twelve `/_next/static/chunks/*.css` bundles referenced by the profile app (444 KB total) were downloaded, and colors, fonts, radii, shadows and motion were extracted from the raw CSS and the server-rendered HTML with grep/python. Frequencies below are counts of Tailwind utility classes in the rendered HTML of the profile and explore pages (a proxy for computed-style frequency; no screenshots were taken). Hex values for OKLCH tokens were computed with `culori` (sRGB-clamped where the source value is out of gamut).
 
-The homepage (`the brand site/`) is a separate Framer site; the profile and explore pages are the product app (Next.js + Tailwind v4 + shadcn + Radix Colors). The product app is the authoritative source for tokens.
+The homepage is a separate Framer site; the profile and explore pages are the product app (Next.js + Tailwind v4 + shadcn + Radix Colors). The product app is the authoritative source for tokens.
 
 ---
 
