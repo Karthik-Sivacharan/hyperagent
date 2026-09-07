@@ -2,7 +2,7 @@
 
 A self-contained copy of the Brand prototype's design-token system, brought into Hyperagent without touching the app's own theme. Nothing here applies outside an element carrying the class `theme-brand`. Phase 2 rewires Hyperagent's components to these tokens; this directory is the faithful reference that rewiring reads from.
 
-Source (read-only, never modified): `/Users/karthiksivacharan/Projects/brand`, `main` branch.
+Source: the brand prototype's own repository, kept outside this repo and never modified from here.
 
 ## What is here
 
