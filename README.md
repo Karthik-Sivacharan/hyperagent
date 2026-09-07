@@ -58,5 +58,6 @@ truth.
 ```bash
 npm run brand:check-contrast   # WCAG AA gate over the brand tokens, both themes
 npm run brand:lint-tokens      # no raw colours / stock palette classes / px radii in components
+npm test                       # the token contract: brand.css shape, bridge targets, cn()
 node scripts/dev/screenshot-pages.mjs out/ http://localhost:3000   # every route, light + dark
 ```
