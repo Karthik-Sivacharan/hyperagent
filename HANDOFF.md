@@ -193,8 +193,10 @@ The step, now that the re-skin is signed off:
    `--font-body`) must keep a definition: fold the `.theme-brand` remap
    block in `globals.css` into `:root`, or point the utilities at the brand
    tokens directly.
-3. `scripts/brand/check-contrast.mjs` parses `brand.css`: check how it finds
-   the light and dark blocks before renaming the selectors. Update
+3. `scripts/brand/check-contrast.mjs` parses `brand.css` by selector: it
+   takes the light block with `block('\\.theme-brand')` and the dark block
+   from `.theme-brand.dark, .dark .theme-brand`; point both at `:root` and
+   `.dark` in the same change or the gate reads nothing. Update
    `docs/brand/design.md` §2 (how to consume tokens),
    `src/design/brand/README.md` (the "put `theme-brand` on an ancestor"
    paragraph and the bridge section) and `docs/brand/reskin-conventions.md`.
