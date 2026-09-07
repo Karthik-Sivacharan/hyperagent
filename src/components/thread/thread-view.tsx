@@ -2,9 +2,9 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { IconArrowDown } from "@tabler/icons-react";
-import { ScrollArea as ScrollAreaPrimitive } from "radix-ui";
 import { cn } from "@/lib/utils";
-import { ScrollBar } from "@/components/ui/scroll-area";
+import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Composer } from "@/components/composer/composer";
 import type { Thread } from "@/lib/mock/threads";
 import type { Conversation, ConversationItem } from "@/lib/mock/conversation";
@@ -14,7 +14,7 @@ import { OptionCards } from "@/components/thread/option-cards";
 import { UserMessage } from "@/components/thread/user-message";
 
 // The thread detail screen from hyperagent.com (docs/reference/pages/
-// thread-detail.html): a rounded panel holding the top bar, a radix scroll
+// thread-detail.html): a rounded panel holding the top bar, the brand scroll
 // area with the conversation pinned to its bottom edge, and the composer.
 // Phase 2: the panel is a 22px paper card edged with the brand hairline; the
 // site's per-thread accent (a navy that tinted the bubble and the send
@@ -57,6 +57,13 @@ function AgentItemView({ item }: { item: AgentItem }) {
 
 const SCROLL_END_THRESHOLD = 40;
 
+// The viewport's own classes on top of the primitive's: the site's focus
+// ring, no scroll anchoring, and the flex column that pins a short
+// conversation to the bottom edge (radix wraps the children in a `display:
+// table` div, hence the `!` overrides).
+const VIEWPORT =
+  "overflow-auto duration-(--duration-fast) ease-out-quart focus-visible:outline-1 focus-visible:ring-[3px] focus-visible:ring-ring/50 [overflow-anchor:none] pb-10 [&>div]:!flex [&>div]:!flex-col [&>div]:!justify-end [&>div]:!min-h-full";
+
 export function ThreadView({ thread, conversation }: { thread: Thread; conversation: Conversation }) {
   const viewportRef = useRef<HTMLDivElement>(null);
   const [atBottom, setAtBottom] = useState(true);
@@ -83,45 +90,40 @@ export function ThreadView({ thread, conversation }: { thread: Thread; conversat
           <div className="relative z-10 h-full min-h-0 bg-surface-secondary min-w-0 flex-1 transition-[width] duration-(--duration-slow) ease-out">
             <div className="safe-area-bottom relative flex h-full min-w-0 flex-col bg-background">
               <div className="relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden border-border-subtle border-r bg-background">
-                <ThreadHeader title={thread.title} model={conversation.model} starred={thread.starred} />
+                <ThreadHeader thread={thread} model={conversation.model} />
 
-                <ScrollAreaPrimitive.Root data-slot="scroll-area" className="relative overflow-hidden min-h-0 min-w-0 flex-1">
-                  <ScrollAreaPrimitive.Viewport
-                    ref={viewportRef}
-                    data-slot="scroll-area-viewport"
-                    onScroll={handleScroll}
-                    className="size-full overflow-auto rounded-[inherit] outline-none transition-[color,box-shadow] duration-(--duration-fast) ease-out-quart focus-visible:outline-1 focus-visible:ring-[3px] focus-visible:ring-ring/50 [overflow-anchor:none] pb-10 [&>div]:!flex [&>div]:!flex-col [&>div]:!justify-end [&>div]:!min-h-full"
-                  >
-                    <div className="min-w-0 space-y-2 pt-4 mx-auto w-full max-w-[816px] px-6">
-                      {groupTurns(conversation.items).map((turn, i) => {
-                        if (turn.kind === "user") {
-                          return (
-                            <UserMessage
-                              key={turn.item.id}
-                              id={turn.item.id}
-                              text={turn.item.text}
-                              knowledgeHints={turn.item.knowledgeHints}
-                              sentAtLabel={turn.item.sentAtLabel}
-                            />
-                          );
-                        }
-                        if (turn.items.length === 1) {
-                          return <AgentItemView key={turn.items[0].id} item={turn.items[0]} />;
-                        }
+                <ScrollArea
+                  className="relative overflow-hidden min-h-0 min-w-0 flex-1"
+                  viewportRef={viewportRef}
+                  viewportProps={{ onScroll: handleScroll, className: VIEWPORT }}
+                >
+                  <div className="min-w-0 space-y-2 pt-4 mx-auto w-full max-w-[816px] px-6">
+                    {groupTurns(conversation.items).map((turn, i) => {
+                      if (turn.kind === "user") {
                         return (
-                          <div key={i} className="space-y-2">
-                            {turn.items.map((item) => (
-                              <AgentItemView key={item.id} item={item} />
-                            ))}
-                          </div>
+                          <UserMessage
+                            key={turn.item.id}
+                            id={turn.item.id}
+                            text={turn.item.text}
+                            knowledgeHints={turn.item.knowledgeHints}
+                            sentAtLabel={turn.item.sentAtLabel}
+                          />
                         );
-                      })}
-                    </div>
-                    <div className="mx-auto w-full max-w-[816px] px-6 pt-2" />
-                  </ScrollAreaPrimitive.Viewport>
-                  <ScrollBar />
-                  <ScrollAreaPrimitive.Corner />
-                </ScrollAreaPrimitive.Root>
+                      }
+                      if (turn.items.length === 1) {
+                        return <AgentItemView key={turn.items[0].id} item={turn.items[0]} />;
+                      }
+                      return (
+                        <div key={i} className="space-y-2">
+                          {turn.items.map((item) => (
+                            <AgentItemView key={item.id} item={item} />
+                          ))}
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div className="mx-auto w-full max-w-[816px] px-6 pt-2" />
+                </ScrollArea>
 
                 <div className="relative shrink-0">
                   {/* `to-background-fade` on the site is background at 0% alpha; `to-background/0` is the stock spelling. */}
@@ -132,20 +134,22 @@ export function ThreadView({ thread, conversation }: { thread: Thread; conversat
                       atBottom ? "translate-y-2 opacity-0" : "translate-y-0 opacity-100",
                     )}
                   >
-                    {/* A floating glass pill: the raised-control shadow over a hairline ring (design.md §6). */}
-                    <button
+                    {/* A floating glass pill: the outline button carrying the raised-control shadow over a hairline ring (design.md §6). */}
+                    <Button
                       type="button"
+                      variant="outline"
+                      size="none"
                       tabIndex={-1}
                       aria-hidden={atBottom}
                       onClick={() => scrollToBottom("smooth")}
                       className={cn(
-                        "flex items-center gap-1.5 rounded-full bg-surface-elevated/90 px-4 py-2 text-muted-foreground text-xs shadow-md ring-1 ring-border-subtle backdrop-blur-sm transition-[color,background-color] duration-(--duration-fast) ease-out-quart hover:bg-surface-elevated hover:text-foreground",
+                        "gap-1.5 px-4 py-2 font-normal text-xs bg-surface-elevated/90 text-muted-foreground shadow-md ring-1 ring-border-subtle backdrop-blur-sm hover:bg-surface-elevated hover:text-foreground",
                         atBottom ? "pointer-events-none" : "pointer-events-auto cursor-pointer",
                       )}
                     >
                       <IconArrowDown className="size-3.5" aria-hidden="true" />
                       Scroll to bottom
-                    </button>
+                    </Button>
                   </div>
                   <div className="mx-auto w-full max-w-[816px] px-4 pb-4">
                     <div className="relative shrink-0">

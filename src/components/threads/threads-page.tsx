@@ -11,7 +11,6 @@ import {
   IconList,
   IconMessageCircleQuestion,
   IconPlus,
-  IconSearch,
   IconStar,
   type TablerIcon,
 } from "@tabler/icons-react";
@@ -27,9 +26,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
+import { Overline } from "@/components/ui/overline";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { PageHeading } from "@/components/patterns/page-heading";
+import { SearchInput } from "@/components/patterns/search-input";
 import type { Thread } from "@/lib/mock/threads";
 import { ThreadCard } from "@/components/threads/thread-card";
 
@@ -40,7 +41,9 @@ import { ThreadCard } from "@/components/threads/thread-card";
 // field the pill input group, the filters outline pills (a pressed one is
 // the active tint fill, no status hue), the layout switcher the pill toggle
 // group, "New thread" the ink button, and the rows brand cards
-// (docs/brand/design.md §1, §4, §5, §12).
+// (docs/brand/design.md §1, §4, §5, §12). The title row is the shared
+// `PageHeading` (laid out as one wrapping row, as the site's is) and the
+// search field the shared `SearchInput`.
 
 type SortKey = "recent" | "oldest" | "name";
 type View = "list" | "grid" | "board";
@@ -57,8 +60,9 @@ const VIEWS: { key: View; label: string; icon: TablerIcon }[] = [
   { key: "board", label: "Board view", icon: IconLayoutKanban },
 ];
 
-// The filter row keeps the site's 36px height on the brand's outline pill.
-const CHIP = "h-9 gap-2 px-3 has-[>svg]:px-2.5";
+// The filter row keeps the site's 36px height and 8px gap on the brand's
+// `sm` outline pill (whose 12px / 10px insets it shares).
+const CHIP = "h-9 gap-2";
 
 // A pressed filter: the active tint fill with ink text.
 const PRESSED = "bg-tint-20 text-foreground hover:bg-tint-20";
@@ -108,34 +112,30 @@ export function ThreadsPage({ threads }: { threads: Thread[] }) {
       <div className="flex h-full flex-col">
         <div className="min-h-0 flex-1 overflow-y-auto">
           <header className="mx-auto w-full max-w-5xl px-6 pt-6 pb-4 max-sm:px-6">
-            <div className="flex w-full flex-wrap items-center justify-between gap-4">
-              <div className="flex items-center gap-2">
-                <h1 className="font-heading text-2xl text-foreground">Threads</h1>
-              </div>
-              <Button asChild>
-                <Link href="/threads/new">
-                  <IconPlus aria-hidden="true" />
-                  New thread
-                </Link>
-              </Button>
-            </div>
+            <PageHeading
+              className="flex-row flex-wrap items-center justify-between"
+              title="Threads"
+              actions={
+                <Button asChild>
+                  <Link href="/threads/new">
+                    <IconPlus aria-hidden="true" />
+                    New thread
+                  </Link>
+                </Button>
+              }
+            />
           </header>
 
           <div className="mx-auto max-w-5xl px-6 pb-16 max-sm:px-0">
             <div className="max-sm:px-6">
               <div className="@container mb-4 flex items-center justify-between gap-2">
-                <InputGroup className="h-9 min-w-0 flex-1 sm:max-w-[306px]">
-                  <InputGroupAddon>
-                    <IconSearch aria-hidden="true" />
-                  </InputGroupAddon>
-                  <InputGroupInput
-                    translate="no"
-                    placeholder="Search by name or topic"
-                    aria-label="Search threads"
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                  />
-                </InputGroup>
+                <SearchInput
+                  className="min-w-0 flex-1 sm:max-w-[306px]"
+                  placeholder="Search by name or topic"
+                  aria-label="Search threads"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                />
 
                 <div className="flex shrink-0 items-center gap-2">
                   <Button
@@ -271,10 +271,10 @@ export function ThreadsPage({ threads }: { threads: Thread[] }) {
                 ].map((column) => (
                   <div key={column.label} className="flex min-w-0 flex-col gap-3">
                     {/* A group label: the caps eyebrow on tier 3 (design.md §4.1). */}
-                    <div className="flex items-center gap-2 px-1 text-label-12-caps text-foreground-low">
+                    <Overline className="flex items-center gap-2 px-1">
                       <span>{column.label}</span>
                       <span className="rounded-full bg-tint-10 px-1.5 py-0.5 tabular-nums">{column.items.length}</span>
-                    </div>
+                    </Overline>
                     {column.items.map((thread) => (
                       <ThreadCard
                         key={thread.id}
