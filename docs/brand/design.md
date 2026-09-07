@@ -1,11 +1,11 @@
 > ## How this copy differs from Brand's `design.md`
 >
-> This is Brand's design-system guide, carried into Hyperagent as a **scoped** copy (phase 1). Read it with these substitutions in mind:
+> This is Brand's design-system guide, carried into Hyperagent in phase 1 and, since plan step 5, the guide to the app's only palette. Read it with these substitutions in mind:
 >
-> - **Source of truth here is `src/design/brand/brand.css`**, not the original prototype's `src/app/globals.css`. Every token keeps its original name, but the whole sheet is scoped under a `.theme-brand` class: Brand's `@theme inline` and `:root` became one `.theme-brand { … }` rule, and `.dark` became `.theme-brand.dark, .dark .theme-brand`. Nothing applies outside an element carrying `theme-brand`.
-> - **The `@theme` bridge lives in `src/app/globals.css`** ("PHASE 2 BRIDGE", an `@theme inline reference` block), not in this sheet. It names every Brand-only token so the utilities below (`bg-tangerine-500`, `bg-tint-10`, `font-heading`, `ease-out-quart`, `text-display`, `rounded-5xl`, `shadow-card`, `bg-brand`, `bg-surface-secondary`, …) exist app-wide and resolve inside `.theme-brand`, which phase 2 put on `<body>`. Utilities whose names Tailwind ships by default (`bg-neutral-500`, `rounded-md`, `text-xl`, `ease-out`, `font-medium`) resolve through `var(--…)` as before. Durations and scales stay plain variables: `duration-(--duration-fast)`, `scale-(--scale-press)`.
-> - **`@utility` classes are plain classes** in the utilities layer (`.focus-ring`, `.squircle`, `.skeleton`), and `.genui-prose` / the `text-heading-*` / `text-label-*` roles are plain scoped classes. The `@layer base / components / utilities` wrappers are kept so they lose to utilities exactly as in Brand.
-> - **Theme switching is app-level.** `next-themes` puts `dark` on `<html>` (chosen from the account menu; light is the default), and `.dark .theme-brand` picks it up. The swatch page keeps its own local `dark` toggle on its wrapper (`src/app/design/brand/_design/theme-toggle.tsx`) so the sheet can be inspected in either mapping.
+> - **Source of truth here is `src/design/brand/brand.css`**, not the original prototype's `src/app/globals.css`. Every token keeps its original name. The sheet is plain CSS and is the app's token sheet: Brand's `@theme inline` primitives and its `:root` semantics are one `:root { … }` rule, the dark mapping is `.dark { … }`, and the base styles sit on `html`, `body` and `*`. There is no wrapper class; the tokens apply to the whole document.
+> - **The `@theme` bridge lives in `src/app/globals.css`** ("PHASE 2 BRIDGE", an `@theme inline reference` block), not in this sheet. It names every Brand-only token so the utilities below (`bg-tangerine-500`, `bg-tint-10`, `font-heading`, `ease-out-quart`, `text-display`, `rounded-5xl`, `shadow-card`, `bg-brand`, `bg-surface-secondary`, …) exist app-wide and read the `:root` values. Utilities whose names Tailwind ships by default (`bg-neutral-500`, `rounded-md`, `text-xl`, `ease-out`, `font-medium`) resolve through `var(--…)` as before. Durations and scales stay plain variables: `duration-(--duration-fast)`, `scale-(--scale-press)`.
+> - **`@utility` classes are plain classes** in the utilities layer (`.focus-ring`, `.squircle`, `.skeleton`), and `.genui-prose` / the `text-heading-*` / `text-label-*` roles are plain, unprefixed classes. The `@layer base / components / utilities` wrappers are kept so they lose to utilities exactly as in Brand.
+> - **Theme switching is app-level.** `next-themes` puts `dark` on `<html>` from the account menu's Theme item (light is the default, "system" follows the OS, the choice persists in localStorage), and the `.dark { }` block in `brand.css` remaps the semantics. The swatch page keeps its own local `dark` toggle on its wrapper (`src/app/design/brand/_design/theme-toggle.tsx`), which also paints `bg-background text-foreground` itself, so the sheet can be inspected in either mapping regardless of the app theme.
 > - **The type system is Geist.** Phase 2 replaced the prototype's Inter + PythiaType + Newsreader with Geist and Geist Mono and adopted Vercel's published typography roles (see §4); the loaders are in `src/design/brand/fonts.ts`. The swatch page at `src/app/design/brand/page.tsx` (rendered at `/design/brand`); reference component copies in `src/design/brand/ui/`; scripts in `scripts/brand/` (`npm run brand:gen-ramps`, `npm run brand:check-contrast`); the audit at `docs/brand/brand-style-audit.md`. `chart.tsx` was not copied (it needs `recharts`, which Hyperagent does not install). See `src/design/brand/README.md` for the phase-2 token mapping table.
 >
 > Everything below this line is Brand's text, edited only for those paths.
@@ -21,7 +21,7 @@
 - **Fonts:** Geist (sans, every text role) · Geist Mono (identifiers only), both from `next/font/google` in `src/design/brand/fonts.ts`; the roles, weights and metrics follow Vercel's published typography system
 - **Color space:** OKLCH throughout
 - **Radius knob:** `--radius: 10px`, multiplicative scale
-- **Themes:** light (canonical) / dark, `next-themes` with `attribute="class"`, `defaultTheme="system"` (matches the brand site)
+- **Themes:** light (canonical) / dark, `next-themes` with `attribute="class"`, `defaultTheme="light"`, `enableSystem` (the brand site defaults to system; the dashboard defaults to light)
 
 ---
 
@@ -51,20 +51,20 @@ primitive                 semantic (shadcn + Brand)     component
 --color-tint-10        →  (use directly)              →  bg-tint-10 hover:bg-tint-15
 ```
 
-1. **Primitives:** raw ramps (`--color-neutral-500`, `--color-tangerine-600`, `--color-tint-10`). Defined in `@theme inline`. Use only when building a new semantic token, for a tint fill, or for a one-off swatch.
+1. **Primitives:** raw ramps (`--color-neutral-500`, `--color-tangerine-600`, `--color-tint-10`). Defined as plain custom properties in the `:root { }` block of `brand.css`. Use only when building a new semantic token, for a tint fill, or for a one-off swatch.
 2. **Semantic tokens:** the shadcn contract (`--background`, `--primary`, `--muted`, `--border` …) plus Brand's own (`--surface-secondary`, `--foreground-low`, `--brand`, `--brand-accent`, `--chip`, `--chat-bubble-*`). Defined in `:root` (light) and re-mapped in `.dark`. **This is what components should use.**
 3. **Component utilities:** Tailwind classes generated from the tokens (`bg-primary`, `text-muted-foreground`, `rounded-3xl`, `shadow-lg`, `ease-out-quart`, `font-strong`).
 
 ### `@theme inline` caveat (important)
 
-The token block uses `@theme inline`. Tailwind only emits a `:root` CSS variable for a primitive **if a semantic token references it**. So `var(--color-blue-400)` may not exist at runtime even though the token is declared. Two consequences:
+Brand's original token block was `@theme inline`, where Tailwind only emits a `:root` CSS variable for a primitive **if a semantic token references it**, so `var(--color-blue-400)` could be missing at runtime. Here the primitives are plain declarations in `brand.css` and every one exists; the two habits still hold:
 
-- **In CSS / inline styles:** prefer the semantic var (`var(--brand)`), which always exists.
+- **In CSS / inline styles:** prefer the semantic var (`var(--brand)`) over a primitive.
 - **In JSX:** use the literal utility class as a complete string (`bg-tangerine-500`), never a constructed string (`` `bg-${c}-500` ``); Tailwind's JIT only generates utilities it can see verbatim in source.
 
 ### Light/dark
 
-`next-themes` toggles a `.dark` class on `<html>` (`attribute="class"`, `defaultTheme="system"`, `enableSystem`). The custom variant `@custom-variant dark (&:is(.dark *))` powers `dark:` utilities. Semantic tokens re-map under `.dark`; **primitives do not change.** Only the mapping does. Because fills are tints, most components need no `dark:` overrides at all.
+`next-themes` toggles a `dark` class on `<html>` (`attribute="class"`, `defaultTheme="light"`, `enableSystem` in `src/app/layout.tsx`); the account menu's Theme item offers light, dark and system, and the choice persists in localStorage. The custom variant `@custom-variant dark (&:is(.dark *))` in `globals.css` powers `dark:` utilities. Semantic tokens re-map in the `.dark { }` block of `brand.css`; **primitives do not change.** Only the mapping does. Because fills are tints, most components need no `dark:` overrides at all.
 
 ---
 
@@ -191,7 +191,7 @@ Two families, as Vercel's Geist design system specifies (vercel.com/geist/typogr
 - `--font-sans`: `var(--font-geist-sans), "Geist", ui-sans-serif, system-ui, sans-serif` → `font-sans`. **Geist Sans is used for prose, headings, labels, controls, tables, KPIs, dates, counts, percentages, durations and figures.** `--font-heading` is an alias of it: `font-heading` marks a heading in markup without changing the face, and is the one line a display face would be pointed at if that decision were ever reopened.
 - `--font-mono`: `var(--font-geist-mono), "Geist Mono", ui-monospace, …` → `font-mono`. **Geist Mono only for code, commands, paths, raw tokens, timestamps and short operational identifiers** (a region, a plan, an id). Set only the identifier in mono, never its sentence or a whole table.
 
-**Base settings** (`.theme-brand`): 16/24 at 400, no tracking, `font-feature-settings: "rlig" 1, "calt" 0, "ss11" 1` (what vercel.com sets on `<body>`), `font-synthesis: none` (Geist ships no italic; Vercel leaves synthesis on, the brand forbids the fake), `font-kerning: normal`, `font-optical-sizing: auto`, antialiased.
+**Base settings** (`html` / `body` in `brand.css`): 16/24 at 400, no tracking, `font-feature-settings: "rlig" 1, "calt" 0, "ss11" 1` (what vercel.com sets on `<body>`), `font-synthesis: none` (Geist ships no italic; Vercel leaves synthesis on, the brand forbids the fake), `font-kerning: normal`, `font-optical-sizing: auto`, antialiased.
 
 **Weights**, Vercel's set and nothing else: `font-normal` 400 (copy, labels) · `font-medium` 500 (buttons, chips, tabs, labels that name a thing, `<strong>` inside a label) · `font-strong` 550 (`<strong>` inside running copy; the brand's one custom weight utility) · `font-semibold` 600 (**the heading weight**; every heading role carries it through `--font-weight-heading`, so a heading never needs a weight class). Provenance: the spec's `text-heading-*` classes all compute to 600. vercel.com's marketing site sets its 56px section headings at 450 and its hero at 400; that is site styling, not the system, and `--font-weight-heading` is the one line to change if the dashboard ever wants that lighter cut. `npm run brand:lint-tokens` rejects any other weight utility.
 
@@ -375,8 +375,8 @@ The token swatch page (`src/app/design/brand/page.tsx`, rendered at `/design/bra
 ## 14. Conventions
 
 **Adding a colour / token**
-1. Add the **primitive** to `scripts/brand/gen-ramps.mjs` (a hue + chroma envelope on the shared L ramp), run `npm run brand:gen-ramps`, and paste the printed literals into the `.theme-brand { }` block in `brand.css`.
-2. Map a **semantic** token in both `.theme-brand` and `.theme-brand.dark` (don't let components consume primitives directly) and mirror it as `--color-*` in `@theme inline` so utilities exist.
+1. Add the **primitive** to `scripts/brand/gen-ramps.mjs` (a hue + chroma envelope on the shared L ramp), run `npm run brand:gen-ramps`, and paste the printed literals into the `:root { }` block in `brand.css`.
+2. Map a **semantic** token in both `:root` and `.dark` (don't let components consume primitives directly). If the name is brand-only (not in the shadcn contract), add it as `--color-*` to the "PHASE 2 BRIDGE" block in `src/app/globals.css` so the utility exists.
 3. Add the pair to `PAIRS` in `scripts/brand/check-contrast.mjs` and run `npm run brand:check-contrast` until AA passes.
 4. Mirror it in `src/app/design/brand/page.tsx` so the swatch page stays accurate.
 

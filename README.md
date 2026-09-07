@@ -30,14 +30,14 @@ token swatches.
 
 | Path | What |
 |---|---|
-| `src/app/globals.css` | Hyperagent's tokens: shadcn variables for the warm light, warm dark and dark-neutral palettes, radius scale, motion, site utilities, keyframes |
-| `src/app/layout.tsx` | Fonts (Geist and Geist Mono from `next/font/google`), `theme-brand` on `<body>`, the next-themes provider |
+| `src/app/globals.css` | Tailwind imports, the `@theme inline` block (shadcn contract, Hyperagent extras, radius steps, `animate-*`), the "PHASE 2 BRIDGE" that turns brand-only tokens into utilities, a small `:root` block mapping the Hyperagent-only names the site utilities read onto brand tokens, base layer, site utilities, keyframes. No palette of its own |
+| `src/app/layout.tsx` | Fonts (Geist and Geist Mono from `next/font/google`) on `<html>`, the next-themes and tooltip providers |
 | `src/app/(app)/` | One route per sidebar page, wrapped by the app shell |
 | `src/components/app/` | Shell: sidebar, frame, brand marks |
 | `src/components/composer/` | The message composer (home + thread pages) |
 | `src/components/<page>/` | Page-specific components |
 | `src/components/ui/` | shadcn primitives, re-skinned with the brand in phase 2 (pills, tints, hairlines, glass shadows) behind the phase-1 variant and size API |
-| `src/design/brand/` | The Brand token system, scoped under `.theme-brand`; bridged into Tailwind by the "PHASE 2 BRIDGE" block in `globals.css` |
+| `src/design/brand/` | The Brand token system: `brand.css` is the app's only palette (light on `:root`, dark on `.dark`), bridged into Tailwind by the "PHASE 2 BRIDGE" block in `globals.css` |
 | `docs/brand/` | `design.md` (the brand language), `reskin-conventions.md` (the phase-2 page-branch contract), the style audit |
 | `scripts/brand/`, `scripts/dev/` | Ramp generator, WCAG contrast gate, token lint; headless screenshot and contact-sheet scripts |
 | `docs/reference/` | Ground truth captured from hyperagent.com: compiled CSS, fonts, a DOM dump per page, and `overlays/` with every captured menu, dialog and tooltip |
@@ -45,12 +45,15 @@ token swatches.
 
 ## Theme switches
 
-Phase 2 puts `theme-brand` on `<body>`, so the whole app runs on the brand
-tokens; light is the default and the account menu's Theme item switches to
-dark or system through `next-themes` (a `dark` class on `<html>`). The
-Hyperagent palettes are still in `globals.css` for side-by-side comparison:
-swap `theme-brand` for `palette-neutral` on `<body>` in `layout.tsx` and pick
-Dark to see the phase-1 clone exactly as the live account renders it.
+The brand tokens are the app's only palette: `src/design/brand/brand.css`
+defines the light mapping on `:root` and the dark mapping on `.dark`. Light is
+the default; the account menu's Theme item switches to dark or system through
+`next-themes` (a `dark` class on `<html>`, remembered in localStorage; system
+follows the OS). `/design/brand` has its own local light/dark toggle so every
+token can be inspected in either mapping regardless of the app theme. The
+phase-1 Hyperagent palettes are no longer in the code: the last commit that
+carries them is `c10d36c`, and `docs/reference/` keeps the captured ground
+truth.
 
 ```bash
 npm run brand:check-contrast   # WCAG AA gate over the brand tokens, both themes
