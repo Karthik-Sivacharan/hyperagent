@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "brand:gen-ramps": "node scripts/brand/gen-ramps.mjs",
-    "brand:check-contrast": "node scripts/brand/check-contrast.mjs"
+    "brand:check-contrast": "node scripts/brand/check-contrast.mjs",
+    "brand:lint-tokens": "node scripts/brand/lint-tokens.mjs"
   },
   "dependencies": {
     "class-variance-authority": "^0.7.1",
