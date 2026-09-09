@@ -1,9 +1,10 @@
 # Handoff
 
 Written 2026-09-07 at the end of plan step 5 (the brand colour tokens are
-the app's only palette) and updated the same day for the move to Tabler
-icons and for the component system sweep. Read this first in a new
-session, then `README.md`, `docs/components.md`,
+the app's only palette), updated the same day for the move to Tabler
+icons and for the component system sweep, and on 2026-09-09 for the
+composer Tools panel merge and the heading-cut decision. Read this first
+in a new session, then `README.md`, `docs/components.md`,
 `docs/brand/reskin-conventions.md`, `docs/brand/icons.md` and
 `docs/clone-conventions.md`.
 
@@ -62,10 +63,21 @@ session, then `README.md`, `docs/components.md`,
   1456×868, light and dark, except for the one deliberate change, the
   sidebar group headers Agents and Recent threads taking the brand's caps
   role like Resources (commit `572a136`), which shows on every route.
-- There is one branch (`main`); `origin`
-  (github.com/Karthik-Sivacharan/hyperagent, private) has everything up to
-  the Tabler move, the component sweep is local until pushed; no open
-  worktrees, and a clean tree.
+- **The composer Tools panel shipped (2026-09-09, merged from
+  `feat/tools-menu-redesign`).** The Tools submenu of the thread-settings
+  menu was a stub reading "17 tools enabled";
+  `src/components/composer/tools-menu.tsx` now holds the tool data, the
+  state hook and three panels (roster, chips, presets), compared side by
+  side as real menus at `/design/tools`; the composer renders the chips
+  panel. On/off state is carried by fill, text tier and a check, never by
+  hue; every tool is a `menuitemcheckbox` in the menu's roving focus; the
+  count follows the state. `DropdownMenuCheckboxItem` / `RadioItem` gained
+  an `indicator` prop, and `DropdownMenuContent` no longer restores focus
+  after a pointer close, which fixed a stuck focus ring and a stuck
+  tooltip on the composer pills. All six gates passed at the merge.
+- There is one branch (`main`), pushed to `origin`
+  (github.com/Karthik-Sivacharan/hyperagent, private); no open worktrees,
+  and a clean tree.
 - Verification at the end of step 5: `npx tsc --noEmit`, `npm run lint` (no
   warnings), `npm run build` (29 routes), `npm run brand:check-contrast`
   (WCAG AA, 64 pairs per theme, zero skipped), `npm run brand:lint-tokens`
@@ -431,8 +443,8 @@ removed afterwards.
 
 > Read HANDOFF.md, README.md, docs/components.md, docs/brand/design.md and
 > docs/brand/reskin-conventions.md in ~/Projects/hyperagent. Phases 1 and 2,
-> plan step 5 and the component system sweep are merged on main (push if
-> origin is behind): the dashboard clone runs on the brand tokens as its
+> plan step 5, the component system sweep and the composer Tools panel
+> are merged on main and pushed: the dashboard clone runs on the brand tokens as its
 > only palette, light and dark, in Geist and Geist Mono on Vercel's Geist
 > roles, with Tabler as the only icon set (docs/brand/icons.md), and every
 > piece of UI is built from the primitives in src/components/ui and the
