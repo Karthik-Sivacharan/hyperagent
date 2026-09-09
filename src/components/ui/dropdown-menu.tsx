@@ -161,24 +161,33 @@ function DropdownMenuItem({
   );
 }
 
+// `indicator="none"` drops the left check gutter so the item can carry its own
+// on-state (a switch on a roster row, a fill and a check on a chip) while the
+// element keeps `role="menuitemcheckbox"`, `aria-checked` and the menu's roving
+// focus. The default is the check gutter, so existing call sites are unchanged.
 function DropdownMenuCheckboxItem({
   className,
   children,
   checked,
+  indicator = "check",
   ...props
-}: React.ComponentProps<typeof DropdownMenuPrimitive.CheckboxItem>) {
+}: React.ComponentProps<typeof DropdownMenuPrimitive.CheckboxItem> & {
+  indicator?: "check" | "none";
+}) {
   return (
     <DropdownMenuPrimitive.CheckboxItem
       data-slot="dropdown-menu-checkbox-item"
-      className={cn(ITEM, "pr-2 pl-8", className)}
+      className={cn(ITEM, indicator === "check" && "pr-2 pl-8", className)}
       checked={checked}
       {...props}
     >
-      <span className="pointer-events-none absolute left-2 flex size-3.5 items-center justify-center">
-        <DropdownMenuPrimitive.ItemIndicator>
-          <IconCheck className="size-4" aria-hidden="true" />
-        </DropdownMenuPrimitive.ItemIndicator>
-      </span>
+      {indicator === "check" ? (
+        <span className="pointer-events-none absolute left-2 flex size-3.5 items-center justify-center">
+          <DropdownMenuPrimitive.ItemIndicator>
+            <IconCheck className="size-4" aria-hidden="true" />
+          </DropdownMenuPrimitive.ItemIndicator>
+        </span>
+      ) : null}
       {children}
     </DropdownMenuPrimitive.CheckboxItem>
   );
@@ -188,18 +197,29 @@ function DropdownMenuRadioGroup({ ...props }: React.ComponentProps<typeof Dropdo
   return <DropdownMenuPrimitive.RadioGroup data-slot="dropdown-menu-radio-group" {...props} />;
 }
 
+// `indicator="none"` as on the checkbox item: the dot gutter goes and the item
+// shows its own selected state, keeping `role="menuitemradio"` and `aria-checked`.
 function DropdownMenuRadioItem({
   className,
   children,
+  indicator = "dot",
   ...props
-}: React.ComponentProps<typeof DropdownMenuPrimitive.RadioItem>) {
+}: React.ComponentProps<typeof DropdownMenuPrimitive.RadioItem> & {
+  indicator?: "dot" | "none";
+}) {
   return (
-    <DropdownMenuPrimitive.RadioItem data-slot="dropdown-menu-radio-item" className={cn(ITEM, "pr-2 pl-8", className)} {...props}>
-      <span className="pointer-events-none absolute left-2 flex size-3.5 items-center justify-center">
-        <DropdownMenuPrimitive.ItemIndicator>
-          <IconCircle className="size-2 fill-current" aria-hidden="true" />
-        </DropdownMenuPrimitive.ItemIndicator>
-      </span>
+    <DropdownMenuPrimitive.RadioItem
+      data-slot="dropdown-menu-radio-item"
+      className={cn(ITEM, indicator === "dot" && "pr-2 pl-8", className)}
+      {...props}
+    >
+      {indicator === "dot" ? (
+        <span className="pointer-events-none absolute left-2 flex size-3.5 items-center justify-center">
+          <DropdownMenuPrimitive.ItemIndicator>
+            <IconCircle className="size-2 fill-current" aria-hidden="true" />
+          </DropdownMenuPrimitive.ItemIndicator>
+        </span>
+      ) : null}
       {children}
     </DropdownMenuPrimitive.RadioItem>
   );

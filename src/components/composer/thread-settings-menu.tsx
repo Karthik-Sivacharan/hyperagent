@@ -18,6 +18,7 @@ import { Overline } from "@/components/ui/overline";
 import { Switch } from "@/components/ui/switch";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { ClaudeLogo, GeminiLogo, KimiLogo, OpenAILogo, ZaiLogo } from "@/components/app/brand-icons";
+import { TOOLS_VARIANTS, useTools, type ToolsVariant } from "./tools-menu";
 import { cn } from "@/lib/utils";
 
 // The "Opus 5" pill menu (docs/reference/overlays/composer-thread-settings-menu.html,
@@ -94,15 +95,20 @@ export function ThreadSettingsMenu({
   onModelChange,
   effort,
   onEffortChange,
+  toolsVariant = "roster",
   ...triggerProps
 }: React.ComponentProps<typeof DropdownMenuTrigger> & {
   model: string;
   onModelChange: (model: string) => void;
   effort: Effort;
   onEffortChange: (effort: Effort) => void;
+  /** Which Tools panel to render (see `tools-menu.tsx`; compare at /design/tools). */
+  toolsVariant?: ToolsVariant;
 }) {
   const router = useRouter();
   const [fast, setFast] = useState(false);
+  const tools = useTools();
+  const ToolsPanel = TOOLS_VARIANTS[toolsVariant].panel;
   const current = MODELS.find((m) => m.name === model) ?? MODELS[1];
   const CurrentLogo = current.logo;
 
@@ -215,10 +221,17 @@ export function ThreadSettingsMenu({
             <DropdownMenuSubTrigger>
               <IconBlocks className="size-4" aria-hidden="true" />
               <span className="flex-1 text-sm">Tools</span>
-              <span className="text-muted-foreground text-sm">17</span>
+              <span className="text-muted-foreground text-sm tabular-nums">{tools.count}</span>
             </DropdownMenuSubTrigger>
-            <DropdownMenuSubContent className="w-64 p-1">
-              <GroupHeading>17 tools enabled</GroupHeading>
+            {/* The roster is taller than the viewport on a laptop, so the panel
+                takes whatever height Radix has measured and scrolls the rest,
+                keeping a margin off both screen edges rather than butting into
+                them. */}
+            <DropdownMenuSubContent
+              collisionPadding={16}
+              className={cn(TOOLS_VARIANTS[toolsVariant].width, "max-h-(--radix-dropdown-menu-content-available-height) overflow-y-auto p-1.5")}
+            >
+              <ToolsPanel state={tools} />
             </DropdownMenuSubContent>
           </DropdownMenuSub>
         </div>
