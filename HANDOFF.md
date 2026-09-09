@@ -359,6 +359,17 @@ second set for a glyph Tabler lacks. The convention is `docs/brand/icons.md`;
   to 0.08 percent of the pixels per page), and the swatch page is
   pixel-identical in both themes.
 
+## Decided 2026-09-09: the heading cut stays the spec
+
+The user compared the spec's heading setting (600, Vercel's tracking) with a
+quieter cut (500, no tracking, the setting several Geist dashboards use) on
+six routes side by side, via a switchable override block on a trial branch,
+and chose the spec: the lighter, untracked headings read worse in the
+dashboard. The trial branch was deleted; nothing on `main` changed. The
+`--font-weight-heading` knob and the `--text-*--letter-spacing` tokens remain
+the place to revisit this, and the handoff should not reopen the question
+without a new reason.
+
 ## Known gaps and follow-ups
 
 - The phase-1 gaps still apply (invented grid and board layouts, a few
