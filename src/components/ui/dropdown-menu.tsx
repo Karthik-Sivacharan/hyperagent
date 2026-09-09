@@ -29,16 +29,99 @@ function DropdownMenuTrigger({ ...props }: React.ComponentProps<typeof DropdownM
   return <DropdownMenuPrimitive.Trigger data-slot="dropdown-menu-trigger" {...props} />;
 }
 
+// Hand focus to `el` without arming the focus ring, and report whether that
+// worked. The browser decides :focus-visible from the input modality it last
+// saw, and a menu is a keyboard-driven surface, so a plain `focus()` on close
+// paints the ring even for someone who used the mouse. The `focusVisible`
+// focus option is the one lever that overrides that decision. It is not in
+// every engine, so the getter records whether the browser actually read it and
+// the caller falls back rather than trusting it blindly.
+function focusWithoutRing(el: HTMLElement | null) {
+  if (!el) return false;
+  let honoured = false;
+  el.focus({
+    preventScroll: true,
+    get focusVisible() {
+      honoured = true;
+      return false;
+    },
+  });
+  if (honoured && !el.matches(":focus-visible")) return true;
+  el.blur();
+  return false;
+}
+
+// Radix always pulls focus back to the trigger when a menu closes: its own
+// `onCloseAutoFocus` calls `triggerRef.current?.focus()`. That restored focus
+// paints the trigger's ring even when the menu was dismissed with the mouse,
+// which is the stray highlight on the composer pills.
+//
+// A keyboard close (Escape, Enter on an item) keeps Radix's behaviour: focus
+// returns to the trigger and the ring shows, because that person needs to see
+// where focus went. A pointer close hands focus back to the trigger quietly, so
+// the tab order stays where the user left it and no ring appears. If the engine
+// does not support the quiet focus, `focusWithoutRing` leaves focus off the
+// trigger instead: losing the tab position is the smaller failure of the two.
 function DropdownMenuContent({
   className,
   sideOffset = 4,
+  ref,
+  onCloseAutoFocus,
+  onEscapeKeyDown,
+  onPointerDownOutside,
+  onPointerDown,
+  onKeyDown,
   ...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.Content>) {
+  // Keyboard is the safe default: a close we cannot classify still restores
+  // focus. Sub content renders inline (below), so a pointer press inside a
+  // submenu bubbles to here and is classified too.
+  const modality = React.useRef<"keyboard" | "pointer">("keyboard");
+  // Radix labels the content with the trigger's id, so the trigger can be
+  // resolved while the menu is open and used again once it is closing.
+  const trigger = React.useRef<HTMLElement | null>(null);
+
   return (
     <DropdownMenuPrimitive.Portal>
       <DropdownMenuPrimitive.Content
         data-slot="dropdown-menu-content"
         sideOffset={sideOffset}
+        ref={(node) => {
+          if (node) {
+            const id = node.getAttribute("aria-labelledby");
+            trigger.current = id ? document.getElementById(id) : null;
+          }
+          if (typeof ref === "function") ref(node);
+          else if (ref) ref.current = node;
+        }}
+        onPointerDown={(event) => {
+          onPointerDown?.(event);
+          modality.current = "pointer";
+        }}
+        onKeyDown={(event) => {
+          onKeyDown?.(event);
+          modality.current = "keyboard";
+        }}
+        onEscapeKeyDown={(event) => {
+          onEscapeKeyDown?.(event);
+          modality.current = "keyboard";
+        }}
+        onPointerDownOutside={(event) => {
+          onPointerDownOutside?.(event);
+          modality.current = "pointer";
+        }}
+        onCloseAutoFocus={(event) => {
+          onCloseAutoFocus?.(event);
+          if (modality.current === "pointer") {
+            // Preventing the default short-circuits Radix's own handler, the
+            // one that focuses the trigger: composeEventHandlers runs the
+            // consumer's handler first and skips its own once the default is
+            // prevented (@radix-ui/primitive).
+            event.preventDefault();
+            focusWithoutRing(trigger.current);
+          }
+          modality.current = "keyboard";
+        }}
         className={cn(
           CONTENT,
           "max-h-(--radix-dropdown-menu-content-available-height) origin-(--radix-dropdown-menu-content-transform-origin)",
