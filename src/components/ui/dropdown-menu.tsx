@@ -29,43 +29,30 @@ function DropdownMenuTrigger({ ...props }: React.ComponentProps<typeof DropdownM
   return <DropdownMenuPrimitive.Trigger data-slot="dropdown-menu-trigger" {...props} />;
 }
 
-// Hand focus to `el` without arming the focus ring, and report whether that
-// worked. The browser decides :focus-visible from the input modality it last
-// saw, and a menu is a keyboard-driven surface, so a plain `focus()` on close
-// paints the ring even for someone who used the mouse. The `focusVisible`
-// focus option is the one lever that overrides that decision. It is not in
-// every engine, so the getter records whether the browser actually read it and
-// the caller falls back rather than trusting it blindly.
-function focusWithoutRing(el: HTMLElement | null) {
-  if (!el) return false;
-  let honoured = false;
-  el.focus({
-    preventScroll: true,
-    get focusVisible() {
-      honoured = true;
-      return false;
-    },
-  });
-  if (honoured && !el.matches(":focus-visible")) return true;
-  el.blur();
-  return false;
-}
-
 // Radix always pulls focus back to the trigger when a menu closes: its own
-// `onCloseAutoFocus` calls `triggerRef.current?.focus()`. That restored focus
-// paints the trigger's ring even when the menu was dismissed with the mouse,
-// which is the stray highlight on the composer pills.
+// `onCloseAutoFocus` calls `triggerRef.current?.focus()`. On a mouse dismissal
+// that restored focus caused two visible faults on the composer pills, because
+// each pill is both the menu trigger and a tooltip trigger:
 //
-// A keyboard close (Escape, Enter on an item) keeps Radix's behaviour: focus
-// returns to the trigger and the ring shows, because that person needs to see
-// where focus went. A pointer close hands focus back to the trigger quietly, so
-// the tab order stays where the user left it and no ring appears. If the engine
-// does not support the quiet focus, `focusWithoutRing` leaves focus off the
-// trigger instead: losing the tab position is the smaller failure of the two.
+//   - the focus ring painted, since the browser reads :focus-visible from the
+//     modality it last saw and a menu is a keyboard-driven surface;
+//   - the tooltip opened and stayed open, since a tooltip opens on focus and
+//     only skips that when the pointer went down on the trigger itself, which
+//     it did not.
+//
+// Both come from restoring focus at all, so a pointer-driven close no longer
+// does: focus stays where the pointer left it, which is also what Radix does
+// for a non-modal menu. A keyboard close (Escape, Enter on an item) keeps
+// Radix's behaviour untouched, so focus returns to the trigger with the ring
+// and the tooltip, which is what that user needs.
+//
+// The cost is that a mouse close does not restore the tab position. Quietly
+// refocusing the trigger through the `focusVisible` focus option does fix the
+// ring and was tried, but it still opens the tooltip, so it trades a visible
+// fault for a visible fault. Losing the tab position is the smaller failure.
 function DropdownMenuContent({
   className,
   sideOffset = 4,
-  ref,
   onCloseAutoFocus,
   onEscapeKeyDown,
   onPointerDownOutside,
@@ -77,23 +64,12 @@ function DropdownMenuContent({
   // focus. Sub content renders inline (below), so a pointer press inside a
   // submenu bubbles to here and is classified too.
   const modality = React.useRef<"keyboard" | "pointer">("keyboard");
-  // Radix labels the content with the trigger's id, so the trigger can be
-  // resolved while the menu is open and used again once it is closing.
-  const trigger = React.useRef<HTMLElement | null>(null);
 
   return (
     <DropdownMenuPrimitive.Portal>
       <DropdownMenuPrimitive.Content
         data-slot="dropdown-menu-content"
         sideOffset={sideOffset}
-        ref={(node) => {
-          if (node) {
-            const id = node.getAttribute("aria-labelledby");
-            trigger.current = id ? document.getElementById(id) : null;
-          }
-          if (typeof ref === "function") ref(node);
-          else if (ref) ref.current = node;
-        }}
         onPointerDown={(event) => {
           onPointerDown?.(event);
           modality.current = "pointer";
@@ -112,14 +88,11 @@ function DropdownMenuContent({
         }}
         onCloseAutoFocus={(event) => {
           onCloseAutoFocus?.(event);
-          if (modality.current === "pointer") {
-            // Preventing the default short-circuits Radix's own handler, the
-            // one that focuses the trigger: composeEventHandlers runs the
-            // consumer's handler first and skips its own once the default is
-            // prevented (@radix-ui/primitive).
-            event.preventDefault();
-            focusWithoutRing(trigger.current);
-          }
+          // Preventing the default short-circuits Radix's own handler, the one
+          // that focuses the trigger: composeEventHandlers runs the consumer's
+          // handler first and skips its own once the default is prevented
+          // (@radix-ui/primitive).
+          if (modality.current === "pointer") event.preventDefault();
           modality.current = "keyboard";
         }}
         className={cn(
