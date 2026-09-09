@@ -95,14 +95,20 @@ export function ThreadSettingsMenu({
   onModelChange,
   effort,
   onEffortChange,
-  toolsVariant = "roster",
+  toolsVariant = "chips",
   ...triggerProps
 }: React.ComponentProps<typeof DropdownMenuTrigger> & {
   model: string;
   onModelChange: (model: string) => void;
   effort: Effort;
   onEffortChange: (effort: Effort) => void;
-  /** Which Tools panel to render (see `tools-menu.tsx`; compare at /design/tools). */
+  /**
+   * Which Tools panel to render. `chips` is the shipped one: it is the closest
+   * to the live layout, it is the only one that keeps all eighteen tools in
+   * view without scrolling, and it invents no product surface the live site
+   * does not have. `roster` and `presets` stay in `tools-menu.tsx` and are
+   * compared side by side at /design/tools.
+   */
   toolsVariant?: ToolsVariant;
 }) {
   const router = useRouter();
