@@ -45,6 +45,7 @@ token swatches.
 | `docs/reference/` | Ground truth captured from hyperagent.com: compiled CSS, fonts, a DOM dump per page, and `overlays/` with every captured menu, dialog and tooltip |
 | `docs/components.md` | The component system: tiers, rules, the component map with live evidence, how to add a component, the live UI the clone lacks |
 | `docs/clone-conventions.md` | The rules every page branch follows |
+| `docs/agent-setup.md` | What an agent needs installed: the declared skills and MCP servers, the optional extras, and the map from each skill to the convention that uses it |
 
 ## Theme switches
 

@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "shadcn": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["shadcn@latest", "mcp"]
+    },
+    "next-devtools": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@vercel/next-devtools-mcp", "--url", "http://localhost:3000"]
+    }
+  }
+}

@@ -20,11 +20,14 @@ rules keep the parallel branches mergeable and the clone honest.
   `safe-area-*`, `h-dvh-below-banners`, `bg-glass-gradient`, `scrollbar-hide`,
   `animate-shimmer`, `animate-card-enter`, `prose-message`, and the keyframes.
   Add a missing one to globals.css only if you must, in its own small commit.
-- **Live site:** use BrowserOS neo (MCP `browseros-neo`) to look at
-  https://hyperagent.com/<your page> next to your build. Open your OWN tab
-  (`tabs` action `new`), never touch tabs you do not own, and stay read-only on
-  the account: do not send messages, create, edit, connect, or delete anything.
-  Screenshot both at 1456×868 and compare; use `evaluate` to read computed
+- **Live site:** compare https://hyperagent.com/<your page> against your build
+  in whatever browser your runtime gives you — BrowserOS neo (MCP
+  `browseros-neo`) on a local machine, the platform's own browser on a cloud
+  agent, a hosted session such as Browserbase otherwise; `docs/agent-setup.md`
+  has the routing rule and what to do when you have no browser at all. Whichever
+  you use: open your OWN tab or session, never touch tabs you do not own, and
+  stay read-only on the account — do not send messages, create, edit, connect,
+  or delete anything. Screenshot both at 1456×868 and compare; read computed
   styles when a value is unclear.
 - **Icons:** the dump's `lucide-<name>` class still tells you which icon the
   site uses, but the component you write is the Tabler equivalent from

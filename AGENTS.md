@@ -28,3 +28,23 @@ contain a raw `<button>`, `<input>`, `<textarea>`, `<select>` or `<label>`,
 and only `ui/` imports `radix-ui` or `cmdk`. Read `docs/components.md` before
 adding UI (the map, the rules, how to add a primitive); `npm test` locks the
 rules.
+
+# Agent tooling
+
+The skills this repo was built with are declared in `.claude/settings.json`, so
+Claude Code offers to install them on your first session here; the MCP servers
+that need no local app are in `.mcp.json`. `superpowers` carries the workflow
+this repo runs on — `writing-plans` and `executing-plans` (the plan lives in
+`docs/plans/`), `using-git-worktrees` and `dispatching-parallel-agents` (one
+worktree and one dev-server port per page branch),
+`verification-before-completion` (the `npm test` gates above plus the 1456×868
+pixel proof) and `finishing-a-development-branch` (merge `--no-ff`, re-run the
+gates, drop the worktree). `frontend-design` covers the phase-2 re-skin.
+
+No browser is declared, because the right one depends on where you run: BrowserOS
+neo on a local machine, the platform's own browser on a cloud agent (Hyperagent,
+Comet and the like), a hosted session such as Browserbase otherwise, and
+`docs/reference/` alone when you have none. Whichever it is, work in your own tab
+and stay read-only on the live account. `docs/agent-setup.md` has that routing
+rule, the full map from skill to convention, the optional extras with their exact
+install commands, and the skills you must add by hand.

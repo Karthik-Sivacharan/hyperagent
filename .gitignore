@@ -40,8 +40,12 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# Claude Code local tooling / worktrees
-.claude/
+# Claude Code: the shared agent manifest and project skills are committed,
+# personal settings (settings.local.json) and worktrees stay local.
+# See docs/agent-setup.md.
+.claude/*
+!.claude/settings.json
+!.claude/skills/
 
 # Market research notes (local only)
 /docs/research/
