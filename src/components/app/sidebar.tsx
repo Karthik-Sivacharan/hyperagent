@@ -231,11 +231,20 @@ function RailThreadsMenu({ children, ...triggerProps }: React.ComponentProps<typ
 }
 
 export function Sidebar({
+  defaultCollapsed = false,
   forceCollapsed = false,
   collapseRidesSlide = false,
   onWidthChange,
   onExpandedWidthChange,
 }: {
+  /**
+   * Start at the 64px rail. A STARTING STATE, NOT A LOCK: it only seeds the
+   * reader's own `userCollapsed`, so the rail's expand toggle works as it always
+   * does and `forceCollapsed` still layers on top. The signup handoff passes it
+   * so the shell arrives with room for the computer beside the conversation.
+   * Off by default, so the seventeen cloned routes arrive open as before.
+   */
+  defaultCollapsed?: boolean;
   /**
    * Holds the column at its rail whatever the reader last chose.
    *
@@ -327,7 +336,7 @@ export function Sidebar({
   // `collapsed` is what the column can actually be. Only the reader's own
   // choice is remembered, so lifting `forceCollapsed` restores it rather than
   // leaving the column railed for good.
-  const [userCollapsed, setUserCollapsed] = useState(false);
+  const [userCollapsed, setUserCollapsed] = useState(defaultCollapsed);
   const collapsed = userCollapsed || forceCollapsed;
   // ...and the one state the rail's control cannot get out of. `collapsed` is
   // reversible whenever the reader is the one holding it there; `forceCollapsed`
