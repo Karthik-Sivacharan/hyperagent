@@ -1005,9 +1005,8 @@ prop: the chat column then takes the site's 512px (`w-lg flex-none`) and the
 workspace fills the rest of the frame. No cloned route passes the prop, and
 the `thread` route is pixel-identical to `main` in both themes (0 differing
 pixels at 1456×868). `/design/workspace` wraps `AppShell` + `ThreadView` +
-`Workspace` so the pairing reads as it will ship. **To bring it into the
-signup handoff**, render `<Workspace>` in a positioned column of
-`app-handoff.tsx`; that flow does not use `ThreadView`.
+`Workspace` so the pairing reads as it will ship. The signup handoff mounts it
+as the agent panel's Computer tab; see "The computer in the signup handoff".
 
 **Measured against the live page, not eyeballed.** Rects relative to each
 desktop's own box match to the pixel: the 600×668 document card and its
@@ -1060,6 +1059,51 @@ basis, so the filter's `px-2` has to sit on an inner box (as on the site) or
 the layout switch lands 8px off centre. The `Separator` primitive stretches
 through `data-vertical:self-stretch`, which beats a bare `self-center`;
 override it on the same variant.
+
+## The computer in the signup handoff (2026-09-10)
+
+Branch `feat/computer-tab`, cut from `feat/workspace-panel`. Plan:
+`docs/plans/2026-09-10-computer-tab.md`. When send brings the shell in, the
+sidebar arrives at its 64px rail and the agent panel arrives 684px wide, open
+on a new first tab, **Computer**, showing the artifact workspace.
+Configuration and Usage are the second and third tabs.
+
+**Two opt-in props, nothing else moves.**
+- `Sidebar.defaultCollapsed` seeds the reader's own `userCollapsed`. It is a
+  starting state, not `forceCollapsed`'s lock: the rail's expand toggle works,
+  and the fit test's rail still applies on top. The rail reports 64 through
+  `onWidthChange`, so `use-shell-fit.ts` sees the room at once; the expanded
+  width still reports 256, so `railSidebar` is decided exactly as before.
+- `AgentPanel.computer` (a `ReactNode`). Given one, the tabs become
+  controlled with Computer as the default, the panel rests at
+  `COMPUTER_PANEL_WIDTH` (684: the carousel's 48px lead-in, the 600px card
+  and the 36px trailing pad) and double-click resets to it, every
+  `TabsContent` is `forceMount` and hidden while inactive (Radix would
+  otherwise unmount the carousel's scroll and the Skills list's state on each
+  switch), Save shows only on Configuration, and the labels read "Agent" and
+  "Resize agent panel". Without it the panel is the two-tab panel it was, so
+  `/design/agent-panel` does not change.
+
+**The Computer tab fills its box** (`relative min-h-0 flex-1` over an
+`absolute inset-0` holder) instead of scrolling in a `ScrollArea`, because the
+workspace sizes itself to the height it is given.
+
+**The document card may shrink.** `artifact-card.tsx` is now
+`w-[min(--spacing(150),100%)]`: 600px, or the carousel's content box when that
+is narrower. At 684 that is exactly 600; with the sidebar opened at 1456 the
+panel's ceiling is 648 and the card takes 564 instead of losing its right
+edge. `/design/workspace` (678 wide) moves its card by up to 6px, the one
+pixel change allowed there.
+
+**Width arithmetic, no change to the fit test.** With the rail the
+conversation gets `viewport − 64 − 40 − 684`: 668 at 1456, 724 at 1512, 512
+exactly at 1300, and below that the panel takes its ceiling and shrinks.
+
+**Content.** The existing mock set (`WORKSPACE_ARTIFACTS`), as the plan's
+first pass. Signup-specific content is still the user's call.
+
+**Not verified yet.** This pass was built without the probe, screenshots or
+the cloned-route pixel diff; those gates (plan, "Gates") are still to run.
 
 ## Design decisions worth knowing
 

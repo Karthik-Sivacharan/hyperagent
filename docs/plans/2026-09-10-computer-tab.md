@@ -3,7 +3,8 @@
 Branch `feat/computer-tab`, to be cut from `feat/workspace-panel` (which already
 carries `main` up to `8d7ce64`, the agent stream included). Worktree
 `.claude/worktrees/computer-tab`, dev server on port 3005 (3000 serves the main
-checkout, 3004 the workspace preview). Nothing here is built yet.
+checkout, 3004 the workspace preview). Changes 1-4 and 6 are built; 5 has its
+first pass (the mock set), and the gates below have not been run yet.
 
 ## What it should do
 
@@ -71,13 +72,13 @@ card must be able to shrink or 36px of it are cut off. See change 4.
 
 ## Changes
 
-- [ ] **1. `Sidebar` gains `defaultCollapsed`** (opt-in, default false): the
+- [x] **1. `Sidebar` gains `defaultCollapsed`** (opt-in, default false): the
   seed of `useState` at `:330`, nothing else. The reader's toggle works as
   before; `forceCollapsed` still layers on top. `app-handoff.tsx` passes it.
   The rail's `onWidthChange` reports 64, so use-shell-fit sees the room at
   once; `onExpandedWidthChange` still reports 256, so `railSidebar` is
   unchanged.
-- [ ] **2. `AgentPanel` gains an opt-in `computer?: ReactNode`.** Absent,
+- [x] **2. `AgentPanel` gains an opt-in `computer?: ReactNode`.** Absent,
   nothing changes. Present:
   - the tabs become controlled, "Computer · Configuration · Usage", default
     Computer;
@@ -91,9 +92,9 @@ card must be able to shrink or 36px of it are cut off. See change 4.
     derivation written beside it, and the double-click reset returns to it;
   - Save shows only on Configuration (it saves configuration);
   - the aside's label becomes "Agent" and the splitter's "Resize agent panel".
-- [ ] **3. `app-handoff.tsx`** passes `defaultCollapsed` to the sidebar and
+- [x] **3. `app-handoff.tsx`** passes `defaultCollapsed` to the sidebar and
   `computer={<Workspace artifacts={…} activeId={…} />}` to the panel.
-- [ ] **4. The document card may shrink.** `artifact-card.tsx` `w-150` becomes
+- [x] **4. The document card may shrink.** `artifact-card.tsx` `w-150` becomes
   `min(600px, the carousel's content box)`, which is exactly 600 at 684 and
   keeps the whole card on screen below it. Check `/design/workspace` after:
   its desktop is 678 wide, so its card may move by a few px, and that is the
@@ -102,7 +103,7 @@ card must be able to shrink or 36px of it are cut off. See change 4.
   document about this repo and a drawn signup capture: the wrong story for
   the Trainwell record. See the decision below; the component takes
   `artifacts` as a prop, so it is a data change in `src/lib/mock/`.
-- [ ] **6. Docs:** a HANDOFF section, the components.md §4 note, these boxes.
+- [x] **6. Docs:** a HANDOFF section, the components.md §4 note, these boxes.
 
 ## Decisions (defaults in bold; ask the user before changing one)
 
