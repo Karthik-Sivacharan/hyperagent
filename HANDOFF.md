@@ -4,8 +4,9 @@ Written 2026-09-07 at the end of plan step 5 (the brand colour tokens are
 the app's only palette), updated the same day for the move to Tabler
 icons and for the component system sweep, on 2026-09-09 for the
 composer Tools panel merge and the heading-cut decision, and again on
-2026-09-09 for the signup / hyper-personalized onboarding branch, which
-is the only work NOT on `main`. Read this first
+2026-09-09 for the signup / hyper-personalized onboarding branch, and on
+2026-09-10 for that branch's research pass and pickable cards. The signup
+branch is the only work NOT on `main`. Read this first
 in a new session, then `README.md`, `docs/components.md`,
 `docs/brand/reskin-conventions.md`, `docs/brand/icons.md` and
 `docs/clone-conventions.md`.
@@ -78,7 +79,7 @@ in a new session, then `README.md`, `docs/components.md`,
   after a pointer close, which fixed a stuck focus ring and a stuck
   tooltip on the composer pills. All six gates passed at the merge.
 - **`feat/hyper-personalized-onboarding` is live work and is NOT merged**
-  (2026-09-09, 8 commits ahead of `main`, not pushed). It adds `/signup` —
+  (updated 2026-09-10, 16 commits ahead of `main`, not pushed). It adds `/signup` —
   a four-step flow that is the first thing in this repo that is not a clone
   of an existing hyperagent.com page. See "The signup flow" below before
   touching it. `main` itself is unchanged and still pushed to `origin`
@@ -233,9 +234,9 @@ node scripts/dev/contact-sheet.mjs out/light out/sheet-light.png "main"
 - Phase 3, the orchestrator: the six gates, the full pixel diff, the
   `--no-ff` merge.
 
-## The signup flow (branch `feat/hyper-personalized-onboarding`, 2026-09-09)
+## The signup flow (branch `feat/hyper-personalized-onboarding`, 2026-09-10)
 
-Not merged, not pushed, 8 commits ahead of `main`. Everything below lives at
+Not merged, not pushed, 16 commits ahead of `main`. Everything below lives at
 `/signup`, outside the `(app)` route group on purpose: an account gate gets
 the root layout (fonts, theme, tooltips) and none of the app shell.
 
@@ -308,6 +309,77 @@ token file page branches are meant to leave alone. The chips are also not
 in running text, and they are `inline-block` rather than `inline-flex` so the
 baseline comes from the label's own line box (inline-flex measured 1.7px low).
 
+**The fourth screen shows its work (2026-09-10).** It used to appear fully
+formed, on a premise that something was out there researching for you. Now
+`research-signals.tsx` runs a four-source pass in the product's own tool-row
+idiom, and the ground truth for it is a live capture:
+`docs/reference/overlays/thread-streaming-turn.html`, read off hyperagent.com
+on 2026-09-09. **The finding that shaped everything: a running turn has NO
+spinner anywhere.** A tool call is one 28px row — a 12px mark, a 12/16 label
+at weight 500, a middot, a truncated parameter — and running vs complete is
+the same row with the label shimmering or not. The words never go past tense.
+- **The four cards are on screen from the first frame as skeletons** and
+  resolve one per source, so the loading state is the end state half-drawn.
+  Content and skeleton share one grid cell, so a card is its loaded height
+  immediately. Nothing on the screen changes height at any point, which is
+  the binding constraint here: the four screens share one grid cell and
+  centre in it, so any growth re-centres the column and drags the flying mark
+  with it. `markTop` measures 97px at every frame, pick included.
+- **One row at a time in a fixed 28px slot**, not the product's growing
+  stack, for that same reason — and because the end state is the four cards,
+  not four resolved rows of chrome above them. The finished pass collapses
+  into the four marks plus `Read 4 public sources` in the same slot.
+- **The sources are public** — the company site, its App Store listing, its
+  open roles, the open web. At signup nothing is connected, so a row claiming
+  to read a mailbox or a private repo would be a lie the screen cannot back
+  up. The product's own onboarding mode filters to the same public set.
+- **The heading shimmers while the pass runs.** The sentence was already
+  present tense, so the device costs no extra copy and no extra element. The
+  band is clipped to the `h1`, not to the three runs of plain words inside
+  it, or each would sweep at its own rate; the chips paint over the top and
+  keep their hues. The shimmer reuses `@keyframes shimmer` and
+  `--shimmer-sweep`; the spread is 2px per character, the ratio measured off
+  the dump. Every part of it sits behind `motion-safe:`, including
+  `bg-clip-text`, because a transparent label with no band painted behind it
+  is an invisible label.
+- **Timing: 1800ms a source (1400 working, 400 settled), 7.5s for the pass.**
+  It was 1100 — loading-step.tsx's `STEP_MS` — and read as too quick to be
+  four pieces of work. The settled half is what makes completion legible: the
+  label goes quiet, the card it paid for lands, then the next source arrives.
+- **The cards are controls now.** `Card asChild` over a `<button>` (the
+  `option-cards.tsx` shape `components.test.ts` allows), `aria-pressed`,
+  disabled while pending. A click fills the composer with that agent's
+  `prompt` and takes focus with the caret at the end. One selected at a time;
+  clicking the selected card again is a reset, not a toggle, which is the
+  screen's only undo; emptying the box by hand drops the selection, editing
+  it does not. Selection is `bg-tint-20` under a hairline ring on the
+  FOREGROUND — it was `ring-border-loud` first, which is tint-20, the same
+  value as the fill under it, so the state came down to one tint step and
+  could not be read. Fills run 7 rest / 10 hover / 20 picked. No accent: the
+  screen's one tangerine is the composer's send.
+- **`Composer` takes an optional `value` / `onValueChange`.** Hybrid
+  controlled: omit them and every other page behaves exactly as before. Its
+  auto-grow moved off the textarea's `onInput` onto a before-paint effect
+  keyed on the rendered value, because text set from outside fires no input
+  event and would have sat in a one-row box.
+- **A way out under the composer**, centred at 24px: `Set up manually`, the
+  same words as the profile step's button one screen earlier, deliberately —
+  an escape hatch that renames itself on every screen reads as a different
+  door each time. What separates them is weight, not vocabulary.
+- **`--shadow-card-soft` and `--shadow-rim-soft`** (brand.css, bridged in
+  globals.css) are the signup cards' resting elevation, one step under the
+  full-strength pair. Both were needed because the two themes tell elevation
+  with different layers — the drop does the work in light, the inset rim in
+  dark — so stepping down one would have quietened one theme only. Additive:
+  nothing reading `--shadow-card` or `--shadow-rim` moved. They are applied
+  to this flow's cards, NOT to the `Card` primitive, which would move pixels
+  on all 17 cloned routes.
+- The company mark is Trainwell's real 256px app icon (`/logos/trainwell.png`,
+  byte-identical to what their site serves). It reads at the card's 48px; at
+  the chip's 20px and the summary tile's 16px it is a small purple blur, which
+  is what the cropped `t` at `/logos/trainwell-mark.png` existed for. That
+  file is kept if the small sizes ever want it back.
+
 **Reuse worth knowing.**
 - `src/components/thread/` and `src/components/composer/` carry NO app-shell
   context. `Composer` mounts verbatim outside `(app)`; that is how the last
@@ -328,22 +400,29 @@ baseline comes from the label's own line box (inline-flex measured 1.7px low).
   entry; a component that inlines a mark as SVG does.
 
 **Known gaps on this branch, in the order worth fixing.**
-- The last screen is a still life. The sentence does not type in, the cards do
-  not stagger, nothing streams — on a screen whose premise is "we are
-  researching for you", that stillness is the biggest gap between it and the
-  idea.
-- The agent cards are presentational: no hover, no cursor, not pickable.
+- **`npm run build` has not run since 2026-09-09**: the machine's disk filled
+  (638MB free of 460GB) and Next could not write its trace. The other five
+  gates pass. `.next` was 1.4GB of regenerable cache at the time and is the
+  obvious thing to clear; the build passed earlier the same day.
+- There is no failure state in the research pass. Four sources that never
+  miss is less believable than three that land and one that comes back empty,
+  and the product's own `· Failed` suffix is in the dump, unused.
+- `HEADING_CHARS` in chat-step.tsx counts the sentence's fixed words to size
+  the shimmer band; editing the `h1` copy silently drifts it. A measured
+  `scrollWidth` would maintain itself.
+- The summary's tile group is nearly frameless on the dark canvas —
+  `bg-tint-10` + `shadow-edge` is tuned for sitting on a card, not on the
+  page, and it wants a slightly louder fill off-card.
 - The two edit pencils on the record cards are inert. Wiring them means
   deciding inline editing vs a dialog.
 - Only Google is wired; Apple and Microsoft are inert, as the email form is.
 - Narrow viewports have the classes but no visual confirmation. Nothing here
   has been seen below 1456 wide.
-- `--shadow-rim` on the record cards does real work in dark and is close to
-  invisible in light, where `--highlight` is white on a near-white card. Left
-  as is, since the light theme is flat by design elsewhere. A tighter
-  `inset 0 1px 2px` would make it read; a per-theme inset would be correct.
-- The wait is 3780ms of theatre. Honest for a demo, long once a real OAuth
-  round trip sits behind it.
+- `--shadow-rim` does real work in dark and is close to invisible in light,
+  where `--highlight` is white on a near-white card. Left as is, since the
+  light theme is flat by design elsewhere. A per-theme inset would be correct.
+- The two waits now total about 11s (3.78s on the loading screen, 7.5s on the
+  research pass). Honest for a demo, long once real calls sit behind them.
 - Every suggested agent happens to draw Linear, so the tool rows look more
   alike than they should.
 
@@ -564,21 +643,22 @@ removed afterwards.
 
 ## Prompt to start the next session
 
-The live work is the signup branch, so this is the prompt for it. (The
-phone-width pass on `main`, which was the previous next step, is still
-unstarted and is recorded under "Known gaps and follow-ups".)
+The live work is still the signup branch.
 
 > Read HANDOFF.md in ~/Projects/hyperagent — especially "The signup flow" —
 > then AGENTS.md, docs/brand/reskin-conventions.md and docs/components.md.
-> You are on branch `feat/hyper-personalized-onboarding`, 8 commits ahead of
-> main, not merged and not pushed; the tree is clean and all six gates pass.
-> It adds `/signup`: a four-step invented flow (providers → a spinning-mark
-> wait → a confirm-your-record screen of two cards → a chat-shaped screen
-> where those cards come back as coloured chips in a sentence, above suggested
-> agent cards and a live composer). Everything is static mock data; nothing
-> authenticates. The mark is a single never-unmounted element FLIPped between
-> per-screen seats — read that effect in signup-screen.tsx before changing
-> any layout on this page. Run `npm run dev` and walk the flow in both themes
-> before you touch anything. **Do not start work: report what you have read
-> and wait for instructions.**
-
+> You are on branch `feat/hyper-personalized-onboarding`, 16 commits ahead of
+> main, not merged and not pushed; the tree is clean. It adds `/signup`: a
+> four-step invented flow (providers → a spinning-mark wait → a
+> confirm-your-record screen of two cards → a chat screen that shows an agent
+> researching four public sources while four suggested-agent cards fill in
+> behind it, each one clickable to load a brief into the composer). Everything
+> is static mock data; nothing authenticates. Two things are load-bearing and
+> easy to break: the mark is a single never-unmounted element FLIPped between
+> per-screen seats (read that effect in signup-screen.tsx before changing any
+> layout on this page), and NOTHING on the fourth screen may change height,
+> because all four screens share one centred grid cell. `npm run build` has
+> not run since the machine's disk filled — check `df -h` first, clear
+> `.next` if it is still full, and get a clean build before anything else.
+> Run `npm run dev` and walk the flow in both themes. **Do not start work:
+> report what you have read and wait for instructions.**
