@@ -7,6 +7,7 @@ import { Composer } from "@/components/composer/composer";
 import { AgentCard } from "@/components/signup/agent-card";
 import { CompanyChip, PersonChip, RoleChip } from "@/components/signup/identity-chips";
 import { ResearchSlot, SHIMMER, sweepStyle, useResearchSequence } from "@/components/signup/research-signals";
+import { SkillQuestionCard } from "@/components/signup/skill-suggestions/question-card";
 import { FOOT_LINK } from "@/components/signup/signup-legal";
 import { SIGNUP_COMPANY, SIGNUP_PERSON } from "@/lib/mock/signup-identity";
 import { SUGGESTED_AGENTS } from "@/lib/mock/suggested-agents";
@@ -215,6 +216,33 @@ export function ChatStep({
             }}
           />
         ))}
+      </div>
+
+      {/* What the agents would need to know, offered after they land.
+          Variant A of three (/design/skill-suggestions compares them); the
+          other two are drop-in replacements for this one import.
+
+          IN THE LAYOUT FROM THE FIRST FRAME, faded rather than mounted late.
+          Revealing it when the pass finishes would grow the screen at the one
+          moment nothing may move — all four screens share a centred grid cell
+          and any growth drags the flying mark with it. Reserving the space
+          costs a taller cell on three screens that never show it, which is
+          free, because the cell is already sized to this screen. Same device
+          as the research slot's own summary line.
+
+          It waits for the pass rather than arriving with the cards: the skills
+          are an answer to what the agents turned out to need, and offering
+          them beside four skeletons would be answering a question the screen
+          has not asked yet. */}
+      <div
+        className={cn(
+          "mt-4 transition-opacity duration-(--duration-slide) ease-in-out motion-reduce:transition-none",
+          research.done ? "opacity-100" : "pointer-events-none opacity-0",
+        )}
+        aria-hidden={research.done ? undefined : true}
+        inert={!research.done}
+      >
+        <SkillQuestionCard />
       </div>
 
       {/* The out. Four suggestions are a guess, and the composer is where you
