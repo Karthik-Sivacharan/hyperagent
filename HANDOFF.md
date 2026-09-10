@@ -99,6 +99,13 @@ this first in a new session, then `README.md`, `docs/components.md`,
   the column measures itself with container queries, and the thread bar's panel
   toggle works. `npm run probe:signup` is the gate. See "The shell yields, the
   conversation does not" below.
+- **Ten dead transitions are fixed (2026-09-10).** `fix/dead-transitions`:
+  Tailwind v4 compiles `translate-*` / `scale-*` / `rotate-*` to the separate
+  `translate` / `scale` / `rotate` properties, so every
+  `transition-[…,transform]` beside one of them was transitioning nothing and
+  the element snapped. It had rotted into ten places, the signup panel and every
+  button's press among them. `components.test.ts` locks the rule. See "Decided
+  2026-09-10: never name `transform` in a `transition-[…]` list" below.
 - **Two design pages carry work that is built but not wired**:
   `/design/skill-suggestions` (three ways to offer skills) and
   `/design/agent-panel` (the Gumloop-shaped agent config panel, with its
