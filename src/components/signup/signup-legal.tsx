@@ -15,12 +15,14 @@ import { cn } from "@/lib/utils";
 // paragraph needs no flex parent, and `w-full` keeps the measure the wrapper
 // used to set.
 //
-// Two feet live here, one per screen, sharing LINK so they are typographically
-// the same line and the swap between them changes only the words. The signin
+// Three feet share this line now, one per screen, so they are typographically
+// the same object and the swap between them changes only the words. The signin
 // screen owes you the terms; the profile screen owes you something else
 // entirely — it just filled three fields you never typed, so the line in that
-// slot has to answer "where did that come from" before anyone has to ask.
-const LINK =
+// slot has to answer "where did that come from" before anyone has to ask; and
+// the chat step's foot is the escape hatch out of the flow (chat-step.tsx),
+// which borrows the treatment rather than inventing a fourth kind of link.
+export const FOOT_LINK =
   "rounded-xs font-medium text-foreground underline decoration-border-loud underline-offset-4 outline-none transition-[text-decoration-color] duration-(--duration-fast) ease-out-quart hover:decoration-foreground focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background";
 
 export function SignupLegal({ className }: { className?: string }) {
@@ -32,11 +34,11 @@ export function SignupLegal({ className }: { className?: string }) {
       )}
     >
       By signing up, you agree to our{" "}
-      <a href="#" className={LINK}>
+      <a href="#" className={FOOT_LINK}>
         Terms of Service
       </a>{" "}
       and{" "}
-      <a href="#" className={LINK}>
+      <a href="#" className={FOOT_LINK}>
         Privacy Policy
       </a>
     </p>
@@ -58,7 +60,7 @@ export function SignupProvenance({ className }: { className?: string }) {
           two lines to do it — and the two together ran past the 384px column,
           which is what forced the link onto its own line in the first place.
           One line, one link, and the detail lives behind it. */}
-      <a href="#" className={LINK}>
+      <a href="#" className={FOOT_LINK}>
         How we get this information
       </a>
     </p>

@@ -76,6 +76,51 @@ function ToolMark({ id }: { id: string }) {
   return <Image src={file.src} alt="" width={32} height={32} className="size-4 object-contain" />;
 }
 
+/**
+ * The bordered run itself, without the data: one rounded, hairline-edged group
+ * with `divide-x` between chrome-less 24px tiles. Split out of `ToolIconRow`
+ * so the research summary on the chat step can wear the same object — the
+ * frame is the vocabulary, and two definitions of it would drift apart the
+ * first time either one is retuned.
+ *
+ * A `span` rather than a `div`, because the agent card is a `<button>` now and
+ * a `<div>` inside one is invalid content. `role="img"` makes the label stick:
+ * an aria-label on a bare box is dropped by most screen readers, and the marks
+ * inside are decoration beside a title that already names the thing. The role
+ * also collapses the run to a single stop, which is what it looks like.
+ */
+export function ToolTileGroup({
+  label,
+  children,
+  className,
+}: {
+  label: string;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <span
+      role="img"
+      aria-label={label}
+      className={cn(
+        "flex w-fit items-center divide-x divide-border-subtle overflow-hidden rounded-md bg-tint-10 shadow-edge",
+        className,
+      )}
+    >
+      {children}
+    </span>
+  );
+}
+
+/** One 24px cell in that group. The mark inside is drawn at 16px. */
+export function ToolTile({ children }: { children: React.ReactNode }) {
+  return (
+    <span aria-hidden="true" className="flex size-6 items-center justify-center [&>svg]:size-4">
+      {children}
+    </span>
+  );
+}
+
 export function ToolIconRow({
   toolIds,
   className,
@@ -92,22 +137,11 @@ export function ToolIconRow({
   if (shown.length === 0) return null;
 
   return (
-    // One label on the group, and `role="img"` to make it stick: an aria-label
-    // on a bare div is dropped by most screen readers, and the marks inside
-    // are decoration beside a title that already names the agent. The role
-    // also collapses the run to a single stop, which is what it looks like.
-    <div
-      role="img"
-      aria-label={describeRow(shown, hidden)}
-      className={cn(
-        "flex w-fit items-center divide-x divide-border-subtle overflow-hidden rounded-md bg-tint-10 shadow-edge",
-        className,
-      )}
-    >
+    <ToolTileGroup label={describeRow(shown, hidden)} className={className}>
       {shown.map((id) => (
-        <span key={id} aria-hidden="true" className="flex size-6 items-center justify-center [&>svg]:size-4">
+        <ToolTile key={id}>
           <ToolMark id={id} />
-        </span>
+        </ToolTile>
       ))}
       {hidden > 0 && (
         // The `+N` idiom the marketplace tag row already uses, in this row's
@@ -122,6 +156,6 @@ export function ToolIconRow({
           +{hidden}
         </span>
       )}
-    </div>
+    </ToolTileGroup>
   );
 }

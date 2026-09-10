@@ -23,6 +23,20 @@
 //   - airtable: airtable.com's own favicon (48x48 PNG), the real tri-colour
 //     mark — simple-icons' Airtable glyph is single-colour only, and no
 //     clean full-colour SVG is published elsewhere without an API key.
+//   - app-store: Simple Icons, the glyph in Apple's own App Store blue.
+//     Single-TONE but not monochrome, so it keeps its colour for the same
+//     reason salesforce does (see the note below): the blue is the mark.
+//   - linkedin: Wikimedia Commons (LinkedIn_icon.svg), the two-tone plate —
+//     white wordmark on the brand blue. simple-icons has dropped this one
+//     (trademark takedown), the same gap that sent slack and salesforce
+//     elsewhere. The plate is what makes it legible at 12px on a tinted row:
+//     a bare "in" glyph in blue disappears at that size.
+//
+// The last two arrived for the signup research rows
+// (src/components/signup/research-signals.tsx), where the believable sources
+// at signup are the public ones: a company's own site, its app-store listing,
+// its open roles, the open web. Nothing is connected yet, so nothing here may
+// claim to read an inbox or a repo the account has never authorised.
 //
 // Two of these are NOT full colour and must not be: Notion's and GitHub's
 // marks are inherently monochrome, and both shipped from their sources as a
@@ -61,4 +75,6 @@ export const TOOL_LOGOS: Record<string, ToolLogo> = {
   hubspot: { id: "hubspot", name: "HubSpot", src: "/tools/hubspot.svg" },
   salesforce: { id: "salesforce", name: "Salesforce", src: "/tools/salesforce.svg" },
   airtable: { id: "airtable", name: "Airtable", src: "/tools/airtable.png" },
+  "app-store": { id: "app-store", name: "the App Store", src: "/tools/app-store.svg" },
+  linkedin: { id: "linkedin", name: "LinkedIn", src: "/tools/linkedin.svg" },
 };

@@ -435,7 +435,13 @@ export function SignupScreen() {
           )}
           inert={step !== "personalize"}
         >
-          <ChatStep headingRef={chatHeadingRef} />
+          {/* `active` rather than a conditional mount: this screen has to be
+              in the cell from the start (it is the tallest, and the cell's
+              height is what keeps the other three from moving), so it takes a
+              flag to say when its research pass may start rather than relying
+              on its own mount. LoadingStep, which is not the tallest, is
+              conditionally mounted for the same problem. */}
+          <ChatStep headingRef={chatHeadingRef} active={step === "personalize"} />
         </div>
 
         {/* The material mark, rendered ONCE for the whole flow and flown
