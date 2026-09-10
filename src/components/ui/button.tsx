@@ -11,6 +11,12 @@ import { cn } from "@/lib/utils";
 // icon-xs / icon-sm / icon-lg) with the phase-1 heights, so page layouts keep
 // their metrics; only the skin changes.
 //
+// `shape` is the escape from the pill: `soft` swaps `rounded-full` for
+// `rounded-sm` (6px on the brand's 10px --radius), the shape a stacked
+// full-width form wants — an auth screen, a settings form — where a pill at
+// 384px reads as a lozenge rather than a control. `pill` stays the default,
+// so nothing that does not ask for `soft` changes.
+//
 // Component sweep additions: `tint` (the toolbar pill: rest tint-10, hover
 // and open tint-15, text lifts to the first tier), `pill` (32px with the
 // composer's 12px padding kept when the icon is a direct child), `icon-2xs`
@@ -44,10 +50,15 @@ const buttonVariants = cva(
         "icon-lg": "size-10 motion-safe:active:scale-(--scale-press-icon)",
         none: "",
       },
+      shape: {
+        pill: "",
+        soft: "rounded-sm",
+      },
     },
     defaultVariants: {
       variant: "default",
       size: "default",
+      shape: "pill",
     },
   },
 );
@@ -56,6 +67,7 @@ function Button({
   className,
   variant = "default",
   size = "default",
+  shape = "pill",
   asChild = false,
   ...props
 }: React.ComponentProps<"button"> &
@@ -69,7 +81,8 @@ function Button({
       data-slot="button"
       data-variant={variant}
       data-size={size}
-      className={cn(buttonVariants({ variant, size, className }))}
+      data-shape={shape}
+      className={cn(buttonVariants({ variant, size, shape, className }))}
       {...props}
     />
   );
