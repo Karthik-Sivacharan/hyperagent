@@ -237,8 +237,10 @@
   --shadow-edge: var(--shadow-edge);
   --shadow-card: var(--shadow-card);
   --shadow-card-hover: var(--shadow-card-hover);
+  --shadow-card-soft: var(--shadow-card-soft);
   --shadow-avatar: var(--shadow-avatar);
   --shadow-rim: var(--shadow-rim);
+  --shadow-rim-soft: var(--shadow-rim-soft);
   --shadow-hero: var(--shadow-hero);
 
   /* Layout */
