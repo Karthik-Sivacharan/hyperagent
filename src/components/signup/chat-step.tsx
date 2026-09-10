@@ -220,8 +220,15 @@ export function ChatStep({
           What separates them is weight, not vocabulary: a full-width button
           there, the flow's own foot line here — the same 13px third tier and
           the same underlined link the terms and the provenance line wear.
-          `/threads/new` is the app's real home; `/` only redirects there. */}
-      <p className="mt-3 text-md leading-5 text-foreground-low">
+          `/threads/new` is the app's real home; `/` only redirects there.
+
+          Centred, and the only centred thing on a left-aligned screen. Left
+          against the composer's edge it read as a caption on the box rather
+          than an action of its own, and 12px of gap put it closer to the
+          composer than the composer was to the cards. On the page's axis at
+          24px it is a way out of the SCREEN, and it rhymes with the three
+          screens before this one, all of which are centred columns. */}
+      <p className="mt-6 text-center text-md leading-5 text-foreground-low">
         <Link href="/threads/new" className={FOOT_LINK}>
           Set up manually
         </Link>
