@@ -1014,30 +1014,50 @@ removed afterwards.
 
 ## Prompt to start the next session
 
-Everything is on `main` and pushed; there is no branch in flight. The largest
-open piece is the streaming assistant turn.
+Everything is on `main` and pushed; there is no branch in flight and no
+worktree but the unrelated `onboarding-exact`. The largest open piece is
+still the streaming assistant turn.
 
-> Read HANDOFF.md in ~/Projects/hyperagent — especially "The signup flow" —
-> then AGENTS.md, docs/brand/reskin-conventions.md and docs/components.md.
-> You are on `main`, clean and pushed, with all six gates passing. `/signup`
-> is a five-beat invented flow (providers → a spinning-mark wait → a
-> confirm-your-record screen of two cards → a chat screen that reads five
-> public sources while four suggested-agent cards fill in behind it, each
-> clickable to load a brief into the composer → and on send, the app shell
-> arriving around the conversation). Everything is static mock data; nothing
-> authenticates, and the app defaults to dark.
+> Read HANDOFF.md in ~/Projects/hyperagent — especially "The signup flow",
+> "The shell yields, the conversation does not" and "Decided 2026-09-10:
+> never name `transform` in a `transition-[…]` list" — then AGENTS.md,
+> docs/brand/reskin-conventions.md and docs/components.md.
+>
+> You are on `main`, clean and pushed, all six gates passing. `/signup` is a
+> five-beat invented flow (providers → a spinning-mark wait → a
+> confirm-your-record screen → a chat screen that reads five public sources
+> while four suggested-agent cards fill in behind it → and on send, the app
+> shell arriving around the conversation). Everything is static mock data,
+> nothing authenticates, the app defaults to dark.
 >
 > Three things on that page are load-bearing. The Hyperagent mark is a single
 > never-unmounted element FLIPped between per-screen seats — read that effect
-> in signup-screen.tsx before changing any layout here. Nothing on the fourth
-> screen may change height, because all four screens share one centred grid
-> cell and growth drags the flying mark. And the whole cell must FIT THE
-> VIEWPORT: the moment the tallest screen exceeds it, every screen scrolls and
-> the column stops being viewport-centred. If you change anything in that
-> cell, check the stage's `grid-template-rows` is equal at every step and that
-> a real wheel moves nothing — testing `window.scrollY`, `documentElement`
-> AND `document.body`, because `overflow-x: hidden` on html/body makes a body
-> scroll possible while the document reports none.
+> in signup-screen.tsx before changing any layout, and never transform the
+> stage or an ancestor of it. Nothing on the fourth screen may change height,
+> because all four screens share one centred grid cell. And that cell must FIT
+> THE VIEWPORT, or every screen scrolls and the column stops being centred.
+>
+> Two gates exist so you do not have to re-derive any of this. `npm run
+> probe:signup` drives the flow to the handoff state and sweeps 14 widths,
+> asserting the conversation never falls under 512 while the panel is docked,
+> nothing scrolls at any width ≥768, and nothing escapes its box; it exits 2
+> rather than publishing numbers if the shell did not actually arrive.
+> `npm test` includes a rule that catches `transition-[…]` lists naming
+> `transform` beside a v4 translate/scale/rotate utility.
+>
+> Know the three traps this repo has already paid for. (1) `overflow-x:
+> hidden` on html/body forces their used `overflow-y` to `auto`, so a body
+> scroll can exist while `documentElement` reports none — check all three
+> scrollers and dispatch a real wheel. (2) Dispatch that wheel over the
+> conversation, not at a fixed point, or it lands inside the panel and scrolls
+> that instead. (3) **The gates do not look inside the agent panel.** A
+> clipped panel passed every gate and `probe:signup` 3 of 3; it was caught by
+> opening a screenshot. Look at the pixels.
+>
+> Two more things that will bite a rename or a refactor: `probe-signup.mjs`
+> drives the flow by clicking the profile CTA's exact string ("Find agents for
+> me"), and `HEADING_CHARS` in chat-step.tsx counts the h1's fixed words to
+> size the shimmer band.
 >
 > Run `npm run dev` and walk the flow in both themes. **Do not start work:
 > report what you have read and wait for instructions.**
