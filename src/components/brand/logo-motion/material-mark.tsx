@@ -65,6 +65,14 @@ const CONTACT_SPREAD = 1.5;
 // diagonal, i.e. a mirrored logo. See mark-geometry.ts on TURN's symmetry.
 const HOVER_SPIN_DEG = 360;
 
+// ...and it takes longer than the token ladder's ceiling to do it. A full turn
+// covers far more visual distance than the "large transform move" that
+// --duration-slide (480ms) was measured for, so at the token's own value it
+// reads as a flick rather than a turn. The scale keeps the spin derived from
+// the token - a retune in brand.css still moves it - while giving one full
+// revolution the time it needs: 480ms x 1.25 = 600ms, about 600 deg/sec.
+const HOVER_SPIN_SCALE = 1.25;
+
 // Strength of the --brand-accent wash. The colour has to carry the whole
 // affordance on its own, and a wash faint enough to read as "warmer" does not.
 // At 0.78 the mark lands close to --brand-accent itself (dark-mode
@@ -244,7 +252,7 @@ export function MaterialMark({ size = 72, className, label }: MarkMotionProps) {
         { transform: `rotate(${HOVER_SPIN_DEG}deg)` },
       ],
       {
-        duration: durationToken(el, "--duration-slide", 480),
+        duration: durationToken(el, "--duration-slide", 480) * HOVER_SPIN_SCALE,
         easing: easingToken(
           el,
           "--ease-in-out",
