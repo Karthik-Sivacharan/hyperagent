@@ -36,19 +36,37 @@ import { cn } from "@/lib/utils";
 // loses to the menus every time and the config quietly forks in two. Everything
 // here is visible on arrival, flat, and in one column.
 //
-// WIDTH: 560px, and the number is picked by what has to fit rather than by what
-// the two live references happen to measure (Gumloop ~550, hyperagent ~558, so
-// this lands between them and nobody arriving from either has to relearn the
-// column). 560 less the 2x20px gutters is 520px of content, which is about 72
-// characters of the 14px body face in the instructions field: inside the 65-75
-// character band that prose wants, and the instructions are the only control in
-// the panel that is really prose. It also leaves the thread its room. At the
-// 1456px the screenshot gate uses, 1456 less the 256px sidebar less this panel
-// is 640px of conversation, which is still a comfortable reading column rather
-// than a gutter. Narrower and the section header rows (title, "AI discovery",
-// switch, "+ Add") start colliding; wider and the panel wins an argument it
-// should not be having with the thread.
-export const AGENT_PANEL_WIDTH = 560;
+// WIDTH: 480px, corrected 2026-09-10 from 560 after measuring the reference
+// rather than trusting a remembered figure. This comment used to say "Gumloop
+// ~550"; Gumloop's panel is **477px at a 1456px viewport**, read off a live
+// agent page. It is not even a fixed width there — it is a split pane at
+// `flex: 33.898 1 0px`, so it is 33.9% of the content area and grows with the
+// window. 560 was therefore not "between the two references", it was 80px wider
+// than the one it named.
+//
+// 480 is kept as a FIXED number rather than copied as a percentage, because
+// this panel's width is already clamped from both sides by a live fit test
+// (use-shell-fit.ts) and a proportional default would be a second opinion about
+// the same pixels; and because the drag range below is in px, so a percentage
+// default would drift out of the middle of its own range on a wide monitor.
+//
+// What it has to hold: 480 less the 2x20px gutters is 440px of content, which
+// is about 61 characters of the 14px body face in the instructions field — the
+// only control in the panel that is really prose. That is just under the 65-75
+// character band, and it is where the reference sits too: Gumloop's own
+// instructions box measures 407px inner at 14px, which is 63 characters. A
+// number the live product reads comfortably at beats a band this panel was
+// never actually failing.
+//
+// What it gives back is the conversation. At the 1456px the screenshot gate
+// uses, 1456 less the 256px sidebar less this panel leaves 720px of thread
+// against 640 before, which is inside the column's own 752px measure instead of
+// 112px short of it.
+//
+// Narrower still and the section header rows (title, "AI discovery", switch,
+// "+ Add") start colliding, which is what PANEL_MIN_WIDTH below is; wider and
+// the panel wins an argument it should not be having with the thread.
+export const AGENT_PANEL_WIDTH = 480;
 
 // The drag range. 440 is where the longest header row runs out of gap; 720 is
 // where the instructions field passes 90 characters and prose starts to fray.
@@ -221,7 +239,7 @@ export function AgentPanel({
   // a pointer is a setting some people cannot change.
   //
   // Two numbers, not one: `preferred` is the width this panel has been asked
-  // for (its resting 560, or wherever the last drag left it) and `width` is
+  // for (its resting 480, or wherever the last drag left it) and `width` is
   // what it can actually have once `maxWidth` has had its say. Keeping them
   // apart is what makes the constraint reversible — see the prop's note.
   const [preferred, setPreferred] = useState(AGENT_PANEL_WIDTH);

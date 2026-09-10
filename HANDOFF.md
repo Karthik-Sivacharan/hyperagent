@@ -498,13 +498,22 @@ hyperagent.com puts the same agent configuration in three places — the
 composer's `+` menu, the composer's settings pill, and a right panel at
 `?panel=settings` that opens CLOSED behind tabs and an accordion — so the
 menus win and the configuration that should be read whole is only read in
-slices. This follows Gumloop instead: a 560px panel open by default, sections
+slices. This follows Gumloop instead: a 480px panel open by default, sections
 flat and always visible, each with its own `+ Add` and its own AI-managed
 state on the header row. Model & compute, Skills, Connectors, Knowledge
-sources, Subagents, Triggers, Autonomy & safety, in that order. 560 is what
-has to fit rather than a split difference: less two 20px gutters it is about
-72 characters of the 14px face in the instructions field, inside the 65–75ch
-prose band. Drag-to-resize is 440–720 with a double-click reset and a
+sources, Subagents, Triggers, Autonomy & safety, in that order. **480 is
+corrected from 560 (2026-09-10), after measuring the reference instead of
+trusting the figure written down here.** The old comment claimed "Gumloop
+~550"; Gumloop's panel is 477px at a 1456px viewport, and it is not a fixed
+width at all but a split pane at `flex: 33.898 1 0px` — 33.9% of the content
+area. 560 was 80px wider than the reference it named. 480 less two 20px
+gutters is about 61 characters of the 14px face in the instructions field,
+which is where the reference sits too (its own box is 407px inner, 63
+characters), and it hands 80px back to the conversation: 720px of thread at
+1456 instead of 640, inside the column's own 752 measure rather than short
+of it. Kept as a fixed number rather than a percentage because the width is
+already clamped from both sides by the live fit test, and a proportional
+default would be a second opinion about the same pixels. Drag-to-resize is 440–720 with a double-click reset and a
 focusable window splitter with arrow keys. Save is dirty-only and changes
 state rather than greying out. Connected versus available is carried three
 ways and none is hue. `docs/plans/2026-09-10-agent-panel-consolidation.md` is
