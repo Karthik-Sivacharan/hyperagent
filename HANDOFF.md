@@ -121,6 +121,12 @@ this first in a new session, then `README.md`, `docs/components.md`,
   `/design/agent-panel` (the Gumloop-shaped agent config panel, with its
   consolidation audit at `docs/plans/2026-09-10-agent-panel-consolidation.md`).
   Both are described under "The signup flow".
+- **The artifact workspace is built but not wired (2026-09-10,
+  `feat/workspace-panel`).** The desktop hyperagent.com opens beside a thread
+  once it has produced something: wallpaper, a glass toolbar, the artifacts on
+  a carousel, a dock. Static, Carousel layout only, in
+  `src/components/workspace/`, shown beside the real thread view at
+  `/design/workspace`. See "The artifact workspace" below.
 - A second worktree, `.claude/worktrees/onboarding-exact` (branch
   `onboarding-exact`), holds a DIFFERENT `/onboarding` feature. It is
   unrelated to the signup flow; do not confuse the two or edit one from the
@@ -794,6 +800,86 @@ At the merge: all six gates, `probe:signup` passing 3 of 3 in both themes, and
 all 17 cloned routes byte-identical to `main` at 1456×868 in both themes —
 `ThreadHeader` and `Sidebar` are shared with them and every new prop is opt-in.
 
+## The artifact workspace (built, not wired, 2026-09-10)
+
+Branch `feat/workspace-panel`. The right-hand desktop of a populated thread on
+hyperagent.com, cloned as a still: the Carousel layout at rest, no behaviour.
+Ground truth is `docs/reference/overlays/thread-workspace-carousel.html`,
+captured read-only the same day (its header comment also records the
+document iframe's measured type, which the dump itself cannot carry).
+
+**Where it is.** `src/components/workspace/`: `workspace.tsx` (the root, and
+the Browser pill), `workspace-toolbar.tsx` (the filter pill and the layout
+switch), `artifact-card.tsx` (label pill, content, hover actions),
+`document-view.tsx` (a document read in place), `artifact-dock.tsx`,
+`workspace-artwork.tsx` (the wallpaper and the document tile's face) and
+`glass.ts` (the one glass surface and the text strengths on it). Mock data,
+including the wallpaper's palette, is `src/lib/mock/workspace.ts`; the image
+artifact is `public/img/workspace/browser-capture.svg`, a drawn stand-in,
+because the live one is a third-party page carrying a real address.
+
+**How it mounts.** `Workspace` fills whatever positioned box it is given and
+needs nothing from its host. `ThreadView` takes it as an opt-in `workspace`
+prop: the chat column then takes the site's 512px (`w-lg flex-none`) and the
+workspace fills the rest of the frame. No cloned route passes the prop, and
+the `thread` route is pixel-identical to `main` in both themes (0 differing
+pixels at 1456×868). `/design/workspace` wraps `AppShell` + `ThreadView` +
+`Workspace` so the pairing reads as it will ship. **To bring it into the
+signup handoff**, render `<Workspace>` in a positioned column of
+`app-handoff.tsx`; that flow does not use `ThreadView`.
+
+**Measured against the live page, not eyeballed.** Rects relative to each
+desktop's own box match to the pixel: the 600×668 document card and its
+632px content, the 286×28 label (Geist on both sides, so text widths match),
+the 164×78 dock and its 52px tiles, the 89×38 filter pill, the 109×34
+Browser pill and the 143×38 layout switch. The desktop is 678 wide here and
+684 on the live page only because the live sidebar had been dragged to 250px;
+centred items sit half that difference over, and the first card snaps 3px in
+(it is `snap-center`), which is what the site does at 678 too.
+
+**Skin decisions (keep the layout, change the skin).**
+- The wallpaper is artwork: its palette is data, its renderer is on the
+  token lint's allow-list. Base, three blurred colour fields, a vignette, a
+  highlight and grain, byte for byte the site's numbers.
+- One glass (`GLASS`): `bg-surface-elevated/40` (sand, flips on its own),
+  the brand's `--highlight` as the rim, `backdrop-blur-glass`. Text on it is
+  the first tier at 100/70/50%, because the wallpaper stays light in dark
+  mode and the brand's muted tiers sink into the pane there.
+- The pressed layout key is lifted by `--highlight` (white .5 / .15). The
+  canvas fill the app's other layout switches use read as a black hole on
+  glass in dark.
+- Brand corners everywhere: pills for every control, the card at
+  `rounded-3xl`, dock tiles at the soft 14px and the dock concentric with
+  them (14 + 8 = 22, `rounded-3xl`).
+- The focus ring on the selected card is `brand-accent` at 70% under
+  `shadow-lg`; the dock's selected tile keeps the site's white ring (it sits
+  on the tile's own picture) and a `bg-foreground` dot.
+- The document tile's blue is the site's, as a file-type face. The document
+  itself is on the brand's reading type (`genui-prose`, headings at 600)
+  rather than the site's iframe sheet; the unfilled-section placeholder drops
+  to `foreground-low` instead of the site's italic, which Geist cannot set.
+- Hover actions reuse the thread view's scroll-to-bottom pill rather than a
+  new glass, and show on focus-within as well as hover.
+
+**Not built.** Dragging the carousel, cards sliding under the thread column
+(here the carousel starts at the desktop's edge, the same picture at rest),
+the resize handle, dock scrolling and reordering, the Tile and Windows
+layouts (seen live but not captured: Tile stacks the cards and regroups the
+dock by type with counts; Windows floats each artifact in a 28px-title-bar
+window with three traffic-light buttons and eight resize handles, keeps each
+window's geometry per thread in localStorage, and adds sort / tile / cascade
+buttons to the switch), every menu, the Spotlight overlay, the Browser view
+and the entrance animation. The site keeps the chosen layout in localStorage
+(`hyperagent-workspace-layout-mode`: `scroll`, `grid` or `windows`). The layout
+switch is held on Carousel. Scrolling the carousel and its snapping work,
+because they are CSS.
+
+**Two traps from building it.** Padding on a `flex-1` item counts toward its
+basis, so the filter's `px-2` has to sit on an inner box (as on the site) or
+the layout switch lands 8px off centre. The `Separator` primitive stretches
+through `data-vertical:self-stretch`, which beats a bare `self-center`;
+override it on the same variant.
+
 ## Design decisions worth knowing
 
 - **Keep the layout, change the skin.** Element trees, copy, icon sizes,
@@ -844,7 +930,8 @@ all 17 cloned routes byte-identical to `main` at 1456×868 in both themes —
 | `src/lib/utils.ts`, `utils.test.ts` | The brand's `cn()` and its tests |
 | `src/design/brand/` | `brand.css` (the app's token sheet), `brand.test.ts`, the Geist loaders, `README.md` with the wiring and the phase-2 mapping table |
 | `src/app/design/brand/` | Swatch page at `/design/brand` with its own local light/dark toggle |
-| `src/app/design/` | The comparison pages: `/design/tools` (three composer Tools panels), `/design/skill-suggestions` (three ways to offer skills, none wired), `/design/agent-panel` (the config panel, not yet consolidated), `/design/logo` (the logo-motion studies the signup mark came from) |
+| `src/app/design/` | The comparison pages: `/design/tools` (three composer Tools panels), `/design/skill-suggestions` (three ways to offer skills, none wired), `/design/agent-panel` (the config panel, not yet consolidated), `/design/workspace` (the artifact workspace beside the thread view, not wired), `/design/logo` (the logo-motion studies the signup mark came from) |
+| `src/components/workspace/` | The artifact workspace: wallpaper, glass toolbar, artifact cards, dock; static, Carousel layout only; mounts in any positioned box or through `ThreadView`'s `workspace` prop |
 | `docs/brand/` | `design.md` (the brand language), `reskin-conventions.md` (the phase-2 contract), `icons.md` (Tabler only, the lucide-to-Tabler names), the style audit |
 | `docs/components.md` | The component system: tiers, rules, the component map with live evidence, how to add a component, the live UI the clone lacks |
 | `docs/plans/` | Implementation plans, one file per sweep, the boxes ticked as the work landed |
