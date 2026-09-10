@@ -37,10 +37,13 @@ import { cn } from "@/lib/utils";
 
 export function ProfileStep({
   headingRef,
+  onPersonalize,
   className,
 }: {
   /** Focus lands here on arrival — see the note in signup-screen.tsx. */
   headingRef?: React.Ref<HTMLHeadingElement>;
+  /** Hands the flow to the chat step. Owned by signup-screen.tsx. */
+  onPersonalize?: () => void;
   className?: string;
 }) {
   return (
@@ -182,6 +185,7 @@ export function ProfileStep({
           size="lg"
           shape="soft"
           className="w-full"
+          onClick={onPersonalize}
         >
           {/* The mark rather than a sparkle: this button starts the thing the
               product does, so the product's own glyph is the honest label for

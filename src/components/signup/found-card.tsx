@@ -49,8 +49,11 @@ export function FoundCard({
   media: React.ReactNode;
   title: string;
   subtitle: string;
-  /** Names the action for screen readers — "Edit" alone would not say what. */
-  editLabel: string;
+  /** Names the action for screen readers — "Edit" alone would not say what.
+   *  Omit it and the corner action is not rendered at all: a card with
+   *  nothing to correct should not carry a pencil, and a pencil with no
+   *  label is worse than no pencil. */
+  editLabel?: string;
   /** The tag row, on the card that has one. */
   footer?: React.ReactNode;
   className?: string;
@@ -96,15 +99,17 @@ export function FoundCard({
             competing with the name beside it. -mt-1 -mr-1 pulls the 32px
             target back so its ICON optically aligns with the card's 16px
             padding; a ghost button's box is bigger than the glyph it holds. */}
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon-sm"
-          aria-label={editLabel}
-          className="-mt-1 -mr-1 shrink-0 text-foreground-low hover:text-foreground"
-        >
-          <IconPencil aria-hidden="true" />
-        </Button>
+        {editLabel ? (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-sm"
+            aria-label={editLabel}
+            className="-mt-1 -mr-1 shrink-0 text-foreground-low hover:text-foreground"
+          >
+            <IconPencil aria-hidden="true" />
+          </Button>
+        ) : null}
       </div>
 
       {children}
