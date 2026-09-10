@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { IconSearch, type TablerIcon } from "@tabler/icons-react";
+import { IconRefresh, IconSearch, type TablerIcon } from "@tabler/icons-react";
 
 import { ToolTile, ToolTileGroup } from "@/components/signup/tool-icon-row";
+import { Button } from "@/components/ui/button";
 import { SIGNUP_COMPANY, SIGNUP_PERSON } from "@/lib/mock/signup-identity";
 import { TOOL_LOGOS } from "@/lib/mock/tool-logos";
 import { cn } from "@/lib/utils";
@@ -36,14 +37,22 @@ import { cn } from "@/lib/utils";
 //      above them is not a receipt, it is a second column of text.
 //
 // Nothing is lost by it: each source is named while it is being read, and the
-// summary line at the end carries all four marks at 16px in the tile group the
+// summary line at the end carries all five marks at 16px in the tile group the
 // agent cards already wear, which is where a logo is actually legible.
 //
 // HONESTY. At signup this account has connected nothing, so a row claiming to
 // read a mailbox or a private repo would be a lie the screen cannot back up.
-// All four sources below are public and reachable from an email domain alone:
-// the company's own site, its app-store listing, its open roles, the open web.
-// That is also why the summary says "public sources" out loud.
+// All five sources below are public and reachable from an email domain alone:
+// the company's own site, its app-store listing, its open roles, the open web,
+// and a neutral index over that same web.
+//
+// The summary used to say "public sources" out loud and now just says
+// "sources". The constraint has not moved an inch — every row above is still
+// public and a private one still may not be added here — but the word was
+// doing its work twice: the marks in that line ARE the receipt, and a viewer
+// who can see the App Store and LinkedIn sitting there does not need to be
+// told the reading was public. It was reassurance addressed to the builder
+// rather than to the reader.
 
 type ResearchSignal = {
   id: string;
@@ -90,6 +99,23 @@ const RESEARCH_SIGNALS: ResearchSignal[] = [
     source: "the web",
     icon: IconSearch,
   },
+  {
+    // Exa is a search index, so it sits next to the plain web search rather
+    // than among the three first-party sources above — and it earns a separate
+    // row instead of folding into that one because it answers a different
+    // question. A keyword search finds the company; a neural index finds what
+    // the company is LIKE, which is the only one of the five sources that can
+    // say anything about a market rather than about a single record.
+    //
+    // Named by the action and not by the vendor, like every row above it: the
+    // logo carries who, the label carries what. Still public, still reachable
+    // from an email domain alone, so it keeps the honesty rule intact.
+    id: "exa",
+    label: "Finding similar companies",
+    detail: `${SIGNUP_COMPANY.tags[0].toLowerCase()} apps like ${SIGNUP_COMPANY.name}`,
+    source: TOOL_LOGOS.exa.name,
+    logoSrc: TOOL_LOGOS.exa.src,
+  },
 ];
 
 // ===== TIMING ==============================================================
@@ -117,14 +143,31 @@ const SIGNAL_SETTLE_MS = 400;
 // screen later.
 const LEAD_MS = 300;
 
-// Four signals at 1800 plus the 300ms lead is 7.5s of working state. That is
+// Five signals at 1800 plus the 300ms lead is 9.3s of working state. That is
 // long for a screen with one line of text on it, and it is the point: the
-// claim is that something went and read four places, and four places do not
+// claim is that something went and read five places, and five places do not
 // take a second and a half. The four cards filling in behind it are what makes
 // the time legible rather than dead — at no moment is the screen only waiting.
+//
+// It was 7.5s at four sources. Adding Exa bought a fifth row at full price
+// rather than squeezing the other four, because the row IS the evidence: five
+// sources read in the time four used to take would quietly say that none of
+// them cost anything. If the pass ever has to fit a budget, cut a source, not
+// the milliseconds.
+//
+// Four cards against five signals, so ONE source has to pay for nothing, and
+// it has to be the first rather than the last. Fetching the company's own site
+// is the row that buys the ground everything else stands on and produces no
+// suggestion by itself; the four after it each land a card, which keeps a card
+// arriving on the FINAL row. The other way round — cards on the first four —
+// leaves the last 1.8s with a shimmering label and a screen that is already
+// finished behind it, which is the one thing this timing exists to avoid.
 
 /** The last step index: two per signal, running then settled. */
 const LAST_STEP = RESEARCH_SIGNALS.length * 2;
+
+/** Cards on screen. Five signals pay for four of them; see the timing note. */
+const CARD_COUNT = 4;
 
 export type ResearchState = {
   /** Which signal the slot is showing. */
@@ -136,6 +179,8 @@ export type ResearchState = {
   /** How many cards have been paid for. */
   resolved: number;
   done: boolean;
+  /** Run the whole pass again from the lead. See `SignalSummary`'s button. */
+  restart: () => void;
 };
 
 /**
@@ -171,10 +216,16 @@ export function useResearchSequence(active: boolean): ResearchState {
     index: Math.min(Math.max(Math.floor(step / 2), 0), RESEARCH_SIGNALS.length - 1),
     running: step >= 0 && !done && step % 2 === 0,
     started: step >= 0,
-    // A card is paid for by the row that just went quiet, so the count steps
-    // on the ODD half of each pair: 0, 1, 1, 2, 2, 3, 3, 4.
-    resolved: step < 0 ? 0 : Math.floor((step + 1) / 2),
+    // A card is paid for by the row that just went quiet, so the count steps on
+    // the ODD half of each pair — and one row behind, because the first source
+    // buys none: 0, 0, 0, 1, 1, 2, 2, 3, 3, 4.
+    resolved: Math.min(Math.max(Math.floor((step + 1) / 2) - 1, 0), CARD_COUNT),
     done,
+    // Back to the lead, not to the first row: the replay should open with the
+    // same beat of dead air the first run did, or the rows arrive on a screen
+    // that is still clearing the old ones. Setting the step is enough to drive
+    // it — the effect above is keyed on `step`, so it re-arms itself.
+    restart: () => setStep(-1),
   };
 }
 
@@ -306,14 +357,17 @@ function describeSources(): string {
   return `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
 }
 
-function SignalSummary() {
+function SignalSummary({ onRestart }: { onRestart: () => void }) {
   return (
     // Not a pill. The rows are pills because they are live; this is the
     // receipt, so it drops the frame and keeps only the marks — the tile group
     // the agent cards already carry, at the 16px where a logo is legible,
-    // with the count beside it. "Public" is doing honest work: nothing is
-    // connected yet, and this line is the screen saying so.
-    <span className="flex items-center gap-2">
+    // with the count beside it.
+    //
+    // `w-full` so the retry can reach the right edge; the live rows above stay
+    // `justify-self-start` and keep hugging their own text, because a pill
+    // stretched to the column would be a bar, not a chip.
+    <span className="flex w-full items-center gap-2">
       <ToolTileGroup label={describeSources()}>
         {RESEARCH_SIGNALS.map((signal) => (
           <ToolTile key={signal.id}>
@@ -331,9 +385,32 @@ function SignalSummary() {
           </ToolTile>
         ))}
       </ToolTileGroup>
-      <span className="text-xs text-foreground-low">
-        Read {RESEARCH_SIGNALS.length} public sources
-      </span>
+      <span className="text-xs text-foreground-low">Read {RESEARCH_SIGNALS.length} sources</span>
+
+      {/* The one way to disagree with the four cards without typing. It lives
+          at the far edge of the receipt because that is what it acts on — the
+          reading produced these four, so "read again" belongs on the reading's
+          own line, not floating over the grid.
+
+          IconRefresh, not IconSparkles or IconArrowsShuffle: sparkles would
+          promise a different KIND of answer (a model thinking harder) when
+          this is the same pass run twice, and shuffle would promise the same
+          four in a new order. Refresh is the only one of the three that
+          describes what actually happens.
+
+          Ghost and 24px: it sits inside a 28px slot that must not grow, and
+          the screen's one solid accent is already spent on the composer's
+          send (brand rule 3). Quiet at rest on `foreground-low`, up one tier
+          on hover — the same two-tier move the rows' own glyphs make. */}
+      <Button
+        variant="ghost"
+        size="icon-xs"
+        onClick={onRestart}
+        aria-label="Read the sources again for new suggestions"
+        className="ml-auto shrink-0 text-foreground-low hover:text-foreground"
+      >
+        <IconRefresh className="size-3.5" aria-hidden="true" />
+      </Button>
     </span>
   );
 }
@@ -355,7 +432,7 @@ const SLOT_SHOWN = "opacity-100 delay-(--duration-fast) motion-reduce:delay-0";
 const SLOT_HIDDEN = "pointer-events-none opacity-0";
 
 export function ResearchSlot({ state, className }: { state: ResearchState; className?: string }) {
-  const { index, running, started, done } = state;
+  const { index, running, started, done, restart } = state;
 
   return (
     // `aria-live="polite"` so each source is announced as it is read, and only
@@ -375,8 +452,20 @@ export function ResearchSlot({ state, className }: { state: ResearchState; class
           </span>
         );
       })}
-      <span className={cn(SLOT_ITEM, done ? SLOT_SHOWN : SLOT_HIDDEN)} aria-hidden={done ? undefined : true}>
-        <SignalSummary />
+      {/* `justify-self-stretch` overrides the slot's `justify-self-start` for
+          this member alone, so the receipt spans the column and its retry can
+          sit at the far edge while the live rows keep hugging their text.
+
+          `inert` as well as `aria-hidden`, which the rows above do not need:
+          this is the only slot member holding a CONTROL, and an aria-hidden
+          button is still in the tab order. Without it, tabbing during the pass
+          lands on an invisible retry. */}
+      <span
+        className={cn(SLOT_ITEM, "w-full justify-self-stretch", done ? SLOT_SHOWN : SLOT_HIDDEN)}
+        aria-hidden={done ? undefined : true}
+        inert={!done}
+      >
+        <SignalSummary onRestart={restart} />
       </span>
     </div>
   );

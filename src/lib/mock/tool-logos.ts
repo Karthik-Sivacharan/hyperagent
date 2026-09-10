@@ -31,12 +31,19 @@
 //     (trademark takedown), the same gap that sent slack and salesforce
 //     elsewhere. The plate is what makes it legible at 12px on a tinted row:
 //     a bare "in" glyph in blue disappears at that size.
+//   - exa: exa.ai's own favicon, the 256px PNG inside `favicon.ico` (fetched
+//     2026-09-10) — the real two-tone plate, a white mark on Exa's brand blue
+//     (#1F40ED). simple-icons carries no Exa glyph at all, and the site
+//     publishes no standalone SVG, so this follows airtable's precedent of
+//     taking the vendor's own favicon. Same argument as linkedin for keeping
+//     the plate: the white mark alone would have nothing to sit on at 12px.
 //
-// The last two arrived for the signup research rows
+// The last three arrived for the signup research rows
 // (src/components/signup/research-signals.tsx), where the believable sources
 // at signup are the public ones: a company's own site, its app-store listing,
-// its open roles, the open web. Nothing is connected yet, so nothing here may
-// claim to read an inbox or a repo the account has never authorised.
+// its open roles, the open web, and a neutral search index over that same web.
+// Nothing is connected yet, so nothing here may claim to read an inbox or a
+// repo the account has never authorised.
 //
 // Two of these are NOT full colour and must not be: Notion's and GitHub's
 // marks are inherently monochrome, and both shipped from their sources as a
@@ -77,4 +84,5 @@ export const TOOL_LOGOS: Record<string, ToolLogo> = {
   airtable: { id: "airtable", name: "Airtable", src: "/tools/airtable.png" },
   "app-store": { id: "app-store", name: "the App Store", src: "/tools/app-store.svg" },
   linkedin: { id: "linkedin", name: "LinkedIn", src: "/tools/linkedin.svg" },
+  exa: { id: "exa", name: "Exa", src: "/tools/exa.png" },
 };

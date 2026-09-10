@@ -145,8 +145,32 @@ export function ChatStep({
         <CompanyChip />
       </h1>
 
-      {/* What it is reading, one public source at a time, then the receipt. */}
-      <ResearchSlot state={research} className="mt-4" />
+      {/* What it is reading, one public source at a time, then the receipt.
+
+          The receipt's retry is handed a wrapped `restart` rather than the
+          hook's own, because a replay is not only the pass's business: the
+          cards it filled go back to skeletons, and a brief sitting in the
+          composer under a card that has un-landed is a claim nothing on
+          screen supports any more. Clearing both puts the screen back to the
+          state the first pass started from, which is what "again" means.
+
+          Deliberately NOT preserved: hand-typed text is dropped too. It is
+          the same consent argument as picking a card — the gesture asks for
+          the screen's suggestions to be redone, and a box that survives the
+          reset would be the one thing on screen still answering the old
+          reading. The escape hatch under the composer is the way out for
+          someone who wants to keep what they wrote. */}
+      <ResearchSlot
+        state={{
+          ...research,
+          restart: () => {
+            research.restart();
+            setPickedId(null);
+            setDraft("");
+          },
+        }}
+        className="mt-4"
+      />
 
       {/* Two columns at this measure, one when the viewport cannot hold two.
           gap-4 is the repo's card-grid gap everywhere else (marketplace, home,
