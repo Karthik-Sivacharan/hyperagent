@@ -5,7 +5,7 @@ import { Sidebar } from "@/components/app/sidebar";
 import { ThreadHeader } from "@/components/thread/thread-header";
 import { Workspace } from "@/components/workspace/workspace";
 import type { Thread } from "@/lib/mock/threads";
-import { WORKSPACE_ACTIVE_ID, WORKSPACE_ARTIFACTS } from "@/lib/mock/workspace";
+import { SIGNUP_WORKSPACE_ACTIVE_ID, SIGNUP_WORKSPACE_ARTIFACTS } from "@/lib/mock/workspace";
 import { cn } from "@/lib/utils";
 
 // The fifth beat: the app arrives around the conversation that is already
@@ -320,14 +320,13 @@ export function AppHandoff({
           )}
           style={{ top: docked ? 0 : THREAD_BAR_PX }}
         >
-          {/* The agent's computer is the panel's first tab. The mock artifacts
-              for now, to judge the layout; signup content is its own decision
-              (docs/plans/2026-09-10-computer-tab.md, "Decisions"). */}
+          {/* The agent's computer is the panel's first tab, open on the project
+              document for the agent the demo sets up (src/lib/mock/workspace.ts). */}
           <AgentPanel
             id={panelId}
             maxWidth={panelMax}
             onWidthChange={onPanelWidthChange}
-            computer={<Workspace artifacts={WORKSPACE_ARTIFACTS} activeId={WORKSPACE_ACTIVE_ID} />}
+            computer={<Workspace artifacts={SIGNUP_WORKSPACE_ARTIFACTS} activeId={SIGNUP_WORKSPACE_ACTIVE_ID} />}
           />
         </div>
       </div>

@@ -3,8 +3,8 @@
 Branch `feat/computer-tab`, to be cut from `feat/workspace-panel` (which already
 carries `main` up to `8d7ce64`, the agent stream included). Worktree
 `.claude/worktrees/computer-tab`, dev server on port 3005 (3000 serves the main
-checkout, 3004 the workspace preview). Changes 1-4 and 6 are built; 5 has its
-first pass (the mock set), and the gates below have not been run yet.
+checkout, 3004 the workspace preview). Changes 1-6 are built; the gates below have
+not been run yet.
 
 ## What it should do
 
@@ -99,7 +99,7 @@ card must be able to shrink or 36px of it are cut off. See change 4.
   keeps the whole card on screen below it. Check `/design/workspace` after:
   its desktop is 678 wide, so its card may move by a few px, and that is the
   only pixel change allowed there.
-- [ ] **5. Signup content for the computer.** `WORKSPACE_ARTIFACTS` is a
+- [x] **5. Signup content for the computer.** `WORKSPACE_ARTIFACTS` is a
   document about this repo and a drawn signup capture: the wrong story for
   the Trainwell record. See the decision below; the component takes
   `artifacts` as a prop, so it is a data change in `src/lib/mock/`.

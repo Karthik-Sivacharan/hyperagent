@@ -1101,8 +1101,11 @@ pixel change allowed there.
 conversation gets `viewport − 64 − 40 − 684`: 668 at 1456, 724 at 1512, 512
 exactly at 1300, and below that the panel takes its ceiling and shrinks.
 
-**Content.** The existing mock set (`WORKSPACE_ARTIFACTS`), as the plan's
-first pass. Signup-specific content is still the user's call.
+**Content.** `SIGNUP_WORKSPACE_ARTIFACTS` in `src/lib/mock/workspace.ts`: the
+project document for Design system drift (goal, the repo, the library as
+source of truth, where it files, decisions, tasks), under the agent stream's
+honesty rule, so Findings is an empty section until a first run. The second
+card is still the drawn signup capture. `/design/workspace` keeps its own set.
 
 **Not verified yet.** This pass was built without the probe, screenshots or
 the cloned-route pixel diff; those gates (plan, "Gates") are still to run.

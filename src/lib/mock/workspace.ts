@@ -161,3 +161,92 @@ export const WORKSPACE_ARTIFACTS: WorkspaceArtifact[] = [
 
 /** The artifact in focus: its card carries the selection ring, its tile the dot. */
 export const WORKSPACE_ACTIVE_ID = "doc-project";
+
+// The signup handoff's computer: the project document for the agent the demo
+// sets up (Design system drift, agent-config.ts), in the site's project
+// template. It keeps the agent stream's honesty rule (agent-stream.ts):
+// nothing is connected at signup, so the document says what the agent WILL
+// do and leaves Findings empty rather than claiming it has read a repo or a
+// Figma file. No em dashes anywhere a reader sees.
+const DRIFT_DOCUMENT: WorkspaceDocument = {
+  icon: "📋",
+  title: "Design system drift",
+  description: "Project document for Design system drift",
+  sections: [
+    {
+      heading: "Goals",
+      blocks: [
+        {
+          kind: "paragraph",
+          text: "Keep Trainwell's member app in step with the Figma library. After every merge to `main`, compare the front-end changes against the library and file what drifted, one issue per component, before it reaches members.",
+        },
+      ],
+    },
+    {
+      heading: "Critical Facts",
+      blocks: [
+        {
+          kind: "paragraph",
+          text: "**Repo:** `trainwell/member-app`, reviewed on every merge to `main`.",
+        },
+        {
+          kind: "paragraph",
+          text: "**Source of truth:** the Figma library. Where the code and the library disagree, the library wins until a designer says otherwise.",
+        },
+        {
+          kind: "paragraph",
+          text: "**Works from** Figma and GitHub and **files to** Linear, with the Figma node and the PR line side by side. All three are under Connectors in the panel.",
+        },
+      ],
+    },
+    {
+      heading: "Research & Findings",
+      blocks: [{ kind: "placeholder", text: "Drift findings land here after the first run." }],
+    },
+    {
+      heading: "Decisions",
+      blocks: [
+        {
+          kind: "list",
+          items: [
+            "One issue per component, not one per PR, so a component that drifts twice is one conversation.",
+            "Tokens first: a raw colour or spacing value where a token exists is drift, even when it looks right.",
+            "Confirm before it writes: nothing is filed without a yes until the first week's issues are reviewed.",
+          ],
+        },
+      ],
+    },
+    {
+      heading: "Tasks",
+      blocks: [
+        {
+          kind: "list",
+          items: [
+            "Pick the skills it starts with.",
+            "Connect Linear so it can file issues.",
+            "Review the first run's issues and tune the instructions.",
+          ],
+        },
+      ],
+    },
+    {
+      heading: "Notes",
+      blocks: [{ kind: "placeholder", text: "Add notes as the agent learns the library." }],
+    },
+  ],
+};
+
+export const SIGNUP_WORKSPACE_ARTIFACTS: WorkspaceArtifact[] = [
+  {
+    kind: "document",
+    id: "doc-drift",
+    title: "Design system drift",
+    tileLabel: "Design system drift, project-wide document: edits sync to every thread in this project",
+    scope: "project",
+    document: DRIFT_DOCUMENT,
+  },
+  // The second card is still the drawn signup capture from the set above.
+  WORKSPACE_ARTIFACTS[1],
+];
+
+export const SIGNUP_WORKSPACE_ACTIVE_ID = "doc-drift";
