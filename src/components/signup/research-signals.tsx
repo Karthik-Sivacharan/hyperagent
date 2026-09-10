@@ -5,6 +5,7 @@ import Image from "next/image";
 import { IconRefresh, IconSearch, type TablerIcon } from "@tabler/icons-react";
 
 import { ToolTile, ToolTileGroup } from "@/components/signup/tool-icon-row";
+import { ToolCallRow } from "@/components/thread/tool-call-row";
 import { Button } from "@/components/ui/button";
 import { SIGNUP_COMPANY, SIGNUP_PERSON } from "@/lib/mock/signup-identity";
 import { TOOL_LOGOS } from "@/lib/mock/tool-logos";
@@ -231,123 +232,42 @@ export function useResearchSequence(active: boolean): ResearchState {
 
 // ===== THE SHIMMER =========================================================
 //
-// The product's running label is NOT a keyframe on a solid element. It is a
-// two-layer background clipped to the glyphs: a flat base in the label's own
-// colour, and above it a soft band that travels. Reproduced here on this
-// repo's own `@keyframes shimmer` (src/app/globals.css), which moves
-// `background-position` from -200% to 200%.
+// The device itself (the two-layer background clipped to the glyphs, and why
+// every part of it sits behind `motion-safe:`) lives in
+// src/components/thread/shimmer.ts now, because the streaming turn after send
+// runs on it too and a thread component may not reach into the signup flow.
+// Re-exported here so the heading in chat-step.tsx keeps its import.
 //
-// Those keyframes want a 200% tile and the default `repeat`, and then the
-// arithmetic comes out exact: 400% of position travel across a 200%-wide tile
-// is four element-widths, which is two whole tiles, so the loop closes on
-// itself with no seam and the band crosses the text exactly twice a cycle.
-// `reverse` in the shorthand is what turns the sweep left-to-right, with the
-// reading, instead of against it.
-//
-// The band colour is always one tier away from the base, in whichever
-// direction there is room: a muted label brightens towards `foreground`, and a
-// `foreground` heading is swept by --shimmer-sweep (the repo's own token, a
-// 40% neutral) which dims it. Using --shimmer-sweep on the muted label as well
-// would have been the literal reuse, and it measured worse: a 40% neutral over
-// a muted grey is a smaller step than the antialiasing, so the band vanished.
-//
-// EVERY part of this is behind `motion-safe:`, including `bg-clip-text` and
-// `text-transparent` — under reduce the treatment is not applied at all, which
-// is the only safe way to do it: a transparent label with no background
-// painted behind it is an invisible label. That is also why the gradient
-// arrives as a custom property rather than an inline `background-image`: an
-// inline style outranks every class, so a `motion-reduce:` override could
-// never take it back off.
-export const SHIMMER =
-  "motion-safe:bg-clip-text motion-safe:text-transparent motion-safe:[background-image:var(--sweep-image)] motion-safe:[background-size:200%_100%] motion-safe:animate-[shimmer_var(--sweep-cycle)_linear_infinite_reverse]";
+// This screen's tempo is derived here and handed to the row: the band covers
+// four element-widths per cycle, so it clears one width in a quarter of it,
+// and a cycle of 4 × SIGNAL_RUN_MS puts exactly one whole crossing of the
+// label inside the row's working phase. A sweep that never finishes inside the
+// life of the row reads as a stall rather than as work, and one that finishes
+// several times over reads as a barber's pole. At today's 1400ms run that is
+// 5.6s, close to the product's own 3s pass now that the rows last long enough
+// to afford it.
+export { SHIMMER, sweepStyle } from "@/components/thread/shimmer";
 
-// The band covers four element-widths per cycle, so it clears one width in a
-// quarter of it: a cycle of 4 × SIGNAL_RUN_MS puts exactly one whole crossing
-// of the label inside the row's working phase. A sweep that never finishes
-// inside the life of the row reads as a stall rather than as work, and one
-// that finishes several times over reads as a barber's pole. At today's 1400ms
-// run that is 5.6s, close to the product's own 3s pass now that the rows last
-// long enough to afford it.
 const SHIMMER_CYCLE_MS = SIGNAL_RUN_MS * 4;
 
-// 2px of band per character, the ratio measured off the dump: `--spread: 34px`
-// on "Searching the web", which is 17 characters. It is a ratio rather than a
-// constant because the tile scales with the element — a fixed spread would be
-// a hard-edged flick on a short label and an almost-flat wash on a long one.
-const SPREAD_PER_CHAR_PX = 2;
-
-/**
- * The custom properties the class above reads. `chars` is the length of the
- * text being swept, `sweep` the band colour and `base` the label's resting
- * colour — both as `var(--color-…)` strings, never literals, so the pair
- * follows the theme.
- */
-export function sweepStyle(chars: number, sweep: string, base: string): React.CSSProperties {
-  const spread = `${chars * SPREAD_PER_CHAR_PX}px`;
-  return {
-    "--sweep-cycle": `${SHIMMER_CYCLE_MS}ms`,
-    "--sweep-image": `linear-gradient(90deg, transparent calc(50% - ${spread}), ${sweep} 50%, transparent calc(50% + ${spread})), linear-gradient(${base}, ${base})`,
-  } as React.CSSProperties;
-}
-
 // ===== THE ROW =============================================================
-
-/** 12px, whichever source it came from. */
-function SignalMark({ signal, running }: { signal: ResearchSignal; running: boolean }) {
-  if (signal.logoSrc) {
-    // A logo cannot take a tint, so on these three rows the shimmer is the
-    // whole running signal. 24 is the 2x of a 12px mark.
-    return (
-      <Image
-        src={signal.logoSrc}
-        alt=""
-        width={24}
-        height={24}
-        className="mr-1 size-3 shrink-0 object-contain"
-      />
-    );
-  }
-  const Icon = signal.icon;
-  if (!Icon) return null;
-  // The product tints its running glyph and drops the tint on completion. Ink
-  // rather than the accent: brand rule 3 spends this screen's one tangerine on
-  // the composer's send arrow, and a working indicator is not an action.
-  return (
-    <Icon
-      className={cn(
-        "mr-1 size-3 shrink-0 transition-colors duration-(--duration-normal) ease-out motion-reduce:transition-none",
-        running ? "text-foreground" : "text-foreground-low",
-      )}
-      aria-hidden="true"
-    />
-  );
-}
+//
+// One source is one ToolCallRow (src/components/thread/tool-call-row.tsx):
+// the product's tool-call idiom, extracted from this file so the streaming
+// turn after send wears the same row. Running and settled are its "running"
+// and "done", and neither carries a receipt here — the receipt for the whole
+// pass is the summary line below.
 
 function SignalRow({ signal, running }: { signal: ResearchSignal; running: boolean }) {
   return (
-    // The product's row, measured: 28px tall, 8px of side padding, a 10px
-    // radius, one hairline edge, a fill one step off the canvas. Its greys
-    // become this system's materials — `bg-tint-10` and `shadow-edge`, the
-    // same pair the tool tile group on the cards below wears, and `rounded-lg`
-    // because brand.css names 10px "inline reference chips" and that is
-    // precisely what this is.
-    <span className="inline-flex h-7 min-w-0 max-w-full items-center rounded-lg bg-tint-10 px-2 text-xs text-muted-foreground shadow-edge">
-      <SignalMark signal={signal} running={running} />
-      <span
-        className={cn("shrink-0 font-medium", running && SHIMMER)}
-        style={
-          running
-            ? sweepStyle(signal.label.length, "var(--color-foreground)", "var(--color-muted-foreground)")
-            : undefined
-        }
-      >
-        {signal.label}
-      </span>
-      <span className="mx-1.5 shrink-0 text-foreground-low" aria-hidden="true">
-        ·
-      </span>
-      <span className="truncate text-foreground-low">{signal.detail}</span>
-    </span>
+    <ToolCallRow
+      label={signal.label}
+      detail={signal.detail}
+      status={running ? "running" : "done"}
+      icon={signal.icon}
+      logoSrc={signal.logoSrc}
+      shimmerCycleMs={SHIMMER_CYCLE_MS}
+    />
   );
 }
 

@@ -1,13 +1,19 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 
 import { Composer } from "@/components/composer/composer";
+import { ComposerWorkingStatus } from "@/components/composer/composer-status";
 import { AgentCard } from "@/components/signup/agent-card";
+import { AgentTurn } from "@/components/signup/agent-turn";
 import { CompanyChip, PersonChip, RoleChip } from "@/components/signup/identity-chips";
-import { ResearchSlot, SHIMMER, sweepStyle, useResearchSequence } from "@/components/signup/research-signals";
+import { ResearchSlot, useResearchSequence } from "@/components/signup/research-signals";
 import { FOOT_LINK } from "@/components/signup/signup-legal";
+import { useAgentStream } from "@/components/signup/use-agent-stream";
+import { SHIMMER, sweepStyle } from "@/components/thread/shimmer";
+import { UserMessage } from "@/components/thread/user-message";
+import { agentScriptFor, type SkillsAnswer } from "@/lib/mock/agent-stream";
 import { SIGNUP_COMPANY, SIGNUP_PERSON } from "@/lib/mock/signup-identity";
 import { SUGGESTED_AGENTS } from "@/lib/mock/suggested-agents";
 import { cn } from "@/lib/utils";
@@ -77,6 +83,34 @@ import { cn } from "@/lib/utils";
 // screen is permanently on the wide side of `@lg` and permanently on the wide
 // side of `@max-sm`, so neither can fire mid-pass at all.
 
+// ===== AFTER SEND ==========================================================
+//
+// Send is where this screen stops being a suggestion and becomes a thread,
+// and it is the one moment the height rule above is let go of on purpose: the
+// agent's answer is taller than any viewport, so nothing could keep it. What
+// holds instead is that NOTHING MOVES ON THE SEND FRAME — signup-screen.tsx
+// freezes the column's top and turns <main> into the thread's scroll
+// container — and after it, everything grows downward from where it was.
+//
+// Two beats, the room and then the conversation (the plan with its numbers is
+// docs/plans/2026-09-10-agent-stream.md):
+//
+//   BEAT 1, 0 to --duration-slide. The shell arrives (app-handoff.tsx). The
+//   three cards you did not pick fade where they stand, keeping their boxes,
+//   so the column does not shift under a gesture that is already moving
+//   sideways. The composer glides to its dock at the bottom of the window,
+//   still holding your brief: it is your message on its way.
+//
+//   BEAT 2, at --duration-slide. The unpicked cards leave the layout and the
+//   picked one, if it was not first, glides into the first cell. The brief
+//   leaves the composer and lands as your message; the composer grows its
+//   Working strip; and the agent's turn begins under it (agent-turn.tsx).
+//
+// The picked card STAYS, as the record of the choice, which is the product's
+// own treatment of a chosen option card in a thread. It stops being a control
+// (the grid goes inert) but keeps its picked look, because "this is the one
+// you chose" is exactly what it now says.
+
 /**
  * How many characters the shimmer band has to cross on the heading. Counted
  * from the sentence itself rather than typed as a number, because the ratio is
@@ -94,6 +128,7 @@ export function ChatStep({
   active = false,
   onSend,
   handedOff = false,
+  travelMs = 480,
   className,
 }: {
   /** Focus lands here on arrival — see the note in signup-screen.tsx. */
@@ -105,6 +140,12 @@ export function ChatStep({
   onSend?: () => void;
   /** True once the shell has arrived, which retires the way out. */
   handedOff?: boolean;
+  /**
+   * --duration-slide as signup-screen.tsx read it, 0 under reduced motion: the
+   * length of beat 1, which is the shell's own slide, so the conversation
+   * lands the moment the room has finished arriving and not a frame before.
+   */
+  travelMs?: number;
   className?: string;
 }) {
   const research = useResearchSequence(active);
@@ -133,8 +174,151 @@ export function ChatStep({
     field.setSelectionRange(field.value.length, field.value.length);
   }, [pickCount]);
 
+  // ----- after send ---------------------------------------------------------
+
+  // What was sent, frozen at the press: the text as it stood (picked, edited
+  // or typed from nothing) and the card it came from, if any.
+  const [sent, setSent] = useState<{ text: string; agentId: string | null; at: string } | null>(null);
+  // Beat 2: the conversation has landed and the agent may start.
+  const [landed, setLanded] = useState(false);
+  const [answerAt, setAnswerAt] = useState<string | null>(null);
+
+  // Memoised on `sent` because the sequencer keys its timers on the script:
+  // a fresh object every render would re-arm the current step forever and the
+  // turn would never get past its lead.
+  const script = useMemo(() => (sent ? agentScriptFor(sent.agentId, sent.text) : null), [sent]);
+  const stream = useAgentStream(script, landed);
+  const working = landed && stream.state === "working";
+
+  const rootRef = useRef<HTMLDivElement>(null);
+  const gridRef = useRef<HTMLDivElement>(null);
+  // FIRST halves of the two FLIPs, read before the layout they measure away
+  // from has been replaced.
+  const composerFirst = useRef<DOMRect | null>(null);
+  const cardFirst = useRef<DOMRect | null>(null);
+
+  const handleSend = () => {
+    if (sent) return;
+    composerFirst.current = composerRef.current?.getBoundingClientRect() ?? null;
+    setSent({ text: draft, agentId: pickedId, at: clockLabel() });
+    onSend?.();
+  };
+
+  // BEAT 1: the composer glides to the dock. FLIP on the composer's own
+  // wrapper, never on the stage or anything above it — the mark is parked
+  // against the stage's box, and the dock is a descendant of the screen, not
+  // an ancestor of the seat. Measured by BOTTOM edges because the dock is
+  // pinned by its bottom: if the brief re-wraps as the shell narrows the
+  // column mid-glide, the box grows upward and the glide still ends where the
+  // composer rests. --ease-in-out on --duration-slide, the pairing everything
+  // else in this beat rides (signup-screen.tsx has the measurement), so the
+  // composer docks as the sidebar lands rather than before or after it.
+  useBeforePaint(() => {
+    if (!sent) return;
+    const el = composerRef.current;
+    const first = composerFirst.current;
+    composerFirst.current = null;
+    if (!el || !first || prefersReducedMotion()) return;
+    const last = el.getBoundingClientRect();
+    const dy = first.bottom - last.bottom;
+    if (Math.abs(dy) < 0.5) return;
+    el.animate([{ transform: `translateY(${dy}px)` }, { transform: "none" }], {
+      duration: travelMs,
+      easing: cssToken(el, "--ease-in-out", "cubic-bezier(0.4, 0, 0.2, 1)"),
+    });
+  }, [sent]);
+
+  // BEAT 2, on a timer rather than on `transitionend`: the shell's slide is
+  // not this component's to listen to, and under reduced motion there is no
+  // transition to end. The picked card's FIRST is read here, while its three
+  // neighbours still hold their boxes, and the draft goes in the same batch as
+  // the landing so the brief leaves the composer on the frame it arrives in
+  // the thread.
+  useEffect(() => {
+    if (!sent || landed) return;
+    const id = window.setTimeout(() => {
+      cardFirst.current = pickedCard(gridRef.current)?.getBoundingClientRect() ?? null;
+      setDraft("");
+      setLanded(true);
+    }, travelMs);
+    return () => window.clearTimeout(id);
+  }, [sent, landed, travelMs]);
+
+  // The picked card into the first cell, on --ease-in-out: it is an object
+  // already on screen moving to a new rest, not an entrance. A card that was
+  // already first measures a zero delta and does not animate at all.
+  //
+  // The duration follows the distance, in the brand's two steps for it. One
+  // row up (148px at 1456) is a --duration-move (220ms, "layout / position
+  // shifts"); crossing the column is not the same size of move — card four
+  // travels ~390px diagonally, and at 220ms that measured as a card flung
+  // rather than moved — so past 200px it takes --duration-slow (300ms), the
+  // product UI ceiling.
+  useBeforePaint(() => {
+    if (!landed) return;
+    const card = pickedCard(gridRef.current);
+    const first = cardFirst.current;
+    cardFirst.current = null;
+    if (!card || !first || prefersReducedMotion()) return;
+    const last = card.getBoundingClientRect();
+    const dx = first.left - last.left;
+    const dy = first.top - last.top;
+    if (Math.abs(dx) < 0.5 && Math.abs(dy) < 0.5) return;
+    const far = Math.hypot(dx, dy) > 200;
+    card.animate([{ transform: `translate(${dx}px, ${dy}px)` }, { transform: "none" }], {
+      duration: far ? cssDuration(card, "--duration-slow", 300) : cssDuration(card, "--duration-move", 220),
+      easing: cssToken(card, "--ease-in-out", "cubic-bezier(0.4, 0, 0.2, 1)"),
+    });
+  }, [landed]);
+
+  // Focus into the composer once the brief has left it: the send button the
+  // press left focus on is disabled by then (the box is empty), and a focused
+  // disabled button drops focus to <body>. The product keeps its composer
+  // focused after a send, for a follow-up.
+  useEffect(() => {
+    if (!landed) return;
+    composerRef.current?.querySelector("textarea")?.focus({ preventScroll: true });
+  }, [landed]);
+
+  // Stick to the bottom while the agent writes, the product's own rule: a
+  // reader within 40px of the end (ThreadView's SCROLL_END_THRESHOLD) is
+  // following along and every new line scrolls into view; a reader who has
+  // scrolled up is reading something and is left alone. Instant rather than
+  // smooth, as the product does it, and inside the ResizeObserver callback so
+  // the scroll lands before the frame paints and a new line is never drawn
+  // under the composer first.
+  useEffect(() => {
+    if (!sent) return;
+    const root = rootRef.current;
+    const scroller = root?.closest("main");
+    if (!root || !scroller) return;
+    let following = true;
+    const onScroll = () => {
+      following = scroller.scrollHeight - scroller.scrollTop - scroller.clientHeight < 40;
+    };
+    scroller.addEventListener("scroll", onScroll, { passive: true });
+    const observer = new ResizeObserver(() => {
+      if (following) scroller.scrollTop = scroller.scrollHeight;
+    });
+    observer.observe(root);
+    return () => {
+      scroller.removeEventListener("scroll", onScroll);
+      observer.disconnect();
+    };
+  }, [sent]);
+
+  const answer = (next: SkillsAnswer) => {
+    setAnswerAt(clockLabel());
+    stream.respond(next);
+    // The button that answered is inert now; same reason as the landing.
+    composerRef.current?.querySelector("textarea")?.focus({ preventScroll: true });
+  };
+
   return (
-    <div className={cn("@container/chat flex w-full flex-col", className)}>
+    // `min-h-full` after send: the screen stretches to its row (see
+    // signup-screen.tsx), and filling it is what lets the dock's `mt-auto`
+    // put the composer on the window's floor while the thread is short.
+    <div ref={rootRef} className={cn("@container/chat flex w-full flex-col", sent && "min-h-full", className)}>
       {/* The mark's fourth and last seat, and the first one that is not
           centred. It has been the column's crown on three screens; here it
           moves to the head of the text as the thing that is talking, which is
@@ -220,7 +404,17 @@ export function ChatStep({
             setDraft("");
           },
         }}
-        className="mt-4"
+        className={cn(
+          "mt-4",
+          // The retry retires with the send: re-reading the sources after the
+          // four suggestions have become one sent brief would be answering a
+          // question the thread has moved past. Reached into from here
+          // because it is the slot's only button, and made `invisible` as
+          // well as transparent so it leaves the tab order (visibility is
+          // listed so it flips at the END of the fade, not the start). The
+          // receipt itself stays: it is the history of what was read.
+          sent && "[&_button]:invisible [&_button]:opacity-0 [&_button]:transition-[opacity,visibility]",
+        )}
       />
 
       {/* Two columns when the COLUMN can hold two, one when it cannot. `@lg`
@@ -250,30 +444,53 @@ export function ChatStep({
           `aria-busy` on the grid rather than on each card: it is the set that
           is still filling, and a card that has landed is not busy. */}
       <div
+        ref={gridRef}
         aria-busy={!research.done}
+        inert={sent !== null}
         className="mt-6 grid grid-cols-1 gap-4 @lg/chat:grid-cols-2"
       >
-        {SUGGESTED_AGENTS.map((agent, i) => (
-          <AgentCard
-            key={agent.id}
-            agent={agent}
-            ready={i < research.resolved}
-            selected={pickedId === agent.id}
-            onPick={() => {
-              // A click is the consent: it replaces whatever is in the box,
-              // hand-typed or not. That is what every suggestion strip does
-              // and what the gesture obviously asks for — and it is why
-              // re-picking the card you are already on is not a toggle but a
-              // reset, which is the only undo this screen has. Deselecting
-              // instead would leave the composer holding a brief that no card
-              // claims, or throw the text away to keep the two in step.
-              setPickedId(agent.id);
-              setDraft(agent.prompt);
-              setPickCount((n) => n + 1);
-            }}
-          />
-        ))}
+        {SUGGESTED_AGENTS.map((agent, i) => {
+          // After send: every card but the picked one fades on beat 1 and
+          // leaves the layout on beat 2. No card picked (a brief typed from
+          // nothing) and all four go, which is the honest reading: none of
+          // them is what was sent.
+          const leaving = sent !== null && agent.id !== sent.agentId;
+          return (
+            <AgentCard
+              key={agent.id}
+              agent={agent}
+              ready={i < research.resolved}
+              selected={pickedId === agent.id}
+              className={cn(leaving && "pointer-events-none opacity-0", leaving && landed && "hidden")}
+              onPick={() => {
+                // A click is the consent: it replaces whatever is in the box,
+                // hand-typed or not. That is what every suggestion strip does
+                // and what the gesture obviously asks for — and it is why
+                // re-picking the card you are already on is not a toggle but a
+                // reset, which is the only undo this screen has. Deselecting
+                // instead would leave the composer holding a brief that no card
+                // claims, or throw the text away to keep the two in step.
+                setPickedId(agent.id);
+                setDraft(agent.prompt);
+                setPickCount((n) => n + 1);
+              }}
+            />
+          );
+        })}
       </div>
+
+      {/* The conversation after send: your message, then the agent's turn.
+          Mounted at beat 2, and in the layout from that frame: the message
+          waits out --duration-move at zero opacity (`both` fill) so the
+          picked card can finish settling into the space it lands under. */}
+      {sent && landed && script && (
+        <div>
+          <div className="motion-safe:animate-fade-in motion-safe:[animation-delay:var(--duration-move)]">
+            <UserMessage id="signup-brief" text={sent.text} sentAtLabel={sent.at} />
+          </div>
+          <AgentTurn script={script} stream={stream} sentAtLabel={answerAt ?? sent.at} onAnswer={answer} />
+        </div>
+      )}
 
       {/* The out. Four suggestions are a guess, and the composer is where you
           say so — its placeholder is the only other copy on the screen, which
@@ -286,18 +503,63 @@ export function ChatStep({
           one does NOT: the pressed card then means "this is the brief you
           started from", which stays true through a rewrite and keeps the
           reset gesture on the card meaningful. */}
-      <div ref={composerRef} className="mt-6">
-        <Composer
-          showAgentPicker={false}
-          showIntegrationsFooter={false}
-          placeholder="Or tell me what you're working on…"
-          value={draft}
-          onValueChange={(next) => {
-            setDraft(next);
-            if (next.trim() === "") setPickedId(null);
-          }}
-          onSend={onSend}
-        />
+      {/* THE DOCK, after send. The same composer, the same DOM node, pinned to
+          the bottom of the thread: `mt-auto` puts it on the window's floor
+          while the thread is short, and `sticky bottom-0` keeps it there once
+          the thread scrolls. `bottom-0`, not the `bottom-4` the product's 16px
+          suggests: a sticky box's insets are measured inside its scroll
+          container's PADDING, and <main> already pads 16px (`pb-4`), so
+          `bottom-4` measured 32px off the floor (dock bottom at 836 of 868).
+          `pt-6` is the 24px the column's rhythm puts above it, kept when the
+          thread runs right up to it.
+
+          The BAND is what stops the thread showing through when it scrolls
+          down behind the dock: the composer is opaque, but its 32px corners
+          and the 16px under it are not. The canvas behind the column is the
+          glass gradient, a 135deg sweep across the whole window, so no flat
+          token would match it — but the gradient itself, fixed to the
+          viewport exactly as the canvas layer is (`bg-fixed`), lines up with
+          the canvas pixel for pixel. A 24px fade at its top edge so the text
+          dissolves into it rather than being cut. `-inset-x-5` is the
+          column's 20px gutter either side, which reaches the sidebar's and the
+          docked panel's edges and no further.
+
+          It fades in on the canvas's own duration and curve, and exists at
+          zero opacity before send for the reason a transition needs a
+          before-state: mounted at full opacity it would be a glass patch on
+          the pre-glass canvas for the half second the canvas takes to arrive.
+
+          `z-10` so the dock paints over anything in the thread scrolled under
+          it, whatever that thing's own positioning. The composer glides into
+          the dock on beat 1 (the FLIP above) and is inert for that glide: it
+          is carrying a message that has been sent. */}
+      <div
+        data-composer-dock=""
+        className={cn(
+          "relative",
+          "before:pointer-events-none before:absolute before:-inset-x-5 before:top-0 before:-bottom-4 before:bg-glass-gradient before:bg-fixed before:[mask-image:linear-gradient(to_bottom,transparent,black_24px)]",
+          "before:transition-opacity before:duration-(--duration-slide) before:ease-in-out motion-reduce:before:transition-none",
+          sent ? "sticky bottom-0 z-10 mt-auto pt-6 before:opacity-100" : "mt-6 before:opacity-0",
+        )}
+      >
+        <div ref={composerRef} className={cn("relative", sent && !landed && "pointer-events-none")}>
+          <Composer
+            showAgentPicker={false}
+            showIntegrationsFooter={false}
+            placeholder={sent ? "Add a follow-up…" : "Or tell me what you're working on…"}
+            value={draft}
+            onValueChange={(next) => {
+              setDraft(next);
+              if (next.trim() === "") setPickedId(null);
+            }}
+            // The first send is the only one this screen can answer. After it
+            // the arrow is the inert prop it is on every cloned route: a
+            // follow-up box that pretended to send would be the one lie this
+            // flow has managed not to tell.
+            onSend={sent ? undefined : handleSend}
+            status={working ? <ComposerWorkingStatus onStop={stream.stop} /> : undefined}
+          />
+        </div>
       </div>
 
       {/* The way out for someone who wants none of this, at the end of the
@@ -319,14 +581,19 @@ export function ChatStep({
           screens before this one, all of which are centred columns. */}
       {/* Retired by the handoff. "Set up manually" is a way OUT of the flow,
           and once the sidebar is on screen the flow is over — the door it
-          offers is the room you are already standing in. It fades rather than
-          unmounting, and the <p> keeps its box, because this sits directly
-          under the composer and removing 44px of it would settle the whole
-          centred column at the exact moment the shell is sliding in. */}
+          offers is the room you are already standing in.
+
+          It used to fade and keep its box, because removing 44px under the
+          composer would have settled the centred column mid-slide. Send no
+          longer centres anything: the column's top is frozen and the composer
+          is pinned to the window's floor, so the box would only hold the dock
+          44px off the bottom. It leaves the layout on the send frame instead,
+          under a composer that is already gliding down over the place it
+          was. */}
       <p
         className={cn(
-          "mt-6 text-center text-md leading-5 text-foreground-low transition-opacity duration-(--duration-slide) ease-in-out motion-reduce:transition-none",
-          handedOff && "pointer-events-none opacity-0",
+          "mt-6 text-center text-md leading-5 text-foreground-low",
+          (handedOff || sent) && "hidden",
         )}
         inert={handedOff}
       >
@@ -336,4 +603,36 @@ export function ChatStep({
       </p>
     </div>
   );
+}
+
+// ===== HELPERS =============================================================
+
+// The FLIPs must read before the browser paints or the reader sees one frame
+// of the new layout before the glide starts. Same device as signup-screen.tsx.
+const useBeforePaint = typeof window === "undefined" ? useEffect : useLayoutEffect;
+
+function prefersReducedMotion(): boolean {
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
+/** A token read off a mounted element, so a retune in brand.css lands here. */
+function cssToken(el: Element, name: string, fallback: string): string {
+  return getComputedStyle(el).getPropertyValue(name).trim() || fallback;
+}
+
+function cssDuration(el: Element, name: string, fallback: number): number {
+  const raw = cssToken(el, name, "");
+  const value = Number.parseFloat(raw);
+  if (Number.isNaN(value)) return fallback;
+  return raw.endsWith("ms") ? value : value * 1000;
+}
+
+/** The one card still pressed, found by its state rather than by a ref per card. */
+function pickedCard(grid: HTMLElement | null): HTMLElement | null {
+  return grid?.querySelector<HTMLElement>('button[aria-pressed="true"]') ?? null;
+}
+
+/** "2:50 PM": the product stamps a message with the clock, not "just now". */
+function clockLabel(): string {
+  return new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
 }

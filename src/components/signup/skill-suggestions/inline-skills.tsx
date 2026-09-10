@@ -3,7 +3,7 @@
 import { Fragment, useEffect, useState } from "react";
 import { IconCheck, IconPlus } from "@tabler/icons-react";
 
-import { SHIMMER, sweepStyle } from "@/components/signup/research-signals";
+import { SHIMMER, sweepStyle } from "@/components/thread/shimmer";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { PRESELECTED_SKILL_IDS, SUGGESTED_SKILLS, type SuggestedSkill } from "@/lib/mock/suggested-skills";
@@ -76,9 +76,9 @@ const CLAUSES = PAIRS.map((pair) => ({
 
 /**
  * The sentence as flat text. It exists to be measured, not rendered: the
- * shimmer's band is sized per character (SPREAD_PER_CHAR_PX in
- * research-signals.tsx) and counting the string beats typing a number that
- * goes stale the first time a clause is edited.
+ * shimmer's band is sized per character (DEFAULT_SPREAD_PER_CHAR_PX in
+ * src/components/thread/shimmer.ts) and counting the string beats typing a
+ * number that goes stale the first time a clause is edited.
  */
 const SENTENCE_TEXT =
   LEAD + CLAUSES.map((c) => c.skills.map((s) => s.name).join(" and ") + c.clause).join(" ") + " " + TAIL;

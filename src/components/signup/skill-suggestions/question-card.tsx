@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { IconCheck, IconDownload } from "@tabler/icons-react";
 
 import { Button } from "@/components/ui/button";
@@ -136,10 +136,13 @@ function SkillRow({
   skill,
   checked,
   onToggle,
+  locked = false,
 }: {
   skill: SuggestedSkill;
   checked: boolean;
   onToggle: () => void;
+  /** The question has been answered: the tick is a record now, not a control. */
+  locked?: boolean;
 }) {
   return (
     // `NavItem` rather than a `Button`, because this repo already has a
@@ -162,25 +165,61 @@ function SkillRow({
     // Focus is the app's global 2px ring (globals.css `:focus-visible`), the
     // same one every sidebar row wears, and it clears the card's clipped edge
     // with 4px to spare.
+    //
+    // LOCKED, once the question is answered, the row is `disabled` rather than
+    // `inert`. Both stop the click; only `disabled` keeps the row in the
+    // accessibility tree, and the six ticks are the one place the answer is
+    // still spelled out in full — an inert list would leave a screen reader
+    // with the footer's count and no names. Nothing about the fill moves: a
+    // ticked row keeps its `bg-tint-20`, and the hover steps are dropped along
+    // with the pointer so a record does not light up like an offer.
     <NavItem
       role="checkbox"
       aria-checked={checked}
       onClick={onToggle}
+      disabled={locked}
       className={cn(
         "-mx-2 min-h-8 w-auto rounded-md px-2 text-left",
-        checked ? "bg-tint-20 hover:bg-tint-20" : "hover:bg-tint-10",
+        locked
+          ? cn("cursor-default", checked && "bg-tint-20")
+          : checked
+            ? "bg-tint-20 hover:bg-tint-20"
+            : "hover:bg-tint-10",
       )}
     >
       <Tick checked={checked} />
 
       {/* Name and reason share a baseline rather than a centre line: two sizes
-          centred against each other read as two rows squeezed into one. */}
-      <span className="flex min-w-0 flex-1 items-baseline gap-2">
-        <span className="shrink-0 font-medium text-foreground">{skill.name}</span>
+          centred against each other read as two rows squeezed into one.
+
+          THE ORDER THINGS GIVE WAY IN, narrowest last: the reason, then the
+          repo, and never the name. The name is the only field that is also an
+          address, so a row that clips it has stopped naming the thing it
+          offers. Flexbox shrinks in proportion rather than in order, so the
+          order is built out of minimums instead:
+            • the name is `whitespace-nowrap`, because a hyphenated name
+              ("extract-design-system") otherwise reports its longest SEGMENT
+              as its min-content, and the wrapper would shrink to that and let
+              the rest of the name hang out of it;
+            • the reason is `w-0 flex-1`, so it contributes nothing to the
+              wrapper's min-content — a truncating label still reports its
+              whole string there, which is the classic trap;
+            • so this wrapper, with no `min-w-0`, can never be narrower than
+              the name plus its gap, and every pixel it cannot give up has to
+              come out of the receipt, where the repo truncates.
+          Measured: nothing escapes from a 752px card down to 290 (it did from
+          440 down before); at 752, 712, 600 and 512 every row is
+          pixel-identical to the version without this rule, because there the
+          wrapper's share already clears the name. The install count is the
+          last thing standing and it is pushed 9px out of a 280px card, a
+          column the shell never produces (its floor is 512 while docked) and
+          only a phone under ~325px wide would. */}
+      <span className="flex flex-1 items-baseline gap-2">
+        <span className="shrink-0 whitespace-nowrap font-medium text-foreground">{skill.name}</span>
         {/* The 13px metadata role, one tier down, and the first thing to give
             way when the column narrows — it is the line this card added, so it
             is the line this card can afford to lose. */}
-        <span className="min-w-0 truncate text-md text-muted-foreground">{skill.reason}</span>
+        <span className="w-0 min-w-0 flex-1 truncate text-md text-muted-foreground">{skill.reason}</span>
       </span>
 
       {/* The receipt. `aria-label` carries the unit the glyph carries visually,
@@ -197,10 +236,84 @@ function SkillRow({
   );
 }
 
-export function SkillQuestionCard({ className }: { className?: string }) {
+/**
+ * What the reader chose. `install` carries the ids in the rows' own order,
+ * which is the mock's relevance order, so the thread can name them in the
+ * order the card listed them.
+ */
+export type SkillAnswer = { kind: "install"; ids: string[] } | { kind: "skip" };
+
+export function SkillQuestionCard({
+  className,
+  question = "Which skills should I install?",
+  onAnswer,
+  answered = false,
+}: {
+  className?: string;
+  /**
+   * The question, in the product's 14/20 medium. Defaults to the wording the
+   * comparison page has always shown; the thread passes one that names the
+   * agent it just drafted.
+   */
+  question?: string;
+  /**
+   * Wires Skip and Install. Omitted, both stay the inert pair they are on
+   * /design/skill-suggestions, where there is nothing downstream to answer
+   * INTO — the same opt-in shape the Composer's `onSend` has, for the same
+   * reason.
+   */
+  onAnswer?: (answer: SkillAnswer) => void;
+  /**
+   * The question has been answered. Rows lock and the footer turns into the
+   * outcome. Owned by the caller rather than set here on click, because the
+   * card is one message in a thread and the thread decides when an answer has
+   * been taken.
+   */
+  answered?: boolean;
+}) {
   const questionId = useId();
   const [picked, setPicked] = useState<ReadonlySet<string>>(() => new Set(PRESELECTED_SKILL_IDS));
+  // Which button was pressed, kept here because only this card knows it: the
+  // caller's `answered` is a yes/no, and the footer has to say WHICH answer.
+  const [chosen, setChosen] = useState<SkillAnswer["kind"] | null>(null);
   const count = picked.size;
+
+  // Focus is RESCUED, never taken. The button the reader pressed is about to
+  // be replaced by the outcome line, and a focused element that unmounts drops
+  // focus to <body>, so the next Tab would start from the top of the document.
+  // The outcome catches it, on two conditions: the footer held focus when the
+  // answer was given, and nothing has put focus anywhere else since. The
+  // second one is the caller's right of way — the thread hands focus to its
+  // composer in the same handler that takes the answer, because the next
+  // thing a reader does in a thread is write, and a card that pulled focus
+  // back onto its own receipt would be overruling that from inside a message.
+  // `preventScroll` because the thread owns its own scroll.
+  const footerRef = useRef<HTMLDivElement>(null);
+  const outcomeRef = useRef<HTMLParagraphElement>(null);
+  const footerHadFocus = useRef(false);
+  useEffect(() => {
+    if (!answered || !footerHadFocus.current) return;
+    footerHadFocus.current = false;
+    const active = document.activeElement;
+    const dropped = !active || active === document.body || !!footerRef.current?.contains(active);
+    if (dropped) outcomeRef.current?.focus({ preventScroll: true });
+  }, [answered]);
+
+  const answer = (next: SkillAnswer) => {
+    footerHadFocus.current = footerRef.current?.contains(document.activeElement) ?? false;
+    setChosen(next.kind);
+    onAnswer?.(next);
+  };
+
+  // What the footer reports once it is a record. Past tense and a count, the
+  // same shape inline-skills.tsx's confirm settles into, with the verb the
+  // button used — "Install" becomes "Installed", not "Added", so the answer
+  // and the question stay one action. An `answered` with no press behind it
+  // (the caller answered for the reader) reads as the ticks say.
+  const outcome =
+    chosen === "skip" || (chosen === null && count === 0)
+      ? "Skipped for now"
+      : `Installed ${count} ${count === 1 ? "skill" : "skills"}`;
 
   return (
     // The shell found-card.tsx and agent-card.tsx already wear on this screen:
@@ -224,7 +337,7 @@ export function SkillQuestionCard({ className }: { className?: string }) {
           evaluate?"), and it uses the verb the confirm button repeats — the
           question and its answer should not be two different actions. */}
       <p id={questionId} className="px-4 pt-4 pb-3 text-sm leading-5 font-medium text-foreground">
-        Which skills should I install?
+        {question}
       </p>
 
       {/* Rows sit flush, no gap: the dump stacks them and the 12px of dead
@@ -237,6 +350,7 @@ export function SkillQuestionCard({ className }: { className?: string }) {
             key={skill.id}
             skill={skill}
             checked={picked.has(skill.id)}
+            locked={answered}
             onToggle={() =>
               setPicked((current) => {
                 const next = new Set(current);
@@ -253,30 +367,81 @@ export function SkillQuestionCard({ className }: { className?: string }) {
           the left half open; one `justify-end` renders the same footer with
           one fewer node.
 
-          Both are terminal and this card has nothing downstream to be
-          terminal INTO, so neither carries a handler — the same shape
-          found-card.tsx's pencil has, and the honest one: a confirm that
-          faked a success state would be the one lie suggested-skills.ts went
-          out of its way not to tell. The state that IS real lives in the
-          rows, and the footer reports it.
+          Both are terminal. Without `onAnswer` this card has nothing
+          downstream to be terminal INTO, so neither carries a handler — the
+          same shape found-card.tsx's pencil has, and the honest one: a confirm
+          that faked a success state would be the one lie suggested-skills.ts
+          went out of its way not to tell. With it, the thread is downstream,
+          and pressing either one sends the answer there.
 
           They stay pills. The dump's 8px is the site's button radius and the
           re-skin's whole job is to replace it (brand rule 6: pill controls);
           8px survives on the rows above, where it is also the brand's own
           menu-item radius, but two square buttons here would be the only
           non-pill controls on a screen whose composer, escape hatch and every
-          card action are pills. */}
-      <div className="flex items-center justify-end gap-2 px-4 pt-3 pb-4">
-        <Button type="button" variant="outline" size="sm">
-          Skip
-        </Button>
-        {/* Ink, not `brand`: rule 3 gives the screen one tangerine and the
-            composer's send arrow has it. `min-w-36` holds the widest label
-            this can ever print, and the tabular figures keep the digit from
-            breathing, so counting up from one to six moves nothing. */}
-        <Button type="button" size="sm" disabled={count === 0} className="min-w-36 tabular-nums">
-          {count === 0 ? "Install skills" : `Install ${count} ${count === 1 ? "skill" : "skills"}`}
-        </Button>
+          card action are pills.
+
+          ANSWERED, the pair gives way to the outcome in the same box. The row
+          is `h-8` either way — two `size="sm"` buttons or one 32px line — so
+          the card keeps its height exactly and a thread that has scrolled to
+          it does not jump when it resolves. Right-aligned, so the words land
+          where the button that caused them was. */}
+      <div ref={footerRef} className="flex items-center justify-end gap-2 px-4 pt-3 pb-4">
+        {answered ? (
+          // `role="status"` so the outcome is announced once when it replaces
+          // the buttons; `tabIndex={-1}` only so a dropped focus has somewhere
+          // to land (see the effect above) — it is not a tab stop. Third tier and a
+          // check, the quiet shape a receipt takes everywhere else in this
+          // flow (research-signals.tsx's "Read 5 sources"). The check is only
+          // for an install: a skip that wore a tick would be celebrating
+          // nothing.
+          <p
+            ref={outcomeRef}
+            role="status"
+            tabIndex={-1}
+            className="flex h-8 items-center gap-1.5 text-sm text-foreground-low outline-none tabular-nums"
+          >
+            {chosen !== "skip" && count > 0 && <IconCheck className="size-3.5" aria-hidden="true" />}
+            {outcome}
+          </p>
+        ) : (
+          <>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={onAnswer ? () => answer({ kind: "skip" }) : undefined}
+            >
+              Skip
+            </Button>
+            {/* Ink, not `brand`: rule 3 gives the screen one tangerine and the
+                composer's send arrow has it. `min-w-36` holds the widest label
+                this can ever print, and the tabular figures keep the digit from
+                breathing, so counting up from one to six moves nothing.
+
+                The ids go out in the ROWS' order, not the order they were
+                ticked: the set is a set, and the thread naming them in the
+                order the card listed them is the one order the reader has
+                already seen. */}
+            <Button
+              type="button"
+              size="sm"
+              disabled={count === 0}
+              className="min-w-36 tabular-nums"
+              onClick={
+                onAnswer
+                  ? () =>
+                      answer({
+                        kind: "install",
+                        ids: SUGGESTED_SKILLS.filter((skill) => picked.has(skill.id)).map((skill) => skill.id),
+                      })
+                  : undefined
+              }
+            >
+              {count === 0 ? "Install skills" : `Install ${count} ${count === 1 ? "skill" : "skills"}`}
+            </Button>
+          </>
+        )}
       </div>
     </Card>
   );

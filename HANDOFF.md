@@ -4,7 +4,8 @@ Written 2026-09-07 at the end of plan step 5 (the brand colour tokens are
 the app's only palette), updated the same day for the move to Tabler
 icons and for the component system sweep, on 2026-09-09 for the composer
 Tools panel merge and the heading-cut decision, and rewritten on
-2026-09-10 when the signup / hyper-personalized onboarding work merged.
+2026-09-10 when the signup / hyper-personalized onboarding work merged, and
+extended the same day for the streaming agent turn (`feat/agent-stream`).
 **Everything described here is on `main`, and `main` is pushed.** Read
 this first in a new session, then `README.md`, `docs/components.md`,
 `docs/brand/reskin-conventions.md`, `docs/brand/icons.md` and
@@ -116,8 +117,20 @@ this first in a new session, then `README.md`, `docs/components.md`,
   the element snapped. It had rotted into ten places, the signup panel and every
   button's press among them. `components.test.ts` locks the rule. See "Decided
   2026-09-10: never name `transform` in a `transition-[…]` list" below.
-- **Two design pages carry work that is built but not wired**:
-  `/design/skill-suggestions` (three ways to offer skills) and
+- **The agent streams (2026-09-10).** `feat/agent-stream`: send used to bring
+  the shell in around a finished screen and stop there. Now the three cards
+  you did not pick leave, your brief lands as your message, and the agent
+  answers in the product's own streaming idiom (reasoning, stacked tool calls,
+  prose) ending on the skills question that `a6b87b6` unwired, which is now
+  answerable. `<main>` becomes the thread's scroller at send, so the PAGE still
+  never scrolls. The running state was captured live off hyperagent.com for
+  this (`docs/reference/overlays/thread-streaming-live.html`). See "The agent
+  streams" below; `probe:signup` now waits for the finished turn and asserts
+  six things instead of three, one of them a real hit-test of every control
+  in the chrome.
+- **Two design pages carry work that is built but not fully wired**:
+  `/design/skill-suggestions` (three ways to offer skills; variant A is now in
+  the stream, B and C are one import away) and
   `/design/agent-panel` (the Gumloop-shaped agent config panel, with its
   consolidation audit at `docs/plans/2026-09-10-agent-panel-consolidation.md`).
   Both are described under "The signup flow".
@@ -483,7 +496,8 @@ the same row with the label shimmering or not. The words never go past tense.
   44px directly under the composer would settle the whole centred column at
   the exact moment the shell is sliding in.
 
-**`Composer` grew three opt-in props**, all the same shape and for the same
+**`Composer` grew three opt-in props** (a fourth, `status`, came with the
+agent stream; see that section), all the same shape and for the same
 reason — exactly one screen in the repo has anywhere to send to, and every
 cloned route must keep the behaviour it has today: `value` / `onValueChange`
 (hybrid controlled) and `onSend`. Two real bugs were fixed behind them. Its
@@ -494,7 +508,8 @@ WIDTH, because the box otherwise keeps the height it measured at the old
 measure and clips. Every cloned route has a composer whose column never moves,
 so the width case never showed until the handoff took ~150px off a filled one.
 
-**Skills are built but NOT wired (2026-09-10).** Three variants are compared
+**Skills are built, and variant A is now wired into the streamed turn (see
+"The agent streams"). The history of why it was unwired first:** Three variants are compared
 side by side at `/design/skill-suggestions`, each the real component with its
 real state: A the question card (300px), B the skill shelf (400px), C inline
 in the stream (132px). Every entry in `suggested-skills.ts` is a published
@@ -616,15 +631,15 @@ without animating, which is what it was written for.
   file is kept if the small sizes ever want it back.
 
 **Known gaps, in the order worth fixing.**
-- **There is no streaming assistant turn.** The agent never runs and produces
-  output: the handoff lands on a screen that is already finished. This is the
-  main thing left.
+- ~~**There is no streaming assistant turn.**~~ **Closed 2026-09-10 by
+  `feat/agent-stream`; see "The agent streams" below.**
 - **The composer's `+` menu and settings pill still hold config the panel
   duplicates.** The staged migration is
   `docs/plans/2026-09-10-agent-panel-consolidation.md`; nothing has been
   removed yet.
-- **Skills are unwired.** Variant C (132px) is the one that fits the cell
-  budget; A (300px) is what had to come out.
+- ~~**Skills are unwired.**~~ **Closed 2026-09-10:** variant A is the last
+  block of the streamed turn, after send, where the pre-send cell budget no
+  longer applies.
 - The receipt's retry re-runs the pass but lands on the same four cards —
   `SUGGESTED_AGENTS` holds one batch.
 - There is no failure state in the research pass. Five sources that never miss
@@ -800,6 +815,170 @@ At the merge: all six gates, `probe:signup` passing 3 of 3 in both themes, and
 all 17 cloned routes byte-identical to `main` at 1456×868 in both themes —
 `ThreadHeader` and `Sidebar` are shared with them and every new prop is opt-in.
 
+## The agent streams (2026-09-10)
+
+Branch `feat/agent-stream`. The plan, with the contracts the three parallel
+agents built to, is `docs/plans/2026-09-10-agent-stream.md`.
+
+**What send does now.** Two beats. Beat 1 (0 to 480ms, the shell's own
+`--duration-slide` on `--ease-in-out`) is the room: the sidebar and the panel
+arrive as before, the three cards you did not pick fade in place (keeping
+their boxes, so nothing reflows under the arriving chrome), the research
+receipt's retry and "Set up manually" retire, and the composer glides down to
+its dock still holding your brief. Beat 2 (480ms on) is the conversation: the
+unpicked cards leave the layout, the picked one glides into the first cell if
+it was not already there, the brief leaves the composer and lands as your
+message, the composer grows the product's Working strip, and the agent's turn
+starts. No card picked means all four leave. The mark neither moves nor spins
+after send: the live finding this flow was built on is that a running turn
+has no spinner anywhere, and a turning mark is one.
+
+**Ground truth was captured live, not reconstructed.** A frame recorder was
+installed on hyperagent.com/threads/new before a send click and survived the
+client-side route change, so one clock covers the whole turn:
+`docs/reference/overlays/thread-streaming-live.html`. It confirmed the
+2026-09-09 reconstruction and added what that file could not see: the
+composer's "Working… / Stop" strip (it leaves when the final answer starts),
+the favicon receipt a tool row lands when it resolves, that a reasoning block
+with no text is simply REPLACED by the first tool row (no "Reasoned" line is
+left behind), and the order of everything. Timings in it are ±1s because the
+tab was throttled; the order is exact. The running tool row's DOM itself was
+not among the checkpoints, so Block C1 of the older file still stands for it.
+
+**The one architectural decision: send changes what scrolls.** A streaming
+turn grows, and before send nothing may (the shared cell, the mark). After
+send that cannot hold, so `<main>` becomes the thread's scroll container on
+the send frame: `h-svh overflow-y-auto`, `justify-start`, `pb-4`, with
+`padding-top` frozen at the stage's measured top (97px at 1456×868) so nothing
+moves on that frame. It is `<main>` and not a box inside the chat screen
+because the mark is absolutely positioned in the stage and has to scroll
+natively with the sentence it heads, which means whatever scrolls must contain
+the whole stage. Scrolling is not a transform, so "never transform the stage
+or an ancestor" still holds. The page (html, body, window) still never
+scrolls; `probe:signup` checks all three at every width under a real wheel.
+- `<main>`'s transition list is now `transition-[padding-left,padding-right]`.
+  The shorthand would have animated the frozen top down from `py-12`'s 48px:
+  the handoff only ever moved those two sides.
+- The stage takes `flex-1`, the chat screen `self-stretch`, and the three
+  finished screens `hidden` (the flow is one way; a zero-opacity signin column
+  would otherwise sit centred in a thread-tall row for nothing).
+- The composer's wrapper is the DOCK (`[data-composer-dock]`): `mt-auto` puts
+  it on the window's floor while the thread is short and `sticky bottom-0`
+  keeps it there once it scrolls. **`bottom-0`, not `bottom-4`**: a sticky
+  box's insets are measured inside its scroll container's PADDING, and `<main>`
+  already pads 16px, so `bottom-4` measured 32px off the floor (836 of 868).
+- The thread passes UNDER the thread bar because the bar now has its own fixed
+  layer at z-20 inside `<main>`'s context; in layer one it painted under the
+  column, so scrolled text drew over it. The floating panel is also z-20 but
+  inset 48px below the bar, so the two never meet.
+- Text scrolling down behind the dock is hidden by a band behind the composer:
+  `bg-glass-gradient bg-fixed` with a 24px top mask. The canvas is a 135deg
+  sweep across the whole window, so no flat token matches it, but the same
+  gradient fixed to the viewport lines up with the canvas pixel for pixel. It
+  fades in on the canvas's own duration and curve; mounted opaque, it was a
+  glass patch on the pre-glass canvas for half a second. The probe reports its
+  20px of deliberate bleed into each gutter rather than failing it.
+- Stick to bottom: within 40px of the end, growth scrolls `<main>` to the end,
+  instantly, as the product does. Scrolled up, the reader is left alone.
+
+**The turn** is `src/components/signup/agent-turn.tsx`, driven by
+`use-agent-stream.ts` from a static script in `src/lib/mock/agent-stream.ts`
+(one per suggested agent, plus a fallback for a hand-typed brief). Reasoning
+1200ms, then three tool rows at 1100 running + 300 settled (the loading
+screen's tempo), then prose at ~110 chars/s, a 300ms beat, and the question:
+about 10.8s from send. **Every row is honest**: nothing is connected at
+signup, so rows write, search the public skills index and CHECK connectors;
+none claims to read a mailbox, a repo or a Figma file. Only the Design system
+drift script mentions the panel, because the panel is static and describes
+that agent alone. The question is `SkillQuestionCard` (variant A) with three
+new opt-in props (`question`, `onAnswer`, `answered`); its three pre-ticked
+skills are exactly the three the panel lists, and must stay so. Answering
+sends the answer as your message and runs one row and one sentence. Stop, while
+the agent works, marks the running row Interrupted (the product's canceled
+state: the row at 60%, an italic suffix) and ends the turn. After the first
+send the composer's arrow is inert, as on every cloned route: a follow-up box
+that pretended to send would be the one lie this flow has not told.
+- Reduced motion collapses every transition and FLIP, and the SEQUENCE keeps
+  its timing, as the research pass already argues: it is information, not
+  motion. Text still arrives in chunks; that is content arriving.
+
+**The components, reusable and free of signup context** (the thread view
+could adopt them as they are):
+- `thread/shimmer.ts`: `SHIMMER` and `sweepStyle` moved out of
+  research-signals.tsx, with `cycleMs` / `spreadPerChar` options whose defaults
+  keep the research pass identical.
+- `thread/tool-call-row.tsx`: `ToolCallRow` (running, done, interrupted,
+  failed; a glyph or a 12px logo; a `receipt` slot shown only once done) and
+  `ToolCallCount`, which brings its own middot because "iOS 6 found" read as
+  part of the detail. research-signals.tsx renders it now; all 12 distinct DOM
+  states of a research pass are byte-identical across the extraction.
+- `thread/reasoning-block.tsx`: "Reasoning…" over two `Skeleton` bars. The
+  product's `opacity-50` on the bars was dropped: half of `tint-10` vanished
+  on the dark canvas.
+- `thread/streaming-message.tsx`: `StreamingMessage` (AssistantMessage's
+  prose, snapped to whole words so no half-word paints, strong runs strong
+  even when cut) and `useTextStream` (seeded jitter, so a probe or a replay
+  sees the same frames; `active=false` freezes, which is Stop).
+- `composer/composer-status.tsx` and Composer's opt-in `status` prop: the
+  Working strip, on the brand's typing dots. Absent, every cloned route
+  renders the DOM it did.
+- `/design/agent-stream` shows every block in every state at 752 and 512.
+
+**Three bugs found on the way.**
+- The question card's rows escaped their box at columns of 440 and under: a
+  hyphenated skill name reports its longest SEGMENT as its min-content, and a
+  truncating reason reports its whole string there. Now the reason gives way
+  first, then the repo, never the name; nothing escapes down to a 290px card.
+- A focus fight: the chat screen moves focus to the composer inside
+  `onAnswer`, and the card then took it back. The card now only catches focus
+  that has fallen to `<body>`.
+- **The sidebar's collapse and expand toggle, and its home link, took no
+  clicks after send.** Moving the thread bar to its own layer above the column
+  moved its wrapper there too, and that wrapper spans the whole window and
+  reaches the bar's edges with PADDING, which hit-tests. Re-armed with
+  `pointer-events-auto`, its left padding lay over the sidebar's top 48px (and
+  its right padding over the docked panel's), so `elementFromPoint` over "Hide
+  sidebar" returned the wrapper. In layer one it never showed, because the
+  sidebar came later in the tree and painted over the padding. The fix re-arms
+  the bar's own box, not the wrapper. Every gate passed it, because the probe
+  toggled the sidebar with a programmatic `el.click()`, which ignores whatever
+  lies on top: the same way the dead panel toggle got through before. Hence
+  criterion 6 below.
+
+**`probe:signup` in thread mode.** After send it waits for
+`[data-agent-turn][data-state="waiting"]` (exit 2 if it never arrives), holds
+`<main>` at its end for every row, and asserts five things: the column ≥512
+while docked; the PAGE never scrolls under a real wheel over the turn and over
+the gutter (`<main>` may, and reports how far); nothing escapes the column;
+the composer is docked (inside the viewport, bottom within 32px of the edge);
+**nothing escapes inside the agent panel**, which closes the blind spot that
+let a clipped panel through; and **the chrome takes clicks**: every enabled
+control in the sidebar, the thread bar and an open panel must be the topmost
+element at its own centre (scrolled-out, disabled and `inert` controls are
+skipped). `--sidebar-collapsed` and `--panel-closed` now press a real mouse at
+the control through CDP instead of calling `el.click()`. Criterion 6 was
+proved against the bug: with the wrapper re-armed it fails and names "Hide
+sidebar" and "Hyperagent home"; with the fix it passes. At this branch: 6 of 6
+in dark, light, `--panel-closed` and `--sidebar-collapsed`, at 902 and 868
+tall; the thread scrolls up to 627px and the dock sits 16px up at all 14
+widths. The 17
+cloned routes are byte-identical to `main` at 1456×868 in both themes.
+
+**Known gaps.**
+- The agent panel is static and always describes Design system drift, so
+  picking any other card leaves the panel's header and connectors wrong. True
+  before this branch; more visible now that the stream names the agent.
+- Answering the skills question does not change the panel's Skills section.
+  The panel reads `AGENT_CONFIG`; an opt-in `skills` prop would close it.
+- The six skills are chosen for the RECORD (a design engineer at Trainwell),
+  not per agent. Per-agent sets need real skills.sh reads for the other three
+  jobs; inventing plausible ones is the lie `suggested-skills.ts` refuses.
+- No follow-up turn: after the first send the arrow is inert.
+- The research pass and the stream together are ~20s of watching. Honest for
+  a demo; cut a row, not the milliseconds, if it has to shrink.
+- Background tabs clamp timers to ~1s, so the stream looks slow in an
+  unfocused tab. Judge its timing in a foreground tab or headless.
+
 ## The artifact workspace (built, not wired, 2026-09-10)
 
 Branch `feat/workspace-panel`. The right-hand desktop of a populated thread on
@@ -930,7 +1109,7 @@ override it on the same variant.
 | `src/lib/utils.ts`, `utils.test.ts` | The brand's `cn()` and its tests |
 | `src/design/brand/` | `brand.css` (the app's token sheet), `brand.test.ts`, the Geist loaders, `README.md` with the wiring and the phase-2 mapping table |
 | `src/app/design/brand/` | Swatch page at `/design/brand` with its own local light/dark toggle |
-| `src/app/design/` | The comparison pages: `/design/tools` (three composer Tools panels), `/design/skill-suggestions` (three ways to offer skills, none wired), `/design/agent-panel` (the config panel, not yet consolidated), `/design/workspace` (the artifact workspace beside the thread view, not wired), `/design/logo` (the logo-motion studies the signup mark came from) |
+| `src/app/design/` | The comparison pages: `/design/tools` (three composer Tools panels), `/design/skill-suggestions` (three ways to offer skills, none wired), `/design/agent-panel` (the config panel, not yet consolidated), `/design/agent-stream` (every streaming-turn block in every state), `/design/workspace` (the artifact workspace beside the thread view, not wired), `/design/logo` (the logo-motion studies the signup mark came from) |
 | `src/components/workspace/` | The artifact workspace: wallpaper, glass toolbar, artifact cards, dock; static, Carousel layout only; mounts in any positioned box or through `ThreadView`'s `workspace` prop |
 | `docs/brand/` | `design.md` (the brand language), `reskin-conventions.md` (the phase-2 contract), `icons.md` (Tabler only, the lucide-to-Tabler names), the style audit |
 | `docs/components.md` | The component system: tiers, rules, the component map with live evidence, how to add a component, the live UI the clone lacks |
@@ -1101,34 +1280,45 @@ removed afterwards.
 
 ## Prompt to start the next session
 
-Everything is on `main` and pushed; there is no branch in flight and no
-worktree but the unrelated `onboarding-exact`. The largest open piece is
-still the streaming assistant turn.
+Everything is on `main` and pushed. The streaming agent turn merged from
+`feat/agent-stream` with `--no-ff`; its worktree
+(`.claude/worktrees/agent-stream`) and branch can be removed. The unrelated
+`onboarding-exact` worktree is still there. The largest open pieces are now
+the static agent panel (it always describes Design system drift) and a real
+follow-up turn.
 
 > Read HANDOFF.md in ~/Projects/hyperagent — especially "The signup flow",
-> "The shell yields, the conversation does not" and "Decided 2026-09-10:
-> never name `transform` in a `transition-[…]` list" — then AGENTS.md,
-> docs/brand/reskin-conventions.md and docs/components.md.
+> "The shell yields, the conversation does not", "The agent streams" and
+> "Decided 2026-09-10: never name `transform` in a `transition-[…]` list" —
+> then AGENTS.md, docs/brand/reskin-conventions.md and docs/components.md.
 >
 > You are on `main`, clean and pushed, all six gates passing. `/signup` is a
 > five-beat invented flow (providers → a spinning-mark wait → a
 > confirm-your-record screen → a chat screen that reads five public sources
 > while four suggested-agent cards fill in behind it → and on send, the app
-> shell arriving around the conversation). Everything is static mock data,
-> nothing authenticates, the app defaults to dark.
+> shell arriving around the conversation while the agent streams its answer:
+> reasoning, tool rows, prose, and a skills question you can answer).
+> Everything is static mock data, nothing authenticates, the app defaults to
+> dark.
 >
 > Three things on that page are load-bearing. The Hyperagent mark is a single
 > never-unmounted element FLIPped between per-screen seats — read that effect
 > in signup-screen.tsx before changing any layout, and never transform the
-> stage or an ancestor of it. Nothing on the fourth screen may change height,
-> because all four screens share one centred grid cell. And that cell must FIT
-> THE VIEWPORT, or every screen scrolls and the column stops being centred.
+> stage or an ancestor of it. Nothing on the fourth screen may change height
+> BEFORE SEND, because all four screens share one centred grid cell. And that
+> cell must FIT THE VIEWPORT, or every screen scrolls and the column stops
+> being centred. After send `<main>` becomes the thread's scroller with its
+> top frozen where the stage stood, and the composer sits in a sticky dock:
+> read "The agent streams" before touching either.
 >
 > Two gates exist so you do not have to re-derive any of this. `npm run
-> probe:signup` drives the flow to the handoff state and sweeps 14 widths,
-> asserting the conversation never falls under 512 while the panel is docked,
-> nothing scrolls at any width ≥768, and nothing escapes its box; it exits 2
-> rather than publishing numbers if the shell did not actually arrive.
+> probe:signup` drives the flow through send, waits for the streamed turn to
+> reach its question, and sweeps 14 widths, asserting the conversation never
+> falls under 512 while the panel is docked, the PAGE never scrolls (the
+> thread may), nothing escapes the column or the agent panel, the composer is
+> docked, and every control in the chrome is the topmost thing at its own
+> centre; it exits 2 rather than publishing numbers if the shell or the turn
+> did not actually arrive.
 > `npm test` includes a rule that catches `transition-[…]` lists naming
 > `transform` beside a v4 translate/scale/rotate utility.
 >
@@ -1139,7 +1329,11 @@ still the streaming assistant turn.
 > conversation, not at a fixed point, or it lands inside the panel and scrolls
 > that instead. (3) **The gates do not look inside the agent panel.** A
 > clipped panel passed every gate and `probe:signup` 3 of 3; it was caught by
-> opening a screenshot. Look at the pixels.
+> opening a screenshot; the probe now walks the panel too, but look at the
+> pixels anyway. (4) **A programmatic `el.click()` proves nothing about
+> whether a person can click it.** Twice now a control has been covered by an
+> invisible layer and still passed; the probe hit-tests the chrome and presses
+> a real mouse for its toggles. Do the same in any check you write.
 >
 > Two more things that will bite a rename or a refactor: `probe-signup.mjs`
 > drives the flow by clicking the profile CTA's exact string ("Find agents for

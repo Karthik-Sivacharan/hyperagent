@@ -45,6 +45,13 @@ type ComposerProps = {
    * in the repo has somewhere to send to.
    */
   onSend?: () => void;
+  /**
+   * A strip across the top of the composer, above the field: the agent's
+   * "Working… / Stop" row (composer-status.tsx) while a turn runs. The same
+   * opt-in shape as `onSend`: only the signup thread has an agent to watch,
+   * and every cloned route renders exactly the DOM it did without it.
+   */
+  status?: React.ReactNode;
 };
 
 // useLayoutEffect warns when React renders this on the server, where there is
@@ -74,6 +81,7 @@ export function Composer({
   value: controlledValue,
   onValueChange,
   onSend,
+  status,
 }: ComposerProps) {
   // Every page but the signup personalize step just types into the composer, so
   // the draft state stays and `value` is the optional override: pass it and the
@@ -121,6 +129,9 @@ export function Composer({
       )}
     >
       <div className="relative">
+        {/* Inside the card and above the field, where the product puts its
+            Working row: part of the composer, not a banner over it. */}
+        {status}
         <Input type="file" multiple className="hidden" />
         <div className="relative cursor-text px-4">
           <div className="relative scrollbar-hide pt-3 pb-[10px] text-sm">
