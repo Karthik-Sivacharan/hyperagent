@@ -1,9 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { IconSparkles } from "@tabler/icons-react";
-
-import { MaterialMark } from "@/components/brand/logo-motion/material-mark";
+import { Mark } from "@/components/brand/mark";
 import { FoundCard } from "@/components/signup/found-card";
 import { SignupProvenance } from "@/components/signup/signup-legal";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -28,7 +26,13 @@ import { cn } from "@/lib/utils";
 // still — the mark shrinks as it starts working and stays small once the page
 // has a subject of its own. It is `spin="hover"` again here: the work is done,
 // so it goes back to being a logo you can play with.
-const MARK_PX = 44;
+//
+// The mark itself is no longer rendered here, though. All three screens share
+// one instance, owned by signup-screen.tsx and flown between them, because an
+// instance per screen replays its entrance on every swap — the blink the flow
+// used to open and close with. What this file keeps is the seat the mark lands
+// in: an empty 44px box in the same place in the column, found by its data
+// attribute. See MARK_SMALL_PX in signup-screen.tsx, which this has to match.
 
 export function ProfileStep({
   headingRef,
@@ -40,7 +44,7 @@ export function ProfileStep({
 }) {
   return (
     <div className={cn("flex w-full flex-col items-center", className)}>
-      <MaterialMark size={MARK_PX} />
+      <div data-mark-slot="profile" className="size-11" />
 
       {/* Their name, not the product's: the landing screen already introduced
           Hyperagent, and repeating it here would spend the one line that can
@@ -62,23 +66,34 @@ export function ProfileStep({
             // size-12 overrides the primitive's default 32px: at 48 the photo
             // is a portrait rather than a list-row bullet, and it matches the
             // company tile below it so the two cards share a left edge.
-            <Avatar className="size-12">
-              <AvatarImage asChild src={SIGNUP_PERSON.avatarSrc} alt="">
+            //
+            // ...and `rounded-xl` overrides its default circle, for the same
+            // reason: the two cards are the same object twice, so their media
+            // has to be the same shape. A circle beside a rounded square reads
+            // as two different kinds of thing. Three overrides, because the
+            // primitive rounds the root, the image and the fallback separately
+            // and the root's hairline rides on an `after:` pseudo-element that
+            // has to follow the corner too.
+            <Avatar className="size-12 rounded-xl after:rounded-xl">
+              <AvatarImage asChild src={SIGNUP_PERSON.avatarSrc} alt="" className="rounded-xl">
                 {/* next/image so the 800px source is served at the 2x this
                     needs. `alt=""` because the name is right beside it. */}
                 <Image src={SIGNUP_PERSON.avatarSrc} alt="" width={96} height={96} priority />
               </AvatarImage>
-              <AvatarFallback className="text-sm">{signupInitials}</AvatarFallback>
+              <AvatarFallback className="rounded-xl text-sm">{signupInitials}</AvatarFallback>
             </Avatar>
           }
           title={signupFullName}
           subtitle={SIGNUP_PERSON.role}
           editLabel="Edit your name and role"
         >
-          {/* Mono, because an address is an identifier and the brand reserves
-              Geist Mono for exactly that (docs/brand/design.md §7). It also
-              stops the address from reading as a third line of prose. */}
-          <p className="truncate font-mono text-md text-foreground-low">{SIGNUP_PERSON.email}</p>
+          {/* Set in the body face, at the same size and tier as the company
+              card's description below it. Geist Mono is the brand's identifier
+              face and an address does qualify, but the two cards' body lines
+              are the same slot in the same object, and setting one of them in
+              a different typeface splits a pair that everything else about
+              these cards works to hold together. */}
+          <p className="truncate text-sm text-muted-foreground">{SIGNUP_PERSON.email}</p>
         </FoundCard>
 
         <FoundCard
@@ -126,8 +141,15 @@ export function ProfileStep({
           the quiet option sound like a loss. */}
       <div className="mt-7 flex w-full flex-col gap-2.5">
         <Button type="button" variant="brand" size="lg" shape="soft" className="w-full">
-          <IconSparkles aria-hidden="true" />
-          Personalize my onboarding
+          {/* The mark rather than a sparkle: this button starts the thing the
+              product does, so the product's own glyph is the honest label for
+              it, and a sparkle is what everyone else's AI button wears. Flat
+              and still — `Mark`, not a motion variant — because a 17px logo
+              inside a button is an icon, and the material filters do not read
+              below 40px anyway. It inherits `text-brand-foreground` from the
+              button, so it paints as one piece with the label. */}
+          <Mark size={17} />
+          Hyperpersonalize my onboarding
         </Button>
         <Button
           type="button"

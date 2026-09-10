@@ -31,6 +31,22 @@ function easingToken(el: Element, name: string, fallback: string) {
   return getComputedStyle(el).getPropertyValue(name).trim() || fallback;
 }
 
+/**
+ * The angle a spinning group is at right now, normalised to 0-360.
+ *
+ * Read off the resolved matrix rather than off the animation's `currentTime`:
+ * the turn is eased, so clock time does not map linearly onto degrees and only
+ * the matrix knows where the mark actually is. `transform: none` — the loop's
+ * own start delay, before it has applied anything — reads as 0, which is also
+ * the answer we want there.
+ */
+function currentRotation(el: Element) {
+  const value = getComputedStyle(el).transform;
+  if (!value || value === "none") return 0;
+  const matrix = new DOMMatrixReadOnly(value);
+  return ((Math.atan2(matrix.b, matrix.a) * 180) / Math.PI + 360) % 360;
+}
+
 // The entrance's first frame is the S held above the discs, not the rest state,
 // so it has to be scheduled before the browser paints; a plain useEffect runs
 // after paint and flashes the finished mark for a frame. Nothing animates on
@@ -253,7 +269,35 @@ export function MaterialMark({ size = 72, className, label, spin: spinMode = "ho
       },
     );
 
-    return () => loop.cancel();
+    return () => {
+      // Cancelling the loop drops its rotation in a single frame, and for most
+      // of the cycle that is a visible snap: 62% of it is turn rather than
+      // hold, so a mark that stops working at a random moment is usually part
+      // way round. That used to be hidden, because leaving `auto` meant
+      // unmounting the whole mark; the signup page now flips this prop on a
+      // MOUNTED component — one persistent mark for all three screens — so the
+      // snap is on screen and has to be dealt with.
+      //
+      // Carry the turn to its end instead: whatever is left of the sweep, at
+      // the loop's own speed, on an out-curve because the mark is already
+      // moving and only has to stop. 360 deg is the seamless landing (see
+      // HOVER_SPIN_DEG), so finishing forward is also finishing where the mark
+      // started. Nothing to do if it is already parked there, or if this is an
+      // unmount rather than a mode change.
+      const angle = currentRotation(el);
+      loop.cancel();
+      if (!el.isConnected || angle < 1 || angle > HOVER_SPIN_DEG - 1) return;
+      el.animate(
+        [
+          { transform: `rotate(${angle}deg)` },
+          { transform: `rotate(${HOVER_SPIN_DEG}deg)` },
+        ],
+        {
+          duration: turn * ((HOVER_SPIN_DEG - angle) / HOVER_SPIN_DEG),
+          easing: easingToken(el, "--ease-out-quart", "cubic-bezier(0.165, 0.84, 0.44, 1)"),
+        },
+      );
+    };
   }, [spinMode]);
 
   // Every group turns and scales about TURN_PIVOT, not the viewBox centre - see

@@ -63,7 +63,23 @@ export function FoundCard({
       className={cn(
         // `size="none"` zeroes the primitive's own padding so the 40px media
         // and the 32px action can set the rhythm instead of a 16px default.
-        "w-full gap-3 bg-tint-7 p-4",
+        "relative w-full gap-3 bg-tint-7 p-4",
+        // The rim light. `shadow-card` is a hairline plus a whisper of drop
+        // shadow and nothing else, so on its own this card is a flat panel —
+        // and flat is the one thing the brand's raised surfaces are not. Every
+        // lit piece in brand.css carries an inset pair (`--shadow-xs`, `-md`,
+        // `-lg`, `--shadow-avatar`), and `--shadow-rim` is that pair on its
+        // own. It is the same idea the material mark is built from: a top edge
+        // catching the light and a bottom edge returning it, which is what
+        // makes a shape read as an object rather than a sticker.
+        //
+        // It rides on an `after:` pseudo-element rather than replacing
+        // `shadow-card`, because a box-shadow utility is one declaration and
+        // the card needs both layers — the same device `avatar.tsx` uses to
+        // put a hairline on a shape that already has a shadow. `inset-0` and
+        // the matching 22px corner keep it exactly on the card's edge, and
+        // `pointer-events-none` keeps it from eating the pencil's clicks.
+        "after:pointer-events-none after:absolute after:inset-0 after:rounded-3xl after:shadow-rim",
         className,
       )}
     >
