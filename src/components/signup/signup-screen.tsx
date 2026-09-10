@@ -4,6 +4,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 import { MaterialMark } from "@/components/brand/logo-motion/material-mark";
 import { EmailForm } from "@/components/signup/email-form";
+import { AppHandoff } from "@/components/signup/app-handoff";
 import { ChatStep } from "@/components/signup/chat-step";
 import { LoadingStep, LOADING_SEQUENCE_MS } from "@/components/signup/loading-step";
 import { ProfileStep } from "@/components/signup/profile-step";
@@ -134,6 +135,13 @@ const LEAVE_DELAY = [
 
 export function SignupScreen() {
   const [step, setStep] = useState<Step>("signin");
+  // The handoff is NOT a fifth step, and that is the whole design. A step
+  // change crossfades one screen out and another in; here the conversation has
+  // to survive untouched — same DOM, same composer, same draft — while the app
+  // assembles around it. So `step` stays "personalize" and this rides on top,
+  // which also means the mark keeps its existing seat and the FLIP effect
+  // below needs no fifth case. See app-handoff.tsx.
+  const [handedOff, setHandedOff] = useState(false);
   const [mode, setMode] = useState<Mode>("providers");
   const emailFieldRef = useRef<HTMLInputElement>(null);
   const emailTriggerRef = useRef<HTMLButtonElement>(null);
@@ -309,7 +317,21 @@ export function SignupScreen() {
   const leaving = step !== "signin";
 
   return (
-    <main className="flex min-h-svh flex-col items-center justify-center px-5 py-12">
+    <main
+      className={cn(
+        // `relative z-10` so the column stays above the shell that slides in
+        // under it, and the padding is what steps the whole centred block to
+        // the right of the sidebar. Padding on THIS element rather than a
+        // transform on the stage: the mark is parked by a transform measured
+        // against the stage's box, so moving the stage's ancestor carries the
+        // mark along for free, while transforming the stage itself would
+        // compose with the mark's own transform and fight it.
+        "relative z-10 flex min-h-svh flex-col items-center justify-center px-5 py-12",
+        "transition-[padding] duration-(--duration-slide) ease-in-out motion-reduce:transition-none",
+        handedOff && "md:pl-64",
+      )}
+    >
+      <AppHandoff entered={handedOff} />
       {/* The stage is the column's measure, and it is the ONE thing that
           changes between the first three screens and the fourth. 384px is a
           sign-in column; the chat step is a thread, and the product's own
@@ -441,7 +463,12 @@ export function SignupScreen() {
               flag to say when its research pass may start rather than relying
               on its own mount. LoadingStep, which is not the tallest, is
               conditionally mounted for the same problem. */}
-          <ChatStep headingRef={chatHeadingRef} active={step === "personalize"} />
+          <ChatStep
+            headingRef={chatHeadingRef}
+            active={step === "personalize"}
+            onSend={() => setHandedOff(true)}
+            handedOff={handedOff}
+          />
         </div>
 
         {/* The material mark, rendered ONCE for the whole flow and flown

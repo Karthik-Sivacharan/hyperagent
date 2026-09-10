@@ -38,6 +38,13 @@ type ComposerProps = {
   value?: string;
   /** Called on every edit when `value` is supplied. */
   onValueChange?: (value: string) => void;
+  /**
+   * Called when the send arrow is pressed with something in the box. Omit and
+   * the arrow stays the inert prop it is on every cloned route — the same
+   * opt-in shape as `value` above, and for the same reason: exactly one screen
+   * in the repo has somewhere to send to.
+   */
+  onSend?: () => void;
 };
 
 // useLayoutEffect warns when React renders this on the server, where there is
@@ -54,6 +61,7 @@ export function Composer({
   autoFocus,
   value: controlledValue,
   onValueChange,
+  onSend,
 }: ComposerProps) {
   // Every page but the signup personalize step just types into the composer, so
   // the draft state stays and `value` is the optional override: pass it and the
@@ -194,6 +202,7 @@ export function Composer({
                   className="size-9 shrink-0 disabled:bg-tint-10 disabled:text-foreground-low disabled:opacity-100 disabled:shadow-none"
                   aria-label="Send message"
                   disabled={!canSend}
+                  onClick={onSend}
                 >
                   <IconArrowUp className="size-4" aria-hidden="true" />
                 </Button>

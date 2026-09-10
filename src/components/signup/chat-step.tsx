@@ -62,6 +62,8 @@ const HEADING_CHARS =
 export function ChatStep({
   headingRef,
   active = false,
+  onSend,
+  handedOff = false,
   className,
 }: {
   /** Focus lands here on arrival — see the note in signup-screen.tsx. */
@@ -69,6 +71,10 @@ export function ChatStep({
   /** True once this is the live screen. Starts the research pass; see the
    *  note on `active` in useResearchSequence. */
   active?: boolean;
+  /** Pressing send hands the flow over to the app shell (app-handoff.tsx). */
+  onSend?: () => void;
+  /** True once the shell has arrived, which retires the way out. */
+  handedOff?: boolean;
   className?: string;
 }) {
   const research = useResearchSequence(active);
@@ -232,6 +238,7 @@ export function ChatStep({
             setDraft(next);
             if (next.trim() === "") setPickedId(null);
           }}
+          onSend={onSend}
         />
       </div>
 
@@ -252,7 +259,19 @@ export function ChatStep({
           composer than the composer was to the cards. On the page's axis at
           24px it is a way out of the SCREEN, and it rhymes with the three
           screens before this one, all of which are centred columns. */}
-      <p className="mt-6 text-center text-md leading-5 text-foreground-low">
+      {/* Retired by the handoff. "Set up manually" is a way OUT of the flow,
+          and once the sidebar is on screen the flow is over — the door it
+          offers is the room you are already standing in. It fades rather than
+          unmounting, and the <p> keeps its box, because this sits directly
+          under the composer and removing 44px of it would settle the whole
+          centred column at the exact moment the shell is sliding in. */}
+      <p
+        className={cn(
+          "mt-6 text-center text-md leading-5 text-foreground-low transition-opacity duration-(--duration-slide) ease-in-out motion-reduce:transition-none",
+          handedOff && "pointer-events-none opacity-0",
+        )}
+        inert={handedOff}
+      >
         <Link href="/threads/new" className={FOOT_LINK}>
           Set up manually
         </Link>
