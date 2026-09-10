@@ -96,7 +96,12 @@ export function ArtifactCard({ artifact, active }: { artifact: WorkspaceArtifact
 
   if (artifact.kind === "document") {
     return (
-      <div data-artifact-id={artifact.id} className="h-full w-150 shrink-0 snap-center">
+      // 600px, or the carousel's content box when that is narrower: exactly 600
+      // in a 684px desktop, and the whole card stays on screen in a narrower
+      // one (the agent panel squeezed by an open sidebar) instead of losing
+      // its right edge. The percentage resolves against the scroller's
+      // content box because the card is its flex item.
+      <div data-artifact-id={artifact.id} className="h-full w-[min(--spacing(150),100%)] shrink-0 snap-center">
         <div className={cn("relative flex h-full min-w-0 flex-col gap-1", rest)}>
           <div className="flex min-w-0 max-w-full shrink-0 items-center gap-1 pt-1">
             <CardLabel artifact={artifact} />
