@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { IconAdjustmentsHorizontal, IconArrowRight, IconArrowUp, IconChevronDown, IconListCheck, IconMicrophone, IconPlus, IconRobotFace } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
@@ -34,7 +34,15 @@ type ComposerProps = {
   mode?: ExecutionMode;
   className?: string;
   autoFocus?: boolean;
+  /** Controlled value. Omit for the uncontrolled composer every other page uses. */
+  value?: string;
+  /** Called on every edit when `value` is supplied. */
+  onValueChange?: (value: string) => void;
 };
+
+// useLayoutEffect warns when React renders this on the server, where there is
+// no textarea to measure anyway. Same device as signup-screen.tsx.
+const useBeforePaint = typeof window === "undefined" ? useEffect : useLayoutEffect;
 
 export function Composer({
   placeholder = "Ask anything or start a task…",
@@ -44,14 +52,34 @@ export function Composer({
   mode: initialMode = "plan",
   className,
   autoFocus,
+  value: controlledValue,
+  onValueChange,
 }: ComposerProps) {
-  const [value, setValue] = useState("");
+  // Every page but the signup personalize step just types into the composer, so
+  // the draft state stays and `value` is the optional override: pass it and the
+  // parent owns the text (it can drop a suggested agent's brief in), omit it and
+  // nothing outside this file learns the state exists.
+  const [draft, setDraft] = useState("");
+  const value = controlledValue ?? draft;
   const [model, setModel] = useState(initialModel);
   const [effort, setEffort] = useState<Effort>("Medium");
   const [mode, setMode] = useState<ExecutionMode>(initialMode);
+  const editorRef = useRef<HTMLTextAreaElement>(null);
   const canSend = value.trim().length > 0;
   const modeLabel = EXECUTION_MODES[mode].pill;
   const planning = mode === "plan";
+
+  // Auto-grow, keyed on the rendered value rather than hung off the textarea's
+  // own `onInput`: text set by a parent fires no input event, so the box would
+  // sit at one row under three lines of it. Measuring before paint keeps the
+  // new height in the same frame as the character that caused it, which is what
+  // the input handler used to guarantee.
+  useBeforePaint(() => {
+    const el = editorRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${Math.min(el.scrollHeight, 200)}px`;
+  }, [value]);
 
   return (
     <div
@@ -68,14 +96,13 @@ export function Composer({
               variant="bare"
               aria-label="Message the agent"
               placeholder={placeholder}
+              ref={editorRef}
               value={value}
               autoFocus={autoFocus}
               rows={1}
-              onChange={(e) => setValue(e.target.value)}
-              onInput={(e) => {
-                const el = e.currentTarget;
-                el.style.height = "auto";
-                el.style.height = `${Math.min(el.scrollHeight, 200)}px`;
+              onChange={(e) => {
+                setDraft(e.target.value);
+                onValueChange?.(e.target.value);
               }}
               className="block min-h-[44px] max-h-[200px] resize-none overflow-y-auto text-sm leading-[21px] md:text-sm"
             />
