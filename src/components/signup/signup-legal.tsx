@@ -52,14 +52,13 @@ export function SignupLegal({ className }: { className?: string }) {
 export function SignupProvenance({ className }: { className?: string }) {
   return (
     <p className={cn("w-full text-center text-xs leading-5 text-foreground-low", className)}>
-      From your Google account and public company records.
-      {/* The link takes its own line rather than running on. Together the two
-          run past the 384px column, and a wrapped link breaks across the line
-          mid-phrase — the underline stops in the middle of "we get" and the
-          one interactive thing in the foot stops looking like one thing.
-          `block` also widens the target to the full column, which is the whole
-          justification for a 12px link on touch. */}
-      <a href="#" className={cn(LINK, "mt-0.5 block")}>
+      {/* The sentence that used to lead this line ("From your Google account
+          and public company records.") is gone. It was answering the question
+          the link already asks, so the foot said the same thing twice and took
+          two lines to do it — and the two together ran past the 384px column,
+          which is what forced the link onto its own line in the first place.
+          One line, one link, and the detail lives behind it. */}
+      <a href="#" className={LINK}>
         How we get this information
       </a>
     </p>

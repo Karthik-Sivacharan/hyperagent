@@ -7,6 +7,7 @@ import { SignupProvenance } from "@/components/signup/signup-legal";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Overline } from "@/components/ui/overline";
 import {
   SIGNUP_COMPANY,
   SIGNUP_PERSON,
@@ -60,77 +61,112 @@ export function ProfileStep({
         Here&rsquo;s what we found. Change anything that&rsquo;s off.
       </p>
 
-      <div className="mt-7 flex w-full flex-col gap-3">
-        <FoundCard
-          media={
-            // size-12 overrides the primitive's default 32px: at 48 the photo
-            // is a portrait rather than a list-row bullet, and it matches the
-            // company tile below it so the two cards share a left edge.
-            //
-            // ...and `rounded-xl` overrides its default circle, for the same
-            // reason: the two cards are the same object twice, so their media
-            // has to be the same shape. A circle beside a rounded square reads
-            // as two different kinds of thing. Three overrides, because the
-            // primitive rounds the root, the image and the fallback separately
-            // and the root's hairline rides on an `after:` pseudo-element that
-            // has to follow the corner too.
-            <Avatar className="size-12 rounded-xl after:rounded-xl">
-              <AvatarImage asChild src={SIGNUP_PERSON.avatarSrc} alt="" className="rounded-xl">
-                {/* next/image so the 800px source is served at the 2x this
+      {/* Each card gets the caps group label the brand mandates over a group
+          of cards (docs/brand/design.md §4.1, and the `.text-label-12-caps`
+          note in brand.css names this exact case). Two cards with the same
+          anatomy need to say which is which before the eye reaches their
+          contents — without them the second card's "Trainwell" is doing double
+          duty as both a company name and the reason the card exists.
+          
+          Left-aligned against the card's edge rather than centred with the
+          heading above: a label belongs to the card under it, not to the page,
+          and centring it would read as a second subheading. `gap-5` between
+          the groups, `mb-2` inside one, so a label sits closer to the card it
+          names than to the card above it. */}
+      <div className="mt-7 flex w-full flex-col gap-5">
+        <div>
+          <Overline className="mb-2">You</Overline>
+          <FoundCard
+            media={
+              // size-12 overrides the primitive's default 32px: at 48 the photo
+              // is a portrait rather than a list-row bullet, and it matches the
+              // company tile below it so the two cards share a left edge.
+              //
+              // ...and `rounded-xl` overrides its default circle, for the same
+              // reason: the two cards are the same object twice, so their media
+              // has to be the same shape. A circle beside a rounded square reads
+              // as two different kinds of thing. Three overrides, because the
+              // primitive rounds the root, the image and the fallback separately
+              // and the root's hairline rides on an `after:` pseudo-element that
+              // has to follow the corner too.
+              <Avatar className="size-12 rounded-xl after:rounded-xl">
+                <AvatarImage
+                  asChild
+                  src={SIGNUP_PERSON.avatarSrc}
+                  alt=""
+                  className="rounded-xl"
+                >
+                  {/* next/image so the 800px source is served at the 2x this
                     needs. `alt=""` because the name is right beside it. */}
-                <Image src={SIGNUP_PERSON.avatarSrc} alt="" width={96} height={96} priority />
-              </AvatarImage>
-              <AvatarFallback className="rounded-xl text-sm">{signupInitials}</AvatarFallback>
-            </Avatar>
-          }
-          title={signupFullName}
-          subtitle={SIGNUP_PERSON.role}
-          editLabel="Edit your name and role"
-        >
-          {/* Set in the body face, at the same size and tier as the company
+                  <Image
+                    src={SIGNUP_PERSON.avatarSrc}
+                    alt=""
+                    width={96}
+                    height={96}
+                    priority
+                  />
+                </AvatarImage>
+                <AvatarFallback className="rounded-xl text-sm">
+                  {signupInitials}
+                </AvatarFallback>
+              </Avatar>
+            }
+            title={signupFullName}
+            subtitle={SIGNUP_PERSON.role}
+            editLabel="Edit your name and role"
+          >
+            {/* Set in the body face, at the same size and tier as the company
               card's description below it. Geist Mono is the brand's identifier
               face and an address does qualify, but the two cards' body lines
               are the same slot in the same object, and setting one of them in
               a different typeface splits a pair that everything else about
               these cards works to hold together. */}
-          <p className="truncate text-sm text-muted-foreground">{SIGNUP_PERSON.email}</p>
-        </FoundCard>
+            <p className="truncate text-sm text-muted-foreground">
+              {SIGNUP_PERSON.email}
+            </p>
+          </FoundCard>
+        </div>
 
-        <FoundCard
-          media={
-            // The logo keeps its own purple (brand rule 10: imagery is not
-            // tokenised), so the tile under it has to work in both themes.
-            // `bg-card` is the one fill that steps AWAY from the card in both:
-            // white against the light card's tint, and neutral-900 above the
-            // dark one. A second tint would have vanished into the first.
-            <span className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-card shadow-edge">
-              <Image
-                src={SIGNUP_COMPANY.logoSrc}
-                alt=""
-                width={96}
-                height={96}
-                className="size-8 object-contain"
-              />
-            </span>
-          }
-          title={SIGNUP_COMPANY.name}
-          subtitle={SIGNUP_COMPANY.domain}
-          editLabel="Edit your company details"
-          footer={
-            <div className="flex flex-wrap gap-1.5">
-              {SIGNUP_COMPANY.tags.map((tag) => (
-                <Badge key={tag} variant="secondary">
-                  {tag}
-                </Badge>
-              ))}
-            </div>
-          }
-        >
-          {/* Clamped at two lines, the measurement taken off the Gumloop tile:
+        <div>
+          <Overline className="mb-2">Your company</Overline>
+          <FoundCard
+            media={
+              // The logo keeps its own purple (brand rule 10: imagery is not
+              // tokenised), so the tile under it has to work in both themes.
+              // `bg-card` is the one fill that steps AWAY from the card in both:
+              // white against the light card's tint, and neutral-900 above the
+              // dark one. A second tint would have vanished into the first.
+              <span className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-card shadow-edge">
+                <Image
+                  src={SIGNUP_COMPANY.logoSrc}
+                  alt=""
+                  width={96}
+                  height={96}
+                  className="size-8 object-contain"
+                />
+              </span>
+            }
+            title={SIGNUP_COMPANY.name}
+            subtitle={SIGNUP_COMPANY.domain}
+            editLabel="Edit your company details"
+            footer={
+              <div className="flex flex-wrap gap-1.5">
+                {SIGNUP_COMPANY.tags.map((tag) => (
+                  <Badge key={tag} variant="secondary">
+                    {tag}
+                  </Badge>
+                ))}
+              </div>
+            }
+          >
+            {/* Clamped at two lines, the measurement taken off the Gumloop tile:
               a description that can grow to four lines makes a row of cards
               ragged, and the third line is never the one that matters. */}
-          <p className="line-clamp-2 text-sm text-muted-foreground">{SIGNUP_COMPANY.description}</p>
-        </FoundCard>
+            <p className="line-clamp-2 text-sm text-muted-foreground">
+              {SIGNUP_COMPANY.description}
+            </p>
+          </FoundCard>
+        </div>
       </div>
 
       {/* The one accent on the screen (brand rule 3), and it is spent on the
@@ -140,7 +176,13 @@ export function ProfileStep({
           names what you get rather than what you give up: "Skip" would make
           the quiet option sound like a loss. */}
       <div className="mt-7 flex w-full flex-col gap-2.5">
-        <Button type="button" variant="brand" size="lg" shape="soft" className="w-full">
+        <Button
+          type="button"
+          variant="brand"
+          size="lg"
+          shape="soft"
+          className="w-full"
+        >
           {/* The mark rather than a sparkle: this button starts the thing the
               product does, so the product's own glyph is the honest label for
               it, and a sparkle is what everyone else's AI button wears. Flat
