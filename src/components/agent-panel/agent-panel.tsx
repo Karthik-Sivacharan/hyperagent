@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
+import { useEffect, useId, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { IconCheck } from "@tabler/icons-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -151,7 +151,22 @@ function Field({
   );
 }
 
-export function AgentPanel({ className }: { className?: string }) {
+export function AgentPanel({
+  className,
+  onWidthChange,
+}: {
+  className?: string;
+  /**
+   * Reports the panel's live width, including the resting one on mount.
+   *
+   * The panel owns its width — nothing outside it should be able to set it —
+   * but the column it sits beside has to know, or dragging the splitter opens
+   * a gap between the two. So the width goes UP as a fact rather than down as
+   * a prop, which is the same direction Composer's `onValueChange` reports in
+   * and leaves every other caller (the /design route) free to ignore it.
+   */
+  onWidthChange?: (width: number) => void;
+}) {
   const [saved, setSaved] = useState<Draft>(INITIAL_DRAFT);
   const [draft, setDraft] = useState<Draft>(INITIAL_DRAFT);
   const dirty = !sameDraft(draft, saved);
@@ -172,6 +187,10 @@ export function AgentPanel({ className }: { className?: string }) {
   // a pointer is a setting some people cannot change.
   const [width, setWidth] = useState(AGENT_PANEL_WIDTH);
   const drag = useRef({ startX: 0, startWidth: AGENT_PANEL_WIDTH });
+
+  useEffect(() => {
+    onWidthChange?.(width);
+  }, [width, onWidthChange]);
 
   const onResizeStart = (e: ReactPointerEvent<HTMLDivElement>) => {
     e.preventDefault();

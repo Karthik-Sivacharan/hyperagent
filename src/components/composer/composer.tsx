@@ -51,6 +51,18 @@ type ComposerProps = {
 // no textarea to measure anyway. Same device as signup-screen.tsx.
 const useBeforePaint = typeof window === "undefined" ? useEffect : useLayoutEffect;
 
+/**
+ * One row until the text needs more, then up to `MAX_EDITOR_PX` and a scroll.
+ * `height: auto` first because scrollHeight only reports the content's height
+ * when the element is not already being held taller than it.
+ */
+const MAX_EDITOR_PX = 200;
+function grow(el: HTMLTextAreaElement | null) {
+  if (!el) return;
+  el.style.height = "auto";
+  el.style.height = `${Math.min(el.scrollHeight, MAX_EDITOR_PX)}px`;
+}
+
 export function Composer({
   placeholder = "Ask anything or start a task…",
   showAgentPicker = true,
@@ -83,11 +95,23 @@ export function Composer({
   // new height in the same frame as the character that caused it, which is what
   // the input handler used to guarantee.
   useBeforePaint(() => {
-    const el = editorRef.current;
-    if (!el) return;
-    el.style.height = "auto";
-    el.style.height = `${Math.min(el.scrollHeight, 200)}px`;
+    grow(editorRef.current);
   }, [value]);
+
+  // …and again whenever the box CHANGES WIDTH, which is the same bug with a
+  // different trigger. The effect above only fires when the text changes, so a
+  // composer whose column narrows under it keeps the height it measured at the
+  // old measure and clips the overflow — no input event, no re-measure. The
+  // signup handoff makes that a real case rather than a theoretical one: the
+  // app's two side columns arrive around a filled composer and take ~150px off
+  // it, which is exactly the width at which a two-line brief becomes three.
+  useEffect(() => {
+    const el = editorRef.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(() => grow(el));
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   return (
     <div

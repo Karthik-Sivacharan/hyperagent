@@ -142,6 +142,11 @@ export function SignupScreen() {
   // which also means the mark keeps its existing seat and the FLIP effect
   // below needs no fifth case. See app-handoff.tsx.
   const [handedOff, setHandedOff] = useState(false);
+  // The panel owns its width and reports it; the column between the two
+  // columns has to pad by whatever it currently is, or dragging the splitter
+  // opens a gap. Held here rather than read from a constant because the panel
+  // is resizable and a constant would only be right until the first drag.
+  const [panelWidth, setPanelWidth] = useState(0);
   const [mode, setMode] = useState<Mode>("providers");
   const emailFieldRef = useRef<HTMLInputElement>(null);
   const emailTriggerRef = useRef<HTMLButtonElement>(null);
@@ -328,10 +333,14 @@ export function SignupScreen() {
         // compose with the mark's own transform and fight it.
         "relative z-10 flex min-h-svh flex-col items-center justify-center px-5 py-12",
         "transition-[padding] duration-(--duration-slide) ease-in-out motion-reduce:transition-none",
-        handedOff && "md:pl-64",
+        // Both edges, because the shell arrives on both. The right side reads
+        // the live panel width through a custom property so a splitter drag
+        // moves the column with it; the left is the sidebar's resting 256.
+        handedOff && "md:pl-64 md:pr-(--handoff-panel-w)",
       )}
+      style={{ "--handoff-panel-w": handedOff ? `${panelWidth}px` : "0px" } as React.CSSProperties}
     >
-      <AppHandoff entered={handedOff} />
+      <AppHandoff entered={handedOff} onPanelWidthChange={setPanelWidth} />
       {/* The stage is the column's measure, and it is the ONE thing that
           changes between the first three screens and the fourth. 384px is a
           sign-in column; the chat step is a thread, and the product's own

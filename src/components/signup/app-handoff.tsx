@@ -1,5 +1,6 @@
 "use client";
 
+import { AgentPanel } from "@/components/agent-panel/agent-panel";
 import { Sidebar } from "@/components/app/sidebar";
 import { ThreadHeader } from "@/components/thread/thread-header";
 import type { Thread } from "@/lib/mock/threads";
@@ -64,7 +65,14 @@ const HANDOFF_THREAD: Thread = {
 // object rather than as four.
 const TRAVEL = "duration-(--duration-slide) ease-in-out motion-reduce:transition-none";
 
-export function AppHandoff({ entered }: { entered: boolean }) {
+export function AppHandoff({
+  entered,
+  onPanelWidthChange,
+}: {
+  entered: boolean;
+  /** The panel is drag-resizable, and the column's padding has to follow it. */
+  onPanelWidthChange?: (width: number) => void;
+}) {
   return (
     // Behind the column, never over it: the conversation stays the subject and
     // the building assembles around it. `fixed` rather than absolute so the
@@ -100,7 +108,7 @@ export function AppHandoff({ entered }: { entered: boolean }) {
           TRAVEL,
           entered ? "opacity-100" : "opacity-0",
         )}
-        style={{ paddingLeft: HANDOFF_SIDEBAR_PX }}
+        style={{ paddingLeft: HANDOFF_SIDEBAR_PX, paddingRight: "var(--handoff-panel-w, 0px)" }}
       >
         <ThreadHeader thread={HANDOFF_THREAD} model={HANDOFF_THREAD.model} />
       </div>
@@ -125,6 +133,26 @@ export function AppHandoff({ entered }: { entered: boolean }) {
         )}
       >
         <Sidebar />
+      </div>
+
+      {/* The configuration panel, arriving on the opposite side in the same
+          beat. Two columns sliding in from two edges is one gesture — the room
+          assembling — where staggering them would read as two events and make
+          the second one feel like a consequence of the first.
+
+          `md:flex` for the same reason the sidebar needs it: the panel's body
+          is a `h-full` scroller and a plain block parent gives it nothing to
+          resolve against. It reports its width upward so the column between
+          the two can keep its padding in step while the splitter is dragged. */}
+      <div
+        className={cn(
+          "absolute inset-y-0 right-0 hidden transition-transform md:flex",
+          TRAVEL,
+          entered ? "translate-x-0" : "translate-x-full",
+          entered && "pointer-events-auto",
+        )}
+      >
+        <AgentPanel onWidthChange={onPanelWidthChange} />
       </div>
     </div>
   );
