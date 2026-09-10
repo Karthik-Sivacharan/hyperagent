@@ -486,7 +486,7 @@
 
   /* ===== SHADCN SEMANTIC TOKENS (light, Brand's `:root`) ===== */
 
-  color-scheme: light; /* next-themes toggles `dark` on <html>; light is the default mapping */
+  color-scheme: light; /* the `:root` mapping is light; next-themes toggles `dark` on <html>, and defaults to it */
 
   --background: oklch(1 0 0); /* pure white canvas (Brand --surface-primary) */
   --foreground: var(--color-neutral-950);

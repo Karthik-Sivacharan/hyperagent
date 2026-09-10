@@ -109,7 +109,7 @@ node scripts/dev/contact-sheet.mjs out/light out/sheet-light.png "main"
   value). Primitives and the light semantics are one `:root { }` rule; the
   dark mapping is `.dark { }`, which must stay after `:root` in the file
   (equal specificity on `<html>`, so source order decides). `next-themes`
-  sets `dark` on `<html>` from the account menu's Theme item (light is the
+  sets `dark` on `<html>` from the account menu's Theme item (dark is the
   default, system follows the OS, the choice persists in localStorage).
   `<body>` carries no theme class. Base styles sit on `html`, `body` and
   `*`; the typography role classes (`text-heading-display`,
