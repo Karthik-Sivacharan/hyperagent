@@ -2,8 +2,10 @@
 
 Written 2026-09-07 at the end of plan step 5 (the brand colour tokens are
 the app's only palette), updated the same day for the move to Tabler
-icons and for the component system sweep, and on 2026-09-09 for the
-composer Tools panel merge and the heading-cut decision. Read this first
+icons and for the component system sweep, on 2026-09-09 for the
+composer Tools panel merge and the heading-cut decision, and again on
+2026-09-09 for the signup / hyper-personalized onboarding branch, which
+is the only work NOT on `main`. Read this first
 in a new session, then `README.md`, `docs/components.md`,
 `docs/brand/reskin-conventions.md`, `docs/brand/icons.md` and
 `docs/clone-conventions.md`.
@@ -75,9 +77,16 @@ in a new session, then `README.md`, `docs/components.md`,
   an `indicator` prop, and `DropdownMenuContent` no longer restores focus
   after a pointer close, which fixed a stuck focus ring and a stuck
   tooltip on the composer pills. All six gates passed at the merge.
-- There is one branch (`main`), pushed to `origin`
-  (github.com/Karthik-Sivacharan/hyperagent, private); no open worktrees,
-  and a clean tree.
+- **`feat/hyper-personalized-onboarding` is live work and is NOT merged**
+  (2026-09-09, 8 commits ahead of `main`, not pushed). It adds `/signup` —
+  a four-step flow that is the first thing in this repo that is not a clone
+  of an existing hyperagent.com page. See "The signup flow" below before
+  touching it. `main` itself is unchanged and still pushed to `origin`
+  (github.com/Karthik-Sivacharan/hyperagent, private).
+- A second worktree, `.claude/worktrees/onboarding-exact` (branch
+  `onboarding-exact`), holds a DIFFERENT `/onboarding` feature. It is
+  unrelated to the signup flow; do not confuse the two or edit one from the
+  other's worktree.
 - Verification at the end of step 5: `npx tsc --noEmit`, `npm run lint` (no
   warnings), `npm run build` (29 routes), `npm run brand:check-contrast`
   (WCAG AA, 64 pairs per theme, zero skipped), `npm run brand:lint-tokens`
@@ -223,6 +232,117 @@ node scripts/dev/contact-sheet.mjs out/light out/sheet-light.png "main"
   rule shown red against a fixture before green.
 - Phase 3, the orchestrator: the six gates, the full pixel diff, the
   `--no-ff` merge.
+
+## The signup flow (branch `feat/hyper-personalized-onboarding`, 2026-09-09)
+
+Not merged, not pushed, 8 commits ahead of `main`. Everything below lives at
+`/signup`, outside the `(app)` route group on purpose: an account gate gets
+the root layout (fonts, theme, tooltips) and none of the app shell.
+
+**What it is.** A four-step flow on one page, no routing: pick a provider →
+a wait → confirm the record we built → a chat-shaped screen that turns that
+record into a brief. It is a demo of hyper-personalized onboarding, and the
+first UI in this repo invented rather than cloned, so `docs/reference/` has
+no ground truth for it. The design references were Gumloop's agent tiles and
+hyperagent.com's own thread column, both measured live rather than eyeballed.
+
+**Nothing authenticates.** `src/lib/mock/signup-identity.ts` is the whole
+"result", static like the rest of `src/lib/mock/`. It deliberately keeps the
+split a real implementation would have: Google's ID token already carries
+`given_name`, `family_name`, `email` and `picture` (free), while everything
+about the company comes from an enrichment call keyed on the token's `hd`
+domain claim (not free, and the half that can come back empty). That is why
+the company card is editable and why the screen reads as a draft to confirm.
+
+**The step machine** is `src/components/signup/signup-screen.tsx`:
+`signin | loading | profile | personalize`, one way, a plain string. All four
+screens share one CSS grid cell and crossfade, so the cell is as tall as the
+tallest and nothing reflows. Hidden screens are `inert`.
+
+**One mark for the whole flow.** The Hyperagent mark is rendered ONCE in the
+stage and never unmounted — unmounting replays its entrance, which is the
+blink this replaced. Each screen carries an empty seat (`data-mark-slot`)
+holding its place in the column, and the mark is FLIPped between seats in a
+`useBeforePaint` effect. Two things there are load-bearing and easy to break:
+the in-flight animation must be cancelled BEFORE the second measurement or it
+reports the animated position rather than the new resting one; and
+`origin-top-left` is what makes the arithmetic "translate to the seat's
+corner" with no half-size correction (64 × 0.6875 = the 44px seat exactly).
+A `ResizeObserver` re-parks without animating on reflow.
+
+**Motion decisions, all measured rather than guessed.**
+- The mark keeps ONE rendered size (64) its whole life and reaches 44 by
+  scaling. Re-rendering the SVG smaller re-rasterises its filters mid-flight.
+  `material-mark.tsx` gates those filters at 40px (`MATERIAL_MIN_PX`).
+- `material-mark.tsx` gained `spin="auto"`: the hover turn (600ms) on an
+  infinite loop with the pause written INTO the keyframes, because
+  `iterations: Infinity` honours a `delay` only once. Cycle 968ms = 600ms turn
+  + 368ms hold. In that mode it takes no cursor and no hover handlers.
+  Leaving auto used to snap the rotation to 0; cleanup now carries the
+  remaining sweep to 360°.
+- Travel uses `--ease-in-out`, NOT `--duration-slide`'s usual quint-out
+  partner. Measured mid-flight, quint-out had the mark 94% of the way there at
+  t=210ms while the column behind it was still half-opaque — a flick then a
+  drift. Same finding the mark's own 360° turn already records.
+- On the last step the two record cards MORPH into the sentence's chips: each
+  card's media flies to its chip while the chip's media flies back, same FLIP.
+  Sampled live, source and chip occupy an identical rect at every frame past
+  the first.
+- Every one of these bails on `prefers-reduced-motion`, which leaves a still
+  mark — so the loading screen owns a text status line that changes either way.
+
+**The chips are a deliberate rule break.** `identity-chips.tsx` colours the
+three inline chips `info` / `success` / `warning`. Those are STATUS tokens and
+brand rule 8 reserves them for status; here they are category labels carrying
+no state. The reason is the token lint: `scripts/brand/lint-tokens.mjs` bans
+raw hex and stock palette classes, and those five status hues are the only
+distinct ones that exist. `destructive` was left out (red never reads as a
+category) and `brand` too (the screen's one tangerine belongs to the composer
+send). **If this bothers a future reader, the clean fix is real categorical
+tokens in `brand.css`** — deliberately not done, because that is the shared
+token file page branches are meant to leave alone. The chips are also not
+`Badge`: an `h-5 rounded-full` pill is a status chip, not something that sits
+in running text, and they are `inline-block` rather than `inline-flex` so the
+baseline comes from the label's own line box (inline-flex measured 1.7px low).
+
+**Reuse worth knowing.**
+- `src/components/thread/` and `src/components/composer/` carry NO app-shell
+  context. `Composer` mounts verbatim outside `(app)`; that is how the last
+  step gets a chat window without a sidebar.
+- `FoundCard` is the shell both record cards wear. `AgentCard` reuses its
+  look (same tint, padding, rim light) but NOT the component: FoundCard's row
+  is media + title + subtitle + corner action and an agent has none of those.
+- The tool-logo row follows Gumloop's measured structure: one bordered group
+  with `divide-x` between chrome-less tiles, the `+N` as another tile inside
+  that group, not a detached pill.
+- Logos prefer the ~29 already in `settings/integration-logos.tsx` (already on
+  the token lint's ALLOW list) and fall back to `public/tools/` via
+  `src/lib/mock/tool-logos.ts`. **Any single-tone logo added there must paint
+  in `currentColor`** — Notion and GitHub arrived hard-coded near-black and
+  were invisible on the dark canvas until they were converted.
+- `src/lib/mock/` is NOT scanned by the token lint at all (its `ROOTS` are
+  only `src/components` and `src/app`), so a manifest of paths needs no ALLOW
+  entry; a component that inlines a mark as SVG does.
+
+**Known gaps on this branch, in the order worth fixing.**
+- The last screen is a still life. The sentence does not type in, the cards do
+  not stagger, nothing streams — on a screen whose premise is "we are
+  researching for you", that stillness is the biggest gap between it and the
+  idea.
+- The agent cards are presentational: no hover, no cursor, not pickable.
+- The two edit pencils on the record cards are inert. Wiring them means
+  deciding inline editing vs a dialog.
+- Only Google is wired; Apple and Microsoft are inert, as the email form is.
+- Narrow viewports have the classes but no visual confirmation. Nothing here
+  has been seen below 1456 wide.
+- `--shadow-rim` on the record cards does real work in dark and is close to
+  invisible in light, where `--highlight` is white on a near-white card. Left
+  as is, since the light theme is flat by design elsewhere. A tighter
+  `inset 0 1px 2px` would make it read; a per-theme inset would be correct.
+- The wait is 3780ms of theatre. Honest for a demo, long once a real OAuth
+  round trip sits behind it.
+- Every suggested agent happens to draw Linear, so the tool rows look more
+  alike than they should.
 
 ## Design decisions worth knowing
 
@@ -441,20 +561,21 @@ removed afterwards.
 
 ## Prompt to start the next session
 
-> Read HANDOFF.md, README.md, docs/components.md, docs/brand/design.md and
-> docs/brand/reskin-conventions.md in ~/Projects/hyperagent. Phases 1 and 2,
-> plan step 5, the component system sweep and the composer Tools panel
-> are merged on main and pushed: the dashboard clone runs on the brand tokens as its
-> only palette, light and dark, in Geist and Geist Mono on Vercel's Geist
-> roles, with Tabler as the only icon set (docs/brand/icons.md), and every
-> piece of UI is built from the primitives in src/components/ui and the
-> composites in src/components/patterns (page files hold no raw control;
-> npm test locks it), with six gates (tsc, lint, build,
-> brand:check-contrast, brand:lint-tokens, test). Do the phone-width pass:
-> verify every route at 390×844 in light and dark with
-> scripts/dev/screenshot-pages.mjs (add a viewport option), fix layout that
-> breaks using only the brand tokens and the existing primitives (add a
-> primitive per docs/components.md §3 if one is missing), keep the
-> 1456-wide screenshots pixel-identical (capture before you start and
-> compare after), and prune the unread mock fields listed in the handoff.
-> Commit on main with the trailers in HANDOFF.md and push.
+The live work is the signup branch, so this is the prompt for it. (The
+phone-width pass on `main`, which was the previous next step, is still
+unstarted and is recorded under "Known gaps and follow-ups".)
+
+> Read HANDOFF.md in ~/Projects/hyperagent — especially "The signup flow" —
+> then AGENTS.md, docs/brand/reskin-conventions.md and docs/components.md.
+> You are on branch `feat/hyper-personalized-onboarding`, 8 commits ahead of
+> main, not merged and not pushed; the tree is clean and all six gates pass.
+> It adds `/signup`: a four-step invented flow (providers → a spinning-mark
+> wait → a confirm-your-record screen of two cards → a chat-shaped screen
+> where those cards morph into coloured chips in a sentence, above suggested
+> agent cards and a live composer). Everything is static mock data; nothing
+> authenticates. The mark is a single never-unmounted element FLIPped between
+> per-screen seats — read that effect in signup-screen.tsx before changing
+> any layout on this page. Run `npm run dev` and walk the flow in both themes
+> before you touch anything. **Do not start work: report what you have read
+> and wait for instructions.**
+
