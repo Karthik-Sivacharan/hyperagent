@@ -410,8 +410,10 @@
   --shadow-edge: 0 0 0 1px var(--border-subtle);                                            /* hairline as box-shadow (Vercel technique) */
   --shadow-card: 0 0 0 1px var(--border-subtle), 0 2px 2px 0 oklch(0 0 0 / 0.03);           /* resting block / card */
   --shadow-card-hover: 0 0 0 1px var(--border-subtle), 0 2px 2px 0 oklch(0 0 0 / 0.03), 0 8px 16px -4px oklch(0 0 0 / 0.06); /* hover lift, 300ms */
+  --shadow-card-soft: 0 0 0 1px var(--border-subtle), 0 1px 2px 0 oklch(0 0 0 / 0.015);     /* card, one step quieter: same hairline, half the drop */
   --shadow-avatar: 0 32.25px 32.25px 0 oklch(0 0 0 / 0.10), 0 17.2px 17.2px -8.6px oklch(0 0 0 / 0.10), 0 8.6px 8.6px -4.3px oklch(0 0 0 / 0.03), 0 4.3px 4.3px -2.15px oklch(0 0 0 / 0.05), 0 1.075px 1.075px -0.538px oklch(0 0 0 / 0.05), inset 0 2px 4px 0 var(--highlight), inset 0 -2px 4px 0 var(--highlight-soft); /* profile avatar */
   --shadow-rim: inset 0 2px 4px var(--highlight), inset 0 -2px 4px var(--highlight); /* photo tile rim light */
+  --shadow-rim-soft: inset 0 2px 4px var(--highlight-soft), inset 0 -2px 4px var(--highlight-soft); /* the same rim on the soft highlight: a lit edge you read rather than see */
   --shadow-hero: inset 0 1px 1px 0 var(--highlight-strong), inset 0 -1px 1px 0 var(--highlight), 0 24.35px 24.35px 0 oklch(0 0 0 / 0.05), 0 6.49px 6.49px -3.25px oklch(0 0 0 / 0.05), 0 3.25px 3.25px -1.62px oklch(0 0 0 / 0.05), 0 0.81px 0.81px -0.41px oklch(0.67 0.22 42 / 0.05), 0 0 0 1px oklch(0 0 0 / 0.05); /* profile hero backdrop (72px radius, sand-2/60→transparent gradient) - note the faint tangerine micro-layer */
 
   /* Z-Index Scale - Brand's own ladder (--z-dropdown 100 / --z-modal 200 /
@@ -484,7 +486,7 @@
 
   /* ===== SHADCN SEMANTIC TOKENS (light, Brand's `:root`) ===== */
 
-  color-scheme: light; /* next-themes toggles `dark` on <html>; light is the default mapping */
+  color-scheme: light; /* the `:root` mapping is light; next-themes toggles `dark` on <html>, and defaults to it */
 
   --background: oklch(1 0 0); /* pure white canvas (Brand --surface-primary) */
   --foreground: var(--color-neutral-950);

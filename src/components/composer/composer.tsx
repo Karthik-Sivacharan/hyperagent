@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { IconAdjustmentsHorizontal, IconArrowRight, IconArrowUp, IconChevronDown, IconListCheck, IconMicrophone, IconPlus, IconRobotFace } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
@@ -34,7 +34,34 @@ type ComposerProps = {
   mode?: ExecutionMode;
   className?: string;
   autoFocus?: boolean;
+  /** Controlled value. Omit for the uncontrolled composer every other page uses. */
+  value?: string;
+  /** Called on every edit when `value` is supplied. */
+  onValueChange?: (value: string) => void;
+  /**
+   * Called when the send arrow is pressed with something in the box. Omit and
+   * the arrow stays the inert prop it is on every cloned route — the same
+   * opt-in shape as `value` above, and for the same reason: exactly one screen
+   * in the repo has somewhere to send to.
+   */
+  onSend?: () => void;
 };
+
+// useLayoutEffect warns when React renders this on the server, where there is
+// no textarea to measure anyway. Same device as signup-screen.tsx.
+const useBeforePaint = typeof window === "undefined" ? useEffect : useLayoutEffect;
+
+/**
+ * One row until the text needs more, then up to `MAX_EDITOR_PX` and a scroll.
+ * `height: auto` first because scrollHeight only reports the content's height
+ * when the element is not already being held taller than it.
+ */
+const MAX_EDITOR_PX = 200;
+function grow(el: HTMLTextAreaElement | null) {
+  if (!el) return;
+  el.style.height = "auto";
+  el.style.height = `${Math.min(el.scrollHeight, MAX_EDITOR_PX)}px`;
+}
 
 export function Composer({
   placeholder = "Ask anything or start a task…",
@@ -44,14 +71,47 @@ export function Composer({
   mode: initialMode = "plan",
   className,
   autoFocus,
+  value: controlledValue,
+  onValueChange,
+  onSend,
 }: ComposerProps) {
-  const [value, setValue] = useState("");
+  // Every page but the signup personalize step just types into the composer, so
+  // the draft state stays and `value` is the optional override: pass it and the
+  // parent owns the text (it can drop a suggested agent's brief in), omit it and
+  // nothing outside this file learns the state exists.
+  const [draft, setDraft] = useState("");
+  const value = controlledValue ?? draft;
   const [model, setModel] = useState(initialModel);
   const [effort, setEffort] = useState<Effort>("Medium");
   const [mode, setMode] = useState<ExecutionMode>(initialMode);
+  const editorRef = useRef<HTMLTextAreaElement>(null);
   const canSend = value.trim().length > 0;
   const modeLabel = EXECUTION_MODES[mode].pill;
   const planning = mode === "plan";
+
+  // Auto-grow, keyed on the rendered value rather than hung off the textarea's
+  // own `onInput`: text set by a parent fires no input event, so the box would
+  // sit at one row under three lines of it. Measuring before paint keeps the
+  // new height in the same frame as the character that caused it, which is what
+  // the input handler used to guarantee.
+  useBeforePaint(() => {
+    grow(editorRef.current);
+  }, [value]);
+
+  // …and again whenever the box CHANGES WIDTH, which is the same bug with a
+  // different trigger. The effect above only fires when the text changes, so a
+  // composer whose column narrows under it keeps the height it measured at the
+  // old measure and clips the overflow — no input event, no re-measure. The
+  // signup handoff makes that a real case rather than a theoretical one: the
+  // app's two side columns arrive around a filled composer and take ~150px off
+  // it, which is exactly the width at which a two-line brief becomes three.
+  useEffect(() => {
+    const el = editorRef.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(() => grow(el));
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   return (
     <div
@@ -68,14 +128,13 @@ export function Composer({
               variant="bare"
               aria-label="Message the agent"
               placeholder={placeholder}
+              ref={editorRef}
               value={value}
               autoFocus={autoFocus}
               rows={1}
-              onChange={(e) => setValue(e.target.value)}
-              onInput={(e) => {
-                const el = e.currentTarget;
-                el.style.height = "auto";
-                el.style.height = `${Math.min(el.scrollHeight, 200)}px`;
+              onChange={(e) => {
+                setDraft(e.target.value);
+                onValueChange?.(e.target.value);
               }}
               className="block min-h-[44px] max-h-[200px] resize-none overflow-y-auto text-sm leading-[21px] md:text-sm"
             />
@@ -167,6 +226,7 @@ export function Composer({
                   className="size-9 shrink-0 disabled:bg-tint-10 disabled:text-foreground-low disabled:opacity-100 disabled:shadow-none"
                   aria-label="Send message"
                   disabled={!canSend}
+                  onClick={onSend}
                 >
                   <IconArrowUp className="size-4" aria-hidden="true" />
                 </Button>

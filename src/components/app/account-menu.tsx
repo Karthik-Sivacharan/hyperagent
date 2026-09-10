@@ -35,7 +35,8 @@ import { TokenUsageChart } from "@/components/app/token-usage-chart";
 // The account dropdown at the bottom of the sidebar, transcribed from
 // docs/reference/overlays/account-menu*.html: plan usage, token usage panel,
 // Integrations, Settings, Theme, Help, Add account, Log out. Phase 2 wires
-// the Theme choice to next-themes (light is the brand's canonical theme).
+// the Theme choice to next-themes (dark is the app's default; `:root` is
+// still the brand's light mapping and `.dark` still only re-maps it).
 
 type ThemeChoice = "light" | "dark" | "system";
 

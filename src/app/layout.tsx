@@ -20,9 +20,15 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     // palette: light on `:root`, the dark mapping on `.dark`, which
     // next-themes puts on <html> (chosen from the account menu, remembered in
     // localStorage, "system" follows the OS).
+    //
+    // The app DEFAULTS TO DARK: someone with no stored choice gets `.dark`,
+    // whatever their OS prefers. `defaultTheme` outranks the OS here — only
+    // the menu's explicit "System" item follows it — so `enableSystem` stays
+    // on to keep that third choice working. This is the app's default only;
+    // `:root` is still the light mapping and `.dark` still only re-maps it.
     <html lang="en" className={brandFontClassName} suppressHydrationWarning>
       <body className="antialiased">
-        <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
           <TooltipProvider delayDuration={300}>{children}</TooltipProvider>
         </ThemeProvider>
       </body>

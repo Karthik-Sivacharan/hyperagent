@@ -44,6 +44,7 @@ const ALLOW = [
   'src/components/settings/settings-icons.tsx',
   'src/components/thread/openclaw-icon.tsx',
   'src/components/marketplace/agent-icon.tsx',
+  'src/components/signup/provider-marks.tsx',
   'src/app/design/brand/', // the swatch page prints hex labels on purpose
 ];
 

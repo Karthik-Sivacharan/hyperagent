@@ -5,7 +5,7 @@
 > - **Source of truth here is `src/design/brand/brand.css`**, not the original prototype's `src/app/globals.css`. Every token keeps its original name. The sheet is plain CSS and is the app's token sheet: Brand's `@theme inline` primitives and its `:root` semantics are one `:root { … }` rule, the dark mapping is `.dark { … }`, and the base styles sit on `html`, `body` and `*`. There is no wrapper class; the tokens apply to the whole document.
 > - **The `@theme` bridge lives in `src/app/globals.css`** ("PHASE 2 BRIDGE", an `@theme inline reference` block), not in this sheet. It names every Brand-only token so the utilities below (`bg-tangerine-500`, `bg-tint-10`, `font-heading`, `ease-out-quart`, `text-display`, `rounded-5xl`, `shadow-card`, `bg-brand`, `bg-surface-secondary`, …) exist app-wide and read the `:root` values. Utilities whose names Tailwind ships by default (`bg-neutral-500`, `rounded-md`, `text-xl`, `ease-out`, `font-medium`) resolve through `var(--…)` as before. Durations and scales stay plain variables: `duration-(--duration-fast)`, `scale-(--scale-press)`.
 > - **`@utility` classes are plain classes** in the utilities layer (`.focus-ring`, `.squircle`, `.skeleton`), and `.genui-prose` / the `text-heading-*` / `text-label-*` roles are plain, unprefixed classes. The `@layer base / components / utilities` wrappers are kept so they lose to utilities exactly as in Brand.
-> - **Theme switching is app-level.** `next-themes` puts `dark` on `<html>` from the account menu's Theme item (light is the default, "system" follows the OS, the choice persists in localStorage), and the `.dark { }` block in `brand.css` remaps the semantics. The swatch page keeps its own local `dark` toggle on its wrapper (`src/app/design/brand/_design/theme-toggle.tsx`), which also paints `bg-background text-foreground` itself, so the sheet can be inspected in either mapping regardless of the app theme.
+> - **Theme switching is app-level.** `next-themes` puts `dark` on `<html>` from the account menu's Theme item (dark is the default, "system" follows the OS, the choice persists in localStorage), and the `.dark { }` block in `brand.css` remaps the semantics. The swatch page keeps its own local `dark` toggle on its wrapper (`src/app/design/brand/_design/theme-toggle.tsx`), which also paints `bg-background text-foreground` itself, so the sheet can be inspected in either mapping regardless of the app theme.
 > - **The type system is Geist.** Phase 2 replaced the prototype's Inter + PythiaType + Newsreader with Geist and Geist Mono and adopted Vercel's published typography roles (see §4); the loaders are in `src/design/brand/fonts.ts`. The swatch page at `src/app/design/brand/page.tsx` (rendered at `/design/brand`); the app's primitives in `src/components/ui/` (`docs/components.md`; the prototype's verbatim component copies were retired in the component sweep and stay in git history); scripts in `scripts/brand/` (`npm run brand:gen-ramps`, `npm run brand:check-contrast`); the audit at `docs/brand/brand-style-audit.md`. `chart.tsx` was not copied (it needs `recharts`, which Hyperagent does not install). See `src/design/brand/README.md` for the phase-2 token mapping table.
 >
 > Everything below this line is Brand's text, edited only for those paths.
@@ -21,7 +21,7 @@
 - **Fonts:** Geist (sans, every text role) · Geist Mono (identifiers only), both from `next/font/google` in `src/design/brand/fonts.ts`; the roles, weights and metrics follow Vercel's published typography system
 - **Color space:** OKLCH throughout
 - **Radius knob:** `--radius: 10px`, multiplicative scale
-- **Themes:** light (canonical) / dark, `next-themes` with `attribute="class"`, `defaultTheme="light"`, `enableSystem` (the brand site defaults to system; the dashboard defaults to light)
+- **Themes:** light / dark, `next-themes` with `attribute="class"`, `defaultTheme="dark"`, `enableSystem` (the brand site defaults to system; the dashboard defaults to dark). `:root` stays the light mapping in `brand.css`; the default only decides which class next-themes puts on `<html>` first
 
 ---
 
@@ -64,7 +64,7 @@ Brand's original token block was `@theme inline`, where Tailwind only emits a `:
 
 ### Light/dark
 
-`next-themes` toggles a `dark` class on `<html>` (`attribute="class"`, `defaultTheme="light"`, `enableSystem` in `src/app/layout.tsx`); the account menu's Theme item offers light, dark and system, and the choice persists in localStorage. The custom variant `@custom-variant dark (&:is(.dark *))` in `globals.css` powers `dark:` utilities. Semantic tokens re-map in the `.dark { }` block of `brand.css`; **primitives do not change.** Only the mapping does. Because fills are tints, most components need no `dark:` overrides at all.
+`next-themes` toggles a `dark` class on `<html>` (`attribute="class"`, `defaultTheme="dark"`, `enableSystem` in `src/app/layout.tsx`); the account menu's Theme item offers light, dark and system, and the choice persists in localStorage. The custom variant `@custom-variant dark (&:is(.dark *))` in `globals.css` powers `dark:` utilities. Semantic tokens re-map in the `.dark { }` block of `brand.css`; **primitives do not change.** Only the mapping does. Because fills are tints, most components need no `dark:` overrides at all.
 
 ---
 

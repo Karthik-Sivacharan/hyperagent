@@ -1,0 +1,119 @@
+import { IconPencil } from "@tabler/icons-react";
+
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
+
+// The shell both "here is what we found" cards wear, so the two are the same
+// object twice rather than two cards that happen to sit together: same media
+// slot, same title/subtitle pair, same corner action, same optional footer.
+//
+// Borrowed from the Gumloop agent tile (measured 2026-09-09): a flat surface
+// whose separation is a hairline rather than a shadow, a title at ~500 weight
+// over a two-line clamped description, a footer row of small bordered pieces,
+// and a corner action that is fully visible at rest — that last one is worth
+// stating, because the reflex is to hide it until hover. On a card whose whole
+// job is "check this, fix what is wrong", a hidden edit affordance is the one
+// control the screen cannot afford to hide, and hover-to-reveal does not exist
+// on touch at all.
+//
+// Two deliberate departures from that reference. It paints its cards in the
+// page's own colour and lets the border do everything; these are tinted
+// (`bg-surface-raised`) because the found record has to read as a distinct
+// object the page is handing you, not as more page. And its icon straddles the
+// card's top edge, escaping it by 32px — a lovely move on a wide grid of
+// tiles, and the wrong one here: two cards stacked in a 384px column would
+// have to buy that overhang twice in vertical space the column does not have.
+// The media stays inside, at the head of the row.
+//
+// The fill is `bg-tint-7` rather than one of the named surfaces, because the
+// named ones are not symmetric here and this card has to weigh the same in
+// both themes. `bg-card` is the canvas colour in light (a white card on a
+// white page is nothing), `bg-surface-secondary` sinks BELOW the canvas in
+// dark, and `bg-surface-raised` lands on #efefed in light against #222221 in
+// dark — a heavy grey slab beside a whisper. A tint is a percentage of the
+// theme's own neutral over whatever is behind it, so both themes get the same
+// step and neither needs a `dark:` variant (docs/brand/reskin-conventions.md,
+// "fills are tints").
+
+export function FoundCard({
+  media,
+  title,
+  subtitle,
+  editLabel,
+  footer,
+  className,
+  children,
+}: {
+  /** Avatar or logo tile. Sized by the caller; the row reserves 48px. */
+  media: React.ReactNode;
+  title: string;
+  subtitle: string;
+  /** Names the action for screen readers — "Edit" alone would not say what.
+   *  Omit it and the corner action is not rendered at all: a card with
+   *  nothing to correct should not carry a pencil, and a pencil with no
+   *  label is worse than no pencil. */
+  editLabel?: string;
+  /** The tag row, on the card that has one. */
+  footer?: React.ReactNode;
+  className?: string;
+  /** The body line: an address on one card, a description on the other. */
+  children?: React.ReactNode;
+}) {
+  return (
+    <Card
+      size="none"
+      className={cn(
+        // `size="none"` zeroes the primitive's own padding so the 40px media
+        // and the 32px action can set the rhythm instead of a 16px default.
+        "relative w-full gap-3 bg-tint-7 p-4 shadow-card-soft",
+        // The rim light. `shadow-card` is a hairline plus a whisper of drop
+        // shadow and nothing else, so on its own this card is a flat panel —
+        // and flat is the one thing the brand's raised surfaces are not. Every
+        // lit piece in brand.css carries an inset pair (`--shadow-xs`, `-md`,
+        // `-lg`, `--shadow-avatar`), and `--shadow-rim` is that pair on its
+        // own. It is the same idea the material mark is built from: a top edge
+        // catching the light and a bottom edge returning it, which is what
+        // makes a shape read as an object rather than a sticker.
+        //
+        // It rides on an `after:` pseudo-element rather than replacing
+        // `shadow-card`, because a box-shadow utility is one declaration and
+        // the card needs both layers — the same device `avatar.tsx` uses to
+        // put a hairline on a shape that already has a shadow. `inset-0` and
+        // the matching 22px corner keep it exactly on the card's edge, and
+        // `pointer-events-none` keeps it from eating the pencil's clicks.
+        "after:pointer-events-none after:absolute after:inset-0 after:rounded-3xl after:shadow-rim-soft",
+        className,
+      )}
+    >
+      <div className="flex items-start gap-3">
+        {media}
+        {/* min-w-0 is what lets the truncate below actually truncate: without
+            it the flex item takes its content's intrinsic width and a long
+            name pushes the action button off the card instead of ellipsing. */}
+        <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+          <p className="truncate font-heading text-base leading-snug font-medium text-foreground">{title}</p>
+          <p className="truncate text-sm text-muted-foreground">{subtitle}</p>
+        </div>
+        {/* Muted at rest and first-tier on hover, so it is legible without
+            competing with the name beside it. -mt-1 -mr-1 pulls the 32px
+            target back so its ICON optically aligns with the card's 16px
+            padding; a ghost button's box is bigger than the glyph it holds. */}
+        {editLabel ? (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-sm"
+            aria-label={editLabel}
+            className="-mt-1 -mr-1 shrink-0 text-foreground-low hover:text-foreground"
+          >
+            <IconPencil aria-hidden="true" />
+          </Button>
+        ) : null}
+      </div>
+
+      {children}
+      {footer}
+    </Card>
+  );
+}
