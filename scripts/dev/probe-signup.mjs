@@ -6,6 +6,38 @@
 // Node 22+ (global WebSocket and fetch), in the shape of
 // scripts/dev/screenshot-pages.mjs.
 //
+// THREAD MODE (2026-09-10, feat/agent-stream). Send no longer lands on a
+// finished screen: the agent answers, and a streaming turn is taller than any
+// viewport, so send changes what scrolls. `<main data-thread>` becomes the
+// thread's scroll container (docs/plans/2026-09-10-agent-stream.md) and the
+// composer docks at the bottom edge. So the probe now:
+//   • waits, after the shell arrives, for the turn to reach
+//     `[data-agent-turn][data-state="waiting"]` (the skills question is up) —
+//     it measures the FINISHED turn, not whichever frame of the stream the
+//     sweep happened to land on. A turn that never gets there is an unsound
+//     run (exit 2), not a failure: nothing measured would be the screen the
+//     criteria are about;
+//   • holds `<main>` at the END of the thread for every measurement, because
+//     that is where a stream leaves the reader, and puts it back there after
+//     each wheel;
+//   • asks the page-scroll question of the PAGE only. `<main>` scrolling is
+//     the thread doing its job and is reported, never failed; html, body and
+//     window moving is the old bug and still fails, now at EVERY width, since
+//     in thread mode nothing is supposed to overflow `<main>` at all;
+//   • dispatches the wheel over the CONVERSATION — the agent turn's visible
+//     middle, above the dock — and over the gutter. The downward wheel lands
+//     with `<main>` already at its end, which makes it the scroll-chaining
+//     test: whatever the thread cannot take, the page must not take either;
+//   • requires the composer to be docked: `[data-composer-dock]` wholly inside
+//     the viewport, its bottom within DOCK_GAP_MAX of the bottom edge;
+//   • walks the agent panel too. HANDOFF records the blind spot this closes:
+//     a panel clipping its own "+ Add" buttons passed every gate and was
+//     caught only by opening a screenshot. Inside the panel a SCROLL CONTAINER
+//     is not exempt the way it is in the column — the Radix viewport clipping
+//     a table box wider than itself is exactly that bug — so only truncating
+//     labels, visually-hidden text and the splitter (which straddles the
+//     panel's edge on purpose, `left: -10`) are let off.
+//
 //   node scripts/dev/probe-signup.mjs [outDir] [baseUrl]   (out/probe, http://localhost:3000)
 //   WIDTHS=1920,1512,1280 node scripts/dev/probe-signup.mjs out/
 //   HEIGHT=868 DPR=2 node scripts/dev/probe-signup.mjs out/
@@ -14,7 +46,8 @@
 //   node scripts/dev/probe-signup.mjs out/ --theme=light
 //   CHROME=/path/to/chrome … to point at another Chromium build
 //
-// Exits 1 if any of the plan's three criteria fails, so it can stand as a gate.
+// Exits 1 if any criterion fails, so it can stand as a gate; 2 when the run is
+// unsound (see UNSOUND below and the turn wait above).
 //
 // THE MEASUREMENT TRAP, and the reason this file exists. `src/app/globals.css`
 // sets `overflow-x: hidden` on `html` AND on `body`, and a used `overflow-x` of
@@ -74,6 +107,14 @@ const DRIVE_WIDTH = Math.max(1280, ...WIDTHS);
 // is a phone and nobody promises a two-column anything.
 const COLUMN_FLOOR = 512;
 const NO_SCROLL_ABOVE = 768;
+// How far above the bottom edge a docked composer may sit. The 16px it sits
+// at is <main>'s `pb-4`, not the dock's own inset: the dock is `sticky
+// bottom-0`, because a sticky box's insets are measured inside its scroller's
+// padding and `bottom-4` put it 32px up. 32 leaves room for a retune without
+// letting a composer that has come loose from the edge pass.
+const DOCK_GAP_MAX = 32;
+// A streaming turn runs ~10s after the shell lands; 40s is four of them.
+const TURN_TIMEOUT_MS = 40000;
 
 mkdirSync(join(outDir, theme), { recursive: true });
 
@@ -247,8 +288,14 @@ function pageCollapseSidebar() {
     /\b(hide|collapse)\b[\w\s]*\bsidebar\b/i.test(b.getAttribute("aria-label") ?? ""),
   );
   if (!btn) return { ok: false, why: 'no button labelled "Hide sidebar" — the collapse control is not there yet' };
-  btn.click();
-  return { ok: true };
+  // No `btn.click()`: the driver presses a REAL mouse at this point, so a
+  // control that something is lying over fails here the way it fails a person.
+  const r = btn.getBoundingClientRect();
+  const x = r.left + r.width / 2;
+  const y = r.top + r.height / 2;
+  const hit = document.elementFromPoint(x, y);
+  const covered = !(hit && (hit === btn || btn.contains(hit)));
+  return { ok: true, x, y, covered, coveredBy: covered && hit ? hit.tagName.toLowerCase() + "." + (hit.getAttribute("class") ?? "").split(/\s+/).slice(0, 3).join(".") : null };
 }
 
 /** Toggle the thread bar's panel control, or say why it could not. */
@@ -264,16 +311,52 @@ function pageTogglePanel() {
   const btn = candidates.find((b) => b.hasAttribute("aria-expanded")) ?? candidates[0];
   if (!btn) return { ok: false, why: "no panel toggle in the thread bar yet" };
   const before = btn.getAttribute("aria-expanded");
-  btn.click();
-  return { ok: true, label: btn.getAttribute("aria-label"), ariaExpandedBefore: before };
+  // A point for a real mouse, not `btn.click()`; see pageCollapseSidebar.
+  const r = btn.getBoundingClientRect();
+  const x = r.left + r.width / 2;
+  const y = r.top + r.height / 2;
+  const hit = document.elementFromPoint(x, y);
+  const covered = !(hit && (hit === btn || btn.contains(hit)));
+  return {
+    ok: true,
+    label: btn.getAttribute("aria-label"),
+    ariaExpandedBefore: before,
+    x,
+    y,
+    covered,
+    coveredBy: covered && hit ? hit.tagName.toLowerCase() + "." + (hit.getAttribute("class") ?? "").split(/\s+/).slice(0, 3).join(".") : null,
+  };
+}
+
+/** Where the agent's turn is, and whether the flow ever became a thread. */
+function pageTurn() {
+  const main = document.querySelector("main");
+  const turn = document.querySelector("[data-agent-turn]");
+  return {
+    thread: !!main && main.hasAttribute("data-thread"),
+    found: !!turn,
+    state: turn?.getAttribute("data-state") ?? null,
+  };
+}
+
+/** Put the thread back at its end, where a stream leaves the reader. */
+function pageThreadToEnd() {
+  const main = document.querySelector("main[data-thread]");
+  if (!main) return false;
+  main.scrollTop = main.scrollHeight;
+  return true;
 }
 
 /** All three scrollers, every time. See the trap at the top of this file. */
 function pageScrollers() {
+  const thread = document.querySelector("main[data-thread]");
   return {
     y: Math.round(window.scrollY),
     doc: Math.round(document.documentElement.scrollTop),
     body: Math.round(document.body.scrollTop),
+    // Not one of the three: the thread's own scroller, which is allowed to
+    // move. Carried here so a wheel can report both in one read.
+    thread: thread ? Math.round(thread.scrollTop) : null,
     docScrollH: document.documentElement.scrollHeight,
     bodyScrollH: document.body.scrollHeight,
     innerH: window.innerHeight,
@@ -293,9 +376,30 @@ function pageTheme(want) {
 }
 
 /** Everything the plan's table asks for, taken in one pass. */
-function pageMeasure() {
+function pageMeasure(args) {
   const px = (n) => Math.round(n * 10) / 10;
-  const out = { warnings: [] };
+  const out = { warnings: [], bleeds: [] };
+  // Paint that bleeds on purpose is not an escape either. The dock's glass
+  // band is a `before:` layer set 20px into each gutter (`-inset-x-5`), so the
+  // dock reports 20px of scroll width that no text or control of its own is
+  // using. Asked of the pseudo-elements themselves, for one read: switch them
+  // off, and if the overflow goes with them it was theirs. Only an absolutely
+  // positioned ::before/::after is asked — an in-flow one is content.
+  const pseudoOnly = (el) => {
+    const has = (pe) => {
+      const cs = getComputedStyle(el, pe);
+      return cs.content !== "none" && cs.content !== "normal" && cs.position === "absolute";
+    };
+    if (!has("::before") && !has("::after")) return false;
+    const off = document.createElement("style");
+    off.textContent = "[data-probe-nopseudo]::before,[data-probe-nopseudo]::after{display:none!important}";
+    el.setAttribute("data-probe-nopseudo", "");
+    document.head.appendChild(off);
+    const over = el.scrollWidth - el.clientWidth;
+    off.remove();
+    el.removeAttribute("data-probe-nopseudo");
+    return over <= 1;
+  };
   const chat = document.querySelector('[data-mark-slot="personalize"]')?.parentElement ?? null;
   const main = document.querySelector("main");
   const stage = main?.querySelector(":scope > div.relative.grid") ?? chat?.closest("main > *") ?? null;
@@ -360,16 +464,26 @@ function pageMeasure() {
     // deliberate scroller (overflow auto/scroll), and a deliberate truncation
     // (`truncate` — overflow hidden plus an ellipsis — which is a label
     // choosing to clip, not a box being overrun).
+    //
+    // A third thing is not an escape either: visually hidden text (`sr-only`,
+    // a 1×1 box clipping a whole sentence on purpose). The stream announces
+    // its progress through one, and a live region is not a box being overrun.
+    // And a fourth, a pseudo-element bleed (see `pseudoOnly` above), which is
+    // carried in `bleeds` so it stays visible in probe.json without failing.
     const escaped = [];
     const walk = (el) => {
       for (const child of el.children) {
         if (child.hasAttribute("inert")) continue;
         const over = child.scrollWidth - child.clientWidth;
-        if (over > 1 && child.clientWidth > 0) {
+        const hidden1px = child.clientWidth <= 1 && child.clientHeight <= 1;
+        if (over > 1 && child.clientWidth > 0 && !hidden1px) {
           const cs = getComputedStyle(child);
           const ox = cs.overflowX;
           const truncating = ox === "hidden" && cs.textOverflow === "ellipsis";
-          if (ox !== "auto" && ox !== "scroll" && !truncating) {
+          const bleed = ox !== "auto" && ox !== "scroll" && !truncating && pseudoOnly(child);
+          if (bleed) {
+            out.bleeds.push({ what: `${child.tagName.toLowerCase()}${child.hasAttribute("data-composer-dock") ? "[data-composer-dock]" : ""}`, over: Math.round(over) });
+          } else if (ox !== "auto" && ox !== "scroll" && !truncating) {
             const cls = (child.getAttribute("class") ?? "").split(/\s+/).filter(Boolean).slice(0, 3).join(".");
             const text = (child.textContent ?? "").trim().replace(/\s+/g, " ").slice(0, 28);
             escaped.push({
@@ -434,6 +548,145 @@ function pageMeasure() {
     out.warnings.push("no agent panel in the DOM");
   }
 
+  // The panel's interior. Walked only while the panel is on screen — a closed
+  // panel is parked past the right edge and every box in it is "outside" by
+  // construction. See the header for why a scroll container is NOT exempt in
+  // here: it is precisely the clipped Radix viewport this walk exists for.
+  // The rect test is skipped under any ancestor that clips horizontally,
+  // because a clipped descendant's rect runs on past its clipper and the
+  // clipper's own scrollWidth has already said everything there is to say.
+  out.panelEscaped = [];
+  if (panelEl && out.panel?.visible) {
+    const box = panelEl.getBoundingClientRect();
+    const pwalk = (el, clipped) => {
+      for (const child of el.children) {
+        if (child.hasAttribute("inert") || child.getAttribute("role") === "separator") continue;
+        const cs = getComputedStyle(child);
+        if (cs.display === "none" || cs.position === "fixed") continue;
+        const r = child.getBoundingClientRect();
+        const over = child.scrollWidth - child.clientWidth;
+        const truncating = cs.overflowX === "hidden" && cs.textOverflow === "ellipsis";
+        const hidden1px = child.clientWidth <= 1 && child.clientHeight <= 1;
+        const overrun = over > 1 && child.clientWidth > 0 && !truncating && !hidden1px && !pseudoOnly(child);
+        const outside = !clipped && r.width > 1 && (r.left < box.left - 1 || r.right > box.right + 1);
+        if (overrun || outside) {
+          const cls = (child.getAttribute("class") ?? "").split(/\s+/).filter(Boolean).slice(0, 3).join(".");
+          const text = (child.textContent ?? "").trim().replace(/\s+/g, " ").slice(0, 28);
+          out.panelEscaped.push({
+            what: `${child.tagName.toLowerCase()}${cls ? "." + cls : ""}${text ? ` "${text}"` : ""}`,
+            client: child.clientWidth,
+            scroll: child.scrollWidth,
+            over: overrun ? Math.round(over) : Math.round(Math.max(box.left - r.left, r.right - box.right)),
+            how: overrun ? "overrun" : "outside the panel",
+          });
+        }
+        pwalk(child, clipped || cs.overflowX !== "visible");
+      }
+    };
+    pwalk(panelEl, false);
+  }
+
+  // The chrome takes clicks. Every enabled control in the sidebar, the thread
+  // bar and an open agent panel has to be the topmost thing at its own centre.
+  // Two layering bugs got past every other gate because a programmatic
+  // `el.click()` ignores whatever is painted on top: the panel toggle under a
+  // `pointer-events-none` layer that never re-armed, and the thread bar's
+  // padded, re-armed wrapper lying over the sidebar's collapse toggle and home
+  // link once the bar moved above the column (2026-09-10, both). A control
+  // scrolled out of its own scroller, disabled, `inert` or `pointer-events:
+  // none` is skipped: nobody can click it, and none of those is a cover.
+  out.covered = [];
+  const barRow = document.querySelector('button[aria-label="Star thread"]')?.closest(".h-12") ?? null;
+  const chromeRoots = [
+    sideEl && sideEl.getBoundingClientRect().right > 0 ? sideEl : null,
+    barRow?.parentElement ?? null,
+    panelEl && out.panel?.visible ? panelEl : null,
+  ].filter(Boolean);
+  const CONTROLS = 'button, a[href], textarea, input:not([type="hidden"]), [role="tab"], [role="switch"], [role="combobox"], [role="checkbox"]';
+  const describe = (el) => {
+    if (!el) return "nothing";
+    const cls = (el.getAttribute("class") ?? "").split(/\s+/).filter(Boolean).slice(0, 3).join(".");
+    return `${el.tagName.toLowerCase()}${cls ? "." + cls : ""}`;
+  };
+  for (const root of chromeRoots) {
+    for (const el of root.querySelectorAll(CONTROLS)) {
+      if (el.closest("[inert]") || el.disabled || el.getAttribute("aria-disabled") === "true") continue;
+      if (getComputedStyle(el).pointerEvents === "none" || getComputedStyle(el).visibility === "hidden") continue;
+      const r = el.getBoundingClientRect();
+      if (r.width < 2 || r.height < 2) continue;
+      const x = r.left + r.width / 2;
+      const y = r.top + r.height / 2;
+      if (x < 0 || y < 0 || x > window.innerWidth || y > window.innerHeight) continue;
+      // Scrolled out of view inside its own scroller (the sidebar's list, the
+      // panel's body): the centre is outside a clipping ancestor, so whatever
+      // is on top there is not covering the control, the scroller is.
+      let clippedOut = false;
+      for (let a = el.parentElement; a && a !== root.parentElement; a = a.parentElement) {
+        const acs = getComputedStyle(a);
+        if (acs.overflowX === "visible" && acs.overflowY === "visible") continue;
+        const ar = a.getBoundingClientRect();
+        if (x < ar.left || x > ar.right || y < ar.top || y > ar.bottom) {
+          clippedOut = true;
+          break;
+        }
+      }
+      if (clippedOut) continue;
+      const hit = document.elementFromPoint(x, y);
+      if (hit && (hit === el || el.contains(hit))) continue;
+      out.covered.push({
+        what: (el.getAttribute("aria-label") || el.textContent || describe(el)).trim().replace(/\s+/g, " ").slice(0, 32),
+        at: [Math.round(x), Math.round(y)],
+        by: describe(hit),
+      });
+    }
+  }
+
+  // Thread mode. `<main>` is the thread's scroller once send has been pressed;
+  // its figures are reported, never failed (see the header).
+  const threadEl = document.querySelector("main[data-thread]");
+  out.thread = threadEl
+    ? {
+        on: true,
+        scrollTop: Math.round(threadEl.scrollTop),
+        scrollHeight: threadEl.scrollHeight,
+        clientHeight: threadEl.clientHeight,
+        overflow: Math.max(0, threadEl.scrollHeight - threadEl.clientHeight),
+      }
+    : { on: false };
+
+  const turnEl = document.querySelector("[data-agent-turn]");
+  if (turnEl) {
+    const r = turnEl.getBoundingClientRect();
+    out.turn = { state: turnEl.getAttribute("data-state"), rect: { x: px(r.left), y: px(r.top), w: px(r.width), h: px(r.height) } };
+  } else out.turn = null;
+
+  // The dock: wholly inside the viewport and sitting on its bottom edge. Its
+  // transform is carried too, because the dock arrives by a FLIP and a FLIP
+  // that leaves anything behind at rest parks the composer off its seat by
+  // exactly that much while every layout figure still reads true.
+  const dockEl = document.querySelector("[data-composer-dock]");
+  if (dockEl) {
+    const r = dockEl.getBoundingClientRect();
+    const gap = window.innerHeight - r.bottom;
+    const cs = getComputedStyle(dockEl);
+    out.dock = {
+      top: px(r.top),
+      bottom: px(r.bottom),
+      h: px(r.height),
+      gap: px(gap),
+      transform: cs.transform,
+      translate: cs.translate,
+      animations: dockEl.getAnimations().map((a) => `${a.playState}${a.effect?.getComputedTiming?.().fill ? `/${a.effect.getComputedTiming().fill}` : ""}`),
+      docked: r.top >= 0 && r.bottom <= window.innerHeight + 0.5 && gap <= args.dockGapMax,
+    };
+    if ((cs.transform !== "none" || (cs.translate !== "none" && cs.translate !== "0px")) && !dockEl.getAnimations().some((a) => a.playState === "running")) {
+      out.warnings.push(`the dock is at rest but still carries transform ${cs.transform} / translate ${cs.translate}`);
+    }
+  } else {
+    out.dock = null;
+    if (out.thread.on) out.warnings.push("thread mode but no [data-composer-dock]");
+  }
+
   const seat = document.querySelector('[data-mark-slot="personalize"]');
   out.markTop = seat ? px(seat.getBoundingClientRect().top) : null;
 
@@ -464,6 +717,7 @@ const clickOrDie = async (args, what) => {
   console.error(`  · clicked ${what} (${res.label})`);
 };
 const applyTheme = () => run(pageTheme, theme);
+const measure = () => run(pageMeasure, { dockGapMax: DOCK_GAP_MAX });
 const settle = async (ms) => {
   await evaluate("document.fonts.ready.then(() => true)", true);
   await sleep(ms);
@@ -517,25 +771,57 @@ await sleep(300);
 await clickOrDie({ slot: "personalize", aria: "Send message" }, "the composer's send button");
 const handoff = await waitFor("the app shell to arrive", async () => (await run(pageHandedOff)).handedOff, 10000);
 console.error(`  · shell arrived after ${handoff.ms}ms`);
+
+// 3b. …and the agent answers. The sweep measures the turn once it has put its
+//     question up, so every width sees the same finished screen. Written out
+//     rather than through waitFor so the unsound message can say WHICH part
+//     never happened: no thread at all, no turn in it, or a turn that stalled.
+{
+  const t0 = Date.now();
+  let last = await run(pageTurn);
+  while (last.state !== "waiting" && Date.now() - t0 < TURN_TIMEOUT_MS) {
+    await sleep(250);
+    last = await run(pageTurn);
+  }
+  if (last.state !== "waiting") {
+    const why = !last.thread
+      ? "<main> never took data-thread, so send did not turn the flow into a thread"
+      : !last.found
+        ? "no [data-agent-turn] in the thread, so the stream is not wired"
+        : `the turn stalled at data-state="${last.state}"`;
+    await die(`the agent turn did not reach "waiting" in ${TURN_TIMEOUT_MS / 1000}s: ${why}`);
+  }
+  console.error(`  · turn waiting after ${Date.now() - t0}ms`);
+}
 await settle(900);
 
 // 4. The optional shell states. Both controls belong to work that is landing
 //    right now, so a missing one is a warning and the sweep goes on without it.
+//    Both are pressed with a REAL mouse at the control's centre, so a control
+//    that something lies over does not quietly work here and fail for people.
+const realClick = async (x, y) => {
+  const at = { x: Math.round(x), y: Math.round(y), pointerType: "mouse", modifiers: 0 };
+  await send("Input.dispatchMouseEvent", { ...at, type: "mouseMoved", button: "none" });
+  await send("Input.dispatchMouseEvent", { ...at, type: "mousePressed", button: "left", clickCount: 1 });
+  await send("Input.dispatchMouseEvent", { ...at, type: "mouseReleased", button: "left", clickCount: 1 });
+};
 const applied = { sidebarCollapsed: false, panelClosed: false };
 if (wantSidebarCollapsed) {
-  const before = (await run(pageMeasure)).sidebar?.w ?? null;
+  const before = (await measure()).sidebar?.w ?? null;
   if (before !== null && before <= 80) {
     applied.sidebarCollapsed = true;
     console.error(`  · sidebar is already the ${before}px rail`);
   }
 }
 if (wantSidebarCollapsed && !applied.sidebarCollapsed) {
-  const before = (await run(pageMeasure)).sidebar?.w ?? null;
+  const before = (await measure()).sidebar?.w ?? null;
   const res = await run(pageCollapseSidebar);
   if (!res.ok) warn(`--sidebar-collapsed: ${res.why}; sweeping with the sidebar as it is`);
   else {
+    if (res.covered) warn(`--sidebar-collapsed: the collapse control is covered by ${res.coveredBy}; pressing it anyway`);
+    await realClick(res.x, res.y);
     await sleep(600);
-    const after = (await run(pageMeasure)).sidebar?.w ?? null;
+    const after = (await measure()).sidebar?.w ?? null;
     if (after !== null && before !== null && after < before) {
       applied.sidebarCollapsed = true;
       console.error(`  · sidebar collapsed ${before} → ${after}`);
@@ -543,19 +829,21 @@ if (wantSidebarCollapsed && !applied.sidebarCollapsed) {
   }
 }
 if (wantPanelClosed) {
-  const shut = await run(pageMeasure);
+  const shut = await measure();
   if (shut.panel && !shut.panel.visible) {
     applied.panelClosed = true;
     console.error(`  · panel is already ${shut.panel.mode} at the drive width`);
   }
 }
 if (wantPanelClosed && !applied.panelClosed) {
-  const before = await run(pageMeasure);
+  const before = await measure();
   const res = await run(pageTogglePanel);
   if (!res.ok) warn(`--panel-closed: ${res.why}; sweeping with the panel open`);
   else {
+    if (res.covered) warn(`--panel-closed: the panel toggle is covered by ${res.coveredBy}; pressing it anyway`);
+    await realClick(res.x, res.y);
     await sleep(700);
-    const after = await run(pageMeasure);
+    const after = await measure();
     if (before.panel?.visible && !after.panel?.visible) {
       applied.panelClosed = true;
       console.error(`  · panel closed (${res.label})`);
@@ -576,21 +864,43 @@ const wheelAt = (x, y, deltaY) =>
     pointerType: "mouse",
   });
 const worst = (s) => Math.max(s.y, s.doc, s.body);
-/** A real wheel, over two points, on all three scrollers. The only proof. */
+/**
+ * A real wheel, over two points, on all three scrollers. The only proof.
+ *
+ * The first point is the CONVERSATION — the agent turn's visible middle, kept
+ * above the dock so the wheel lands on the stream and not on the composer —
+ * because a wheel at a fixed point lands inside the panel at narrow widths and
+ * reports a reassuring zero. The second is the gutter left of the column. Each
+ * gets a wheel down (with the thread already at its end, so it is the chaining
+ * test) and a wheel up (which the thread may take). The page's three scrollers
+ * must not move; the thread's own movement is carried alongside, as a figure.
+ */
 const wheelTest = async (m, height) => {
   const cx = m.stage ? m.stage.x + m.stage.w / 2 : m.viewport.w / 2;
   const gutter = m.stage ? m.stage.x - 6 : 6;
-  let moved = { y: 0, doc: 0, body: 0 };
-  for (const x of [cx, gutter]) {
-    await wheelAt(x, height / 2, 420);
-    await sleep(320);
-    const after = await run(pageScrollers);
-    if (worst(after) > worst(moved)) moved = { y: after.y, doc: after.doc, body: after.body };
-    await wheelAt(x, height / 2, -1200);
-    await sleep(200);
-    await run(pageResetScroll);
+  const floor = m.dock ? m.dock.top - 8 : height - 8;
+  let convo = { x: cx, y: height / 2 };
+  if (m.turn?.rect && m.turn.rect.w > 0) {
+    const top = Math.max(m.turn.rect.y, 56);
+    const bottom = Math.min(m.turn.rect.y + m.turn.rect.h, floor);
+    if (bottom > top) convo = { x: m.turn.rect.x + m.turn.rect.w / 2, y: (top + bottom) / 2 };
   }
-  return moved;
+  let moved = { y: 0, doc: 0, body: 0 };
+  let thread = 0;
+  for (const pt of [convo, { x: gutter, y: Math.min(height / 2, floor) }]) {
+    const start = await run(pageScrollers);
+    for (const deltaY of [420, -1200]) {
+      await wheelAt(pt.x, pt.y, deltaY);
+      await sleep(deltaY > 0 ? 320 : 260);
+      const after = await run(pageScrollers);
+      if (worst(after) > worst(moved)) moved = { y: after.y, doc: after.doc, body: after.body };
+      if (after.thread !== null && start.thread !== null) thread = Math.max(thread, Math.abs(after.thread - start.thread));
+    }
+    await run(pageResetScroll);
+    await run(pageThreadToEnd);
+    await sleep(120);
+  }
+  return { ...moved, thread, at: { x: Math.round(convo.x), y: Math.round(convo.y) } };
 };
 
 const rows = [];
@@ -599,15 +909,21 @@ for (const width of WIDTHS) {
   await applyTheme();
   await settle(550);
   await run(pageResetScroll);
+  // A width change reflows the thread and leaves its scroller wherever the
+  // reflow put it; the reader's place is the end, so measure from there.
+  await run(pageThreadToEnd);
   await sleep(120);
-  const m = await run(pageMeasure);
+  const m = await measure();
   const wheel = await wheelTest(m, HEIGHT);
   await run(pageResetScroll);
+  await run(pageThreadToEnd);
   await sleep(150);
   const { data } = await send("Page.captureScreenshot", { format: "png" });
   writeFileSync(join(outDir, theme, `w${width}.png`), Buffer.from(data, "base64"));
   rows.push({ width, ...m, wheel });
-  console.error(`  · ${width} measured${m.shell === "entered" ? "" : ` (shell: ${m.shell})`}`);
+  console.error(
+    `  · ${width} measured${m.shell === "entered" ? "" : ` (shell: ${m.shell})`}${m.turn?.state && m.turn.state !== "waiting" ? ` (turn: ${m.turn.state})` : ""}`,
+  );
   for (const w of m.warnings) warn(`${width}: ${w}`);
 }
 
@@ -620,7 +936,7 @@ const cols = (t) => {
 };
 const HEAD = [
   "vw", "stage", "x", "padL", "padR", "grid-template-cols", "card w×h", "h1", "ln",
-  "comp", "side", "panel x/w", "mode", "y/doc/body", "wheel", "esc", "mark",
+  "comp", "side", "panel x/w", "mode", "y/doc/body", "wheel", "thread", "dock", "esc", "pesc", "hit", "mark",
 ];
 const body = rows.map((r) => {
   const card = r.grid?.cards?.[0];
@@ -641,16 +957,20 @@ const body = rows.map((r) => {
     r.panel?.mode ?? "—",
     `${r.scroll.y}/${r.scroll.doc}/${r.scroll.body}`,
     moved ? `+${moved}` : "no",
+    r.thread?.on ? `${r.thread.scrollTop}/${r.thread.overflow}` : "—",
+    r.dock ? `${n(r.dock.gap)}${r.dock.docked ? "" : "!"}` : "—",
     String(r.escaped?.length ?? 0),
+    r.panel?.visible ? String(r.panelEscaped?.length ?? 0) : "—",
+    r.covered?.length ? `${r.covered.length}!` : "ok",
     n(r.markTop),
   ];
 });
 const widths = HEAD.map((h, i) => Math.max(h.length, ...body.map((r) => r[i].length)));
-const LEFT = new Set([5, 6, 11, 12, 13, 14]);
+const LEFT = new Set([5, 6, 11, 12, 13, 14, 15]);
 const line = (cells) => cells.map((c, i) => (LEFT.has(i) ? c.padEnd(widths[i]) : c.padStart(widths[i]))).join("  ").trimEnd();
 
 console.log("");
-console.log(`/signup, handoff state · ${base} · ${theme} · ${HEIGHT}px tall · DPR ${DPR}`);
+console.log(`/signup, handoff state, turn waiting · ${base} · ${theme} · ${HEIGHT}px tall · DPR ${DPR}`);
 console.log(
   `sidebar ${wantSidebarCollapsed ? (applied.sidebarCollapsed ? "collapsed" : "collapse REQUESTED but not applied") : "as it comes"}` +
     ` · panel ${wantPanelClosed ? (applied.panelClosed ? "closed" : "close REQUESTED but not applied") : "as it comes"}`,
@@ -661,8 +981,12 @@ console.log(widths.map((w) => "─".repeat(w)).join("  "));
 for (const r of body) console.log(line(r));
 console.log("");
 console.log("y/doc/body = window.scrollY / documentElement.scrollTop / body.scrollTop at rest; wheel = the worst of the three after a real wheel.");
+console.log("thread = <main>'s scrollTop / how far it can scroll, held at its end; dock = px from the composer's bottom to the viewport's (! = not docked);");
+console.log("esc = boxes escaping in the column; pesc = the same inside the agent panel (— while the panel is closed).");
+console.log("hit = every enabled control in the sidebar, the thread bar and an open panel is the topmost element at its own centre (n! = covered).");
 
 const escapes = rows.filter((r) => r.escaped?.length);
+const panelEscapes = rows.filter((r) => r.panelEscaped?.length);
 if (escapes.length) {
   console.log("");
   console.log("Content escaping its box:");
@@ -674,9 +998,41 @@ if (escapes.length) {
   }
 }
 
+// Not failures, but not hidden either: a bleed that is fine today should still
+// be the first thing looked at if the column's gutter ever shrinks under it.
+const bleedRows = rows.filter((r) => r.bleeds?.length);
+if (bleedRows.length) {
+  const kinds = [...new Set(bleedRows.flatMap((r) => r.bleeds.map((b) => `${b.what} +${b.over}px`)))];
+  console.log("");
+  console.log(`Paint bleeding past its box on purpose (pseudo-elements, not failed): ${kinds.join(", ")} at ${bleedRows.length} width${bleedRows.length === 1 ? "" : "s"}`);
+}
+
+const coveredRows = rows.filter((r) => r.covered?.length);
+if (coveredRows.length) {
+  console.log("");
+  console.log("Controls something else is lying over (a real click lands on the cover):");
+  for (const r of coveredRows) {
+    for (const c of r.covered.slice(0, 4)) {
+      console.log(`  ${String(r.width).padStart(4)}  ${c.what.padEnd(32)} at ${c.at.join(",")}  covered by ${c.by}`);
+    }
+    if (r.covered.length > 4) console.log(`  ${String(r.width).padStart(4)}  … and ${r.covered.length - 4} more, all of them in probe.json`);
+  }
+}
+
+if (panelEscapes.length) {
+  console.log("");
+  console.log("Content escaping inside the agent panel:");
+  for (const r of panelEscapes) {
+    for (const e of r.panelEscaped.slice(0, 4)) {
+      console.log(`  ${String(r.width).padStart(4)}  +${String(e.over).padStart(4)}px  ${e.how.padEnd(17)} ${e.client}→${e.scroll}  ${e.what}`);
+    }
+    if (r.panelEscaped.length > 4) console.log(`  ${String(r.width).padStart(4)}  … and ${r.panelEscaped.length - 4} more, all of them in probe.json`);
+  }
+}
+
 // A row taken after the shell fell out of the handoff state describes a
 // different screen, so the whole run is unsound rather than failing.
-const lostShell = rows.filter((r) => r.shell === "gone" || r.shell === "absent");
+const lostShell = rows.filter((r) => r.shell === "gone" || r.shell === "absent" || !r.thread?.on);
 if (lostShell.length) {
   console.log("");
   console.log(`UNSOUND: the app shell was not in the handoff state at ${lostShell.map((r) => r.width).join(", ")}.`);
@@ -689,12 +1045,20 @@ if (lostShell.length) {
   process.exit(2);
 }
 
-// The plan's three criteria, each named with the widths that break it.
+// The criteria, each named with the widths that break it. The first three are
+// the responsive-shell plan's; four and five are thread mode's; six is the
+// hit-test that two layering bugs slipped past.
 const dockedThin = rows.filter((r) => r.panel?.mode === "docked" && (r.stage?.w ?? 0) < COLUMN_FLOOR);
+// Every width in thread mode, not just ≥ NO_SCROLL_ABOVE: `<main>` is the
+// viewport's height at every width now, so a page that scrolls at 390 is the
+// same bug as one that scrolls at 1456.
 const scrolls = rows.filter(
-  (r) => r.width >= NO_SCROLL_ABOVE && (r.scroll.y || r.scroll.doc || r.scroll.body || worst(r.wheel)),
+  (r) => (r.thread?.on || r.width >= NO_SCROLL_ABOVE) && (r.scroll.y || r.scroll.doc || r.scroll.body || worst(r.wheel)),
 );
+const threadMoves = rows.filter((r) => r.wheel?.thread);
 const leaks = rows.filter((r) => r.escaped?.length);
+const undocked = rows.filter((r) => !r.dock?.docked);
+const panelRows = rows.filter((r) => r.panel?.visible);
 const dockedRows = rows.filter((r) => r.panel?.mode === "docked");
 const minDocked = dockedRows.length ? Math.min(...dockedRows.map((r) => r.stage?.w ?? 0)) : null;
 const verdicts = [
@@ -709,15 +1073,41 @@ const verdicts = [
   ],
   [
     !scrolls.length,
-    `no scroll at any width ≥ ${NO_SCROLL_ABOVE}`,
+    "the page never scrolls",
     scrolls.length
       ? scrolls.map((r) => `${r.width} moves ${Math.max(r.scroll.y, r.scroll.doc, r.scroll.body, worst(r.wheel))}px`).join(", ")
-      : `${rows.filter((r) => r.width >= NO_SCROLL_ABOVE).length} widths still under a real wheel`,
+      : `${rows.length} widths still under a real wheel` +
+        (threadMoves.length
+          ? `; the thread took it, up to ${Math.max(...threadMoves.map((r) => r.wheel.thread))}px`
+          : "; the thread never had to move"),
   ],
   [
     !leaks.length,
     "nothing escapes its box",
     leaks.length ? leaks.map((r) => `${r.width}×${r.escaped.length}`).join(", ") : "checked every element in the live column",
+  ],
+  [
+    !undocked.length,
+    "the composer is docked",
+    undocked.length
+      ? undocked.map((r) => (r.dock ? `${r.width} sits ${n(r.dock.gap)}px up (${n(r.dock.top)}→${n(r.dock.bottom)})` : `${r.width} has no dock`)).join(", ")
+      : `within ${DOCK_GAP_MAX}px of the bottom edge at all ${rows.length} widths (gap ${[...new Set(rows.map((r) => n(r.dock.gap)))].join("/")})`,
+  ],
+  [
+    !panelEscapes.length,
+    "nothing escapes the agent panel",
+    panelEscapes.length
+      ? panelEscapes.map((r) => `${r.width}×${r.panelEscaped.length}`).join(", ")
+      : panelRows.length
+        ? `checked every element at the ${panelRows.length} width${panelRows.length === 1 ? "" : "s"} it was open`
+        : "the panel was not open at any width in this sweep",
+  ],
+  [
+    !coveredRows.length,
+    "the chrome takes clicks",
+    coveredRows.length
+      ? coveredRows.map((r) => `${r.width}×${r.covered.length}`).join(", ")
+      : `every enabled control in the sidebar, the bar and an open panel is on top of itself at all ${rows.length} widths`,
   ],
 ];
 console.log("");
@@ -738,7 +1128,7 @@ function writeJson(verdicts, pass, unsound) {
       widths: WIDTHS,
       requested: { sidebarCollapsed: wantSidebarCollapsed, panelClosed: wantPanelClosed },
       applied,
-      criteria: { columnFloor: COLUMN_FLOOR, noScrollAtOrAbove: NO_SCROLL_ABOVE },
+      criteria: { columnFloor: COLUMN_FLOOR, noScrollAtOrAbove: NO_SCROLL_ABOVE, threadMode: "page never scrolls at any width", dockGapMax: DOCK_GAP_MAX },
       verdicts: verdicts.map(([ok, what, detail]) => ({ ok, what, detail })),
       pass,
       unsound,

@@ -158,6 +158,16 @@ export function SignupScreen() {
   // which also means the mark keeps its existing seat and the FLIP effect
   // below needs no fifth case. See app-handoff.tsx.
   const [handedOff, setHandedOff] = useState(false);
+  // Where the stage's top edge was on the frame send was pressed, measured
+  // against <main>. Send turns <main> from a centring box into the thread's
+  // scroll container (see the note on <main> below), and the column must not
+  // move on that frame: centring against a box that is now exactly the
+  // viewport would put it somewhere else. Freezing this one number as
+  // `padding-top` keeps every pixel where it was (97px at 1456×868, where the
+  // 674px cell centres in 868), and from then on the thread grows DOWN from
+  // it, the way a conversation does, instead of re-centring on every line the
+  // agent adds.
+  const [threadTop, setThreadTop] = useState<number | null>(null);
   // The three columns' live geometry. Both chrome columns own their own width
   // and report it up; this screen is the only place that knows all three
   // numbers at once, so the arithmetic that divides the window lives here.
@@ -393,6 +403,17 @@ export function SignupScreen() {
 
   const leaving = step !== "signin";
 
+  // Measured in the click, before React re-renders anything: afterwards the
+  // stage is already wearing its thread-mode layout and the number would be
+  // the answer to a different question.
+  const mainRef = useRef<HTMLElement>(null);
+  const handleSend = () => {
+    const stage = stageRef.current;
+    const main = mainRef.current;
+    if (stage && main) setThreadTop(stage.getBoundingClientRect().top - main.getBoundingClientRect().top);
+    setHandedOff(true);
+  };
+
   // The panel is a COLUMN — something <main> has to pad around — only while the
   // shell is here, the panel is open and there is room for it beside a readable
   // conversation. Floating, it is a drawer lying over the top and the
@@ -402,6 +423,8 @@ export function SignupScreen() {
 
   return (
     <main
+      ref={mainRef}
+      data-thread={handedOff ? "" : undefined}
       className={cn(
         // `relative z-10` so the column stays above the shell that slides in
         // under it, and the padding is what steps the whole centred block to
@@ -410,8 +433,36 @@ export function SignupScreen() {
         // against the stage's box, so moving the stage's ancestor carries the
         // mark along for free, while transforming the stage itself would
         // compose with the mark's own transform and fight it.
-        "relative z-10 flex min-h-svh flex-col items-center justify-center px-5 py-12",
-        "transition-[padding] duration-(--duration-slide) ease-in-out motion-reduce:transition-none",
+        "relative z-10 flex flex-col items-center px-5",
+        // BEFORE SEND: a centring box that never scrolls. Every screen shares
+        // one cell and the cell fits the viewport; see the stage note below.
+        //
+        // AFTER SEND: the thread's scroll container. The agent's answer is
+        // taller than any viewport, so something has to scroll, and it has to
+        // be an element that CONTAINS the stage: the mark is absolutely
+        // positioned in the stage and must travel with the sentence it heads,
+        // natively, with no scroll listener re-parking it a frame late.
+        // Scrolling is not a transform, so the rule above still holds. The
+        // PAGE never scrolls either way: html and body stay at 0 and this box
+        // takes the wheel (probe-signup.mjs checks all three).
+        //
+        // `justify-start` plus the frozen `padding-top` (threadTop) is the
+        // centring, written down: same pixels on the send frame, and a thread
+        // that grows downward after it. `pb-4` is the product's 16px under its
+        // composer, which sits at the bottom now (chat-step.tsx's dock).
+        // `scrollbar-hide` is the product's own choice for its thread
+        // (`scrollbar-width: none` on the scroll-area viewport), and here it
+        // is also load-bearing: a classic scrollbar would take ~15px from this
+        // box the moment the answer overflowed, shift the centred column
+        // sideways mid-stream, and paint over the docked panel.
+        handedOff
+          ? "h-svh justify-start overflow-x-hidden overflow-y-auto overscroll-contain pb-4 scrollbar-hide"
+          : "min-h-svh justify-center py-12",
+        // Only the two paddings the handoff moves. The shorthand used to be
+        // listed here, and it would now also animate the frozen `padding-top`
+        // from `py-12`'s 48px to its measured value: the column would drop to
+        // 48 on the send frame and crawl back down.
+        "transition-[padding-left,padding-right] duration-(--duration-slide) ease-in-out motion-reduce:transition-none",
         // Both edges, because the shell arrives on both, and both read a live
         // figure through a custom property so dragging either splitter moves
         // the column with it. `md:` because below it neither chrome column is
@@ -434,6 +485,7 @@ export function SignupScreen() {
           // conversation itself is padded by.
           "--handoff-pad-l": `${sidebarWidth + SHELL_GUTTER}px`,
           "--handoff-pad-r": `${columnPanelWidth + SHELL_GUTTER}px`,
+          ...(handedOff && threadTop !== null ? { paddingTop: `${threadTop}px` } : null),
         } as React.CSSProperties
       }
     >
@@ -472,10 +524,21 @@ export function SignupScreen() {
           shared row from 1026 to 990px between profile and personalize — a
           height change firing while the mark is mid-flight, which is the one
           thing this screen may not do. */}
-      <div ref={stageRef} className="relative grid w-full max-w-wide grid-cols-1">
+      {/* After send the stage fills <main>'s height (`flex-1`), so its one row
+          stretches to the bottom and the chat screen can pin its composer
+          there. Height, not a transform, and on the stage's own box: the
+          mark's seat is measured against the stage's top-left, which does not
+          move, and the ResizeObserver below re-parks it without animating. */}
+      <div ref={stageRef} className={cn("relative grid w-full max-w-wide grid-cols-1", handedOff && "flex-1")}>
         {/* 1. Pick a provider, or fall back to email. */}
+        {/* The three finished screens leave the layout once send has been
+            pressed. The flow is one way, so they can never come back, and the
+            cell no longer has to be as tall as the tallest of them: after send
+            its height is the thread's. `hidden` rather than kept at zero
+            opacity, which would leave the signin column centred in a
+            thread-tall row for nothing. */}
         <div
-          className={cn(SCREEN, COLUMN, leaving && "pointer-events-none")}
+          className={cn(SCREEN, COLUMN, leaving && "pointer-events-none", handedOff && "hidden")}
           inert={leaving}
         >
           <div className="flex w-full flex-col items-center">
@@ -548,6 +611,7 @@ export function SignupScreen() {
             step === "loading"
               ? "opacity-100 delay-(--duration-slide)"
               : "pointer-events-none opacity-0",
+            handedOff && "hidden",
           )}
           inert={step !== "loading"}
         >
@@ -565,6 +629,7 @@ export function SignupScreen() {
             COLUMN,
             SCREEN_FADE,
             step === "profile" ? "opacity-100" : "pointer-events-none opacity-0",
+            handedOff && "hidden",
           )}
           inert={step !== "profile"}
         >
@@ -574,12 +639,15 @@ export function SignupScreen() {
           />
         </div>
 
-        {/* 4. The thread. No COLUMN cap: this screen IS the wide measure. */}
+        {/* 4. The thread. No COLUMN cap: this screen IS the wide measure.
+            After send it stretches to the row instead of centring in it, so
+            its composer can sit on the row's floor. */}
         <div
           className={cn(
             SCREEN,
             SCREEN_FADE,
             step === "personalize" ? "opacity-100" : "pointer-events-none opacity-0",
+            handedOff && "self-stretch",
           )}
           inert={step !== "personalize"}
         >
@@ -592,8 +660,9 @@ export function SignupScreen() {
           <ChatStep
             headingRef={chatHeadingRef}
             active={step === "personalize"}
-            onSend={() => setHandedOff(true)}
+            onSend={handleSend}
             handedOff={handedOff}
+            travelMs={travelMs}
           />
         </div>
 

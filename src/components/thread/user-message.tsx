@@ -17,7 +17,13 @@ export function UserMessage({
 }: {
   id: string;
   text: string;
-  knowledgeHints: number;
+  /**
+   * Optional so a message sent before the account has any knowledge (the
+   * signup thread) can say only when it was sent: "0 knowledge hints" would
+   * be a control that opens nothing. Every cloned route passes a number and
+   * renders exactly as before.
+   */
+  knowledgeHints?: number;
   sentAtLabel: string;
 }) {
   return (
@@ -35,16 +41,20 @@ export function UserMessage({
           </div>
           <div className="mt-1 flex max-w-[min(100%,560px)] flex-col items-end gap-1.5">
             <span className="flex select-none items-center gap-1.5 text-foreground-low text-xs">
-              <Button
-                type="button"
-                variant="ghost"
-                size="none"
-                className="gap-1 rounded-none font-normal text-xs text-foreground-low hover:bg-transparent hover:text-foreground"
-              >
-                <IconSparkles className="size-3" aria-hidden="true" />
-                {knowledgeHints} knowledge hint{knowledgeHints === 1 ? "" : "s"}
-              </Button>
-              <span aria-hidden="true">·</span>
+              {knowledgeHints !== undefined && (
+                <>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="none"
+                    className="gap-1 rounded-none font-normal text-xs text-foreground-low hover:bg-transparent hover:text-foreground"
+                  >
+                    <IconSparkles className="size-3" aria-hidden="true" />
+                    {knowledgeHints} knowledge hint{knowledgeHints === 1 ? "" : "s"}
+                  </Button>
+                  <span aria-hidden="true">·</span>
+                </>
+              )}
               <span>{sentAtLabel}</span>
             </span>
           </div>

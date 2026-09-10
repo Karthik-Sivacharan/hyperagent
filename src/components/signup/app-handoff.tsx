@@ -155,45 +155,6 @@ export function AppHandoff({
           style={{ backgroundImage: NOISE }}
         />
 
-        {/* The thread bar, inset by the sidebar so it spans the column's half of
-            the window exactly as it does in the app. It fades without moving:
-            a bar that also slid down would be a second direction of travel in a
-            beat that already has one, and horizontal is the one that matters.
-
-            Both insets are the live figures the screen above computes, and the
-            right one is the SAME figure <main> pads by — the docked panel's
-            width, zero when the panel is closed or floating. So a floating panel
-            lies over the bar's right end rather than shortening it, and the
-            padding transition runs on the same duration and curve as <main>'s so
-            the bar and the column below it move as one edge.
-
-            `pointer-events-auto` because the layer above turns them off
-            wholesale and this bar now holds a control that does something. The
-            whole bar is re-armed rather than the one button: it is the app's own
-            thread bar, and half a live bar would be stranger than all of it. It
-            cannot steal from the conversation — the stage paints and hit-tests
-            above this layer. */}
-        <div
-          className={cn(
-            "absolute inset-x-0 top-0 hidden transition-[opacity,padding] md:block",
-            TRAVEL,
-            entered ? "opacity-100" : "opacity-0",
-            entered && "pointer-events-auto",
-          )}
-          style={{
-            paddingLeft: `var(--handoff-sidebar-w, ${HANDOFF_SIDEBAR_PX}px)`,
-            paddingRight: "var(--handoff-panel-w, 0px)",
-          }}
-        >
-          <ThreadHeader
-            thread={HANDOFF_THREAD}
-            model={HANDOFF_THREAD.model}
-            panelOpen={panelOpen}
-            onTogglePanel={onTogglePanel}
-            panelId={panelId}
-          />
-        </div>
-
         {/* The sidebar itself. Transform, not width or margin: it is 256px of
             fairly heavy DOM and animating a layout property would relayout the
             whole column — including the stage the mark is parked against — on
@@ -226,6 +187,73 @@ export function AppHandoff({
             onWidthChange={onSidebarWidthChange}
             onExpandedWidthChange={onSidebarExpandedWidthChange}
           />
+        </div>
+      </div>
+
+      {/* The thread bar, on a layer of its own ABOVE the column. It used to
+          sit in layer one, behind the conversation, which was right while the
+          conversation could not move: at rest the column starts at least 48px
+          down and the two never touch. Once the agent answers, the thread
+          scrolls (signup-screen.tsx), and text scrolled up would have painted
+          straight over a bar that sits under it. Up here the bar's own opaque
+          `bg-background` does what the product's header does: the thread
+          passes under it. z-20 inside <main>'s context, the same as the
+          floating panel's layer below, which is inset by THREAD_BAR_PX and so
+          never overlaps it.
+
+          Inset by the sidebar so it spans the column's half of the window
+          exactly as it does in the app. It fades without moving: a bar that
+          also slid down would be a second direction of travel in a beat that
+          already has one, and horizontal is the one that matters.
+
+          Both insets are the live figures the screen above computes, and the
+          right one is the SAME figure <main> pads by — the docked panel's
+          width, zero when the panel is closed or floating. So a floating panel
+          lies over the bar's right end rather than shortening it, and the
+          padding transition runs on the same duration and curve as <main>'s so
+          the bar and the column below it move as one edge.
+
+          `pointer-events-auto` because the layer turns them off wholesale and
+          this bar holds a control that does something. The whole bar is
+          re-armed rather than the one button: it is the app's own thread bar,
+          and half a live bar would be stranger than all of it. `inert` while
+          away, like layer one, so its controls are not in the tab order of
+          the four signup screens.
+
+          Re-armed on the BAR, not on the padded wrapper around it. The wrapper
+          spans the whole window and reaches the bar's edges with padding, and
+          padding hit-tests: armed, its left padding sat over the sidebar's top
+          48px and its right padding over the docked panel's, one layer ABOVE
+          both, so the sidebar's collapse and expand toggle and its home link
+          took no clicks at all (elementFromPoint over "Hide sidebar" returned
+          this wrapper). It never showed in layer one, where the sidebar came
+          later in the tree and painted over the padding. The inner box is
+          exactly the bar, so nothing outside it is covered. */}
+      <div
+        className="pointer-events-none fixed inset-x-0 top-0 z-20"
+        aria-hidden={!entered}
+        inert={!entered}
+      >
+        <div
+          className={cn(
+            "hidden transition-[opacity,padding] md:block",
+            TRAVEL,
+            entered ? "opacity-100" : "opacity-0",
+          )}
+          style={{
+            paddingLeft: `var(--handoff-sidebar-w, ${HANDOFF_SIDEBAR_PX}px)`,
+            paddingRight: "var(--handoff-panel-w, 0px)",
+          }}
+        >
+          <div className={cn(entered && "pointer-events-auto")}>
+            <ThreadHeader
+              thread={HANDOFF_THREAD}
+              model={HANDOFF_THREAD.model}
+              panelOpen={panelOpen}
+              onTogglePanel={onTogglePanel}
+              panelId={panelId}
+            />
+          </div>
         </div>
       </div>
 
