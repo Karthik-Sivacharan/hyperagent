@@ -952,10 +952,12 @@ element at its own centre (scrolled-out, disabled and `inert` controls are
 skipped). `--sidebar-collapsed` and `--panel-closed` now press a real mouse at
 the control through CDP instead of calling `el.click()`. Criterion 6 was
 proved against the bug: with the wrapper re-armed it fails and names "Hide
-sidebar" and "Hyperagent home"; with the fix it passes. At this branch: 6 of 6
-in dark, light, `--panel-closed` and `--sidebar-collapsed`, at 902 and 868
-tall; the thread scrolls up to 627px and the dock sits 16px up at all 14
-widths. The 17
+sidebar" and "Hyperagent home"; with the fix it passes. At the merge: 6 of 6
+in dark and light at 902 and 868 tall. `--panel-closed` and
+`--sidebar-collapsed` passed the first five at both heights before criterion
+6 existed and were not re-run with it (the collapse and expand toggles were
+checked by hand with real clicks instead). The thread scrolls up to 627px and
+the dock sits 16px up at all 14 widths. The 17
 cloned routes are byte-identical to `main` at 1456×868 in both themes.
 
 **Known gaps.**
