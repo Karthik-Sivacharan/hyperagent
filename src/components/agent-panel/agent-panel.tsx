@@ -513,11 +513,22 @@ export function AgentPanel({
       {/* Tabs own the whole column: the list belongs in the fixed header and
           the content is the thing that scrolls, so the root has to wrap both. */}
       <Tabs value={tab} onValueChange={setTab} className="flex h-full min-h-0 flex-col gap-0">
-        <header className="shrink-0 border-b border-border-subtle px-5 pt-4 pb-3">
-          <h2 className="truncate text-heading-lg text-foreground">{AGENT_CONFIG.name}</h2>
-          <p className="mt-0.5 text-sm text-muted-foreground">{AGENT_CONFIG.blurb}</p>
+        {/* With the computer the header is the tab row alone, built like the
+            thread bar beside it (thread-header.tsx): a 48px row over a 1px
+            hairline, so the two tops line up and share one divider. The
+            agent's name is already the thread bar's subject; repeating it here
+            cost ~70px of the computer's height. */}
+        <header
+          className={cn("shrink-0 border-b border-border-subtle px-5", !computer && "pt-4 pb-3")}
+        >
+          {!computer && (
+            <>
+              <h2 className="truncate text-heading-lg text-foreground">{AGENT_CONFIG.name}</h2>
+              <p className="mt-0.5 text-sm text-muted-foreground">{AGENT_CONFIG.blurb}</p>
+            </>
+          )}
 
-          <div className="mt-3 flex items-center justify-between gap-3">
+          <div className={cn("flex items-center justify-between gap-3", computer ? "h-12" : "mt-3")}>
             {/* Two tabs, and the two words are hyperagent's own. Its panel has
                 four — Configuration, Learning, Library, Usage — but Learning
                 and Library are already destinations in the left nav, so two of

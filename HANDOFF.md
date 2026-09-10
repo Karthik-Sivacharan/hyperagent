@@ -1081,7 +1081,9 @@ Configuration and Usage are the second and third tabs.
   `TabsContent` is `forceMount` and hidden while inactive (Radix would
   otherwise unmount the carousel's scroll and the Skills list's state on each
   switch), Save shows only on Configuration, and the labels read "Agent" and
-  "Resize agent panel". Without it the panel is the two-tab panel it was, so
+  "Resize agent panel". The header drops the agent's name and blurb and is
+  the tab row alone, built like the thread bar (a 48px row over a 1px
+  hairline) so the two tops are one height with one divider. Without it the panel is the two-tab panel it was, so
   `/design/agent-panel` does not change.
 
 **The Computer tab fills its box** (`relative min-h-0 flex-1` over an
