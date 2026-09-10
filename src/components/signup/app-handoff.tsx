@@ -213,8 +213,16 @@ export function AppHandoff({
             entered && "pointer-events-auto",
           )}
         >
+          {/* `collapseRidesSlide` because here the column is not moving on its
+              own: <main>'s padding is this column's live width and rides
+              --duration-slide on --ease-in-out with everything else the shell
+              moves, so a 200ms ease-out collapse would have this column's edge
+              arrive first and sit 68px over the conversation for ~233ms. Opt-in
+              — the seventeen cloned routes keep the quick 200ms, where the
+              column IS the only thing moving. */}
           <Sidebar
             forceCollapsed={railSidebar}
+            collapseRidesSlide
             onWidthChange={onSidebarWidthChange}
             onExpandedWidthChange={onSidebarExpandedWidthChange}
           />
@@ -248,9 +256,23 @@ export function AppHandoff({
         aria-hidden={!panelShown}
         inert={!panelShown}
       >
+        {/* `translate`, not `transform`. Tailwind v4 does NOT compile
+            `translate-x-full` to the `transform` property any more — it sets the
+            separate CSS `translate` property (`translate: var(--tw-translate-x)
+            var(--tw-translate-y)`). A list that names `transform` therefore
+            transitions nothing here and the panel TELEPORTS to its parked
+            position on frame 1, while <main>'s padding takes the full
+            --duration-slide to make room for it: measured at 1512, 308px of the
+            conversation lay over the panel for ~250ms on a docked expand and
+            180px for ~347ms on arrival, and since <main> is transparent at z-10
+            and this panel opaque at z-0 behind it, the conversation painted on
+            top of the panel. The sidebar's wrapper above was never affected
+            because it uses the NAMED utility, which v4 expands to
+            `transition-property: transform, translate, scale, rotate`. Name the
+            property that actually moves, or use `transition-transform`. */}
         <div
           className={cn(
-            "absolute bottom-0 right-0 hidden transition-[transform,box-shadow] md:flex",
+            "absolute bottom-0 right-0 hidden transition-[translate,box-shadow] md:flex",
             TRAVEL,
             panelShown ? "translate-x-0" : "translate-x-full",
             panelShown && "pointer-events-auto",

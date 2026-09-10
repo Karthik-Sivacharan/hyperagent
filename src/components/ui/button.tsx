@@ -22,8 +22,18 @@ import { cn } from "@/lib/utils";
 // composer's 12px padding kept when the icon is a direct child), `icon-2xs`
 // (the 22px message action, a 14px icon) and `none` (no height, padding or
 // gap: the caller owns the shape; use only where no size family fits).
+//
+// The transition list names `scale`, NOT `transform`. Tailwind v4 compiles
+// `scale-(--scale-press)` to the separate CSS `scale` property rather than to
+// `transform`, so the list this base carried named a property nothing sets:
+// the press feedback below — on every button in the app — snapped in and out
+// with no 150ms ease at either end. Any caller that overrides this list has to
+// carry `scale` through or it kills the press again (tailwind-merge replaces
+// the whole arbitrary list); name the property that moves, or use the named
+// `transition-transform`, which v4 expands to transform + translate + scale +
+// rotate.
 const buttonVariants = cva(
-  "group/button inline-flex shrink-0 cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-full font-medium text-sm select-none outline-none transition-[color,background-color,box-shadow,transform] duration-(--duration-fast) ease-out-quart focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background motion-safe:active:scale-(--scale-press) disabled:pointer-events-none disabled:opacity-50 aria-invalid:ring-2 aria-invalid:ring-destructive/40 [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0",
+  "group/button inline-flex shrink-0 cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-full font-medium text-sm select-none outline-none transition-[color,background-color,box-shadow,scale] duration-(--duration-fast) ease-out-quart focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background motion-safe:active:scale-(--scale-press) disabled:pointer-events-none disabled:opacity-50 aria-invalid:ring-2 aria-invalid:ring-destructive/40 [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0",
   {
     variants: {
       variant: {

@@ -386,24 +386,29 @@ export default function BrandTokensPage() {
               {INTERACTION.map(([name, value, use]) => <Row key={name} name={name} value={value} use={use} />)}
             </ul>
           </div>
+          {/* The three press specimens list `scale`, not `transform`: v4
+              compiles `scale-(--scale-press)` to the separate CSS `scale`
+              property, so a list naming `transform` transitioned nothing and
+              these specimens demonstrated a snap rather than the 150ms ease
+              the rows beside them describe. */}
           <div className="flex flex-col gap-3">
             <button
               type="button"
-              className="h-10 rounded-(--radius-4xl) bg-(--primary) px-4 text-(--primary-foreground) transition-[background-color,transform] duration-(--duration-fast) ease-(--ease-out-quart) hover:bg-(--color-neutral-800) motion-safe:active:scale-(--scale-press) dark:hover:bg-(--color-neutral-200)"
+              className="h-10 rounded-(--radius-4xl) bg-(--primary) px-4 text-(--primary-foreground) transition-[background-color,scale] duration-(--duration-fast) ease-(--ease-out-quart) hover:bg-(--color-neutral-800) motion-safe:active:scale-(--scale-press) dark:hover:bg-(--color-neutral-200)"
               style={{ ...text("sm"), fontWeight: v("font-weight-medium") }}
             >
               Press me (150ms quart-out)
             </button>
             <button
               type="button"
-              className="h-10 rounded-full bg-(--chip) px-4 text-(--chip-foreground) transition-[background-color,color,transform] duration-(--duration-normal) ease-(--ease-out) hover:bg-(--accent) hover:text-(--accent-foreground) motion-safe:active:scale-(--scale-press)"
+              className="h-10 rounded-full bg-(--chip) px-4 text-(--chip-foreground) transition-[background-color,color,scale] duration-(--duration-normal) ease-(--ease-out) hover:bg-(--accent) hover:text-(--accent-foreground) motion-safe:active:scale-(--scale-press)"
               style={{ ...text("sm"), fontWeight: v("font-weight-medium") }}
             >
               Chip (200ms ease-out)
             </button>
             <button
               type="button"
-              className="h-10 rounded-full bg-(--brand) px-4 text-(--brand-foreground) shadow-(--shadow-sm) transition-[box-shadow,transform] duration-(--duration-slow) ease-(--ease-out) hover:shadow-(--shadow-md) motion-safe:active:scale-(--scale-press)"
+              className="h-10 rounded-full bg-(--brand) px-4 text-(--brand-foreground) shadow-(--shadow-sm) transition-[box-shadow,scale] duration-(--duration-slow) ease-(--ease-out) hover:shadow-(--shadow-md) motion-safe:active:scale-(--scale-press)"
               style={{ ...text("sm"), fontWeight: v("font-weight-medium") }}
             >
               Ask (brand CTA)

@@ -128,9 +128,13 @@ export function ThreadView({ thread, conversation }: { thread: Thread; conversat
                 <div className="relative shrink-0">
                   {/* `to-background-fade` on the site is background at 0% alpha; `to-background/0` is the stock spelling. */}
                   <div className="pointer-events-none absolute right-0 bottom-full left-0 h-8 bg-gradient-to-t from-background to-background/0" />
+                  {/* `translate`, not `transform`: v4 compiles `translate-y-2`
+                      to the separate CSS `translate` property, so naming
+                      `transform` transitioned nothing and this pill jumped its
+                      8px instead of drifting. */}
                   <div
                     className={cn(
-                      "pointer-events-none absolute right-0 bottom-full left-0 z-10 mb-2 flex justify-center transition-[opacity,transform] duration-(--duration-normal) ease-out",
+                      "pointer-events-none absolute right-0 bottom-full left-0 z-10 mb-2 flex justify-center transition-[opacity,translate] duration-(--duration-normal) ease-out",
                       atBottom ? "translate-y-2 opacity-0" : "translate-y-0 opacity-100",
                     )}
                   >

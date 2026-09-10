@@ -31,8 +31,13 @@ import type { Thread } from "@/lib/mock/threads";
 
 // The glass override on the ghost icon button: a translucent elevated fill,
 // the hairline edge and a blur, with opacity in the transition list.
+//
+// `scale` rather than `transform` for the same reason as the home card's copy
+// of this string: an arbitrary `transition-[…]` here replaces the button's own
+// list, and v4 compiles the base's `scale-(--scale-press)` to the separate CSS
+// `scale` property. Naming `transform` named a property nothing sets.
 const ACTION =
-  "size-7 bg-surface-elevated/80 text-muted-foreground shadow-edge backdrop-blur-sm hover:text-foreground aria-pressed:text-foreground group-hover:opacity-100 focus-visible:opacity-100 group-has-[:focus-visible]:opacity-100 transition-[opacity,color,background-color,transform] duration-(--duration-normal) ease-out opacity-100 xl:opacity-0 xl:group-hover:opacity-100 xl:focus-visible:opacity-100 xl:group-has-[:focus-visible]:opacity-100 [@media(hover:none)]:opacity-100";
+  "size-7 bg-surface-elevated/80 text-muted-foreground shadow-edge backdrop-blur-sm hover:text-foreground aria-pressed:text-foreground group-hover:opacity-100 focus-visible:opacity-100 group-has-[:focus-visible]:opacity-100 transition-[opacity,color,background-color,scale] duration-(--duration-normal) ease-out opacity-100 xl:opacity-0 xl:group-hover:opacity-100 xl:focus-visible:opacity-100 xl:group-has-[:focus-visible]:opacity-100 [@media(hover:none)]:opacity-100";
 
 // The site shows "1d" where the wide label says "yesterday".
 function compactLabel(label: string) {

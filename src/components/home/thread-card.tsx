@@ -33,8 +33,14 @@ export type ThreadLayout = "list" | "grid";
 
 // Hover-revealed action buttons: the outline icon pill over a blurred
 // canvas wash, with opacity added to the button's transition list.
+//
+// This string REPLACES the button's own list (tailwind-merge keeps one
+// arbitrary `transition-[…]`), so it has to carry every property the button
+// still moves on — `scale`, which is what v4 compiles the base's
+// `scale-(--scale-press)` to. It read `transform` before, which v4 sets on
+// nothing, and the press feedback on these two pills was dead.
 const ACTION =
-  "size-7 bg-background/80 backdrop-blur-sm transition-[color,background-color,box-shadow,transform,opacity] opacity-100 group-hover:opacity-100 focus-visible:opacity-100 group-has-[:focus-visible]:opacity-100 xl:opacity-0 xl:group-hover:opacity-100 xl:focus-visible:opacity-100 xl:group-has-[:focus-visible]:opacity-100 [@media(hover:none)]:opacity-100";
+  "size-7 bg-background/80 backdrop-blur-sm transition-[color,background-color,box-shadow,scale,opacity] opacity-100 group-hover:opacity-100 focus-visible:opacity-100 group-has-[:focus-visible]:opacity-100 xl:opacity-0 xl:group-hover:opacity-100 xl:focus-visible:opacity-100 xl:group-has-[:focus-visible]:opacity-100 [@media(hover:none)]:opacity-100";
 
 // The "Thread actions" menu is not in the dump (closed at capture); its items
 // were read from the live menu and the brand menu item already carries their

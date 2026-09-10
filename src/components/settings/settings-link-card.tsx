@@ -61,8 +61,13 @@ export function SettingsLinkCard({ card, accent = false }: { card: SettingsCard;
           </div>
           <CardTitle className="mt-4 flex items-center justify-between text-heading-lg text-foreground">
             {card.title}
+            {/* `translate`, not `transform`: Tailwind v4 compiles
+                `group-hover:translate-x-1` to the separate CSS `translate`
+                property, so a list naming `transform` transitions nothing and
+                the chevron JUMPED its 4px instead of sliding. Name the property
+                that moves, or use the named `transition-transform`. */}
             <IconChevronRight
-              className="size-5 text-foreground-low opacity-0 transition-[opacity,transform] duration-(--duration-normal) ease-out group-hover:translate-x-1 group-hover:opacity-100"
+              className="size-5 text-foreground-low opacity-0 transition-[opacity,translate] duration-(--duration-normal) ease-out group-hover:translate-x-1 group-hover:opacity-100"
               aria-hidden="true"
             />
           </CardTitle>

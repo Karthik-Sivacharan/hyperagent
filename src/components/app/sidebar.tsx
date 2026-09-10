@@ -61,6 +61,42 @@ const SIDEBAR_MIN = 250;
 const SIDEBAR_MAX = 500;
 const RAIL_WIDTH = 64;
 
+/**
+ * The column's own collapse motion: what the seventeen cloned routes get, and
+ * what this column has always used. `collapseRidesSlide` swaps it for the
+ * shell's pairing; nothing else does.
+ */
+const COLLAPSE_MS = 200;
+const COLLAPSE_EASING = "ease-out";
+
+/**
+ * What --duration-slide costs if the stylesheet has not applied yet. Same
+ * device, and the same reason, as signup-screen.tsx's own token reader: a
+ * retune in src/design/brand/brand.css lands here without a code change, and
+ * this is that file's current value for the one frame before the sheet
+ * applies.
+ */
+const SLIDE_FALLBACK_MS = 480;
+
+/** How long past the move the inline rule is left in place before teardown. */
+const COLLAPSE_CLEANUP_MS = 60;
+
+/**
+ * Reads a duration token off a mounted element as a number.
+ *
+ * The inline transition needs a figure and the cleanup timer needs the same
+ * one, so the token is resolved once rather than written down twice. Copied
+ * from signup-screen.tsx rather than shared, for the reason that file gives:
+ * these are four lines, and widening anyone's surface for them would be worse
+ * than the duplication.
+ */
+function durationToken(el: Element, name: string, fallback: number) {
+  const raw = getComputedStyle(el).getPropertyValue(name).trim();
+  const value = Number.parseFloat(raw);
+  if (Number.isNaN(value)) return fallback;
+  return raw.endsWith("ms") ? value : value * 1000;
+}
+
 /** The group headers' 22px actions: hidden until the header is hovered or focused. */
 const HEADER_ACTION =
   "text-muted-foreground opacity-0 hover:bg-tint-15 hover:text-foreground focus-visible:opacity-100 group-hover:opacity-100 group-has-[:focus-visible]:opacity-100";
@@ -196,6 +232,7 @@ function RailThreadsMenu({ children, ...triggerProps }: React.ComponentProps<typ
 
 export function Sidebar({
   forceCollapsed = false,
+  collapseRidesSlide = false,
   onWidthChange,
   onExpandedWidthChange,
 }: {
@@ -218,6 +255,28 @@ export function Sidebar({
    * gives.
    */
   forceCollapsed?: boolean;
+  /**
+   * Run the collapse on the shell's own travel — `--duration-slide` on
+   * `--ease-in-out` — instead of this column's private 200ms ease-out.
+   *
+   * Opt-in and additive like the three props around it, and off by default, so
+   * the seventeen cloned routes keep the 200ms they have always had: a sidebar
+   * collapsing on its own in an otherwise still window wants to be quick, and
+   * 480ms there would read as the column dawdling.
+   *
+   * It exists because in ONE place the column is not moving on its own. After
+   * the signup handoff the conversation is padded by this column's live width,
+   * and that padding rides `--duration-slide` on `--ease-in-out` along with
+   * everything else the shell moves. 200ms `ease-out` against 480ms
+   * `--ease-in-out` is 2.4x shorter on a different curve, so this column's
+   * right-hand edge ran away from the column it was supposed to be pushing:
+   * measured at 1512, the sidebar overlapped the conversation by 68px for
+   * ~233ms on every expand. Nothing about the collapse itself changes — same
+   * inline rule, same teardown, only the two numbers in it — and the timer
+   * below follows whichever pairing is in force, so it can never tear the
+   * transition down mid-move.
+   */
+  collapseRidesSlide?: boolean;
   /**
    * Reports the column's live width — the rail's 64 while collapsed, the
    * dragged width otherwise — including the resting one on mount.
@@ -259,6 +318,11 @@ export function Sidebar({
   // before React changes the width, then removed on a timer. transitionend
   // is not used because the label opacity transitions bubble it too early.
   //
+  // The duration and curve are whatever `collapseRidesSlide` asked for, read
+  // once so the inline rule and the teardown timer cannot disagree — a timer
+  // still keyed to 200ms while the move ran for 480 would cut the animation in
+  // half and put the snap back in a different place.
+  //
   // Two facts, not one: `userCollapsed` is what the reader asked for and
   // `collapsed` is what the column can actually be. Only the reader's own
   // choice is remembered, so lifting `forceCollapsed` restores it rather than
@@ -271,20 +335,37 @@ export function Sidebar({
   // See the control itself for what it does about that.
   const railLocked = forceCollapsed;
   const columnRef = useRef<HTMLDivElement>(null);
+  const cleanupTimer = useRef<number | undefined>(undefined);
   const toggleCollapsed = () => {
     const column = columnRef.current;
+    const ms =
+      collapseRidesSlide && column ? durationToken(column, "--duration-slide", SLIDE_FALLBACK_MS) : COLLAPSE_MS;
     if (column) {
-      column.style.transition = "width 200ms ease-out";
+      // Longhands rather than the `transition` shorthand: the shell's curve is
+      // a custom property, and a var() that failed to resolve inside a
+      // shorthand would invalidate the whole declaration and silently take the
+      // animation with it. On the longhand it can only cost the easing.
+      column.style.transitionProperty = "width";
+      column.style.transitionDuration = `${ms}ms`;
+      column.style.transitionTimingFunction = collapseRidesSlide ? "var(--ease-in-out)" : COLLAPSE_EASING;
       void column.offsetWidth;
     }
     // Against the RENDERED state, not the remembered one: pressing a control
     // that says "Open sidebar" has to mean open, whichever of the two facts
     // above put the rail there.
     setUserCollapsed(!collapsed);
-    window.setTimeout(() => {
+    // One teardown in flight at a time. A second press while the first is
+    // still running would otherwise leave the first timer to fire mid-move and
+    // strip the transition off it — the same snap this whole change exists to
+    // remove, just relocated. The window is 260ms on the column's own motion
+    // and 540ms on the shell's, so riding the slide is exactly where a
+    // double-press becomes easy.
+    window.clearTimeout(cleanupTimer.current);
+    cleanupTimer.current = window.setTimeout(() => {
       if (column) column.style.transition = "";
-    }, 260);
+    }, ms + COLLAPSE_CLEANUP_MS);
   };
+  useEffect(() => () => window.clearTimeout(cleanupTimer.current), []);
   // No such transition when `forceCollapsed` moves. That one is a correction
   // made while the window is already being dragged, like the panel's own
   // re-clamp, and animating a correction on top of a resize reads as lag.

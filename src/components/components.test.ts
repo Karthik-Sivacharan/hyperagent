@@ -153,3 +153,66 @@ describe("the data-slot contract", () => {
     expect(silent).toEqual([]);
   });
 });
+
+// Found by audit 2026-09-10, after a user reported the agent panel "ghosting"
+// through the conversation on the signup handoff.
+//
+// TAILWIND V4 DOES NOT COMPILE `translate-*` / `scale-*` / `rotate-*` TO THE
+// `transform` PROPERTY. It compiles them to the separate CSS properties of the
+// same name:
+//
+//   .translate-x-full { --tw-translate-x: 100%;
+//                       translate: var(--tw-translate-x) var(--tw-translate-y); }
+//   .scale-\(--scale-press\) { scale: var(--scale-press) var(--scale-press); }
+//
+// So `transition-[transform,box-shadow]` sitting next to `translate-x-full`
+// transitions NOTHING: the element teleports, silently, with no warning
+// anywhere and a class list that reads as if it were animating. Five such
+// sites had been shipped, one of them the panel that appeared to paint through
+// the conversation for a third of a second on every arrival.
+//
+// The NAMED utility is safe — `transition-transform` expands to
+// `transition-property: transform, translate, scale, rotate` — which is why
+// the sidebar's wrapper, three lines from the panel's, never had the bug.
+//
+// The rule below is deliberately not a ban on the word `transform`: a list may
+// name it, and one day something may legitimately want it (`skew-*` and
+// `transform-gpu` still compile to `transform`). What it may not do is name
+// `transform` INSTEAD of the property the same file actually moves on.
+//
+// Its one known blind spot: a class string that overrides a primitive's own
+// transition list from another file (`ACTION` in the two thread-card files did
+// exactly that to Button's press feedback) is invisible to a per-file rule,
+// because the utility and the list live in different files.
+describe("transition property lists", () => {
+  /** A Tailwind v4 movement utility, and the CSS property it really sets. */
+  const MOVEMENT: [property: string, utility: RegExp][] = [
+    // `translate-x-4`, `-translate-y-full`, `translate-(--foo)`, `translate-[3px]`
+    ["translate", /(?<![\w-])-?translate(?:-[xyz])?-(?=[\d([]|(?:full|px|none)\b)/],
+    // `scale-95`, `-scale-x-100`, `scale-(--scale-press)`, `scale-[1.02]`
+    ["scale", /(?<![\w-])-?scale(?:-[xyz])?-(?=[\d([]|(?:none|3d)\b)/],
+    // `rotate-45`, `-rotate-12`, `rotate-(--foo)`, `rotate-[3deg]`
+    ["rotate", /(?<![\w-])-?rotate(?:-[xyz])?-(?=[\d([]|none\b)/],
+  ];
+
+  it("never names `transform` in place of the v4 property the same file moves on", () => {
+    const offenders: string[] = [];
+    for (const { path, text } of sources) {
+      // Class strings only. The prose in these files quotes both spellings on
+      // purpose, and a comment has never animated anything.
+      const clean = stripComments(text);
+      const moves = MOVEMENT.filter(([, utility]) => utility.test(clean)).map(([property]) => property);
+      if (moves.length === 0) continue;
+      for (const m of clean.matchAll(/transition-\[([^\]]+)\]/g)) {
+        const listed = m[1].split(",").map((p) => p.trim());
+        if (!listed.includes("transform")) continue;
+        const missing = moves.filter((property) => !listed.includes(property));
+        if (missing.length === 0) continue;
+        offenders.push(
+          `${path}:${lineOf(clean, m.index)} transition-[${m[1]}] names \`transform\`, but this file moves on \`${missing.join("`, `")}\` — Tailwind v4 compiles translate-*/scale-*/rotate-* to those properties, not to transform, so this transitions nothing. List \`${missing.join(", ")}\` explicitly, or use the named \`transition-transform\`.`,
+        );
+      }
+    }
+    expect(offenders, offenders.join("\n")).toEqual([]);
+  });
+});
