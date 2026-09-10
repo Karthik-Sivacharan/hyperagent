@@ -341,21 +341,30 @@ export function SignupScreen() {
       style={{ "--handoff-panel-w": handedOff ? `${panelWidth}px` : "0px" } as React.CSSProperties}
     >
       <AppHandoff entered={handedOff} onPanelWidthChange={setPanelWidth} />
-      {/* The stage is the column's measure, and it is the ONE thing that
-          changes between the first three screens and the fourth. 384px is a
-          sign-in column; the chat step is a thread, and the product's own
-          thread runs at 816px (measured on hyperagent.com, 2026-09-09) — the
-          nearest thing the token set has is `max-w-wide`, 752px, which is
-          literally the composer's own measure. It snaps rather than animating:
-          max-width is a layout property, and nothing occupies the extra width
-          until the chat screen has faded in anyway. */}
-      <div
-        ref={stageRef}
-        className={cn(
-          "relative grid w-full",
-          step === "personalize" ? "max-w-wide" : "max-w-96",
-        )}
-      >
+      {/* The stage is the column's measure, and it is `max-w-wide` (752px) for
+          every screen. The chat step is a thread, and the product's own thread
+          runs at 816px (measured on hyperagent.com, 2026-09-09); 752 is the
+          nearest thing the token set has, and is literally the composer's own
+          measure. The first three screens do NOT take their width from here —
+          COLUMN caps them at 384 and centres them inside the cell — so one
+          measure for all four costs them nothing, and it holds every
+          `data-mark-slot` on a fixed axis instead of moving the personalize
+          seat when the stage used to widen.
+
+          `grid-cols-1` is load-bearing. An implicit grid column is `auto`, so
+          the track sizes to the widest item's MIN-CONTENT and ignores
+          `max-w-*`: all four screens are always mounted, and the personalize
+          screen's skill card reports 644.94px of min-content, which made the
+          track 644.94 wide inside a 384 box and threw every column centred in
+          it (644.94 - 384) / 2 = 130.47px to the right. `grid-cols-1` is
+          `minmax(0, 1fr)`, which pins the track to the container.
+
+          The two go together and neither ships alone. `grid-cols-1` by itself
+          would narrow the chat screen at the first three steps and take the
+          shared row from 1026 to 990px between profile and personalize — a
+          height change firing while the mark is mid-flight, which is the one
+          thing this screen may not do. */}
+      <div ref={stageRef} className="relative grid w-full max-w-wide grid-cols-1">
         {/* 1. Pick a provider, or fall back to email. */}
         <div
           className={cn(SCREEN, COLUMN, leaving && "pointer-events-none")}
