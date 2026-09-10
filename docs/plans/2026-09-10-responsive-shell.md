@@ -6,7 +6,7 @@ load-bearing and this plan touches all three.
 
 ## What is wrong, measured
 
-Driven to the handoff state (`/signup` → Google → Hyperpersonalize → pick a
+Driven to the handoff state (`/signup` → Google → the profile CTA → pick a
 card → send) at 902px tall, dark, and then resized. `stageW` is the
 conversation column; `docH > vh` means the page scrolls.
 

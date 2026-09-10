@@ -195,7 +195,20 @@ export function ProfileStep({
               below 40px anyway. It inherits `text-brand-foreground` from the
               button, so it paints as one piece with the label. */}
           <Mark size={17} />
-          Hyperpersonalize my onboarding
+          {/* It said "Hyperpersonalize my onboarding", which named the
+              MECHANISM: "hyperpersonalize" is this flow's internal name and
+              nobody says it out loud, and "my onboarding" is the product's
+              word for the process rather than the reader's word for anything.
+              This names the outcome instead, and the next screen delivers it
+              in the same words — "Researching agents for Karthik…".
+
+              It also has to be read against "Set up manually" directly below,
+              which is the same escape hatch the chat screen offers one beat
+              later. "for me" against "manually" is one choice with two halves;
+              two labels that each described themselves would be two unrelated
+              offers stacked. And the mark to its left already says Hyperagent,
+              so the words do not have to. */}
+          Find agents for me
         </Button>
         <Button
           type="button"
