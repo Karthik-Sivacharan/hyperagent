@@ -367,6 +367,20 @@ function SignalSummary({ onRestart }: { onRestart: () => void }) {
     // `w-full` so the retry can reach the right edge; the live rows above stay
     // `justify-self-start` and keep hugging their own text, because a pill
     // stretched to the column would be a bar, not a chip.
+    //
+    // NOTHING IN THIS SLOT TAKES A CONTAINER QUERY, and that is a measurement
+    // rather than an oversight — the column is a container now (see the note
+    // at the top of chat-step.tsx) and every part of this screen was checked
+    // against it. Everything here is sized by its own contents and gives way
+    // on its own: a live row hugs its text under a `max-w-full` cap with the
+    // parameter after the middot on `truncate`, and the receipt is five 24px
+    // tiles, a 12px count and a 24px control. Measured, the receipt wants
+    // 245px and this slot only starts to overflow below 248px of column —
+    // narrower than the column the shell can produce on a 320px phone, which
+    // is 280 once the gutters are paid. There is no width a rule here could
+    // usefully fire at. If the column is ever allowed below 248, the thing to
+    // give way is the words "Read 5 sources": the marks ARE the receipt and
+    // the retry is the only control in the slot.
     <span className="flex w-full items-center gap-2">
       <ToolTileGroup label={describeSources()}>
         {RESEARCH_SIGNALS.map((signal) => (

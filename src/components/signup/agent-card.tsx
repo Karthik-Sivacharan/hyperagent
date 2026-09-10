@@ -105,10 +105,30 @@ export function AgentCard({
     >
       <button type="button" disabled={!ready} aria-pressed={selected} onClick={onPick}>
         {/* Both layers in one cell. Spans, not divs: a button's content model
-            is phrasing content, and this one is full of boxes. */}
+            is phrasing content, and this one is full of boxes.
+
+            `min-w-0` on this layer is what makes the card NARROWABLE, and the
+            reason is not visible from here. The title below is `truncate`,
+            which carries `white-space: nowrap`, and a nowrap line's
+            min-content width is the entire string. That number travels up
+            through the column flex and becomes the minimum of this button's
+            own grid track, so the card could never be narrower than its
+            longest title. Measured on "Support tickets into themes": 208.6px
+            of text, plus 32 of padding, is a 241px floor — and a 232px card
+            (a 480px column, two-up) put 8.6px of its own content outside
+            itself, where the Card's `overflow-hidden` quietly cut it off.
+            Declaring the minimum instead of inheriting it hands the track back
+            to the card, and that is also the only condition under which
+            `truncate` ever truncates: while the box was sized to fit the
+            title, the ellipsis it asks for could not appear at any width.
+
+            The skeleton layer wants none of this. Its bars are percentages,
+            which contribute nothing to an intrinsic width, and its widest
+            fixed part is the 72px tool block — under the content box of even
+            the narrowest card this screen can produce. */}
         <span
           className={cn(
-            "col-start-1 row-start-1 flex h-full flex-col gap-3 transition-opacity duration-(--duration-normal) ease-out motion-reduce:transition-none",
+            "col-start-1 row-start-1 flex h-full min-w-0 flex-col gap-3 transition-opacity duration-(--duration-normal) ease-out motion-reduce:transition-none",
             ready ? "opacity-100" : "opacity-0",
           )}
         >

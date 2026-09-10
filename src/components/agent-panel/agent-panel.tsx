@@ -52,7 +52,12 @@ export const AGENT_PANEL_WIDTH = 560;
 
 // The drag range. 440 is where the longest header row runs out of gap; 720 is
 // where the instructions field passes 90 characters and prose starts to fray.
-const PANEL_MIN_WIDTH = 440;
+//
+// The minimum is exported because it is half of the question "is there room for
+// both this and a readable conversation" that use-shell-fit.ts asks on every
+// resize. Two files agreeing on 440 by typing it twice is the sort of pair that
+// drifts the first time one of them is retuned.
+export const AGENT_PANEL_MIN_WIDTH = 440;
 const PANEL_MAX_WIDTH = 720;
 /** One arrow key of resize, and one shift-arrow. */
 const RESIZE_STEP = 16;
@@ -120,7 +125,13 @@ function sameDraft(a: Draft, b: Draft) {
   );
 }
 
-const clampWidth = (px: number) => Math.min(PANEL_MAX_WIDTH, Math.max(PANEL_MIN_WIDTH, px));
+/**
+ * The drag range, optionally squeezed from above by whatever room the shell has
+ * left. The floor always wins over the ceiling: a panel narrower than 440 is a
+ * panel whose own header rows collide, which helps nobody.
+ */
+const clampWidth = (px: number, ceiling = PANEL_MAX_WIDTH) =>
+  Math.max(AGENT_PANEL_MIN_WIDTH, Math.min(Math.min(PANEL_MAX_WIDTH, ceiling), px));
 
 // One setting: what it is called on the left, what it is set to on the right.
 // The hint sits under the label rather than under the control because the
@@ -152,10 +163,33 @@ function Field({
 }
 
 export function AgentPanel({
+  id,
   className,
+  maxWidth,
   onWidthChange,
 }: {
+  /**
+   * Put on the `<aside>` so a toggle elsewhere in the shell can point at it
+   * with `aria-controls`. Optional, because a panel nobody toggles needs no
+   * name — the /design route passes nothing and renders what it always did.
+   */
+  id?: string;
   className?: string;
+  /**
+   * The widest this panel may be right now.
+   *
+   * A CONSTRAINT, NOT A WIDTH, and the difference is the whole reason this is
+   * shaped the way it is. The shell knows how much room there is; it does not
+   * know how much of it this panel wants. So what comes down is a ceiling, and
+   * the panel goes on owning its preference underneath it: drag it wide at
+   * 1920, narrow the window until the ceiling squeezes it, widen the window
+   * again and it returns to the width you dragged it to. A width coming down
+   * instead would have overwritten that preference the first time the window
+   * moved, and the reader would have to re-drag it every time.
+   *
+   * `AGENT_PANEL_MIN_WIDTH` / `PANEL_MAX_WIDTH` stay the outer bounds either way.
+   */
+  maxWidth?: number;
   /**
    * Reports the panel's live width, including the resting one on mount.
    *
@@ -185,7 +219,14 @@ export function AgentPanel({
   // for a minute. Unlike the sidebar's handle this one is focusable and takes
   // the arrow keys: it is a window splitter, and a splitter only reachable with
   // a pointer is a setting some people cannot change.
-  const [width, setWidth] = useState(AGENT_PANEL_WIDTH);
+  //
+  // Two numbers, not one: `preferred` is the width this panel has been asked
+  // for (its resting 560, or wherever the last drag left it) and `width` is
+  // what it can actually have once `maxWidth` has had its say. Keeping them
+  // apart is what makes the constraint reversible — see the prop's note.
+  const [preferred, setPreferred] = useState(AGENT_PANEL_WIDTH);
+  const ceiling = Math.min(PANEL_MAX_WIDTH, maxWidth ?? PANEL_MAX_WIDTH);
+  const width = clampWidth(preferred, ceiling);
   const drag = useRef({ startX: 0, startWidth: AGENT_PANEL_WIDTH });
 
   useEffect(() => {
@@ -204,8 +245,10 @@ export function AgentPanel({
     drag.current = { startX: e.clientX, startWidth: width };
     document.body.style.cursor = "col-resize";
     document.body.style.userSelect = "none";
+    // Clamped by the outer bounds only, never by the live ceiling: a drag made
+    // while the shell is squeezed should still be remembered at full size.
     const move = (ev: PointerEvent) =>
-      setWidth(clampWidth(drag.current.startWidth - (ev.clientX - drag.current.startX)));
+      setPreferred(clampWidth(drag.current.startWidth - (ev.clientX - drag.current.startX)));
     const stop = () => {
       document.body.style.cursor = "";
       document.body.style.userSelect = "";
@@ -221,10 +264,10 @@ export function AgentPanel({
   const onResizeKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     const step = e.shiftKey ? RESIZE_STEP_LARGE : RESIZE_STEP;
     // Left widens, because the panel grows leftward into the thread.
-    if (e.key === "ArrowLeft") setWidth((w) => clampWidth(w + step));
-    else if (e.key === "ArrowRight") setWidth((w) => clampWidth(w - step));
-    else if (e.key === "Home") setWidth(PANEL_MAX_WIDTH);
-    else if (e.key === "End") setWidth(PANEL_MIN_WIDTH);
+    if (e.key === "ArrowLeft") setPreferred((w) => clampWidth(w + step));
+    else if (e.key === "ArrowRight") setPreferred((w) => clampWidth(w - step));
+    else if (e.key === "Home") setPreferred(PANEL_MAX_WIDTH);
+    else if (e.key === "End") setPreferred(AGENT_PANEL_MIN_WIDTH);
     else return;
     e.preventDefault();
   };
@@ -365,6 +408,7 @@ export function AgentPanel({
 
   return (
     <aside
+      id={id}
       aria-label="Agent configuration"
       // `bg-sidebar` on purpose: this is the mirror of the left column, and two
       // pieces of chrome around one canvas should be one material. In dark, the
@@ -449,19 +493,22 @@ export function AgentPanel({
 
       {/* The splitter. A separator rather than a button, per the window-splitter
           pattern, so a screen reader hears the current width and the range it
-          may take. The bar inside only appears on hover or focus, so at rest
-          the panel's edge is one hairline. */}
+          may take — and the range it hears is the one the drag can actually
+          reach right now (`ceiling`), not the theoretical 720, because a
+          splitter that announces a maximum it will not go to is worse than one
+          that announces a smaller true one. The bar inside only appears on
+          hover or focus, so at rest the panel's edge is one hairline. */}
       <div
         role="separator"
         aria-orientation="vertical"
         aria-label="Resize agent configuration panel"
         aria-valuenow={width}
-        aria-valuemin={PANEL_MIN_WIDTH}
-        aria-valuemax={PANEL_MAX_WIDTH}
+        aria-valuemin={AGENT_PANEL_MIN_WIDTH}
+        aria-valuemax={ceiling}
         tabIndex={0}
         onPointerDown={onResizeStart}
         onKeyDown={onResizeKeyDown}
-        onDoubleClick={() => setWidth(AGENT_PANEL_WIDTH)}
+        onDoubleClick={() => setPreferred(AGENT_PANEL_WIDTH)}
         className="group absolute inset-y-0 z-40 flex w-5 cursor-col-resize touch-none items-center justify-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
         style={{ left: -10 }}
       >

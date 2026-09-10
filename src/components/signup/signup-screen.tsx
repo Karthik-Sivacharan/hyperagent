@@ -1,15 +1,16 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 
 import { MaterialMark } from "@/components/brand/logo-motion/material-mark";
 import { EmailForm } from "@/components/signup/email-form";
-import { AppHandoff } from "@/components/signup/app-handoff";
+import { AppHandoff, HANDOFF_SIDEBAR_PX } from "@/components/signup/app-handoff";
 import { ChatStep } from "@/components/signup/chat-step";
 import { LoadingStep, LOADING_SEQUENCE_MS } from "@/components/signup/loading-step";
 import { ProfileStep } from "@/components/signup/profile-step";
 import { ProviderList } from "@/components/signup/provider-list";
 import { SignupLegal } from "@/components/signup/signup-legal";
+import { useShellFit, SHELL_GUTTER } from "@/components/signup/use-shell-fit";
 import { WorkEmailNudge } from "@/components/signup/work-email-nudge";
 import { cn } from "@/lib/utils";
 
@@ -142,17 +143,73 @@ export function SignupScreen() {
   // which also means the mark keeps its existing seat and the FLIP effect
   // below needs no fifth case. See app-handoff.tsx.
   const [handedOff, setHandedOff] = useState(false);
-  // The panel owns its width and reports it; the column between the two
-  // columns has to pad by whatever it currently is, or dragging the splitter
-  // opens a gap. Held here rather than read from a constant because the panel
-  // is resizable and a constant would only be right until the first drag.
+  // The three columns' live geometry. Both chrome columns own their own width
+  // and report it up; this screen is the only place that knows all three
+  // numbers at once, so the arithmetic that divides the window lives here.
+  // Held as state rather than read from constants because both columns are
+  // collapsible and drag-resizable, and a constant would only be right until
+  // the first drag.
   const [panelWidth, setPanelWidth] = useState(0);
+  const [sidebarWidth, setSidebarWidth] = useState(HANDOFF_SIDEBAR_PX);
+  // ...and what the sidebar would take if nothing were railing it, which is a
+  // separate fact for a reason: it is what the rail decision is made against,
+  // and making it against the live width would feed the decision its own
+  // output. See use-shell-fit.ts.
+  const [expandedSidebarWidth, setExpandedSidebarWidth] = useState(HANDOFF_SIDEBAR_PX);
+  // The panel arrives open, which is agent-panel.tsx's whole argument: a panel
+  // that opens collapsed loses to the composer's menus every time. It closes
+  // when there is no longer room for it and a readable conversation both.
+  const [panelOpen, setPanelOpen] = useState(true);
   const [mode, setMode] = useState<Mode>("providers");
   const emailFieldRef = useRef<HTMLInputElement>(null);
   const emailTriggerRef = useRef<HTMLButtonElement>(null);
   const profileHeadingRef = useRef<HTMLHeadingElement>(null);
   const chatHeadingRef = useRef<HTMLHeadingElement>(null);
   const focusedFor = useRef(mode);
+
+  // The panel's element id, so the bar's toggle can point `aria-controls` at
+  // it. `useId` rather than a literal because two of these could in principle
+  // share a page, and React's own id survives hydration.
+  const panelId = useId();
+
+  const { docked, panelMax, railSidebar } = useShellFit({ sidebarWidth, expandedSidebarWidth });
+
+  // Entering floating mode closes the panel. This is the ONE place the panel
+  // changes itself, and it is deliberately one-way: it does not re-open when
+  // the window widens again, because a panel that comes back because you
+  // dragged a window edge is a panel you did not ask for. Only the CHANGE of
+  // mode does this, so opening the drawer by hand while floating survives.
+  //
+  // Adjusted during render, against a remembered previous mode, rather than in
+  // an effect: this is React's "adjusting state when a prop changes" pattern,
+  // and it matters here rather than being a style preference — an effect runs
+  // after paint, so the reader would get one frame of an open 560px drawer
+  // sitting over a conversation that has just been told it has nowhere to put
+  // it. React re-renders before painting either way.
+  const [dockedWas, setDockedWas] = useState(docked);
+  if (dockedWas !== docked) {
+    setDockedWas(docked);
+    if (!docked) setPanelOpen(false);
+  }
+
+  // Escape closes a FLOATING panel and does nothing to a docked one: a drawer
+  // lying over the conversation is something you dismiss, a column is just part
+  // of the room. Nothing here traps focus — the drawer is non-modal — so this
+  // is a plain window listener.
+  useEffect(() => {
+    if (docked || !panelOpen) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape" || event.defaultPrevented) return;
+      // Radix's menus and selects also close on Escape and do not stop the
+      // event, so a bare listener would shut the panel behind a menu the
+      // reader was only dismissing. A mounted popper wrapper is the one
+      // reliable sign that something is open on top of the panel.
+      if (document.querySelector("[data-radix-popper-content-wrapper]")) return;
+      setPanelOpen(false);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [docked, panelOpen]);
 
   // The FLIP rig. `stageRef` is the positioning context the mark is measured
   // against — offsets relative to it survive the page being re-centred by the
@@ -321,6 +378,13 @@ export function SignupScreen() {
 
   const leaving = step !== "signin";
 
+  // The panel is a COLUMN — something <main> has to pad around — only while the
+  // shell is here, the panel is open and there is room for it beside a readable
+  // conversation. Floating, it is a drawer lying over the top and the
+  // conversation pays it nothing, which is the whole point of the mode.
+  const panelIsColumn = handedOff && docked && panelOpen;
+  const columnPanelWidth = panelIsColumn ? panelWidth : 0;
+
   return (
     <main
       className={cn(
@@ -333,14 +397,43 @@ export function SignupScreen() {
         // compose with the mark's own transform and fight it.
         "relative z-10 flex min-h-svh flex-col items-center justify-center px-5 py-12",
         "transition-[padding] duration-(--duration-slide) ease-in-out motion-reduce:transition-none",
-        // Both edges, because the shell arrives on both. The right side reads
-        // the live panel width through a custom property so a splitter drag
-        // moves the column with it; the left is the sidebar's resting 256.
-        handedOff && "md:pl-64 md:pr-(--handoff-panel-w)",
+        // Both edges, because the shell arrives on both, and both read a live
+        // figure through a custom property so dragging either splitter moves
+        // the column with it. `md:` because below it neither chrome column is
+        // displayed at all (both wrappers are `hidden md:flex`) and `px-5`
+        // should stand alone.
+        //
+        // The figures ADD to the gutter rather than replace it. `md:pl-64` used
+        // to override `pl-5` outright, which is why the right-hand cards ended
+        // up flush against the panel's hairline at 1180 — the shell's padding
+        // ate the screen's own air instead of sitting outside it.
+        handedOff && "md:pl-(--handoff-pad-l) md:pr-(--handoff-pad-r)",
       )}
-      style={{ "--handoff-panel-w": handedOff ? `${panelWidth}px` : "0px" } as React.CSSProperties}
+      style={
+        {
+          // The two live column widths, read by the thread bar (which butts up
+          // against both, with no gutter, exactly as it does in the app)...
+          "--handoff-sidebar-w": `${sidebarWidth}px`,
+          "--handoff-panel-w": `${columnPanelWidth}px`,
+          // ...and the same two facts plus the gutter, which is what the
+          // conversation itself is padded by.
+          "--handoff-pad-l": `${sidebarWidth + SHELL_GUTTER}px`,
+          "--handoff-pad-r": `${columnPanelWidth + SHELL_GUTTER}px`,
+        } as React.CSSProperties
+      }
     >
-      <AppHandoff entered={handedOff} onPanelWidthChange={setPanelWidth} />
+      <AppHandoff
+        entered={handedOff}
+        docked={docked}
+        panelOpen={panelOpen}
+        panelId={panelId}
+        panelMax={panelMax}
+        railSidebar={railSidebar}
+        onTogglePanel={() => setPanelOpen((open) => !open)}
+        onPanelWidthChange={setPanelWidth}
+        onSidebarWidthChange={setSidebarWidth}
+        onSidebarExpandedWidthChange={setExpandedSidebarWidth}
+      />
       {/* The stage is the column's measure, and it is `max-w-wide` (752px) for
           every screen. The chat step is a thread, and the product's own thread
           runs at 816px (measured on hyperagent.com, 2026-09-09); 752 is the

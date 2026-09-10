@@ -94,6 +94,11 @@ this first in a new session, then `README.md`, `docs/components.md`,
   thing that still follows it, and dropping the flag would remove that third
   choice rather than change the default. Nothing about the token sheet moved
   — `:root` is still the light mapping and `.dark` still only re-maps it.
+- **The signup shell is responsive (2026-09-10).** `fix/responsive-shell`: the
+  conversation column has a floor and the chrome yields to it in three steps,
+  the column measures itself with container queries, and the thread bar's panel
+  toggle works. `npm run probe:signup` is the gate. See "The shell yields, the
+  conversation does not" below.
 - **Two design pages carry work that is built but not wired**:
   `/design/skill-suggestions` (three ways to offer skills) and
   `/design/agent-panel` (the Gumloop-shaped agent config panel, with its
@@ -574,14 +579,95 @@ without animating, which is what it was written for.
   page, and it wants a slightly louder fill off-card.
 - The two edit pencils on the record cards are inert. Wiring them means
   deciding inline editing vs a dialog.
-- **Nothing here has been verified below 1456 wide.** The classes are there
-  and no horizontal overflow was measured down to 420px, but no one has looked
-  at it.
+- ~~Nothing here has been verified below 1456 wide.~~ **Closed 2026-09-10 by
+  `fix/responsive-shell`; see "The shell yields, the conversation does not"
+  below.** `npm run probe:signup` is now the gate, and it passes at every width
+  from 1920 down to 768 in both themes.
 - `--shadow-rim` does real work in dark and is close to invisible in light,
   where `--highlight` is white on a near-white card. Left as is, since the
   light theme is flat by design elsewhere. A per-theme inset would be correct.
 - Every suggested agent happens to draw Linear, so the tool rows look more
   alike than they should.
+
+## The shell yields, the conversation does not (2026-09-10)
+
+Merged from `fix/responsive-shell`. The plan, with every measurement behind it,
+is `docs/plans/2026-09-10-responsive-shell.md`. Before this, the handoff's
+`<main>` padded a hard `md:pl-64` and the panel's live width, so the
+conversation was the REMAINDER of a subtraction and the two things it
+subtracted never yielded: at 1024 the column was 208px, at 768 it was 0.
+
+**The rule is one sentence: the conversation has a floor, and the chrome yields
+first.** Three steps, cheapest first, decided by a live fit test rather than a
+media query — the sidebar is collapsible and drag-resizable, so a breakpoint
+would be measuring a number that moves.
+
+1. **The panel gives up its own width**, down to its existing 440 minimum,
+   before the conversation gives up any. `AgentPanel` gained `maxWidth`, a
+   CONSTRAINT rather than a value: the panel still owns which width it wants
+   (`preferred`) and `maxWidth` only says what it may have, so a drag made
+   while squeezed is remembered and returns when the window widens.
+2. **The panel stops being a column** and floats over the conversation at the
+   right edge on `shadow-lg`, closed on arrival, dismissed by Escape. It is
+   inset by the thread bar's 48px so it cannot cover the toggle that opened it.
+3. **The sidebar rails.** This one exists because a harness sweep found the
+   768–807 band the first two steps leave open: the panel has already floated,
+   the 256px sidebar still will not move, and the column lands at 472 under the
+   512 floor. `Sidebar` gained `forceCollapsed`, the same constraint shape, with
+   `collapsed = userCollapsed || forceCollapsed` so the reader's own choice
+   survives underneath it.
+
+`COLUMN_FLOOR = 512` is Tailwind's `@lg` container breakpoint and it does two
+jobs with one number: it is the floor the shell defends, and it is where the
+card grid drops to one column. The arithmetic lives in
+`src/components/signup/use-shell-fit.ts`, which also carries the proof that the
+rail and dock bands cannot oscillate.
+
+**`railSidebar` is asked of the sidebar's EXPANDED width, never its live one.**
+The obvious version feeds itself: railing changes the live width, which un-makes
+the decision, which un-rails. That is why `Sidebar` reports two figures.
+
+**The column measures itself now, not the viewport.** `chat-step.tsx` is
+`@container/chat` and the card grid is `@lg/chat:grid-cols-2`. A `sm:` inside a
+column whose width is "viewport minus two pieces of chrome" is reading the wrong
+box — that is why the cards stayed two-up at 96px each. Container queries were
+already this repo's idiom (`composer.tsx`, `memories-page.tsx`,
+`threads-page.tsx`, `settings/integrations-page.tsx`).
+
+**Two bugs found on the way, both worth remembering.**
+- **The panel toggle was dead for two reasons, not one.** It had no `onClick`,
+  and the thread bar sits inside a `pointer-events-none` layer that (unlike the
+  sidebar and panel wrappers) never re-armed them, so `elementFromPoint` over
+  the button returned `<main>`. Wiring the handler alone would have changed
+  nothing.
+- **`truncate` implies `white-space: nowrap`, whose min-content width is the
+  whole string.** The agent card's longest title, 208.6px, plus 32px of padding,
+  became a 241px floor on the card's own grid track, so below that the card
+  pushed its content out sideways under `overflow-hidden` — and `truncate` had
+  never once truncated at any width. `min-w-0` on the content layer fixes both.
+
+**The gate is `npm run probe:signup`.** It drives `/signup` to the handoff
+state and sweeps 14 widths, reporting the column, the grid's computed
+`grid-template-columns`, the heading's line count, the panel's mode and the
+mark's seat, and asserting three things: the column never falls under 512 while
+docked, nothing scrolls at any width ≥768, nothing escapes its box. It exits 0
+on pass, 1 on fail, 2 when the run is unsound — it records whether the shell
+actually arrived, because an HMR recompile mid-sweep can reset React state and
+quietly measure the pre-handoff page. Add `--sidebar-collapsed`,
+`--panel-closed`, `--theme=light`.
+
+Two traps it encodes, both of which cost real time:
+- `globals.css` sets `overflow-x: hidden` on `html` and `body`, forcing their
+  used `overflow-y` to `auto`, so a body scroll can exist while
+  `documentElement` reports none. Check all three scrollers and dispatch a real
+  wheel.
+- **Dispatch that wheel over the conversation, not at a fixed point.** A wheel
+  at `(400, 400)` lands inside the panel at narrow widths and scrolls THAT,
+  reporting a reassuring zero.
+
+At the merge: all six gates, `probe:signup` passing 3 of 3 in both themes, and
+all 17 cloned routes byte-identical to `main` at 1456×868 in both themes —
+`ThreadHeader` and `Sidebar` are shared with them and every new prop is opt-in.
 
 ## Design decisions worth knowing
 
