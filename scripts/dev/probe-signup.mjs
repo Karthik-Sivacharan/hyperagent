@@ -489,8 +489,8 @@ const profileReady = await waitFor("the profile screen to become the live step",
 console.error(`  · profile screen live after ${profileReady.ms}ms`);
 await sleep(400);
 
-// 2. Hyperpersonalize → the research pass (~10.5s) → four cards that answer.
-await clickOrDie({ slot: "profile", text: "Hyperpersonalize my onboarding" }, '"Hyperpersonalize my onboarding"');
+// 2. The profile step's CTA → the research pass (~10.5s) → four cards that answer.
+await clickOrDie({ slot: "profile", text: "Find agents for me" }, '"Find agents for me"');
 const chatReady = await waitFor("the chat screen to become the live step", async () => {
   const s = await run(pageScreen, "personalize");
   return s.live;

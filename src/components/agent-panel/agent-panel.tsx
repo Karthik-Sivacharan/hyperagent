@@ -36,22 +36,70 @@ import { cn } from "@/lib/utils";
 // loses to the menus every time and the config quietly forks in two. Everything
 // here is visible on arrival, flat, and in one column.
 //
-// WIDTH: 560px, and the number is picked by what has to fit rather than by what
-// the two live references happen to measure (Gumloop ~550, hyperagent ~558, so
-// this lands between them and nobody arriving from either has to relearn the
-// column). 560 less the 2x20px gutters is 520px of content, which is about 72
-// characters of the 14px body face in the instructions field: inside the 65-75
-// character band that prose wants, and the instructions are the only control in
-// the panel that is really prose. It also leaves the thread its room. At the
-// 1456px the screenshot gate uses, 1456 less the 256px sidebar less this panel
-// is 640px of conversation, which is still a comfortable reading column rather
-// than a gutter. Narrower and the section header rows (title, "AI discovery",
-// switch, "+ Add") start colliding; wider and the panel wins an argument it
-// should not be having with the thread.
-export const AGENT_PANEL_WIDTH = 560;
+// WIDTH: 448px, and the number moved twice on 2026-09-10 for two different
+// reasons. It was 560; measuring the reference took it to 480; then the reader
+// asked for a little less again and measuring the PANEL took it to 448. The
+// second move was only possible because the panel had a content floor at 471px
+// it could not get under (see the ScrollArea note below) — so "a bit narrower"
+// was not a taste call to make, it was a bug to find. Below is the 480
+// reasoning, which still holds; 448 is that argument with the floor removed.
+//
+// 448 is 28rem, it clears the 440 drag minimum by half a step, and against the
+// reference's 477 it is one notch tighter, which is what was asked for. The
+// instructions field lands at about 57 characters of the 14px face. That is
+// under the 65-75 prose band and deliberately so: the band is for reading long
+// prose, and this field is a setting you write once and skim after. Drag it
+// wider (to 720, or double-click for this resting width) when you are actually
+// composing in it — that is what the splitter is for, and it is why the resting
+// width sits at the bottom of its range rather than the middle.
+//
+// ---- the 480 reasoning, kept because it is the load-bearing part ----
+//
+// Corrected 2026-09-10 from 560 after measuring the reference
+// rather than trusting a remembered figure. This comment used to say "Gumloop
+// ~550"; Gumloop's panel is **477px at a 1456px viewport**, read off a live
+// agent page. It is not even a fixed width there — it is a split pane at
+// `flex: 33.898 1 0px`, so it is 33.9% of the content area and grows with the
+// window. 560 was therefore not "between the two references", it was 80px wider
+// than the one it named.
+//
+// 480 is kept as a FIXED number rather than copied as a percentage, because
+// this panel's width is already clamped from both sides by a live fit test
+// (use-shell-fit.ts) and a proportional default would be a second opinion about
+// the same pixels; and because the drag range below is in px, so a percentage
+// default would drift out of the middle of its own range on a wide monitor.
+//
+// What it has to hold: 480 less the 2x20px gutters is 440px of content, which
+// is about 61 characters of the 14px body face in the instructions field — the
+// only control in the panel that is really prose. That is just under the 65-75
+// character band, and it is where the reference sits too: Gumloop's own
+// instructions box measures 407px inner at 14px, which is 63 characters. A
+// number the live product reads comfortably at beats a band this panel was
+// never actually failing.
+//
+// What it gives back is the conversation. At the 1456px the screenshot gate
+// uses, 1456 less the 256px sidebar less this panel leaves 752px of thread at
+// 448 (720 at 480) against 640 at the old 560 — the column's own full measure,
+// rather than 112px short of it.
+//
+// Wider and the panel wins an argument it should not be having with the thread.
+export const AGENT_PANEL_WIDTH = 448;
 
-// The drag range. 440 is where the longest header row runs out of gap; 720 is
-// where the instructions field passes 90 characters and prose starts to fray.
+// The drag range. 720 is where the instructions field passes 90 characters and
+// prose starts to fray.
+//
+// 440 is a CHOSEN floor, not a measured one, and the distinction is worth
+// keeping straight because it used to be stated as measured: the comment here
+// said "where the longest header row runs out of gap". Sweeping the real panel
+// after the ScrollArea fix above, no header row collides at any width down to
+// 360 — the rows are `justify-between` over a `min-w-0` title, so they go on
+// truncating rather than touching. The thing that actually broke below 471 was
+// the textarea, and that is fixed. So 440 is now a judgement (below it the
+// panel stops being a column and starts being a strip) rather than a
+// measurement, and it is left where it is deliberately: use-shell-fit.ts reads
+// it to decide when the panel may dock at all, so moving it moves the
+// responsive behaviour of the whole shell, which is not what "make the panel a
+// bit narrower" asked for.
 //
 // The minimum is exported because it is half of the question "is there room for
 // both this and a readable conversation" that use-shell-fit.ts asks on every
@@ -221,7 +269,7 @@ export function AgentPanel({
   // a pointer is a setting some people cannot change.
   //
   // Two numbers, not one: `preferred` is the width this panel has been asked
-  // for (its resting 560, or wherever the last drag left it) and `width` is
+  // for (its resting 480, or wherever the last drag left it) and `width` is
   // what it can actually have once `maxWidth` has had its say. Keeping them
   // apart is what makes the constraint reversible — see the prop's note.
   const [preferred, setPreferred] = useState(AGENT_PANEL_WIDTH);
@@ -471,7 +519,36 @@ export function AgentPanel({
         </header>
 
         <TabsContent value="configuration" className="min-h-0 flex-1">
-          <ScrollArea className="h-full">
+          {/* `[&>div]:!block` is what makes this panel's width honest, and it
+              took a measurement to find. Radix's ScrollArea Viewport wraps its
+              children in a `display: table` box, which shrink-to-fits to its
+              contents' MAX-content width; the instructions field is a
+              `field-sizing: content` textarea, whose max-content width is its
+              text. The two together gave the panel a content floor of 471px
+              that no amount of narrowing could get under: below it the
+              textarea simply stopped shrinking at 431px and the section
+              overflowed its own box, silently, under the viewport's clip.
+
+              So PANEL_MIN_WIDTH was a number the panel could not actually
+              reach — dragging the splitter to 440 overflowed by 31px. A block
+              box fills the viewport instead of shrinking to its contents, so
+              `w-full` on the textarea finally resolves against the panel
+              rather than against itself. Measured after: the field tracks the
+              panel down to 360px with nothing overflowing anywhere.
+
+              Scoped here rather than fixed in the primitive on purpose. The
+              table box is how Radix supports content WIDER than its viewport,
+              which the thread view and the menus may well be relying on, and
+              changing it there would move pixels on seventeen cloned routes to
+              solve a problem only this panel has.
+
+              The `!` is not decoration: Radix writes `display: table` as an
+              INLINE style, so a plain class loses to it and the fix silently
+              does nothing — which is exactly what happened on the first
+              attempt, and the panel went on clipping its own "+ Add" buttons.
+              thread-view.tsx reaches into the same box the same way
+              (`[&>div]:!flex`), for the same reason. */}
+          <ScrollArea className="h-full" viewportProps={{ className: "[&>div]:!block" }}>
             {/* The bottom padding is the scroll's own: the last section should
                 clear the edge of the panel rather than stop on it. */}
             <div className="pb-8">

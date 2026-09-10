@@ -6,7 +6,7 @@ load-bearing and this plan touches all three.
 
 ## What is wrong, measured
 
-Driven to the handoff state (`/signup` → Google → Hyperpersonalize → pick a
+Driven to the handoff state (`/signup` → Google → the profile CTA → pick a
 card → send) at 902px tall, dark, and then resized. `stageW` is the
 conversation column; `docH > vh` means the page scrolls.
 
@@ -98,7 +98,10 @@ So:
   the 496 where two-up starts to break, and the width at which the card grid
   should drop to one column anyway. One number does both jobs.
 - `PANEL_MIN = 440` — already in `agent-panel.tsx`, unchanged.
-- `PANEL_REST = 560`, `PANEL_MAX = 720` — unchanged.
+- `PANEL_REST = 560`, `PANEL_MAX = 720` — unchanged at the time of this plan.
+  **`PANEL_REST` became 480 later the same day**, after Gumloop was measured
+  rather than remembered (477 at 1456, and proportional at that). See the WIDTH
+  note in `agent-panel.tsx`. The fit test is unaffected: it keys off `PANEL_MIN`.
 - `GUTTER = 20` — `px-5`, restored on both sides.
 
 ### Docked, floating, or railed: decided by a live fit test

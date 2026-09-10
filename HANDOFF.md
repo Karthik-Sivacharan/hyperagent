@@ -99,6 +99,16 @@ this first in a new session, then `README.md`, `docs/components.md`,
   the column measures itself with container queries, and the thread bar's panel
   toggle works. `npm run probe:signup` is the gate. See "The shell yields, the
   conversation does not" below.
+- **The agent panel is 448 and the profile CTA reads "Find agents for me"
+  (2026-09-10).** `fix/panel-width`. The width was 560 on a remembered figure
+  ("Gumloop ~550"); Gumloop measures 477 at 1456 and is proportional, not
+  fixed. Going under 480 then needed a bug fixed, not a number changed — see
+  the panel-width paragraphs under "The signup flow". The CTA said
+  "Hyperpersonalize my onboarding", which named the mechanism; it now names
+  the outcome and pairs against "Set up manually". **`probe-signup.mjs` drives
+  the flow by clicking that CTA's exact string, so renaming it again means
+  editing the harness** — it fails loudly rather than measuring the wrong
+  screen.
 - **Ten dead transitions are fixed (2026-09-10).** `fix/dead-transitions`:
   Tailwind v4 compiles `translate-*` / `scale-*` / `rotate-*` to the separate
   `translate` / `scale` / `rotate` properties, so every
@@ -498,13 +508,51 @@ hyperagent.com puts the same agent configuration in three places — the
 composer's `+` menu, the composer's settings pill, and a right panel at
 `?panel=settings` that opens CLOSED behind tabs and an accordion — so the
 menus win and the configuration that should be read whole is only read in
-slices. This follows Gumloop instead: a 560px panel open by default, sections
+slices. This follows Gumloop instead: a 448px panel open by default, sections
 flat and always visible, each with its own `+ Add` and its own AI-managed
 state on the header row. Model & compute, Skills, Connectors, Knowledge
-sources, Subagents, Triggers, Autonomy & safety, in that order. 560 is what
-has to fit rather than a split difference: less two 20px gutters it is about
-72 characters of the 14px face in the instructions field, inside the 65–75ch
-prose band. Drag-to-resize is 440–720 with a double-click reset and a
+sources, Subagents, Triggers, Autonomy & safety, in that order. **480 is
+corrected from 560 (2026-09-10), after measuring the reference instead of
+trusting the figure written down here.** The old comment claimed "Gumloop
+~550"; Gumloop's panel is 477px at a 1456px viewport, and it is not a fixed
+width at all but a split pane at `flex: 33.898 1 0px` — 33.9% of the content
+area. 560 was 80px wider than the reference it named. Kept as a fixed number
+rather than a percentage because the width is already clamped from both
+sides by the live fit test, and a proportional default would be a second
+opinion about the same pixels.
+
+**Then 480 went to 448, and the second move found a bug rather than a
+preference.** The panel had a CONTENT FLOOR at 471px it could not get under,
+so 480 was already sitting 9px above it and `PANEL_MIN_WIDTH = 440` was a
+number the splitter could never reach: dragging there overflowed by 31px,
+silently, clipped by the viewport. Two things made it. Radix's ScrollArea
+Viewport wraps its children in a `display: table` box, which shrink-to-fits
+to its contents' MAX-content width; the instructions field is a
+`field-sizing: content` textarea, whose max-content width is its own text.
+Below 471 the textarea stopped shrinking at 431 and the section overflowed.
+`[&>div]:!block` on the viewport makes the box fill rather than shrink, so
+`w-full` on the textarea resolves against the panel instead of against
+itself; measured after, the field tracks the panel down to 360 with nothing
+overflowing. Scoped to this panel rather than fixed in the primitive,
+because the table box is how Radix supports content wider than its viewport
+and changing it there would move pixels on seventeen cloned routes;
+`thread-view.tsx` already reaches into the same box the same way.
+
+**The `!` is load-bearing and cost a round trip.** Radix writes
+`display: table` INLINE, so the first attempt without it did nothing at all
+and the panel went on clipping its own "+ Add" buttons at 448. Every gate
+passed and `probe:signup` still said 3 of 3, because none of them look
+inside the panel — it was caught by opening a screenshot. That is a real
+blind spot in the harness.
+
+448 is 28rem, one notch under the reference's 477, and it hands the thread
+its full 752 measure at 1512 (712 at 1456) against 640 at the old 560.
+`PANEL_MIN_WIDTH`'s own comment was a second remembered number: it claimed
+440 was "where the longest header row runs out of gap", and no header row
+collides at any width down to 360 (they are `justify-between` over a
+`min-w-0` title, so they truncate rather than touch). It is a judgement, now
+labelled as one, and left at 440 because `use-shell-fit.ts` reads it to
+decide when the panel may dock at all. Drag-to-resize is 440–720 with a double-click reset and a
 focusable window splitter with arrow keys. Save is dirty-only and changes
 state rather than greying out. Connected versus available is carried three
 ways and none is hue. `docs/plans/2026-09-10-agent-panel-consolidation.md` is

@@ -198,7 +198,7 @@ export function SignupScreen() {
   // Adjusted during render, against a remembered previous mode, rather than in
   // an effect: this is React's "adjusting state when a prop changes" pattern,
   // and it matters here rather than being a style preference — an effect runs
-  // after paint, so the reader would get one frame of an open 560px drawer
+  // after paint, so the reader would get one frame of an open 480px drawer
   // sitting over a conversation that has just been told it has nowhere to put
   // it. React re-renders before painting either way.
   const [dockedWas, setDockedWas] = useState(docked);
