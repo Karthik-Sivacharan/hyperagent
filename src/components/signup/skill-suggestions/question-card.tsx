@@ -30,7 +30,7 @@ import { cn } from "@/lib/utils";
 // suggested-skills.ts's own argument (nothing ticked hands back the work the
 // screen claimed to have done; everything ticked is not a suggestion).
 //
-// WHAT EARNS A PLACE ON A ROW. The row is 32px, so exactly one line of text
+// WHAT EARNS A PLACE ON A ROW. The row is 36px, so exactly one line of text
 // gets through, and the data offers two prose fields for it. `summary` is the
 // skill's own meta description, lifted from skills.sh — six of them stacked
 // are six vendors pitching at once, and every one of them is a paraphrase of
@@ -70,7 +70,7 @@ import { cn } from "@/lib/utils";
 // re-centres the column and drags the flying mark with it (chat-step.tsx).
 // Ticking is paint only: a fill, a border colour, a glyph already mounted at
 // zero opacity. Every row is one line that cannot wrap (`truncate` under the
-// row's own `whitespace-nowrap`), so `min-h-8` is a floor the content can
+// row's own `whitespace-nowrap`), so `min-h-9` is a floor the content can
 // never lift. And the confirm's label counts out loud, which is a width that
 // moves, so it is given a fixed measure wide enough for "Install 6 skills"
 // and tabular figures inside it; without both, every tick would nudge Skip
@@ -179,7 +179,9 @@ function SkillRow({
       onClick={onToggle}
       disabled={locked}
       className={cn(
-        "-mx-2 min-h-8 w-auto rounded-md px-2 text-left",
+        // 36px and a 12px gap, over the dump's 32 and 8: at the dump's metrics
+        // the name, reason and receipt ran into each other and read cramped.
+        "-mx-2 min-h-9 w-auto gap-3 rounded-md px-2 text-left",
         locked
           ? cn("cursor-default", checked && "bg-tint-20")
           : checked
@@ -214,7 +216,7 @@ function SkillRow({
           last thing standing and it is pushed 9px out of a 280px card, a
           column the shell never produces (its floor is 512 while docked) and
           only a phone under ~325px wide would. */}
-      <span className="flex flex-1 items-baseline gap-2">
+      <span className="flex flex-1 items-baseline gap-3">
         <span className="shrink-0 whitespace-nowrap font-medium text-foreground">{skill.name}</span>
         {/* The 13px metadata role, one tier down, and the first thing to give
             way when the column narrows — it is the line this card added, so it
@@ -225,7 +227,7 @@ function SkillRow({
       {/* The receipt. `aria-label` carries the unit the glyph carries visually,
           exactly as ListingStatPills does it, so the row's accessible name ends
           "259.3K installs" rather than a bare number. */}
-      <span className="flex min-w-0 shrink items-center gap-2 text-label-12-mono text-foreground-low">
+      <span className="flex min-w-0 shrink items-center gap-3 text-label-12-mono text-foreground-low">
         <span className="truncate">{skill.repo}</span>
         <span className="inline-flex shrink-0 items-center gap-1" aria-label={`${skill.installs} installs`}>
           <IconDownload className="size-3" aria-hidden="true" />
@@ -340,11 +342,12 @@ export function SkillQuestionCard({
         {question}
       </p>
 
-      {/* Rows sit flush, no gap: the dump stacks them and the 12px of dead
-          space between six pills would cost 60px of column for nothing. The
-          group is labelled by the question so a screen reader meets the six
-          checkboxes with the sentence they answer. */}
-      <div role="group" aria-labelledby={questionId} className="flex flex-col px-4">
+      {/* 4px between rows, where the dump stacks them flush: flush, three
+          ticked rows fused into one tinted slab and the list read cramped. It
+          costs 20px of column, and each tick stays its own row. The group is
+          labelled by the question so a screen reader meets the six checkboxes
+          with the sentence they answer. */}
+      <div role="group" aria-labelledby={questionId} className="flex flex-col gap-1 px-4">
         {SUGGESTED_SKILLS.map((skill) => (
           <SkillRow
             key={skill.id}
