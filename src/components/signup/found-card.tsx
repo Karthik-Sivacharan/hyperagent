@@ -66,7 +66,7 @@ export function FoundCard({
       className={cn(
         // `size="none"` zeroes the primitive's own padding so the 40px media
         // and the 32px action can set the rhythm instead of a 16px default.
-        "relative w-full gap-3 bg-tint-7 p-4",
+        "relative w-full gap-3 bg-tint-7 p-4 shadow-card-soft",
         // The rim light. `shadow-card` is a hairline plus a whisper of drop
         // shadow and nothing else, so on its own this card is a flat panel —
         // and flat is the one thing the brand's raised surfaces are not. Every
@@ -82,7 +82,7 @@ export function FoundCard({
         // put a hairline on a shape that already has a shadow. `inset-0` and
         // the matching 22px corner keep it exactly on the card's edge, and
         // `pointer-events-none` keeps it from eating the pencil's clicks.
-        "after:pointer-events-none after:absolute after:inset-0 after:rounded-3xl after:shadow-rim",
+        "after:pointer-events-none after:absolute after:inset-0 after:rounded-3xl after:shadow-rim-soft",
         className,
       )}
     >

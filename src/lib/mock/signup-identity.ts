@@ -53,17 +53,20 @@ export const SIGNUP_PERSON: SignupPerson = {
 
 // Read off trainwell.net on 2026-09-09: the description is the About page's
 // own framing, the tags are the categories the site sells itself in, and the
-// mark is their apple-touch-icon. That icon is a wide "train" wordmark on a
-// square canvas (256x78 once the transparent margin is trimmed), which is
-// illegible at the 48px this card gives it, so `logoSrc` is the leading "t"
-// cropped out and re-centred — the same glyph the site serves as its favicon.
-// The untouched wordmark is kept beside it at `/logos/trainwell.png`.
+// mark is their apple-touch-icon, untouched — the 256x256 PNG their site
+// serves at `train-icon-256x256.png`, byte for byte.
+//
+// It was the leading "t" cropped out of that icon first, on the argument that
+// a wide wordmark is illegible at the 48px the company card gives it. The
+// wordmark is what the company actually looks like, though, and a letter
+// nobody outside the building would recognise is not a saving. Kept at
+// `/logos/trainwell-mark.png` if the small sizes ever need it back.
 export const SIGNUP_COMPANY: SignupCompany = {
   name: "Trainwell",
   domain: "trainwell.net",
   description: "Remote personal training with a real human coach, delivered through an app.",
   tags: ["Fitness", "Consumer app", "Remote coaching"],
-  logoSrc: "/logos/trainwell-mark.png",
+  logoSrc: "/logos/trainwell.png",
 };
 
 /** `Karthik Sivacharan`. Used by the card title and the welcome heading. */

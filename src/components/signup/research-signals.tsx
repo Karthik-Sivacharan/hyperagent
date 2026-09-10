@@ -94,21 +94,22 @@ const RESEARCH_SIGNALS: ResearchSignal[] = [
 
 // ===== TIMING ==============================================================
 //
-// One signal is 1100ms, which is not a new number: it is loading-step.tsx's
-// STEP_MS, the beat this branch already measured for "a short line read,
-// understood and gone with room to spare". The two waits in the flow now run
-// at the same tempo, which is the point — the second one should feel like the
-// first one continuing, not a different machine.
+// One signal is 1800ms: 1400 working, 400 settled.
 //
-// The 1100 splits into a running phase and a settled phase, and the settled
-// phase is what makes completion READABLE. Without it the shimmer stops and
-// the row leaves in the same frame, so "it finished" never happens on screen;
-// with it, the label goes quiet, the card it paid for lands, and only then
-// does the next source arrive. 300ms is --duration-slow, the product-UI
-// ceiling in this system: long enough to register as an event, short enough
-// that nobody waits through it.
-const SIGNAL_RUN_MS = 800;
-const SIGNAL_SETTLE_MS = 300;
+// It was 1100 first — loading-step.tsx's STEP_MS, so that the two waits in the
+// flow would run at one tempo — and at four sources that put the whole pass at
+// 4.7s, which read as too quick to be four pieces of work. The tempo argument
+// was the wrong one anyway: the first wait is an OAuth round trip and this one
+// is four network calls to four strangers' servers, and a viewer who has just
+// been told that expects the second to cost more than the first.
+//
+// The split into a running phase and a settled phase is what makes completion
+// READABLE. Without it the shimmer stops and the row leaves in the same frame,
+// so "it finished" never happens on screen; with it, the label goes quiet, the
+// card it paid for lands, and only then does the next source arrive. The
+// settled half grew with the running half so the beat keeps its shape.
+const SIGNAL_RUN_MS = 1400;
+const SIGNAL_SETTLE_MS = 400;
 
 // Dead air before the first row, held for exactly the screen's own crossfade
 // (--duration-slow): the row should arrive on a screen that has finished
@@ -116,9 +117,11 @@ const SIGNAL_SETTLE_MS = 300;
 // screen later.
 const LEAD_MS = 300;
 
-// Four signals at 1100 plus the 300ms lead is 4.7s of working state, which is
-// the number the whole design is aimed at: long enough that four sources look
-// like four pieces of work, short enough that nobody sits through it.
+// Four signals at 1800 plus the 300ms lead is 7.5s of working state. That is
+// long for a screen with one line of text on it, and it is the point: the
+// claim is that something went and read four places, and four places do not
+// take a second and a half. The four cards filling in behind it are what makes
+// the time legible rather than dead — at no moment is the screen only waiting.
 
 /** The last step index: two per signal, running then settled. */
 const LAST_STEP = RESEARCH_SIGNALS.length * 2;
@@ -207,13 +210,14 @@ export function useResearchSequence(active: boolean): ResearchState {
 export const SHIMMER =
   "motion-safe:bg-clip-text motion-safe:text-transparent motion-safe:[background-image:var(--sweep-image)] motion-safe:[background-size:200%_100%] motion-safe:animate-[shimmer_var(--sweep-cycle)_linear_infinite_reverse]";
 
-// 3.2s a cycle is two passes at 1.6s each, and 1.6s is the pass length that
-// puts one whole crossing of the label inside an 800ms running phase (the band
-// covers four element-widths per cycle, so it clears one width in a quarter of
-// it). The product runs its own tool labels at a 3s pass, twice as slow —
-// which it can afford, because a real tool call lasts seconds; a sweep that
-// never finishes inside the life of the row reads as a stall rather than work.
-const SHIMMER_CYCLE_MS = 3200;
+// The band covers four element-widths per cycle, so it clears one width in a
+// quarter of it: a cycle of 4 × SIGNAL_RUN_MS puts exactly one whole crossing
+// of the label inside the row's working phase. A sweep that never finishes
+// inside the life of the row reads as a stall rather than as work, and one
+// that finishes several times over reads as a barber's pole. At today's 1400ms
+// run that is 5.6s, close to the product's own 3s pass now that the rows last
+// long enough to afford it.
+const SHIMMER_CYCLE_MS = SIGNAL_RUN_MS * 4;
 
 // 2px of band per character, the ratio measured off the dump: `--spread: 34px`
 // on "Searching the web", which is 17 characters. It is a ratio rather than a

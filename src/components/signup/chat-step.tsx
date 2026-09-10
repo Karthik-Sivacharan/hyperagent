@@ -213,16 +213,17 @@ export function ChatStep({
 
       {/* The way out for someone who wants none of this, at the end of the
           reading order, which is exactly where "none of these, just let me in"
-          belongs. It must not read as the profile step's full-width "Set up
-          manually" button one screen earlier, so it is neither a button nor
-          the same words: it is the flow's own foot line — the same 13px third
-          tier and the same underlined link the terms and the provenance line
-          wear — naming where it lands rather than what it skips. `/threads/new`
-          is the app's real home; `/` only redirects there. */}
+          belongs. It says "Set up manually" — the same words as the profile
+          step's second button one screen earlier, deliberately. An escape
+          hatch that renames itself on every screen reads as a different door
+          each time; the same words twice read as the same door, still open.
+          What separates them is weight, not vocabulary: a full-width button
+          there, the flow's own foot line here — the same 13px third tier and
+          the same underlined link the terms and the provenance line wear.
+          `/threads/new` is the app's real home; `/` only redirects there. */}
       <p className="mt-3 text-md leading-5 text-foreground-low">
-        None of these?{" "}
         <Link href="/threads/new" className={FOOT_LINK}>
-          Start with a blank thread
+          Set up manually
         </Link>
       </p>
     </div>

@@ -37,11 +37,15 @@ import { cn } from "@/lib/utils";
 //
 // SELECTION SPENDS NO ACCENT. Brand rule 3 gives this screen exactly one
 // tangerine and it is the composer's send arrow, so being picked is told in
-// the two tokens the system already names for it: `bg-tint-20` ("active fill")
-// and `border-loud` ("loud outline"), rule 4's own words. The fills then run
-// 7 at rest, 10 on hover, 20 picked, which is two clear steps rather than one
-// ambiguous one — 7 to 15 was tried first and could not be read at a glance
-// against a hovered neighbour in either theme.
+// ink: `bg-tint-20` (rule 4's "active fill") under a hairline ring on the
+// FOREGROUND. The fills run 7 at rest, 10 on hover, 20 picked.
+//
+// The ring was `border-loud` first, which is tint-20 — the same value as the
+// fill it sits on, so the whole state came down to one tint step and read as
+// a card that might be slightly lighter than its neighbours. A foreground
+// hairline is the treatment thread/option-cards.tsx already gives a chosen
+// card, and it is the thing that makes this one unmistakably picked while
+// still costing no colour.
 //
 // It cannot lean on `after:shadow-rim` for this: HANDOFF records that the rim
 // is close to invisible in light, so it would be a dark-only selected state.
@@ -79,10 +83,15 @@ export function AgentCard({
         // rather than each one sitting at its own height. `grid` replaces the
         // Card's own `flex` (tailwind-merge keeps the last display) so the two
         // layers below can share one cell.
-        "relative grid h-full w-full p-4 text-left",
-        "after:pointer-events-none after:absolute after:inset-0 after:rounded-3xl after:shadow-rim",
+        // `shadow-card-soft` and `after:shadow-rim-soft` rather than the
+        // full-strength pair: a card's elevation is told by two different
+        // layers in the two themes — the drop does the work in light, the
+        // inset rim in dark — so stepping only one of them down would have
+        // quietened the cards in one theme and not the other.
+        "relative grid h-full w-full p-4 text-left shadow-card-soft",
+        "after:pointer-events-none after:absolute after:inset-0 after:rounded-3xl after:shadow-rim-soft",
         "transition-[background-color,box-shadow] duration-(--duration-slow) ease-out motion-reduce:transition-none",
-        selected ? "bg-tint-20 shadow-card-hover ring-1 ring-border-loud" : "bg-tint-7",
+        selected ? "bg-tint-20 shadow-card-hover ring-1 ring-foreground" : "bg-tint-7",
         ready && !selected && "hover:bg-tint-10",
         ready ? "cursor-pointer" : "cursor-default",
         // The `.focus-ring` class expanded rather than applied. It sets a raw
