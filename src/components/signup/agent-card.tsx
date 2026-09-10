@@ -90,7 +90,10 @@ export function AgentCard({
         // quietened the cards in one theme and not the other.
         "relative grid h-full w-full p-4 text-left shadow-card-soft",
         "after:pointer-events-none after:absolute after:inset-0 after:rounded-3xl after:shadow-rim-soft",
-        "transition-[background-color,box-shadow] duration-(--duration-slow) ease-out motion-reduce:transition-none",
+        // `opacity` rides the same list for one moment only: pressing send
+        // fades the three cards you did not pick (chat-step.tsx passes the
+        // `opacity-0`). Before send it never changes, so it costs nothing.
+        "transition-[background-color,box-shadow,opacity] duration-(--duration-slow) ease-out motion-reduce:transition-none",
         selected ? "bg-tint-20 shadow-card-hover ring-1 ring-foreground" : "bg-tint-7",
         ready && !selected && "hover:bg-tint-10",
         ready ? "cursor-pointer" : "cursor-default",
