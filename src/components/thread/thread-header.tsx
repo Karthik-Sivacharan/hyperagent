@@ -33,9 +33,37 @@ const MODELS = [
   { name: "Sonnet 5", blurb: "Great for everyday tasks. Lower cost." },
 ];
 
-export function ThreadHeader({ thread, model }: { thread: Thread; model: string }) {
+export function ThreadHeader({
+  thread,
+  model,
+  panelOpen,
+  onTogglePanel,
+  panelId,
+}: {
+  thread: Thread;
+  model: string;
+  /**
+   * The three props that wire the panel toggle, all optional and all inert
+   * unless `onTogglePanel` is given.
+   *
+   * Opt-in because this bar is shared with `/thread/[id]`, a cloned route that
+   * must stay pixel-identical to the capture: omit them and the button renders
+   * exactly the byte-for-byte markup it rendered before — the same
+   * `aria-label="Open panel"`, the same resting tint fill, no handler — because
+   * on that route there is still nothing behind it to open.
+   */
+  panelOpen?: boolean;
+  onTogglePanel?: () => void;
+  /** The panel's element id, for `aria-controls`. */
+  panelId?: string;
+}) {
   const [starred, setStarred] = useState(thread.starred);
   const [selectedModel, setSelectedModel] = useState(model);
+  // "Wired" is the presence of a handler rather than of `panelOpen`, because
+  // `panelOpen={false}` is a real state a caller passes and `undefined` is the
+  // absence of the feature; conflating them would make a closed panel look like
+  // an unwired one.
+  const panelToggleWired = onTogglePanel !== undefined;
 
   return (
     <div className="shrink-0 border-b border-border-subtle bg-background px-3">
@@ -127,11 +155,35 @@ export function ThreadHeader({ thread, model }: { thread: Thread; model: string 
               <DropdownMenuItem>View detailed usage</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          {/* ONE GLYPH IN BOTH STATES. The precedent is the sidebar's own
+              collapse control, which keeps `IconLayoutSidebarLeftCollapse` and
+              flips only its label between "Pin sidebar" and "Hide sidebar": a
+              toggle that swaps its icon asks the reader to re-identify the
+              control every time they press it, and the panel it points at is
+              right there on screen saying which state it is in. So the state is
+              carried by `aria-expanded`, by a label that flips, and by the tint
+              fill — which is the fill this button already had at rest, now
+              earning its keep as the open state. */}
           <Button
             variant="ghost"
             size="icon-sm"
-            className="size-7 bg-tint-10 text-muted-foreground hover:bg-tint-15 hover:text-foreground"
-            aria-label="Open panel"
+            className={cn(
+              "size-7",
+              // Unwired, or open: the resting fill this button has always had.
+              // Wired and closed: a plain ghost, so the fill means something.
+              panelToggleWired && !panelOpen ? undefined : "bg-tint-10",
+              "text-muted-foreground hover:bg-tint-15 hover:text-foreground",
+            )}
+            aria-label={
+              panelToggleWired
+                ? panelOpen
+                  ? "Hide agent panel"
+                  : "Show agent panel"
+                : "Open panel"
+            }
+            aria-expanded={panelToggleWired ? panelOpen : undefined}
+            aria-controls={panelToggleWired ? panelId : undefined}
+            onClick={onTogglePanel}
           >
             <IconLayoutSidebarRight className="size-3.5" aria-hidden="true" />
           </Button>

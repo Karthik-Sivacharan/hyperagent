@@ -11,7 +11,8 @@
     "test:watch": "vitest",
     "brand:gen-ramps": "node scripts/brand/gen-ramps.mjs",
     "brand:check-contrast": "node scripts/brand/check-contrast.mjs",
-    "brand:lint-tokens": "node scripts/brand/lint-tokens.mjs"
+    "brand:lint-tokens": "node scripts/brand/lint-tokens.mjs",
+    "probe:signup": "node scripts/dev/probe-signup.mjs"
   },
   "dependencies": {
     "@tabler/icons-react": "^3.46.0",

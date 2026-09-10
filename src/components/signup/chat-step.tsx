@@ -38,6 +38,28 @@ import { cn } from "@/lib/utils";
 // the agent cards one per row. signup-screen.tsx owns that widening; see the
 // note on the stage there.
 //
+// BUT 752 IS A CEILING, NOT A MEASURE, and this screen is the only one of the
+// four that ever sees anything else. Once the shell arrives the column is the
+// viewport minus the sidebar and minus the agent panel, and neither of those
+// holds still: the sidebar collapses to a rail, the panel is dragged and shut.
+// So the screen is a CONTAINER (`@container/chat`) and every breakpoint inside
+// it asks its own box how wide it is. A `sm:` here would be reading the WINDOW
+// while the column it names had been squeezed to a fraction of it — which is
+// precisely what the card grid did before this: `sm:grid-cols-2` kept the
+// cards two-up at any viewport ≥640, including the one where the sidebar and
+// the panel between them had left the column 96px. Every breakpoint inside a
+// box whose width is "viewport minus two pieces of chrome" is measuring the
+// wrong box. The repo already works this way in composer.tsx,
+// memories-page.tsx, threads-page.tsx and settings/integrations-page.tsx;
+// this is that same idiom, one screen later.
+//
+// Inline-size containment costs this screen nothing: the chat step is `w-full`
+// inside the stage's `minmax(0, 1fr)` track, so its width never came from its
+// own contents in the first place. It contains only the INLINE axis, so the
+// shared cell is still as tall as its tallest screen, and the mark is parked
+// against the stage rather than against this element, so the new containing
+// block a container establishes is not one the mark ever asks about.
+//
 // NOTHING ON THIS SCREEN CHANGES HEIGHT while the research pass runs. The four
 // screens share one grid cell and each centres inside it, so a height change
 // re-centres the column and drags the heading and the flying mark down with
@@ -46,6 +68,14 @@ import { cn } from "@/lib/utils";
 // deliberate and is not part of the animation: picking a card grows the
 // composer from one row of text to two, which settles the column by half a
 // line, once, in direct answer to a click.
+//
+// The container queries below cannot break that rule, and the reason is worth
+// writing down rather than re-deriving. They fire on the column's WIDTH, and
+// the width does not move while the pass runs — the shell has not arrived yet
+// and nothing is being dragged. And both of them sit under the floor the shell
+// holds the column to while it is docked (512): at every docked width this
+// screen is permanently on the wide side of `@lg` and permanently on the wide
+// side of `@max-sm`, so neither can fire mid-pass at all.
 
 /**
  * How many characters the shimmer band has to cross on the heading. Counted
@@ -104,7 +134,7 @@ export function ChatStep({
   }, [pickCount]);
 
   return (
-    <div className={cn("flex w-full flex-col", className)}>
+    <div className={cn("@container/chat flex w-full flex-col", className)}>
       {/* The mark's fourth and last seat, and the first one that is not
           centred. It has been the column's crown on three screens; here it
           moves to the head of the text as the thing that is talking, which is
@@ -133,12 +163,27 @@ export function ChatStep({
           Clipping the h1's background to its glyphs sweeps the whole sentence
           as one line of text, and the chips are untouched by it: each one sets
           its own colour and paints its own fill over the top, so the hue that
-          says what KIND of thing it is never wavers. */}
+          says what KIND of thing it is never wavers.
+
+          Below 384px of COLUMN — never the window; see the container note at
+          the top of this file — it steps down to 18/32. At 20px the sentence
+          reaches for a fourth line at 320 of column (measured: 3 lines at 336,
+          4 at 320), and a fourth line is this screen's first impression
+          turning into a paragraph. The step is at 384 rather than at the 336
+          where the cliff actually is for two reasons: the sentence is built
+          from a record that can change under it, which is the same argument
+          HEADING_CHARS makes one screen up, so the threshold wants headroom
+          rather than precision; and the line count does not jump at the
+          boundary — 3 lines at 20px on the wide side, 3 lines at 18px on the
+          narrow one — so what crosses it is a size, not a reflow. `leading-8`
+          buys 18px the same air around the chips that `leading-9` bought 20,
+          which is the measurement `leading-9` exists for. */}
       <h1
         ref={headingRef}
         tabIndex={-1}
         className={cn(
           "mt-6 text-xl leading-9 font-normal text-balance text-foreground outline-none",
+          "@max-sm/chat:text-lg @max-sm/chat:leading-8",
           active && !research.done && SHIMMER,
         )}
         style={
@@ -178,7 +223,20 @@ export function ChatStep({
         className="mt-4"
       />
 
-      {/* Two columns at this measure, one when the viewport cannot hold two.
+      {/* Two columns when the COLUMN can hold two, one when it cannot. `@lg`
+          is 512px of this screen's own box and has nothing to do with the
+          window: the same 512 reads as two-up in a docked shell at 1280 and
+          as one-up in a squeezed one at 1920, which is the whole point of
+          measuring the box you are in.
+
+          512 is measured, not chosen. Two-up at 512 leaves a 248px card, and
+          a card's content has a hard floor of about 241 — see the note on
+          `min-w-0` in agent-card.tsx, where that number comes from. The next
+          step down, a 480 column, was already 8.6px of card content outside
+          its own card. It is also, conveniently, exactly the floor the shell
+          holds the column to while it is docked, so one named breakpoint does
+          both jobs and there is no constant to keep in sync.
+
           gap-4 is the repo's card-grid gap everywhere else (marketplace, home,
           settings, skills) and the 16px measured on the reference tile row.
 
@@ -193,7 +251,7 @@ export function ChatStep({
           is still filling, and a card that has landed is not busy. */}
       <div
         aria-busy={!research.done}
-        className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2"
+        className="mt-6 grid grid-cols-1 gap-4 @lg/chat:grid-cols-2"
       >
         {SUGGESTED_AGENTS.map((agent, i) => (
           <AgentCard

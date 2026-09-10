@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
+import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import {
   IconArrowUpRight,
   IconBook,
@@ -194,7 +194,55 @@ function RailThreadsMenu({ children, ...triggerProps }: React.ComponentProps<typ
   );
 }
 
-export function Sidebar() {
+export function Sidebar({
+  forceCollapsed = false,
+  onWidthChange,
+  onExpandedWidthChange,
+}: {
+  /**
+   * Holds the column at its rail whatever the reader last chose.
+   *
+   * A CONSTRAINT, NOT A VALUE, and it is the same shape and the same argument
+   * as `AgentPanel.maxWidth` — read that note, the two are one idea. The shell
+   * knows when there is no longer room for a 256px column AND a readable
+   * conversation; it does not know whether this reader likes their sidebar
+   * open. So what comes down is a floor under the collapse, and the reader's
+   * own choice goes on living underneath it in `userCollapsed`: widen the
+   * window past the threshold and the column comes back open if that is how it
+   * was left. A `collapsed` VALUE coming down would have overwritten that
+   * preference the first time someone dragged a window edge.
+   *
+   * This is the third and last step of the shell's yield order — the panel
+   * gives up width, then the panel stops being a column, then the sidebar
+   * rails — and it exists because the conversation may not be the thing that
+   * gives.
+   */
+  forceCollapsed?: boolean;
+  /**
+   * Reports the column's live width — the rail's 64 while collapsed, the
+   * dragged width otherwise — including the resting one on mount.
+   *
+   * Opt-in and additive: omit it and this renders exactly what it rendered
+   * before, which is what the seventeen cloned routes behind `AppShell` need.
+   * It is the same shape, and there for the same reason, as
+   * `AgentPanel.onWidthChange`: the column between the two pieces of chrome has
+   * to pad by whatever they currently are, and a constant would only be right
+   * until the first drag. Without it, collapsing to the rail after the signup
+   * handoff left 192px of dead gutter the conversation could not use.
+   */
+  onWidthChange?: (width: number) => void;
+  /**
+   * Reports the width this column would take if nothing were forcing it — the
+   * dragged width, whether or not the rail is currently showing.
+   *
+   * It exists to break a circle. Whoever decides `forceCollapsed` cannot decide
+   * it from the LIVE width, because forcing the rail changes the live width,
+   * which re-runs the decision, which unforces it, and so on. The expanded
+   * width does not move when the rail is forced, so a decision made against it
+   * is stable. See use-shell-fit.ts.
+   */
+  onExpandedWidthChange?: (width: number) => void;
+}) {
   const pathname = usePathname();
   // Exact match, except section roots with sub-routes (/settings/*). The
   // "View all" link stays inactive on /threads/new, as on the live site.
@@ -210,7 +258,18 @@ export function Sidebar() {
   // The transition is set straight on the element (and a reflow flushed)
   // before React changes the width, then removed on a timer. transitionend
   // is not used because the label opacity transitions bubble it too early.
-  const [collapsed, setCollapsed] = useState(false);
+  //
+  // Two facts, not one: `userCollapsed` is what the reader asked for and
+  // `collapsed` is what the column can actually be. Only the reader's own
+  // choice is remembered, so lifting `forceCollapsed` restores it rather than
+  // leaving the column railed for good.
+  const [userCollapsed, setUserCollapsed] = useState(false);
+  const collapsed = userCollapsed || forceCollapsed;
+  // ...and the one state the rail's control cannot get out of. `collapsed` is
+  // reversible whenever the reader is the one holding it there; `forceCollapsed`
+  // is the fit test holding it, and pressing anything cannot widen the window.
+  // See the control itself for what it does about that.
+  const railLocked = forceCollapsed;
   const columnRef = useRef<HTMLDivElement>(null);
   const toggleCollapsed = () => {
     const column = columnRef.current;
@@ -218,11 +277,17 @@ export function Sidebar() {
       column.style.transition = "width 200ms ease-out";
       void column.offsetWidth;
     }
-    setCollapsed((c) => !c);
+    // Against the RENDERED state, not the remembered one: pressing a control
+    // that says "Open sidebar" has to mean open, whichever of the two facts
+    // above put the rail there.
+    setUserCollapsed(!collapsed);
     window.setTimeout(() => {
       if (column) column.style.transition = "";
     }, 260);
   };
+  // No such transition when `forceCollapsed` moves. That one is a correction
+  // made while the window is already being dragged, like the panel's own
+  // re-clamp, and animating a correction on top of a resize reads as lag.
 
   // Drag-to-resize, clamped like the live handler (250-500px, double-click
   // resets to 256). Pointer capture keeps the drag alive outside the handle.
@@ -253,6 +318,19 @@ export function Sidebar() {
     handle.addEventListener("pointerup", stop);
     handle.addEventListener("lostpointercapture", stop, { once: true });
   };
+
+  // The two states above are one fact to anyone outside: how much room this
+  // column is taking. Reported from an effect rather than from the toggle and
+  // the drag handler, so there is one place it can be wrong instead of three,
+  // and so the resting width arrives on mount without the caller having to
+  // guess it.
+  const liveWidth = collapsed ? RAIL_WIDTH : width;
+  useEffect(() => {
+    onWidthChange?.(liveWidth);
+  }, [liveWidth, onWidthChange]);
+  useEffect(() => {
+    onExpandedWidthChange?.(width);
+  }, [width, onExpandedWidthChange]);
 
   const accountButton = (
     <AccountMenu>
@@ -317,12 +395,29 @@ export function Sidebar() {
                         Hyperagent
                       </span>
                     </Link>
+                    {/* The rail's way back. While `forceCollapsed` holds there
+                        is no way back — the column is railed because the
+                        conversation would otherwise fall under its floor, so
+                        opening it is the one thing this control cannot do, and
+                        a button that swallows the click and leaves the rail
+                        where it was is worse than one that says why.
+
+                        `aria-disabled` rather than `disabled`: the reason lives
+                        in the tooltip, and `disabled` takes the element out of
+                        the tab order and (through the primitive's
+                        `disabled:pointer-events-none`) stops the hover that
+                        would show it. Present, unavailable, and explaining
+                        itself is the honest third state. It is the same
+                        argument agent-panel.tsx makes for its Save button: the
+                        usual complaint about a disabled control is that it
+                        hides its reason, and these two state theirs. */}
                     {collapsed && (
                       <Button
                         variant="ghost"
                         size="none"
                         aria-label="Open sidebar"
-                        onClick={toggleCollapsed}
+                        aria-disabled={railLocked || undefined}
+                        onClick={railLocked ? undefined : toggleCollapsed}
                         className="group absolute top-1/2 left-0 -ml-3.5 -translate-y-1/2 px-3.5 py-1.5 duration-(--duration-normal) ease-out"
                       >
                         <Tooltip>
@@ -332,7 +427,9 @@ export function Sidebar() {
                               <IconLayoutSidebarLeftExpand className="hidden size-4 text-primary group-hover:block" aria-hidden="true" />
                             </span>
                           </TooltipTrigger>
-                          <TooltipContent side="right">Open sidebar</TooltipContent>
+                          <TooltipContent side="right">
+                            {railLocked ? "Widen the window to open the sidebar" : "Open sidebar"}
+                          </TooltipContent>
                         </Tooltip>
                       </Button>
                     )}
