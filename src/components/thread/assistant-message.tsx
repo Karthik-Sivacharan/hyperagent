@@ -10,7 +10,7 @@ import { renderInline } from "@/components/thread/rich-text";
 // Phase 2: the turn is unbubbled body copy on the first text tier, code and
 // pre grounds are tints (so they need no dark: variants) and links are ink
 // (docs/brand/design.md §1, §4.1).
-const PROSE =
+export const PROSE =
   "prose prose-message max-w-none overflow-hidden break-words text-foreground prose-code:rounded-md prose-code:bg-tint-10 prose-pre:bg-tint-10 prose-code:px-1.5 prose-code:py-0.5 prose-a:text-foreground prose-pre:text-foreground prose-a:no-underline prose-pre:backdrop-blur-sm prose-code:before:content-none prose-code:after:content-none prose-a:hover:underline prose-sm text-sm leading-6 [&_strong]:font-strong";
 
 export function AssistantMessage({ id, blocks }: { id: string; blocks: MessageBlock[] }) {
