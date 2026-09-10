@@ -80,8 +80,15 @@ const MARK_TRAVEL_FALLBACK_MS = 480;
 // That is what buys a crossfade with no reflow: the cell is always as tall as
 // the tallest thing in it, so the change is opacity and a 4px settle and
 // nothing moves.
+//
+// `translate`, not `transform`. Tailwind v4 compiles `-translate-y-1` to the
+// separate CSS `translate` property, not to `transform`, so a list naming
+// `transform` transitions NOTHING and the 4px settle below simply never ran —
+// the swap was an opacity crossfade with the panel already parked 4px high.
+// Same trap in LEAVE below and in app-handoff.tsx; name the property that
+// actually moves, or use the named `transition-transform`.
 const PANEL =
-  "col-start-1 row-start-1 transition-[opacity,transform] duration-(--duration-normal) ease-out motion-reduce:transition-none";
+  "col-start-1 row-start-1 transition-[opacity,translate] duration-(--duration-normal) ease-out motion-reduce:transition-none";
 const PANEL_SHOWN = "translate-y-0 opacity-100";
 const PANEL_HIDDEN = "pointer-events-none opacity-0 motion-safe:-translate-y-1";
 
@@ -121,8 +128,16 @@ const SCREEN_FADE =
 //
 // `motion-safe:` on the drift and `motion-reduce:transition-none` on the
 // timing: under reduce this is an instant swap with no travel anywhere.
+//
+// `translate`, not `transform`, for the reason spelled out on PANEL above:
+// v4's `translate-y-2` sets the separate `translate` property, so the 8px of
+// drift this comment describes had never once moved — the cascade was four
+// fades on a stagger and nothing else. Nothing here may sit on a transform:
+// SCREEN carries none on purpose (see it) because the mark is FLIPped against
+// the stage's box, and these four parts are siblings of the seat rather than
+// its ancestors, which is what makes the drift safe.
 const LEAVE =
-  "transition-[opacity,transform] duration-(--duration-normal) ease-out motion-reduce:transition-none";
+  "transition-[opacity,translate] duration-(--duration-normal) ease-out motion-reduce:transition-none";
 const LEAVE_SHOWN = "translate-y-0 opacity-100";
 const LEAVE_HIDDEN = "opacity-0 motion-safe:translate-y-2";
 

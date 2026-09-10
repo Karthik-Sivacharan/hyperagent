@@ -589,6 +589,76 @@ without animating, which is what it was written for.
 - Every suggested agent happens to draw Linear, so the tool rows look more
   alike than they should.
 
+## Decided 2026-09-10: never name `transform` in a `transition-[…]` list
+
+**Tailwind v4 does not compile `translate-*`, `scale-*` or `rotate-*` to the
+`transform` property.** It compiles them to the separate CSS `translate`,
+`scale` and `rotate` properties:
+
+```css
+.translate-x-full { --tw-translate-x: 100%; translate: var(--tw-translate-x) var(--tw-translate-y); }
+```
+
+So an arbitrary list like `transition-[transform,box-shadow]` sitting next to a
+`translate-x-full` transitions NOTHING, and the element teleports. It fails
+silently, it looks like a deliberate snap, and it had rotted into **ten** places
+in this repo before anyone noticed. The named utility `transition-transform` is
+safe: v4 expands it to `transform, translate, scale, rotate`.
+
+The rule is locked by `src/components/components.test.ts` ("transition property
+lists"). It is deliberately not a ban on the word — `skew-*` and `transform-gpu`
+really do compile to `transform` — it works out which properties each file
+actually moves on and flags a list that names `transform` without them. Run
+against the commit before the fix it reports all ten; the failure message says
+what to write instead.
+
+**Its one blind spot, written into its own comment:** the rule is file-scoped,
+and `home/thread-card.tsx` and `threads/thread-card.tsx` killed `Button`'s press
+feedback from a different file — an `ACTION` string whose own
+`transition-[…,transform]` replaces the base's whole arbitrary list through
+tailwind-merge. If you override a transition list on a component you did not
+write, carry its properties through.
+
+What this was hiding, all of it documented intent that had never once run:
+- **The signup panel's slide** (`app-handoff.tsx`). It had exactly TWO positions
+  in its whole life. This is the bug behind the reported ghost — see below.
+- **The signin screen's leave cascade** (`signup-screen.tsx`). `delay-*` only
+  delays a property that is actually transitioned, so all four parts snapped
+  their full 8px simultaneously on the frame you pressed the provider button,
+  while everything was still opaque, and the documented stagger applied to the
+  fade alone. It is now what the comments always claimed.
+- **Every button in the app.** `motion-safe:active:scale-(--scale-press)` was
+  applying instantly at both ends instead of over `--duration-fast`.
+- The provider/email swap's 4px settle, the settings link card's hover arrow,
+  `SelectTrigger`'s press, the thread view's scroll-to-bottom pill, and the
+  three motion specimens on `/design/brand`, which were demonstrating a snap
+  while the rows beside them described a 150ms ease.
+
+**The ghost it caused, and why it was not a compositing artefact.** The panel
+teleported to its parked position on frame 1 while `<main>`'s `padding-right`
+took a real 480ms to make room. `<main>` is `z-10` with no background of its
+own and the panel is opaque at `z-0` behind it, so for those frames the
+conversation was painted straight on top of the panel and its text read through
+the cards. Measured at 1512: 23 frames and 180px on arrival, 19 frames and
+308px on expand; zero after. The proof it was a model bug rather than a raster
+one is that stretching `--duration-slide` to 3000ms stretched the overlap to
+2278ms. **A transparent `<main>` is the amplifier, not the cause** — at rest the
+boxes never overlap, there is always exactly 20px of gutter.
+
+A second, smaller version of the same desync: the sidebar's collapse rode a
+private `width 200ms ease-out` while `<main>`'s padding rode `--duration-slide`
+on `--ease-in-out`, 2.4x longer on a different curve, for 68px of overlap over
+15 frames on expand. `Sidebar` now takes `collapseRidesSlide`, an opt-in the
+shell passes and the seventeen cloned routes do not, so their motion is
+untouched. The duration is read off the live column rather than written down
+twice — the old teardown timer was a hard-coded 260ms for a 200ms move and
+would have cut a 480ms move in half — and it is set with longhands, because an
+unresolved `var()` inside the `transition` shorthand invalidates the whole
+declaration and would take the animation with it.
+
+At the merge: all six gates, `probe:signup` 3 of 3 in both themes, and all 17
+cloned routes byte-identical to `main` at 1456×868 in both themes.
+
 ## The shell yields, the conversation does not (2026-09-10)
 
 Merged from `fix/responsive-shell`. The plan, with every measurement behind it,

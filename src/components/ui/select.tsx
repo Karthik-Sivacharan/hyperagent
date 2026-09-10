@@ -22,8 +22,12 @@ const CONTENT =
 const ITEM =
   "relative flex w-full cursor-pointer select-none items-center gap-2 rounded-md py-1.5 pr-8 pl-2 text-sm outline-hidden transition-[color,background-color] duration-(--duration-instant) ease-out focus:bg-tint-10 focus:text-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0";
 
+// The list names `scale`, not `transform`: v4 compiles
+// `scale-(--scale-press)` to the separate CSS `scale` property, so a list
+// naming `transform` transitioned nothing and this trigger's press snapped.
+// Same trap as ui/button.tsx — see the longer note there.
 const selectTriggerVariants = cva(
-  "flex w-fit cursor-pointer items-center justify-between gap-2 whitespace-nowrap rounded-full px-3 text-sm font-medium outline-none transition-[color,background-color,transform] duration-(--duration-normal) ease-out focus-visible:ring-2 focus-visible:ring-ring/50 motion-safe:active:scale-(--scale-press) disabled:cursor-not-allowed disabled:opacity-50 data-[placeholder]:text-foreground-low data-[size=default]:h-9 data-[size=sm]:h-8 *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2 [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0",
+  "flex w-fit cursor-pointer items-center justify-between gap-2 whitespace-nowrap rounded-full px-3 text-sm font-medium outline-none transition-[color,background-color,scale] duration-(--duration-normal) ease-out focus-visible:ring-2 focus-visible:ring-ring/50 motion-safe:active:scale-(--scale-press) disabled:cursor-not-allowed disabled:opacity-50 data-[placeholder]:text-foreground-low data-[size=default]:h-9 data-[size=sm]:h-8 *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2 [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0",
   {
     variants: {
       variant: {
