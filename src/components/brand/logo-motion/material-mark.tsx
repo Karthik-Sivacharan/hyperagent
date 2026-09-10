@@ -73,6 +73,19 @@ const HOVER_SPIN_DEG = 360;
 // revolution the time it needs: 480ms x 1.25 = 600ms, about 600 deg/sec.
 const HOVER_SPIN_SCALE = 1.25;
 
+// The busy loop: one turn, then a beat of stillness, then another turn. The
+// pause is the whole point — a mark that rotates continuously reads as a
+// spinner borrowed from somewhere else, while a mark that turns, lands and
+// gathers itself reads as THIS mark doing the work. The turn keeps the hover's
+// exact duration and curve, so the two are recognisably one gesture; only the
+// repetition is new.
+//
+// The turn occupies this fraction of each cycle and the remainder is the hold,
+// so the cycle length falls out of the turn rather than being a second magic
+// number: 600ms / 0.62 = 968ms, of which 368ms is the pause. Long enough to
+// register as a stop, short enough that the mark never looks stalled.
+const AUTO_SPIN_FRACTION = 0.62;
+
 // Strength of the --brand-accent wash. The colour has to carry the whole
 // affordance on its own, and a wash faint enough to read as "warmer" does not.
 // At 0.78 the mark lands close to --brand-accent itself (dark-mode
@@ -96,7 +109,7 @@ const TINT_STRENGTH = 0.78;
  * Nothing here animates a filter: a filter re-rasterises every frame, so the
  * material is baked and only transforms, opacity and one fill move.
  */
-export function MaterialMark({ size = 72, className, label }: MarkMotionProps) {
+export function MaterialMark({ size = 72, className, label, spin: spinMode = "hover" }: MarkMotionProps) {
   // The gallery (src/app/design/logo/page.tsx) renders this component four
   // times on one page and this variant carries six ids; a shared id would make
   // every instance resolve to the first one's. The colons React puts in useId()
@@ -204,6 +217,45 @@ export function MaterialMark({ size = 72, className, label }: MarkMotionProps) {
     };
   }, []);
 
+  // The busy loop. One infinite WAAPI animation rather than a setInterval that
+  // re-fires spin(): the browser owns the timing, so the cadence does not drift
+  // and a backgrounded tab does not queue up turns to replay all at once.
+  //
+  // The hold is expressed as a keyframe rather than a delay, for the same
+  // reason: `iterations: Infinity` with a `delay` only waits once, before the
+  // first run, so the pause has to live inside the cycle. WAAPI applies a
+  // keyframe's `easing` to the segment that STARTS at it, which is what puts
+  // the in-out curve on the turn and leaves the hold uneased.
+  useEffect(() => {
+    if (spinMode !== "auto") return;
+    const el = spinRef.current;
+    if (!el) return;
+    // The one thing reduce suppresses. What is left is a still mark, so every
+    // caller pairs this with a text status line (see loading-step.tsx).
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    const turn = durationToken(el, "--duration-slide", 480) * HOVER_SPIN_SCALE;
+    const easing = easingToken(el, "--ease-in-out", "cubic-bezier(0.4, 0, 0.2, 1)");
+
+    const loop = el.animate(
+      [
+        { transform: "rotate(0deg)", easing, offset: 0 },
+        { transform: `rotate(${HOVER_SPIN_DEG}deg)`, offset: AUTO_SPIN_FRACTION },
+        { transform: `rotate(${HOVER_SPIN_DEG}deg)`, offset: 1 },
+      ],
+      {
+        duration: turn / AUTO_SPIN_FRACTION,
+        iterations: Number.POSITIVE_INFINITY,
+        // The entrance is still seating the S for its first half-second; a turn
+        // underneath it would fight the settle. One --duration-entrance in, the
+        // mark is at rest and free to start working.
+        delay: durationToken(el, "--duration-entrance", 500),
+      },
+    );
+
+    return () => loop.cancel();
+  }, [spinMode]);
+
   // Every group turns and scales about TURN_PIVOT, not the viewBox centre - see
   // its docstring in mark-geometry.ts. `view-box` keeps the origin in mark
   // units, so it holds at every rendered size, 20px nav to 64px signup.
@@ -237,6 +289,7 @@ export function MaterialMark({ size = 72, className, label }: MarkMotionProps) {
    * followed by a drift (the same finding orbit-mark.tsx records for its 180).
    */
   function spin() {
+    if (spinMode !== "hover") return;
     const el = spinRef.current;
     if (!el) return;
     // Unlike the tint, this IS motion, so it is the one thing here that reduce
@@ -286,8 +339,12 @@ export function MaterialMark({ size = 72, className, label }: MarkMotionProps) {
       // lobe would be sliced off at 45 deg. Widening the viewBox instead would
       // shrink the mark relative to the other variants at the same `size`; an
       // SVG root that simply does not clip keeps it pixel-comparable with them.
-      style={{ cursor: "pointer", overflow: "visible" }}
+      // In `auto` the mark is a busy indicator, not an affordance: it takes no
+      // cursor and no hover, because there is nothing to click and a pointer
+      // arriving mid-loop must not retarget a turn the loop is driving.
+      style={{ cursor: spinMode === "hover" ? "pointer" : undefined, overflow: "visible" }}
       onPointerEnter={(event) => {
+        if (spinMode !== "hover") return;
         // Touch fires pointerenter on tap, which would spin and recolour the
         // mark for someone who only meant to scroll past it. Hover is a
         // mouse/pen idea, so touch gets neither half.
@@ -304,6 +361,7 @@ export function MaterialMark({ size = 72, className, label }: MarkMotionProps) {
       // tabbable: on the signup page it sits above the heading, hover is the
       // real trigger, and the gallery gives keyboard users replay buttons.
       onFocus={() => {
+        if (spinMode !== "hover") return;
         spin();
         setTinted((on) => !on);
       }}

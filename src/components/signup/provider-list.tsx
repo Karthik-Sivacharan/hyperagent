@@ -21,6 +21,11 @@ import { AppleMark, GoogleMark, MicrosoftMark } from "@/components/signup/provid
 // Shape and height come from the reference auth stack: `shape="soft"` is the
 // 6px corner (the reference's own radius, measured), `size="lg"` the 40px
 // height taken from the reference "Continue with email" CTA.
+//
+// Only Google is wired to anything. There is no auth in this repo, so the other
+// two rows stay inert exactly as the email form's submit does — and Google is
+// the one the demo needs, because the record the next screen shows is the one
+// a Google ID token plus a domain lookup would actually produce.
 const PROVIDERS = [
   { id: "google", label: "Sign in with Google", mark: <GoogleMark className="size-4.5" /> },
   { id: "apple", label: "Sign in with Apple", mark: <AppleMark className="size-5" /> },
@@ -30,9 +35,11 @@ const PROVIDERS = [
 export function ProviderList({
   onChooseEmail,
   emailButtonRef,
+  onSelectGoogle,
 }: {
   onChooseEmail: () => void;
   emailButtonRef: React.Ref<HTMLButtonElement>;
+  onSelectGoogle: () => void;
 }) {
   return (
     <div className="flex flex-col gap-2.5">
@@ -44,6 +51,7 @@ export function ProviderList({
           size="lg"
           shape="soft"
           className="w-full border border-input text-foreground"
+          onClick={provider.id === "google" ? onSelectGoogle : undefined}
         >
           {provider.mark}
           {provider.label}
