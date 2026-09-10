@@ -3,7 +3,9 @@
 import { AgentPanel } from "@/components/agent-panel/agent-panel";
 import { Sidebar } from "@/components/app/sidebar";
 import { ThreadHeader } from "@/components/thread/thread-header";
+import { Workspace } from "@/components/workspace/workspace";
 import type { Thread } from "@/lib/mock/threads";
+import { WORKSPACE_ACTIVE_ID, WORKSPACE_ARTIFACTS } from "@/lib/mock/workspace";
 import { cn } from "@/lib/utils";
 
 // The fifth beat: the app arrives around the conversation that is already
@@ -180,8 +182,15 @@ export function AppHandoff({
               moves, so a 200ms ease-out collapse would have this column's edge
               arrive first and sit 68px over the conversation for ~233ms. Opt-in
               — the seventeen cloned routes keep the quick 200ms, where the
-              column IS the only thing moving. */}
+              column IS the only thing moving.
+
+              `defaultCollapsed` because the shell arrives with the computer
+              open on the right, and the room for it comes out of the sidebar:
+              at the 64px rail, 1456 leaves 668px of conversation beside a
+              684px panel. A starting state, not the fit test's lock — the
+              reader can open it, and `forceCollapsed` still applies on top. */}
           <Sidebar
+            defaultCollapsed
             forceCollapsed={railSidebar}
             collapseRidesSlide
             onWidthChange={onSidebarWidthChange}
@@ -311,7 +320,15 @@ export function AppHandoff({
           )}
           style={{ top: docked ? 0 : THREAD_BAR_PX }}
         >
-          <AgentPanel id={panelId} maxWidth={panelMax} onWidthChange={onPanelWidthChange} />
+          {/* The agent's computer is the panel's first tab. The mock artifacts
+              for now, to judge the layout; signup content is its own decision
+              (docs/plans/2026-09-10-computer-tab.md, "Decisions"). */}
+          <AgentPanel
+            id={panelId}
+            maxWidth={panelMax}
+            onWidthChange={onPanelWidthChange}
+            computer={<Workspace artifacts={WORKSPACE_ARTIFACTS} activeId={WORKSPACE_ACTIVE_ID} />}
+          />
         </div>
       </div>
     </>
