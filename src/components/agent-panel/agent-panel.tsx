@@ -1,6 +1,13 @@
 "use client";
 
-import { useEffect, useId, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
+import {
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type PointerEvent as ReactPointerEvent,
+  type ReactNode,
+} from "react";
 import { IconCheck } from "@tabler/icons-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -107,6 +114,15 @@ export const AGENT_PANEL_WIDTH = 448;
 // drifts the first time one of them is retuned.
 export const AGENT_PANEL_MIN_WIDTH = 440;
 const PANEL_MAX_WIDTH = 720;
+
+// The resting width when the panel carries the computer (the `computer` prop).
+// 684 is the workspace's own measure: the carousel's 48px lead-in, the 600px
+// document card and the 36px trailing pad (workspace.tsx `pl-12` / `pr-9`,
+// artifact-card.tsx's 600px card), which is exactly how wide the live site's
+// desktop is at 1456. One width for all three tabs: a width that changed on a
+// tab switch would snap while <main>'s padding eases over --duration-slide,
+// and the conversation would ghost under the panel for the length of it.
+export const COMPUTER_PANEL_WIDTH = 684;
 /** One arrow key of resize, and one shift-arrow. */
 const RESIZE_STEP = 16;
 const RESIZE_STEP_LARGE = 64;
@@ -215,7 +231,16 @@ export function AgentPanel({
   className,
   maxWidth,
   onWidthChange,
+  computer,
 }: {
+  /**
+   * The agent's computer: when given, it becomes a first "Computer" tab, the
+   * default one, ahead of Configuration and Usage, and the panel rests at
+   * `COMPUTER_PANEL_WIDTH` so the workspace fits. Opt-in: omit it and the panel
+   * is exactly the two-tab configuration panel it always was, which is what
+   * /design/agent-panel renders.
+   */
+  computer?: ReactNode;
   /**
    * Put on the `<aside>` so a toggle elsewhere in the shell can point at it
    * with `aria-controls`. Optional, because a panel nobody toggles needs no
@@ -272,10 +297,24 @@ export function AgentPanel({
   // for (its resting 480, or wherever the last drag left it) and `width` is
   // what it can actually have once `maxWidth` has had its say. Keeping them
   // apart is what makes the constraint reversible — see the prop's note.
-  const [preferred, setPreferred] = useState(AGENT_PANEL_WIDTH);
+  // The resting width is the computer's when there is one; the double-click
+  // reset returns to whichever this panel rests at.
+  const restingWidth = computer ? COMPUTER_PANEL_WIDTH : AGENT_PANEL_WIDTH;
+  const [preferred, setPreferred] = useState(restingWidth);
   const ceiling = Math.min(PANEL_MAX_WIDTH, maxWidth ?? PANEL_MAX_WIDTH);
   const width = clampWidth(preferred, ceiling);
-  const drag = useRef({ startX: 0, startWidth: AGENT_PANEL_WIDTH });
+  const drag = useRef({ startX: 0, startWidth: restingWidth });
+
+  // Controlled, so the header can tell which tab is showing: Save saves the
+  // configuration and only belongs beside it.
+  const [tab, setTab] = useState(computer ? "computer" : "configuration");
+  const showSave = !computer || tab === "configuration";
+  // With the computer, every tab stays mounted and the inactive ones are only
+  // hidden. Radix unmounts an inactive tab, which would throw away the
+  // carousel's scroll position and the Skills list's local state on every
+  // switch. Without it, nothing changes.
+  const forceMount = computer ? (true as const) : undefined;
+  const hideInactive = computer && "data-[state=inactive]:hidden";
 
   useEffect(() => {
     onWidthChange?.(width);
@@ -457,7 +496,7 @@ export function AgentPanel({
   return (
     <aside
       id={id}
-      aria-label="Agent configuration"
+      aria-label={computer ? "Agent" : "Agent configuration"}
       // `bg-sidebar` on purpose: this is the mirror of the left column, and two
       // pieces of chrome around one canvas should be one material. In dark, the
       // app's default, that material is the canvas colour and the hairline is
@@ -473,7 +512,7 @@ export function AgentPanel({
     >
       {/* Tabs own the whole column: the list belongs in the fixed header and
           the content is the thing that scrolls, so the root has to wrap both. */}
-      <Tabs defaultValue="configuration" className="flex h-full min-h-0 flex-col gap-0">
+      <Tabs value={tab} onValueChange={setTab} className="flex h-full min-h-0 flex-col gap-0">
         <header className="shrink-0 border-b border-border-subtle px-5 pt-4 pb-3">
           <h2 className="truncate text-heading-lg text-foreground">{AGENT_CONFIG.name}</h2>
           <p className="mt-0.5 text-sm text-muted-foreground">{AGENT_CONFIG.blurb}</p>
@@ -486,6 +525,7 @@ export function AgentPanel({
                 duplication this panel exists to end. What is left is the
                 configuration, which is everything below, and what it cost. */}
             <TabsList>
+              {computer && <TabsTrigger value="computer">Computer</TabsTrigger>}
               <TabsTrigger value="configuration">Configuration</TabsTrigger>
               <TabsTrigger value="usage">Usage</TabsTrigger>
             </TabsList>
@@ -499,26 +539,45 @@ export function AgentPanel({
                 submit is that it hides the reason and this one states it. The
                 opacity override keeps that word legible rather than fading the
                 third text tier to half. */}
-            <Button
-              variant={dirty ? "brand" : "ghost"}
-              size="sm"
-              disabled={!dirty}
-              onClick={() => setSaved(draft)}
-              className={cn(!dirty && "text-foreground-low disabled:opacity-100")}
-            >
-              {dirty ? (
-                "Save changes"
-              ) : (
-                <>
-                  <IconCheck aria-hidden="true" />
-                  Saved
-                </>
-              )}
-            </Button>
+            {showSave && (
+              <Button
+                variant={dirty ? "brand" : "ghost"}
+                size="sm"
+                disabled={!dirty}
+                onClick={() => setSaved(draft)}
+                className={cn(!dirty && "text-foreground-low disabled:opacity-100")}
+              >
+                {dirty ? (
+                  "Save changes"
+                ) : (
+                  <>
+                    <IconCheck aria-hidden="true" />
+                    Saved
+                  </>
+                )}
+              </Button>
+            )}
           </div>
         </header>
 
-        <TabsContent value="configuration" className="min-h-0 flex-1">
+        {/* The computer fills its box rather than scrolling in one: the
+            workspace sizes itself to the height it is given, and a ScrollArea
+            has no height to give it. */}
+        {computer && (
+          <TabsContent
+            value="computer"
+            forceMount={forceMount}
+            className={cn("relative min-h-0 flex-1", hideInactive)}
+          >
+            <div className="absolute inset-0">{computer}</div>
+          </TabsContent>
+        )}
+
+        <TabsContent
+          value="configuration"
+          forceMount={forceMount}
+          className={cn("min-h-0 flex-1", hideInactive)}
+        >
           {/* `[&>div]:!block` is what makes this panel's width honest, and it
               took a measurement to find. Radix's ScrollArea Viewport wraps its
               children in a `display: table` box, which shrink-to-fits to its
@@ -561,7 +620,11 @@ export function AgentPanel({
           </ScrollArea>
         </TabsContent>
 
-        <TabsContent value="usage" className="min-h-0 flex-1">
+        <TabsContent
+          value="usage"
+          forceMount={forceMount}
+          className={cn("min-h-0 flex-1", hideInactive)}
+        >
           <div className="px-5 py-4">
             <PanelEmpty>Runs and what they cost appear here after the first one.</PanelEmpty>
           </div>
@@ -578,14 +641,14 @@ export function AgentPanel({
       <div
         role="separator"
         aria-orientation="vertical"
-        aria-label="Resize agent configuration panel"
+        aria-label={computer ? "Resize agent panel" : "Resize agent configuration panel"}
         aria-valuenow={width}
         aria-valuemin={AGENT_PANEL_MIN_WIDTH}
         aria-valuemax={ceiling}
         tabIndex={0}
         onPointerDown={onResizeStart}
         onKeyDown={onResizeKeyDown}
-        onDoubleClick={() => setPreferred(AGENT_PANEL_WIDTH)}
+        onDoubleClick={() => setPreferred(restingWidth)}
         className="group absolute inset-y-0 z-40 flex w-5 cursor-col-resize touch-none items-center justify-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
         style={{ left: -10 }}
       >
