@@ -284,10 +284,13 @@ A `ResizeObserver` re-parks without animating on reflow.
   partner. Measured mid-flight, quint-out had the mark 94% of the way there at
   t=210ms while the column behind it was still half-opaque — a flick then a
   drift. Same finding the mark's own 360° turn already records.
-- On the last step the two record cards MORPH into the sentence's chips: each
-  card's media flies to its chip while the chip's media flies back, same FLIP.
-  Sampled live, source and chip occupy an identical rect at every frame past
-  the first.
+- The two record cards used to MORPH into the sentence's chips — each card's
+  media flying down to its chip while the chip's media flew up to meet it, the
+  same FLIP as the mark — and that is gone as of 2026-09-09, at the user's
+  request. The last step is now the plain crossfade every other step uses. The
+  effect and the two `data-morph` handles it measured are in this branch's
+  history if it is ever wanted back; nothing else changed, and the chips keep
+  their media.
 - Every one of these bails on `prefers-reduced-motion`, which leaves a still
   mark — so the loading screen owns a text status line that changes either way.
 
@@ -571,7 +574,7 @@ unstarted and is recorded under "Known gaps and follow-ups".)
 > main, not merged and not pushed; the tree is clean and all six gates pass.
 > It adds `/signup`: a four-step invented flow (providers → a spinning-mark
 > wait → a confirm-your-record screen of two cards → a chat-shaped screen
-> where those cards morph into coloured chips in a sentence, above suggested
+> where those cards come back as coloured chips in a sentence, above suggested
 > agent cards and a live composer). Everything is static mock data; nothing
 > authenticates. The mark is a single never-unmounted element FLIPped between
 > per-screen seats — read that effect in signup-screen.tsx before changing

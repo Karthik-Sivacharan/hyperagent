@@ -150,10 +150,6 @@ export function SignupScreen() {
   // False until the mark has been seated once. The first seating is a jump to
   // the right place, not a move from a previous one, so it must not animate.
   const seated = useRef(false);
-  // The profile screen, so the card→chip morph below can measure the two
-  // pieces of media it flies. Scoped to that screen rather than the stage
-  // because the chat step renders the SAME two images at the other end.
-  const profileScreenRef = useRef<HTMLDivElement>(null);
 
   // How long the mark takes to cross, read off --duration-slide once. It is
   // state rather than a constant because three things have to agree on it —
@@ -270,82 +266,6 @@ export function SignupScreen() {
 
     seated.current = true;
     return () => observer.disconnect();
-  }, [step, travelMs]);
-
-  // The two cards BECOME the two chips. On the way into the chat step the
-  // profile step's avatar and company plate fly DOWN to the chips' 20px media
-  // while the chips' media fly UP the other way — same curve, same 480ms as
-  // the mark — so at every frame the two occupy the same rect. One is fading
-  // out with its screen as the other fades in with its own, and a crossfade
-  // between two identical rects is not a crossfade at all: it reads as a
-  // single object shrinking into a sentence.
-  //
-  // Media only, not the whole card. A true card→chip morph has to reconcile a
-  // 352px box holding four text nodes with a 100px pill holding one, and
-  // whatever it invents for the words in between is the part that reads as a
-  // glitch. The bodies crossfade with their screens; the photo and the logo
-  // are what the eye is actually tracking, and those two survive the move.
-  //
-  // The source is queried out of the profile screen rather than threaded
-  // through a ref, for the same reason the mark's seats are: the media is a
-  // layout fact of the card that owns it, and profile-step.tsx / found-card.tsx
-  // are being written on another branch. Anything not found is skipped, which
-  // degrades to the plain crossfade rather than breaking.
-  useBeforePaint(() => {
-    if (step !== "personalize") return;
-    const stage = stageRef.current;
-    const profile = profileScreenRef.current;
-    if (!stage || !profile) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-
-    // The logo's own box is the image; the box that has to match the chip's
-    // plate is the tile it sits on, which is its parent.
-    const logo = profile.querySelector<HTMLImageElement>('img[src*="trainwell"]');
-    const pairs: Array<[HTMLElement | null, HTMLElement | null]> = [
-      [
-        profile.querySelector<HTMLElement>('[data-slot="avatar"]'),
-        stage.querySelector<HTMLElement>('[data-morph="person"]'),
-      ],
-      [logo?.parentElement ?? null, stage.querySelector<HTMLElement>('[data-morph="company"]')],
-    ];
-
-    const easing = easingToken(stage, "--ease-in-out", "cubic-bezier(0.4, 0, 0.2, 1)");
-    const flights: Animation[] = [];
-
-    for (const [from, to] of pairs) {
-      if (!from || !to) continue;
-      const a = from.getBoundingClientRect();
-      const b = to.getBoundingClientRect();
-      if (a.width < 1 || b.width < 1) continue;
-      // Default transform-origin — the centre — so translating by the delta
-      // between the two CENTRES and scaling by the width ratio drops one box
-      // exactly on the other, with none of the corner arithmetic the mark's
-      // `origin-top-left` seat needs.
-      const dx = a.left + a.width / 2 - (b.left + b.width / 2);
-      const dy = a.top + a.height / 2 - (b.top + b.height / 2);
-      flights.push(
-        to.animate(
-          [
-            { transform: `translate(${dx}px, ${dy}px) scale(${a.width / b.width})` },
-            { transform: "translate(0px, 0px) scale(1)" },
-          ],
-          { duration: travelMs, easing },
-        ),
-        // `fill: forwards` on the card's half: its screen is at zero opacity
-        // by 300ms and the flight runs to 480, so releasing the transform on
-        // the last frame would snap the card back while it is still faintly
-        // visible. Cancelled with the effect, which also restores it.
-        from.animate(
-          [
-            { transform: "translate(0px, 0px) scale(1)" },
-            { transform: `translate(${-dx}px, ${-dy}px) scale(${b.width / a.width})` },
-          ],
-          { duration: travelMs, easing, fill: "forwards" },
-        ),
-      );
-    }
-
-    return () => flights.forEach((flight) => flight.cancel());
   }, [step, travelMs]);
 
   // Focus follows the swap, so the keyboard lands where the eye does — but
@@ -492,7 +412,6 @@ export function SignupScreen() {
 
         {/* 3. The record, to confirm or correct. */}
         <div
-          ref={profileScreenRef}
           className={cn(
             SCREEN,
             COLUMN,

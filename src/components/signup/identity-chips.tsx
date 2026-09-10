@@ -93,19 +93,12 @@ export function IdentityChip({
   );
 }
 
-/**
- * `data-morph` is the handle signup-screen.tsx flies the profile step's two
- * cards onto. It sits on the element whose box has to match the card's media
- * exactly — the image itself here, the plate below — because the animation is
- * a rect-to-rect transform and a wrapper with padding would land it short.
- */
 export function PersonChip() {
   return (
     <IdentityChip
       tone="info"
       media={
         <Image
-          data-morph="person"
           src={SIGNUP_PERSON.avatarSrc}
           alt=""
           width={80}
@@ -144,7 +137,6 @@ export function CompanyChip() {
         // so it needs a fill that steps away from the ground in BOTH themes,
         // and a second tint over the amber one would not.
         <span
-          data-morph="company"
           className="flex size-5 shrink-0 items-center justify-center overflow-hidden rounded-sm bg-card"
         >
           <Image
