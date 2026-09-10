@@ -2,12 +2,11 @@
 
 Written 2026-09-07 at the end of plan step 5 (the brand colour tokens are
 the app's only palette), updated the same day for the move to Tabler
-icons and for the component system sweep, on 2026-09-09 for the
-composer Tools panel merge and the heading-cut decision, and again on
-2026-09-09 for the signup / hyper-personalized onboarding branch, and on
-2026-09-10 for that branch's research pass and pickable cards. The signup
-branch is the only work NOT on `main`. Read this first
-in a new session, then `README.md`, `docs/components.md`,
+icons and for the component system sweep, on 2026-09-09 for the composer
+Tools panel merge and the heading-cut decision, and rewritten on
+2026-09-10 when the signup / hyper-personalized onboarding work merged.
+**Everything described here is on `main`, and `main` is pushed.** Read
+this first in a new session, then `README.md`, `docs/components.md`,
 `docs/brand/reskin-conventions.md`, `docs/brand/icons.md` and
 `docs/clone-conventions.md`.
 
@@ -78,20 +77,37 @@ in a new session, then `README.md`, `docs/components.md`,
   an `indicator` prop, and `DropdownMenuContent` no longer restores focus
   after a pointer close, which fixed a stuck focus ring and a stuck
   tooltip on the composer pills. All six gates passed at the merge.
-- **`feat/hyper-personalized-onboarding` is live work and is NOT merged**
-  (updated 2026-09-10, 16 commits ahead of `main`, not pushed). It adds `/signup` —
-  a four-step flow that is the first thing in this repo that is not a clone
-  of an existing hyperagent.com page. See "The signup flow" below before
-  touching it. `main` itself is unchanged and still pushed to `origin`
-  (github.com/Karthik-Sivacharan/hyperagent, private).
+- **The signup flow is merged (2026-09-10).**
+  `feat/hyper-personalized-onboarding` went onto `main` with `--no-ff`
+  (26 commits); both refs are pushed to `origin`
+  (github.com/Karthik-Sivacharan/hyperagent, private). It adds `/signup` —
+  five beats that are the first thing in this repo not cloned from an
+  existing hyperagent.com page. See "The signup flow" below before touching
+  it: three things on that page are load-bearing and easy to break. It
+  merged with its known gaps rather than finished — chief among them that
+  there is still no streaming assistant turn — and the gap list is in that
+  section.
+- **The app defaults to dark (2026-09-10).** `defaultTheme="dark"` on the
+  root layout's ThemeProvider, so anyone with no stored choice gets the dark
+  mapping whatever their OS prefers. `enableSystem` stays on because
+  `defaultTheme` outranks the OS: the account menu's System item is the only
+  thing that still follows it, and dropping the flag would remove that third
+  choice rather than change the default. Nothing about the token sheet moved
+  — `:root` is still the light mapping and `.dark` still only re-maps it.
+- **Two design pages carry work that is built but not wired**:
+  `/design/skill-suggestions` (three ways to offer skills) and
+  `/design/agent-panel` (the Gumloop-shaped agent config panel, with its
+  consolidation audit at `docs/plans/2026-09-10-agent-panel-consolidation.md`).
+  Both are described under "The signup flow".
 - A second worktree, `.claude/worktrees/onboarding-exact` (branch
   `onboarding-exact`), holds a DIFFERENT `/onboarding` feature. It is
   unrelated to the signup flow; do not confuse the two or edit one from the
   other's worktree.
-- Verification at the end of step 5: `npx tsc --noEmit`, `npm run lint` (no
-  warnings), `npm run build` (29 routes), `npm run brand:check-contrast`
+- Verification at the signup merge (2026-09-10), all six gates on the merge
+  commit before it was pushed: `npx tsc --noEmit`, `npm run lint` (no
+  warnings), `npm run build` (34 pages), `npm run brand:check-contrast`
   (WCAG AA, 64 pairs per theme, zero skipped), `npm run brand:lint-tokens`
-  (zero findings) and `npm test` (3 files, 22 tests) all pass.
+  (zero findings) and `npm test` (5 files, 39 tests).
 
 ```bash
 npm install
@@ -234,18 +250,21 @@ node scripts/dev/contact-sheet.mjs out/light out/sheet-light.png "main"
 - Phase 3, the orchestrator: the six gates, the full pixel diff, the
   `--no-ff` merge.
 
-## The signup flow (branch `feat/hyper-personalized-onboarding`, 2026-09-10)
+## The signup flow (merged to `main` 2026-09-10)
 
-Not merged, not pushed, 16 commits ahead of `main`. Everything below lives at
+Merged with `--no-ff` from `feat/hyper-personalized-onboarding` (26 commits);
+both the branch and `main` are pushed to `origin`. Everything below lives at
 `/signup`, outside the `(app)` route group on purpose: an account gate gets
 the root layout (fonts, theme, tooltips) and none of the app shell.
 
-**What it is.** A four-step flow on one page, no routing: pick a provider →
-a wait → confirm the record we built → a chat-shaped screen that turns that
-record into a brief. It is a demo of hyper-personalized onboarding, and the
-first UI in this repo invented rather than cloned, so `docs/reference/` has
-no ground truth for it. The design references were Gumloop's agent tiles and
-hyperagent.com's own thread column, both measured live rather than eyeballed.
+**What it is.** Five beats on one page, no routing: pick a provider → a wait →
+confirm the record we built → a chat-shaped screen that turns that record into
+a brief → and on send, the app shell arrives around the conversation. It is a
+demo of hyper-personalized onboarding, and the first UI in this repo invented
+rather than cloned, so `docs/reference/` has no ground truth for the flow as a
+whole; the individual blocks inside it do, and each one names its dump below.
+The design references were Gumloop's agent tiles and hyperagent.com's own
+thread column, both measured live rather than eyeballed.
 
 **Nothing authenticates.** `src/lib/mock/signup-identity.ts` is the whole
 "result", static like the rest of `src/lib/mock/`. It deliberately keeps the
@@ -254,11 +273,31 @@ split a real implementation would have: Google's ID token already carries
 about the company comes from an enrichment call keyed on the token's `hd`
 domain claim (not free, and the half that can come back empty). That is why
 the company card is editable and why the screen reads as a draft to confirm.
+Only Google is wired; Apple and Microsoft are inert, as the email form is.
 
 **The step machine** is `src/components/signup/signup-screen.tsx`:
 `signin | loading | profile | personalize`, one way, a plain string. All four
 screens share one CSS grid cell and crossfade, so the cell is as tall as the
 tallest and nothing reflows. Hidden screens are `inert`.
+
+**The handoff is not a fifth step.** Pressing send on the fourth screen brings
+the app in around the conversation instead of navigating to it: the sidebar
+slides in from the left, the agent panel from the right, the glass and its
+noise come up underneath, the thread bar fades in overhead, and the centred
+column steps in to make room. The composer you were typing in is the same DOM
+node before and after; so is the mark, so are the four cards, so is the draft.
+A step change crossfades one screen out and another in, and the thing that has
+to survive here is the conversation itself — so `step` stays `"personalize"`
+and a separate flag rides on top of it.
+
+That is also why **the mark needs no fifth seat**: it is absolutely positioned
+inside the stage and parked by a transform measured against the stage's own
+box, so moving the stage's ANCESTOR carries it along for free. Hence the column
+shifts by padding on the element above the stage rather than by a transform on
+the stage, which would have composed with the mark's own transform and fought
+it. The sidebar keeps its own 20px mark rather than receiving the flying one:
+they are different objects, and flying one into the other would say the thing
+that had been speaking to you was a nav button all along.
 
 **One mark for the whole flow.** The Hyperagent mark is rendered ONCE in the
 stage and never unmounted — unmounting replays its entrance, which is the
@@ -270,6 +309,39 @@ reports the animated position rather than the new resting one; and
 `origin-top-left` is what makes the arithmetic "translate to the seat's
 corner" with no half-size correction (64 × 0.6875 = the 44px seat exactly).
 A `ResizeObserver` re-parks without animating on reflow.
+
+**The one cell must FIT THE VIEWPORT. This is the constraint that bites.**
+All four screens share one centred grid cell, so the cell is as tall as the
+tallest screen and every screen pays for it. `<main>` is
+`flex min-h-svh flex-col items-center justify-center px-5 py-12` and has been
+in every commit on this branch: there is no scroll handling anywhere, and none
+is wanted. While the tallest screen fits, the block centres on both axes and
+the page does not scroll. The moment it does not fit, EVERY screen scrolls,
+including the sign-in screen that needs 502px, and the column stops being
+viewport-centred because it is centring against a content box taller than the
+viewport. That is exactly what the skill card did (see below), and it is the
+first thing to check when this page starts scrolling.
+- The budget is the viewport height minus `<main>`'s 96px of `py-12`: about
+  806px of cell at 902, about 772 at 868. The cell measures **674px** today.
+- Two gates worth re-running by hand after any layout change here, at 1512×902
+  and 1456×868: the stage's `grid-template-rows` must be the same at every
+  step, and a real wheel must move nothing. Check ALL THREE scrollers —
+  `window.scrollY`, `document.documentElement.scrollTop` AND
+  `document.body.scrollTop`. `globals.css` sets `overflow-x: hidden` on `html`
+  and `body`, which forces their used `overflow-y` to `auto`, so a body scroll
+  can exist while `documentElement` reports none. Reading only the first is
+  what hid a 206px body scroll during the 2026-09-10 diagnosis.
+- The stage is `relative grid w-full max-w-wide grid-cols-1`. **`grid-cols-1`
+  is load-bearing**: an implicit grid column is `auto`, so the track sizes to
+  the widest item's MIN-CONTENT and ignores `max-w-*`. All four screens are
+  always mounted, and one wide row inside the chat screen reported 644.94px of
+  min-content, which made the track 644.94 inside what was then a 384px box
+  and threw every column centred in it 130.47px to the right at every viewport
+  width. `grid-cols-1` is `minmax(0, 1fr)`, which pins the track to the
+  container. The stage carries ONE measure for all four screens rather than
+  switching on the step: the first three never took their width from it
+  (`COLUMN` caps them at 384 and centres them in the cell), so one measure
+  costs them nothing and holds every seat on a fixed axis.
 
 **Motion decisions, all measured rather than guessed.**
 - The mark keeps ONE rendered size (64) its whole life and reaches 44 by
@@ -284,14 +356,13 @@ A `ResizeObserver` re-parks without animating on reflow.
 - Travel uses `--ease-in-out`, NOT `--duration-slide`'s usual quint-out
   partner. Measured mid-flight, quint-out had the mark 94% of the way there at
   t=210ms while the column behind it was still half-opaque — a flick then a
-  drift. Same finding the mark's own 360° turn already records.
-- The two record cards used to MORPH into the sentence's chips — each card's
-  media flying down to its chip while the chip's media flew up to meet it, the
-  same FLIP as the mark — and that is gone as of 2026-09-09, at the user's
-  request. The last step is now the plain crossfade every other step uses. The
-  effect and the two `data-morph` handles it measured are in this branch's
-  history if it is ever wanted back; nothing else changed, and the chips keep
-  their media.
+  drift. Same finding the mark's own 360° turn already records. Everything the
+  handoff moves rides the same pairing, so the shell arrives as one object
+  rather than as four.
+- The two record cards used to MORPH into the sentence's chips, and that is
+  gone as of 2026-09-09 at the user's request. The last step is now the plain
+  crossfade every other step uses. The effect and its two `data-morph` handles
+  are in this branch's history if it is ever wanted back.
 - Every one of these bails on `prefers-reduced-motion`, which leaves a still
   mark — so the loading screen owns a text status line that changes either way.
 
@@ -309,9 +380,9 @@ token file page branches are meant to leave alone. The chips are also not
 in running text, and they are `inline-block` rather than `inline-flex` so the
 baseline comes from the label's own line box (inline-flex measured 1.7px low).
 
-**The fourth screen shows its work (2026-09-10).** It used to appear fully
-formed, on a premise that something was out there researching for you. Now
-`research-signals.tsx` runs a four-source pass in the product's own tool-row
+**The fourth screen shows its work.** It used to appear fully formed, on a
+premise that something was out there researching for you. Now
+`research-signals.tsx` runs a five-source pass in the product's own tool-row
 idiom, and the ground truth for it is a live capture:
 `docs/reference/overlays/thread-streaming-turn.html`, read off hyperagent.com
 on 2026-09-09. **The finding that shaped everything: a running turn has NO
@@ -319,74 +390,141 @@ spinner anywhere.** A tool call is one 28px row — a 12px mark, a 12/16 label
 at weight 500, a middot, a truncated parameter — and running vs complete is
 the same row with the label shimmering or not. The words never go past tense.
 - **The four cards are on screen from the first frame as skeletons** and
-  resolve one per source, so the loading state is the end state half-drawn.
+  resolve as the pass runs, so the loading state is the end state half-drawn.
   Content and skeleton share one grid cell, so a card is its loaded height
-  immediately. Nothing on the screen changes height at any point, which is
-  the binding constraint here: the four screens share one grid cell and
-  centre in it, so any growth re-centres the column and drags the flying mark
-  with it. `markTop` measures 97px at every frame, pick included.
-- **One row at a time in a fixed 28px slot**, not the product's growing
-  stack, for that same reason — and because the end state is the four cards,
-  not four resolved rows of chrome above them. The finished pass collapses
-  into the four marks plus `Read 4 public sources` in the same slot.
+  immediately. `markTop` measures 97px at every frame, pick included.
+- **One row at a time in a fixed 28px slot**, not the product's growing stack,
+  for that same reason — and because the end state is the four cards, not five
+  resolved rows of chrome above them.
 - **The sources are public** — the company site, its App Store listing, its
-  open roles, the open web. At signup nothing is connected, so a row claiming
-  to read a mailbox or a private repo would be a lie the screen cannot back
-  up. The product's own onboarding mode filters to the same public set.
+  open roles, the open web, and Exa. At signup nothing is connected, so a row
+  claiming to read a mailbox or a private repo would be a lie the screen
+  cannot back up. The product's own onboarding mode filters to the same public
+  set. Exa earns its own row rather than folding into the plain web search
+  because it answers a different question: a keyword search finds the company,
+  a neural index finds what the company is LIKE, and it is the only one of the
+  five that can say anything about a market. Its mark is the 256px PNG inside
+  Exa's own favicon.ico — simple-icons carries no Exa glyph and the site
+  publishes no standalone SVG — following airtable's precedent.
+- **Timing: 1800ms a source (1400 working, 400 settled), 9.3s for the pass.**
+  The fifth row was bought at full price rather than by squeezing the other
+  four, because the row is the evidence: five sources read in the time four
+  used to take would quietly say none of them cost anything. If it ever has to
+  fit a budget, cut a source, not the milliseconds. Four cards against five
+  signals means one source pays for no card, and it is the FIRST — fetching
+  the company's own site buys the ground the rest stand on — so a card still
+  lands on the final row.
 - **The heading shimmers while the pass runs.** The sentence was already
   present tense, so the device costs no extra copy and no extra element. The
-  band is clipped to the `h1`, not to the three runs of plain words inside
-  it, or each would sweep at its own rate; the chips paint over the top and
-  keep their hues. The shimmer reuses `@keyframes shimmer` and
-  `--shimmer-sweep`; the spread is 2px per character, the ratio measured off
-  the dump. Every part of it sits behind `motion-safe:`, including
-  `bg-clip-text`, because a transparent label with no band painted behind it
-  is an invisible label.
-- **Timing: 1800ms a source (1400 working, 400 settled), 7.5s for the pass.**
-  It was 1100 — loading-step.tsx's `STEP_MS` — and read as too quick to be
-  four pieces of work. The settled half is what makes completion legible: the
-  label goes quiet, the card it paid for lands, then the next source arrives.
-- **The cards are controls now.** `Card asChild` over a `<button>` (the
+  band is clipped to the `h1`, not to the runs of plain words inside it, or
+  each would sweep at its own rate; the chips paint over the top and keep
+  their hues. It reuses `@keyframes shimmer` and `--shimmer-sweep`; the spread
+  is 2px per character, measured off the dump. Every part of it sits behind
+  `motion-safe:`, including `bg-clip-text`, because a transparent label with
+  no band painted behind it is an invisible label.
+- **The receipt, and the retry.** The finished pass collapses into the five
+  marks plus `Read 5 sources` in the same slot. Not "5 public sources": the
+  constraint has not moved and a private source still may not be added here,
+  but the marks in that line are the receipt, and a reader looking at the App
+  Store and LinkedIn sitting there does not need to be told the reading was
+  public. At the right edge of that slot is a retry — the only way to disagree
+  with the four cards without typing. `IconRefresh`, not sparkles (which would
+  promise a different KIND of answer) and not shuffle (which would promise the
+  same four reordered). Ghost, 24px, quiet on `foreground-low` and up one tier
+  on hover, no accent, and `inert` while hidden because it is the only member
+  of that slot holding a control. A replay clears the picked card and the
+  composer, hand-typed text included. **It lands on the same four cards:**
+  `SUGGESTED_AGENTS` holds one batch, so the mechanism is here and the second
+  batch is not written.
+- **The cards are controls.** `Card asChild` over a `<button>` (the
   `option-cards.tsx` shape `components.test.ts` allows), `aria-pressed`,
   disabled while pending. A click fills the composer with that agent's
   `prompt` and takes focus with the caret at the end. One selected at a time;
   clicking the selected card again is a reset, not a toggle, which is the
-  screen's only undo; emptying the box by hand drops the selection, editing
-  it does not. Selection is `bg-tint-20` under a hairline ring on the
-  FOREGROUND — it was `ring-border-loud` first, which is tint-20, the same
-  value as the fill under it, so the state came down to one tint step and
-  could not be read. Fills run 7 rest / 10 hover / 20 picked. No accent: the
-  screen's one tangerine is the composer's send.
-- **`Composer` takes an optional `value` / `onValueChange`.** Hybrid
-  controlled: omit them and every other page behaves exactly as before. Its
-  auto-grow moved off the textarea's `onInput` onto a before-paint effect
-  keyed on the rendered value, because text set from outside fires no input
-  event and would have sat in a one-row box.
+  screen's only undo; emptying the box by hand drops the selection, editing it
+  does not. Selection is `bg-tint-20` under a hairline ring on the FOREGROUND
+  — it was `ring-border-loud` first, which is tint-20, the same value as the
+  fill under it, so the state came down to one tint step and could not be
+  read. Fills run 7 rest / 10 hover / 20 picked. No accent: the screen's one
+  tangerine is the composer's send.
 - **A way out under the composer**, centred at 24px: `Set up manually`, the
   same words as the profile step's button one screen earlier, deliberately —
   an escape hatch that renames itself on every screen reads as a different
-  door each time. What separates them is weight, not vocabulary.
-- **`--shadow-card-soft` and `--shadow-rim-soft`** (brand.css, bridged in
-  globals.css) are the signup cards' resting elevation, one step under the
-  full-strength pair. Both were needed because the two themes tell elevation
-  with different layers — the drop does the work in light, the inset rim in
-  dark — so stepping down one would have quietened one theme only. Additive:
-  nothing reading `--shadow-card` or `--shadow-rim` moved. They are applied
-  to this flow's cards, NOT to the `Card` primitive, which would move pixels
-  on all 17 cloned routes.
-- The company mark is Trainwell's real 256px app icon (`/logos/trainwell.png`,
-  byte-identical to what their site serves). It reads at the card's 48px; at
-  the chip's 20px and the summary tile's 16px it is a small purple blur, which
-  is what the cropped `t` at `/logos/trainwell-mark.png` existed for. That
-  file is kept if the small sizes ever want it back.
+  door each time. What separates them is weight, not vocabulary. It retires on
+  handoff, fading rather than unmounting and keeping its box, because removing
+  44px directly under the composer would settle the whole centred column at
+  the exact moment the shell is sliding in.
+
+**`Composer` grew three opt-in props**, all the same shape and for the same
+reason — exactly one screen in the repo has anywhere to send to, and every
+cloned route must keep the behaviour it has today: `value` / `onValueChange`
+(hybrid controlled) and `onSend`. Two real bugs were fixed behind them. Its
+auto-grow moved off the textarea's `onInput` onto a before-paint effect keyed
+on the rendered value, because text set from outside fires no input event and
+would have sat in a one-row box; and a `ResizeObserver` now re-measures on
+WIDTH, because the box otherwise keeps the height it measured at the old
+measure and clips. Every cloned route has a composer whose column never moves,
+so the width case never showed until the handoff took ~150px off a filled one.
+
+**Skills are built but NOT wired (2026-09-10).** Three variants are compared
+side by side at `/design/skill-suggestions`, each the real component with its
+real state: A the question card (300px), B the skill shelf (400px), C inline
+in the stream (132px). Every entry in `suggested-skills.ts` is a published
+skill on skills.sh read off its own page — real names, owners and install
+counts — because a suggestion screen listing plausible skills nobody can
+install is the one lie this flow has not told; the SELECTION is the invented
+part. Order is relevance, not popularity. Ground truth for A is
+`docs/reference/overlays/thread-question-card.html`, the first message-level
+block in the dumps, which `docs/components.md` §4 asks for before any of them
+is cloned. **A was wired into the flow and then unwired**, because it reserved
+300px from the first frame and took the chat screen to 990px — past the
+viewport — which made every screen scroll. C is the only one that fits the
+~806px budget. Whichever comes back, re-run the two layout gates above.
+
+**The agent config panel is built but NOT consolidated** (`/design/agent-panel`).
+hyperagent.com puts the same agent configuration in three places — the
+composer's `+` menu, the composer's settings pill, and a right panel at
+`?panel=settings` that opens CLOSED behind tabs and an accordion — so the
+menus win and the configuration that should be read whole is only read in
+slices. This follows Gumloop instead: a 560px panel open by default, sections
+flat and always visible, each with its own `+ Add` and its own AI-managed
+state on the header row. Model & compute, Skills, Connectors, Knowledge
+sources, Subagents, Triggers, Autonomy & safety, in that order. 560 is what
+has to fit rather than a split difference: less two 20px gutters it is about
+72 characters of the 14px face in the instructions field, inside the 65–75ch
+prose band. Drag-to-resize is 440–720 with a double-click reset and a
+focusable window splitter with arrow keys. Save is dirty-only and changes
+state rather than greying out. Connected versus available is carried three
+ways and none is hue. `docs/plans/2026-09-10-agent-panel-consolidation.md` is
+the audit behind it — every setting in both composer menus, where it should
+live, and the rule: **the composer owns the message, the panel owns the
+agent.** Nothing has been removed from the composer yet; the audit records
+that the largest casualty is `tools-menu.tsx` as a menu, whose every
+accessibility decision is a `role="menu"` idiom that transfers to nothing.
+
+The panel does arrive in the flow: the handoff brings both columns in at once,
+sidebar from the left and panel from the right, in the same beat and on the
+same curve, because two columns from two edges is one gesture — the room
+assembling — where staggering them would read as two events. The panel owns
+its width and reports it upward rather than taking it as a prop; the column
+between the two pads by that live figure through a custom property, so
+dragging the splitter moves the conversation with it. **This is the one place
+the stage actually narrows**: with both columns in, 1456 leaves about 600px,
+so the stage is under its max-width and the chat reflows. That is what the
+real app does when the panel opens, and `ResizeObserver` re-parks the mark
+without animating, which is what it was written for.
 
 **Reuse worth knowing.**
 - `src/components/thread/` and `src/components/composer/` carry NO app-shell
-  context. `Composer` mounts verbatim outside `(app)`; that is how the last
-  step gets a chat window without a sidebar.
-- `FoundCard` is the shell both record cards wear. `AgentCard` reuses its
-  look (same tint, padding, rim light) but NOT the component: FoundCard's row
-  is media + title + subtitle + corner action and an agent has none of those.
+  context. `Composer` mounts verbatim outside `(app)`; that is how the fourth
+  screen gets a chat window without a sidebar.
+- The sidebar's wrapper is `md:flex`, not `md:block`. Its whole internal
+  column is built on `h-full`, which resolves against a parent with a definite
+  height; dropped into a plain block it measures 0 and renders an invisible
+  256px of nothing.
+- `FoundCard` is the shell both record cards wear. `AgentCard` reuses its look
+  (same tint, padding, rim light) but NOT the component: FoundCard's row is
+  media + title + subtitle + corner action and an agent has none of those.
 - The tool-logo row follows Gumloop's measured structure: one bordered group
   with `divide-x` between chrome-less tiles, the `+N` as another tile inside
   that group, not a detached pill.
@@ -398,15 +536,36 @@ the same row with the label shimmering or not. The words never go past tense.
 - `src/lib/mock/` is NOT scanned by the token lint at all (its `ROOTS` are
   only `src/components` and `src/app`), so a manifest of paths needs no ALLOW
   entry; a component that inlines a mark as SVG does.
+- **`--shadow-card-soft` and `--shadow-rim-soft`** (brand.css, bridged in
+  globals.css) are this flow's resting card elevation, one step under the
+  full-strength pair. Both were needed because the two themes tell elevation
+  with different layers — the drop does the work in light, the inset rim in
+  dark — so stepping down one would have quietened one theme only. Additive,
+  and applied to this flow's cards, NOT to the `Card` primitive, which would
+  move pixels on all 17 cloned routes.
+- The company mark is Trainwell's real 256px app icon (`/logos/trainwell.png`,
+  byte-identical to what their site serves). It reads at the card's 48px; at
+  the chip's 20px and the summary tile's 16px it is a small purple blur, which
+  is what the cropped `t` at `/logos/trainwell-mark.png` existed for. That
+  file is kept if the small sizes ever want it back.
 
-**Known gaps on this branch, in the order worth fixing.**
-- **`npm run build` has not run since 2026-09-09**: the machine's disk filled
-  (638MB free of 460GB) and Next could not write its trace. The other five
-  gates pass. `.next` was 1.4GB of regenerable cache at the time and is the
-  obvious thing to clear; the build passed earlier the same day.
-- There is no failure state in the research pass. Four sources that never
-  miss is less believable than three that land and one that comes back empty,
-  and the product's own `· Failed` suffix is in the dump, unused.
+**Known gaps, in the order worth fixing.**
+- **There is no streaming assistant turn.** The agent never runs and produces
+  output: the handoff lands on a screen that is already finished. This is the
+  main thing left.
+- **The composer's `+` menu and settings pill still hold config the panel
+  duplicates.** The staged migration is
+  `docs/plans/2026-09-10-agent-panel-consolidation.md`; nothing has been
+  removed yet.
+- **Skills are unwired.** Variant C (132px) is the one that fits the cell
+  budget; A (300px) is what had to come out.
+- The receipt's retry re-runs the pass but lands on the same four cards —
+  `SUGGESTED_AGENTS` holds one batch.
+- There is no failure state in the research pass. Five sources that never miss
+  is less believable than four that land and one that comes back empty, and
+  the product's own `· Failed` suffix is in the dump, unused.
+- The two waits total about 13s (3.78s on the loading screen, 9.3s on the
+  research pass). Honest for a demo, long once real calls sit behind them.
 - `HEADING_CHARS` in chat-step.tsx counts the sentence's fixed words to size
   the shimmer band; editing the `h1` copy silently drifts it. A measured
   `scrollWidth` would maintain itself.
@@ -415,14 +574,12 @@ the same row with the label shimmering or not. The words never go past tense.
   page, and it wants a slightly louder fill off-card.
 - The two edit pencils on the record cards are inert. Wiring them means
   deciding inline editing vs a dialog.
-- Only Google is wired; Apple and Microsoft are inert, as the email form is.
-- Narrow viewports have the classes but no visual confirmation. Nothing here
-  has been seen below 1456 wide.
+- **Nothing here has been verified below 1456 wide.** The classes are there
+  and no horizontal overflow was measured down to 420px, but no one has looked
+  at it.
 - `--shadow-rim` does real work in dark and is close to invisible in light,
   where `--highlight` is white on a near-white card. Left as is, since the
   light theme is flat by design elsewhere. A per-theme inset would be correct.
-- The two waits now total about 11s (3.78s on the loading screen, 7.5s on the
-  research pass). Honest for a demo, long once real calls sit behind them.
 - Every suggested agent happens to draw Linear, so the tool rows look more
   alike than they should.
 
@@ -464,6 +621,7 @@ the same row with the label shimmering or not. The words never go past tense.
 | `src/app/globals.test.ts` | vitest: globals.css owns no colour, every bridge entry has a target in brand.css |
 | `src/app/layout.tsx` | Geist and Geist Mono on `<html>`, `<body className="antialiased">`, the next-themes and tooltip providers |
 | `src/app/(app)/` | One route per sidebar page inside the app shell |
+| `src/app/signup/`, `src/components/signup/` | The five-beat onboarding flow, outside `(app)` so it gets the root layout and none of the shell; `signup-screen.tsx` holds the step machine, the shared grid cell and the mark's FLIP |
 | `src/components/app/` | Sidebar (menus, ⌘K palette, rail, drag-resize), app frame, account menu with the theme switch, brand marks |
 | `src/components/composer/` | Composer and its four menus |
 | `src/components/patterns/` | Composites of primitives used by two or more pages: `PageHeading`, `SearchInput`, `EmptyState`, `ShowArchivedSwitch` |
@@ -475,6 +633,7 @@ the same row with the label shimmering or not. The words never go past tense.
 | `src/lib/utils.ts`, `utils.test.ts` | The brand's `cn()` and its tests |
 | `src/design/brand/` | `brand.css` (the app's token sheet), `brand.test.ts`, the Geist loaders, `README.md` with the wiring and the phase-2 mapping table |
 | `src/app/design/brand/` | Swatch page at `/design/brand` with its own local light/dark toggle |
+| `src/app/design/` | The comparison pages: `/design/tools` (three composer Tools panels), `/design/skill-suggestions` (three ways to offer skills, none wired), `/design/agent-panel` (the config panel, not yet consolidated), `/design/logo` (the logo-motion studies the signup mark came from) |
 | `docs/brand/` | `design.md` (the brand language), `reskin-conventions.md` (the phase-2 contract), `icons.md` (Tabler only, the lucide-to-Tabler names), the style audit |
 | `docs/components.md` | The component system: tiers, rules, the component map with live evidence, how to add a component, the live UI the clone lacks |
 | `docs/plans/` | Implementation plans, one file per sweep, the boxes ticked as the work landed |
@@ -635,30 +794,39 @@ Conventional messages (`feat(<page>): …`, `fix(shell): …`, `refactor(theme):
 …`, `test: …`, `docs: …`), author `Karthik Sivacharan
 <karthicksivacharan@gmail.com>` (pass `-c user.name="Karthik Sivacharan"`;
 the repo config has the hyphenated GitHub name), ending with
-`Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>` and a
-`Claude-Session:` trailer for the session that made the change. Parallel work
+a `Co-Authored-By:` trailer naming the model that made the change (the
+session tells you which; it has been Fable 5.1 and Opus 5) and a
+`Claude-Session:` trailer for that session. Parallel work
 runs as one branch per concern in git worktrees under `.claude/worktrees/`,
 merged with `--no-ff`, gates re-run after each merge, worktrees and branches
 removed afterwards.
 
 ## Prompt to start the next session
 
-The live work is still the signup branch.
+Everything is on `main` and pushed; there is no branch in flight. The largest
+open piece is the streaming assistant turn.
 
 > Read HANDOFF.md in ~/Projects/hyperagent — especially "The signup flow" —
 > then AGENTS.md, docs/brand/reskin-conventions.md and docs/components.md.
-> You are on branch `feat/hyper-personalized-onboarding`, 16 commits ahead of
-> main, not merged and not pushed; the tree is clean. It adds `/signup`: a
-> four-step invented flow (providers → a spinning-mark wait → a
-> confirm-your-record screen of two cards → a chat screen that shows an agent
-> researching four public sources while four suggested-agent cards fill in
-> behind it, each one clickable to load a brief into the composer). Everything
-> is static mock data; nothing authenticates. Two things are load-bearing and
-> easy to break: the mark is a single never-unmounted element FLIPped between
-> per-screen seats (read that effect in signup-screen.tsx before changing any
-> layout on this page), and NOTHING on the fourth screen may change height,
-> because all four screens share one centred grid cell. `npm run build` has
-> not run since the machine's disk filled — check `df -h` first, clear
-> `.next` if it is still full, and get a clean build before anything else.
+> You are on `main`, clean and pushed, with all six gates passing. `/signup`
+> is a five-beat invented flow (providers → a spinning-mark wait → a
+> confirm-your-record screen of two cards → a chat screen that reads five
+> public sources while four suggested-agent cards fill in behind it, each
+> clickable to load a brief into the composer → and on send, the app shell
+> arriving around the conversation). Everything is static mock data; nothing
+> authenticates, and the app defaults to dark.
+>
+> Three things on that page are load-bearing. The Hyperagent mark is a single
+> never-unmounted element FLIPped between per-screen seats — read that effect
+> in signup-screen.tsx before changing any layout here. Nothing on the fourth
+> screen may change height, because all four screens share one centred grid
+> cell and growth drags the flying mark. And the whole cell must FIT THE
+> VIEWPORT: the moment the tallest screen exceeds it, every screen scrolls and
+> the column stops being viewport-centred. If you change anything in that
+> cell, check the stage's `grid-template-rows` is equal at every step and that
+> a real wheel moves nothing — testing `window.scrollY`, `documentElement`
+> AND `document.body`, because `overflow-x: hidden` on html/body makes a body
+> scroll possible while the document reports none.
+>
 > Run `npm run dev` and walk the flow in both themes. **Do not start work:
 > report what you have read and wait for instructions.**
