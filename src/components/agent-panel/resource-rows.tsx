@@ -50,11 +50,12 @@ import { cn } from "@/lib/utils";
 //
 //   [ 24px lead ] 12px [ title / meta, both truncating ] [ action? ] [ ⋯ ]
 //
-// Two lines at a fixed 48px: a 14px title on a 20px line, a 12px meta on a 16px
-// line, centred with 6px to spare. 48 clears the 44px tap target and is the
-// same two-line block the composer's thread-settings menu already uses for a
-// name over its detail, so the panel and the menu it supersedes are set the
-// same way. Every row is exactly two lines even where the data would fit on
+// Two lines at a fixed 40px: a 14px title on a 20px line, a 12px meta on a 16px
+// line, centred with 2px to spare, and 8px between rows, so the pitch is still
+// the 48 it was when the rows were ruled (see RowList). It is the same
+// two-line block the composer's thread-settings menu uses for a name over its
+// detail, so the panel and the menu it supersedes are set the same way. Every
+// row is exactly two lines even where the data would fit on
 // one, because a list whose rows change height is a list a reader has to scan
 // rather than skim.
 //
@@ -77,13 +78,16 @@ import { cn } from "@/lib/utils";
 const inlineLogos: Record<string, (() => JSX.Element) | undefined> = integrationLogos;
 
 /**
- * The list wrapper. A `ul` because these are lists, and a hairline between
- * rows rather than a gap: at 48px with no fill of their own the rows need a
- * ruled edge to stop the meta line of one reading as part of the next. The
- * divider draws only between rows, so a one-row section shows none.
+ * The list wrapper. A `ul` because these are lists, and a gap between rows
+ * rather than a hairline. It was a hairline at 48px, and that put the same
+ * rule between two rows as between two sections, so the panel read as one
+ * striped list and the sections stopped standing apart. Now the hairline is
+ * the section's alone and rows are held apart by space: 40px rows 8px apart,
+ * which leaves 12px between one row's meta line and the next row's name,
+ * clearly more than the 0px between a name and its own meta line.
  */
 function RowList({ children }: { children: ReactNode }) {
-  return <ul className="flex flex-col divide-y divide-border-subtle">{children}</ul>;
+  return <ul className="flex flex-col gap-2">{children}</ul>;
 }
 
 /**
@@ -116,7 +120,7 @@ function ResourceRow({
   menu: ReactNode;
 }) {
   return (
-    <li className="flex h-12 items-center gap-3">
+    <li className="flex h-10 items-center gap-3">
       {lead}
       <div className="flex min-w-0 flex-1 flex-col justify-center">
         <span className={cn("truncate text-sm leading-5 font-medium text-foreground", titleClassName)}>{title}</span>

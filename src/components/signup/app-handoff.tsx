@@ -257,7 +257,6 @@ export function AppHandoff({
           <div className={cn(entered && "pointer-events-auto")}>
             <ThreadHeader
               thread={HANDOFF_THREAD}
-              model={HANDOFF_THREAD.model}
               panelOpen={panelOpen}
               onTogglePanel={onTogglePanel}
               panelId={panelId}

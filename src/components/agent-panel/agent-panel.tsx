@@ -214,7 +214,7 @@ function Field({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex items-start justify-between gap-4 py-2">
+    <div className="flex items-start justify-between gap-4">
       <div className="min-w-0 flex-1">
         <Label htmlFor={htmlFor} className="cursor-pointer text-sm font-medium text-foreground">
           {label}
@@ -361,8 +361,12 @@ export function AgentPanel({
 
   const currentEffort = EFFORTS.find((e) => e.label === draft.effort);
 
+  // Settings fields sit 16px apart in a flex column: a label, its hint and its
+  // control are one unit (2px inside), and two units need more air than two
+  // list rows (8px), which are smaller things. Gaps rather than a padded field
+  // and a negative margin to cancel it at the ends.
   const modelBody = (
-    <div className="-my-2">
+    <div className="flex flex-col gap-4">
       <Field label="Model" htmlFor={modelId} hint={AGENT_CONFIG.modelNote}>
         <Select value={draft.model} onValueChange={(model) => setDraft((d) => ({ ...d, model }))}>
           <SelectTrigger id={modelId} size="sm" className="max-w-48">
@@ -412,7 +416,7 @@ export function AgentPanel({
         </Select>
       </Field>
 
-      <div className="py-2">
+      <div>
         <Label htmlFor={instructionsId} className="cursor-pointer text-sm font-medium text-foreground">
           Instructions
         </Label>
@@ -446,7 +450,7 @@ export function AgentPanel({
   );
 
   const autonomyBody = (
-    <div className="-my-2">
+    <div className="flex flex-col gap-4">
       {AUTONOMY_RULES.map((rule) => (
         <Field key={rule.id} label={rule.label} htmlFor={`${autonomyId}-${rule.id}`} hint={rule.hint}>
           <Switch
