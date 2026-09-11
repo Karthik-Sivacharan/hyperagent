@@ -128,6 +128,16 @@ Views are default-free components with no props, reading `useFleet()`:
 
 The foundation agent creates each of these four files as a stub with the exact export name, so the page compiles from day one; the owner replaces the stub.
 
+## As built in phase 1 (read this, it overrides the tables above where they differ)
+
+- `useFleet()` also returns `runsByStatus`, `subAgentsOf(id)`, `runsForAgent(id)`; `agentById` / `memberById` **throw** on an unknown id.
+- Extra helpers: `LAYOUT_TRANSITION` in `src/lib/motion.ts`; `RUN_TONE_CLASSES`, `RunStatusIcon`, `AGENT_STATE_META`, `AgentStateDot`, `AGENT_TINT_CLASS` + `agentTintStyle(hue)` (put both on an element to get `bg-(--agent-bg)` / `text-(--agent-fg)`).
+- Avatars on cards: set `[--avatar-cutout:var(--card)]` (or the surface they sit on) so the state-dot and ring cutouts match.
+- Each view is mounted in an absolutely positioned, scrolling flex column with **no padding**: add your own `px-6` gutter.
+- `activity` is also set on paused/error agents (Gauge: paused at its $80 budget; Tally: Stripe connection expired).
+- Fleet: people Priya, Diego, Sam; agents Atlas → Iris (Scout, Gauge), Rook (Finch, Echo), Quill (Cadence, Mosaic), Ledger (Tally); runs RUN-201…RUN-227 (24; per status 4/6/4/4/6).
+- Flow primitives (`src/components/ui/flow.tsx`): `FlowCanvas`, `FlowNode` (`handles`, `direction`), `FlowNodeHeader|Media|Title|Description|Action|Content|Footer`, `FlowEdgeStatic|Animated|Temporary`, `flowEdgeTypes`, `FlowControls`, `FlowPanel`, `FlowToolbar`; types `FlowEdge`, `FlowEdgeData { tone, curve }`; re-exports `Node`, `Edge`, `NodeProps`, `Handle`, `Position`, `useReactFlow`, `useNodesState`, `useEdgesState`, `useNodesInitialized`, `FlowProvider`. `FlowNode` must be the node component's root; live edges need `zIndex: 1`; set `ariaLabel` on edges with names, not ids; controlled `nodes` need `onNodesChange` to be selectable. Preview at `/design/flow`.
+
 ## Page shell (foundation agent)
 
 `src/components/teams/teams-page.tsx` (keep the `TeamsPage` export; the route file stays as is):
