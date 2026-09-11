@@ -122,3 +122,32 @@ export function PanelSection({
 export function PanelEmpty({ children }: { children: React.ReactNode }) {
   return <p className="text-sm text-foreground-low">{children}</p>;
 }
+
+// One setting: what it is called on the left, what it is set to on the right.
+// The hint sits under the label rather than under the control because the
+// control column is ragged (a 32px select, an 18px switch) and a caption hung
+// off it would be too. Shared by the Configuration and Learning tabs, which is
+// the second surface its old comment was waiting for before it moved here.
+export function PanelField({
+  label,
+  htmlFor,
+  hint,
+  children,
+}: {
+  label: string;
+  htmlFor: string;
+  hint?: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-start justify-between gap-4">
+      <div className="min-w-0 flex-1">
+        <Label htmlFor={htmlFor} className="cursor-pointer text-sm font-medium text-foreground">
+          {label}
+        </Label>
+        {hint && <p className="mt-0.5 text-xs text-foreground-low">{hint}</p>}
+      </div>
+      <div className="flex shrink-0 items-center gap-2">{children}</div>
+    </div>
+  );
+}
