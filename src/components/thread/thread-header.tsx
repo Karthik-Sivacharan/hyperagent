@@ -41,7 +41,12 @@ export function ThreadHeader({
   panelId,
 }: {
   thread: Thread;
-  model: string;
+  /**
+   * The model pill. Optional: omitted, the bar renders no pill at all, which
+   * is what the signup handoff wants (the agent panel already states the
+   * model). `/thread/[id]` passes it and renders exactly what it did.
+   */
+  model?: string;
   /**
    * The three props that wire the panel toggle, all optional and all inert
    * unless `onTogglePanel` is given.
@@ -121,6 +126,7 @@ export function ThreadHeader({
         </Button>
 
         <div className="flex shrink-0 items-center gap-1">
+          {selectedModel !== undefined && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
@@ -155,6 +161,7 @@ export function ThreadHeader({
               <DropdownMenuItem>View detailed usage</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          )}
           {/* ONE GLYPH IN BOTH STATES. The precedent is the sidebar's own
               collapse control, which keeps `IconLayoutSidebarLeftCollapse` and
               flips only its label between "Pin sidebar" and "Hide sidebar": a
