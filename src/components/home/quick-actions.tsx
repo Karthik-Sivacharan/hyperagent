@@ -19,12 +19,19 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 // composer on the live site; "Set up your agent" and "More..." open the small
 // menus captured under docs/reference/overlays/home-*-popover.html (same
 // widths, padding and items; the items are no-ops here). Phase 2 dresses the
-// row in the brand: outline pills on the hairline edge, and the tinted brand
-// chip for the set-up nudge (not the site's amber, not a solid accent), so
-// the composer's send arrow stays the view's one solid tangerine
+// row in the brand: outline pills on the hairline edge, and a filled neutral
+// tint for the set-up nudge with only its sparkle in tangerine, so the
+// composer's send arrow stays the view's one solid tangerine
 // (docs/brand/design.md §1, §3.2, §5, §8). The chips are `size="pill"` (the
 // composer's 32px metric with a 12px inset on both sides of an icon) and the
 // menus are the brand dropdown, whose item carries the site's row metrics.
+//
+// The nudge used to wear `brand-subtle`, and that is a light-theme token: its
+// dark value is tangerine-950 (#341205), and an orange that dark is brown, so
+// on the default dark canvas the chip read as a muddy brown pill. A lighter
+// tangerine alpha only makes a lighter brown. What sets the nudge apart is the
+// fill (the other chips are outlines), the foreground text a tier above theirs
+// and the accent glyph, which reads the same in both themes.
 
 const ACTIONS: { icon: TablerIcon; label: string }[] = [
   { icon: IconAppWindow, label: "Design a website" },
@@ -47,11 +54,7 @@ export function QuickActions() {
       <div className="flex flex-wrap justify-center gap-2">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="pill"
-              className="bg-brand-subtle text-brand-subtle-foreground hover:bg-brand-accent/15 aria-expanded:bg-brand-accent/15"
-            >
+            <Button variant="tint" size="pill" className="text-foreground">
               <IconSparkles className="size-4 text-brand-accent" aria-hidden="true" />
               Set up your agent
             </Button>
