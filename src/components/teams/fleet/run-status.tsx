@@ -37,12 +37,26 @@ export const RUN_STATUS_META: Record<RunStatus, { label: string; icon: TablerIco
  * Class strings per tone, spelled out so Tailwind sees every literal.
  * `text` is for an icon or a short label on the canvas, `dot` for a small
  * status dot, `badge` is the matching `Badge` variant, `tint` a quiet fill.
+ *
+ * The brand tint is the surface an ask sits on (the board card's "Needs
+ * you" block, the org node's ask chip), with `text-brand-subtle-foreground`
+ * on it. Light keeps `brand-subtle` (tangerine-50). In dark that token is
+ * tangerine-950, darker than the neutral-900 card it sits on, so it read as
+ * a brown slab; dark instead lays a 7% wash of the accent over the card and
+ * draws the edge with a 20% accent hairline: still the one tangerine thing
+ * on the card, a fraction of the weight. The ask on it measures 8.9:1
+ * (tangerine-300 on the wash over neutral-900, culori, oklab mix).
  */
 export const RUN_TONE_CLASSES: Record<
   RunTone,
   { text: string; dot: string; tint: string; badge: "brand" | "info" | "secondary" | "warning" | "success" }
 > = {
-  brand: { text: "text-brand-accent", dot: "bg-brand-accent", tint: "bg-brand-subtle", badge: "brand" },
+  brand: {
+    text: "text-brand-accent",
+    dot: "bg-brand-accent",
+    tint: "bg-brand-subtle dark:bg-brand-accent/7 dark:ring-1 dark:ring-brand-accent/20 dark:ring-inset",
+    badge: "brand",
+  },
   info: { text: "text-info", dot: "bg-info", tint: "bg-info/10", badge: "info" },
   neutral: { text: "text-muted-foreground", dot: "bg-foreground-low", tint: "bg-tint-10", badge: "secondary" },
   warning: { text: "text-warning", dot: "bg-warning", tint: "bg-warning/10", badge: "warning" },

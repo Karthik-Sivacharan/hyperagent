@@ -2,12 +2,14 @@
 
 import { useState, type KeyboardEvent } from "react";
 import { AnimatePresence, motion, type Variants } from "motion/react";
-import { IconSearch } from "@tabler/icons-react";
-import { Button } from "@/components/ui/button";
+import { IconListCheck } from "@tabler/icons-react";
 import { EmptyState } from "@/components/patterns/empty-state";
 import { DURATION, EASE } from "@/lib/motion";
+import { cn } from "@/lib/utils";
 import { RUN_STATUS_ORDER, type RunStatus } from "@/lib/mock/teams";
 import { useFleet } from "@/components/teams/fleet/fleet-context";
+import { RunSearchEmpty } from "@/components/teams/fleet/run-search-empty";
+import { useViewEntrance } from "@/components/teams/fleet/view-entrance";
 import { ListColumnHeader } from "@/components/teams/list/list-grid";
 import { RunGroup } from "@/components/teams/list/run-group";
 
@@ -32,9 +34,11 @@ import { RunGroup } from "@/components/teams/list/run-group";
 // one into view below the sticky headers (the rows' scroll-margin). Enter
 // on a row opens its agent; on a header it folds the group.
 //
-// MOTION. First paint staggers the groups in (80ms apart, capped at the
-// fourth, so the last one is settled inside 500ms); later changes do not
-// stagger. The rest lives with the group and the row.
+// MOTION. When the list is the first view the page paints, the groups
+// stagger in (80ms apart, capped at the fourth, so the last one is settled
+// inside 500ms). Arriving from another view, the page cross-fade carries it
+// and the groups render at rest (fleet/view-entrance.tsx). Later changes do
+// not stagger. The rest lives with the group and the row.
 
 const LIST_VARIANTS: Variants = {
   hidden: {},
@@ -54,7 +58,8 @@ function walkRows(event: KeyboardEvent<HTMLDivElement>) {
 }
 
 export function ListView() {
-  const { runs, runsByStatus, query, setQuery } = useFleet();
+  const { runs, runsByStatus, query } = useFleet();
+  const entrance = useViewEntrance();
   const searching = query.trim() !== "";
 
   // Folded groups outside a search, and during one; the second resets each
@@ -75,21 +80,24 @@ export function ListView() {
     <motion.div layoutScroll className="@container/list min-h-0 flex-1 overflow-y-auto" onKeyDown={walkRows}>
       {runs.length > 0 ? <ListColumnHeader /> : null}
 
-      {/* A presence scope of its own. teams-page.tsx mounts each view under
-          AnimatePresence initial={false}, which blocks the initial animation of
-          every motion node below it on a cold load; the groups would then sit
-          at their inherited "hidden" variant waiting for a stagger that never
-          starts. Groups mounted later (a search bringing one back) animate
-          themselves, since their parent is already mounted. */}
-      <AnimatePresence>
+      {/* Two presence scopes, both `initial={entrance}`. Without an entrance
+          the outer one holds the stagger container at "shown" and the inner
+          one holds each group there too; blocking only the container would
+          leave the groups at their inherited "hidden", waiting for a stagger
+          that never starts. Groups mounted later (a search bringing one back)
+          are past the inner scope's first render, so they fade in on their
+          own from "hidden". */}
+      <AnimatePresence initial={entrance}>
         <motion.div
           key="groups"
-          className="relative px-3 pb-10"
+          // No bottom padding without groups, so a search miss sits where
+          // the board's does.
+          className={cn("relative px-3", groups.length > 0 && "pb-10")}
           initial="hidden"
           animate="shown"
           variants={LIST_VARIANTS}
         >
-          <AnimatePresence mode="popLayout">
+          <AnimatePresence mode="popLayout" initial={entrance}>
             {groups.map((status) => (
               <RunGroup
                 key={status}
@@ -106,30 +114,23 @@ export function ListView() {
       </AnimatePresence>
 
       {runs.length === 0 ? (
-        <motion.div
-          className="px-6"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: DURATION.normal, ease: EASE.out }}
-        >
-          <EmptyState
-            variant="plain"
-            icon={IconSearch}
-            title={searching ? `No runs match “${query.trim()}”` : "No runs yet"}
-            description={
-              searching
-                ? "Search looks at run titles, ids and projects, and at each agent's name and role."
-                : "Runs your agents start will show up here, grouped by what they need from you."
-            }
-            action={
-              searching ? (
-                <Button variant="outline" onClick={() => setQuery("")}>
-                  Clear search
-                </Button>
-              ) : undefined
-            }
-          />
-        </motion.div>
+        searching ? (
+          <RunSearchEmpty />
+        ) : (
+          <motion.div
+            className="px-6"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: DURATION.normal, ease: EASE.out }}
+          >
+            <EmptyState
+              variant="plain"
+              icon={IconListCheck}
+              title="No runs yet"
+              description="Runs your agents start will show up here, grouped by what they need from you."
+            />
+          </motion.div>
+        )
       ) : null}
     </motion.div>
   );

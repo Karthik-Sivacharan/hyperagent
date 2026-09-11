@@ -152,7 +152,9 @@ function FlowCanvas<N extends Node = Node, E extends Edge = Edge>({
 // Selected is an ink outline and keyboard focus the brand's tangerine one,
 // never both at once (`:not(:focus-visible)`), and neither transitions:
 // selection answers a click and has to land with it. The hover lift is the
-// card's own (`shadow-card-hover`, 300ms ease-out), only on selectable nodes.
+// card's own (`shadow-card-hover`, 300ms ease-out) and so is the press
+// (`--scale-press` at the button speed, motion-safe), both only on
+// selectable nodes, the same pair every pressable card in the app wears.
 //
 // No `overflow-hidden` on the root, because the handles sit half outside it;
 // the footer rounds its own bottom corners instead.
@@ -187,7 +189,7 @@ function FlowNode({
       data-direction={direction}
       className={cn(
         "relative flex w-60 flex-col gap-(--node-spacing) rounded-2xl bg-surface-elevated py-(--node-spacing) text-foreground shadow-card [--node-spacing:--spacing(3)] has-data-[slot=flow-node-footer]:pb-0",
-        "transition-[box-shadow] duration-(--duration-slow) ease-out [.selectable>&]:hover:shadow-card-hover",
+        "[transition:box-shadow_var(--duration-slow)_var(--ease-out),scale_var(--duration-fast)_var(--ease-out-quart)] [.selectable>&]:hover:shadow-card-hover motion-safe:[.selectable>&]:active:scale-(--scale-press)",
         "[.selected:not(:focus-visible)>&]:outline-[1.5px] [.selected:not(:focus-visible)>&]:outline-offset-2 [.selected:not(:focus-visible)>&]:outline-primary",
         "[:focus-visible>&]:outline-2 [:focus-visible>&]:outline-offset-2 [:focus-visible>&]:outline-ring",
         className,

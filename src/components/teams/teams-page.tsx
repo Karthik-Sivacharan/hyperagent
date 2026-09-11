@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { AnimatePresence, MotionConfig, motion } from "motion/react";
 import { IconPlus, IconUsers } from "@tabler/icons-react";
@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { PageHeading } from "@/components/patterns/page-heading";
 import { DURATION, EASE } from "@/lib/motion";
 import { FleetProvider } from "@/components/teams/fleet/fleet-context";
+import { ViewEntranceProvider } from "@/components/teams/fleet/view-entrance";
 import { FleetHeader } from "@/components/teams/fleet/fleet-header";
 import { FleetSummary } from "@/components/teams/fleet/fleet-summary";
 import { FleetToolbar, type FleetView } from "@/components/teams/fleet/fleet-toolbar";
@@ -29,14 +30,21 @@ import { AgentSheet } from "@/components/teams/agent-sheet";
 // so it does not stack history entries, and the URL stays shareable.
 // `?state=empty` keeps the page's old empty state reachable, unchanged.
 // useSearchParams sits under a Suspense boundary, as Next 16 requires of a
-// prerendered route (docs: use-search-params, "Prerendering"); the fallback
-// is the default board, so the static HTML is the common case.
+// prerendered route (docs: use-search-params, "Prerendering"). The fallback,
+// which is the whole static HTML of a prerendered /teams, is the page's
+// chrome with no view in it: the prerender cannot know `?view`, and a board
+// painted there would flash before the list or the org chart replaced it.
+// The header, summary and toolbar are identical in both trees, so the swap
+// only fills the view area, and the view arrives with its entrance.
 //
-// MOTION. Switching views cross-fades: the outgoing view leaves in 90ms on
-// opacity alone, the incoming one enters in 200ms with a 6px rise, and both
-// sit absolutely inside the view area so nothing around them jumps. First
-// paint does not animate. MotionConfig reducedMotion="user" drops the rise
-// and every layout slide for people who ask for less motion.
+// MOTION. The first view the page paints plays its own entrance (the
+// board's lanes, the list's groups, the org chart's ranks) and the page adds
+// nothing to it. After that, switching views cross-fades: the outgoing view
+// leaves in 90ms on opacity alone, the incoming one enters in 200ms with a
+// 6px rise and renders at rest inside it (fleet/view-entrance.tsx), and both
+// sit absolutely inside the view area so nothing around them jumps.
+// MotionConfig reducedMotion="user" drops the rises and every layout slide
+// for people who ask for less motion, and keeps the fades.
 
 function parseView(value: string | null): FleetView {
   return value === "list" || value === "org" ? value : "board";
@@ -44,7 +52,7 @@ function parseView(value: string | null): FleetView {
 
 export function TeamsPage() {
   return (
-    <Suspense fallback={<TeamsFleet view="board" />}>
+    <Suspense fallback={<TeamsFleet view={null} />}>
       <TeamsRoute />
     </Suspense>
   );
@@ -64,7 +72,22 @@ function TeamsRoute() {
   return <TeamsFleet view={view} onViewChange={setView} />;
 }
 
-function TeamsFleet({ view, onViewChange }: { view: FleetView; onViewChange?: (view: FleetView) => void }) {
+function TeamsFleet({
+  view,
+  onViewChange,
+}: {
+  /** null: the prerendered shell, before the URL is known. */
+  view: FleetView | null;
+  onViewChange?: (view: FleetView) => void;
+}) {
+  // The first view keeps its own entrance until the reader picks another one
+  // (state adjusted during render, not in an effect, so it is settled before
+  // the incoming view mounts).
+  const [firstView] = useState(view);
+  const [switched, setSwitched] = useState(false);
+  if (!switched && view !== firstView) setSwitched(true);
+  const entrance = !switched;
+
   return (
     <MotionConfig reducedMotion="user">
       <FleetProvider>
@@ -73,17 +96,21 @@ function TeamsFleet({ view, onViewChange }: { view: FleetView; onViewChange?: (v
           <FleetSummary />
           <FleetToolbar view={view} onViewChange={onViewChange} />
           <div className="relative min-h-0 flex-1">
-            <AnimatePresence mode="wait" initial={false}>
-              <motion.div
-                key={view}
-                data-view={view}
-                className="absolute inset-0 flex min-h-0 flex-col overflow-auto"
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0, transition: { duration: DURATION.normal, ease: EASE.outQuart } }}
-                exit={{ opacity: 0, transition: { duration: DURATION.exit, ease: EASE.out } }}
-              >
-                {view === "board" ? <BoardView /> : view === "list" ? <ListView /> : <OrgView />}
-              </motion.div>
+            <AnimatePresence mode="wait">
+              {view ? (
+                <motion.div
+                  key={view}
+                  data-view={view}
+                  className="absolute inset-0 flex min-h-0 flex-col overflow-auto"
+                  initial={entrance ? false : { opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0, transition: { duration: DURATION.normal, ease: EASE.outQuart } }}
+                  exit={{ opacity: 0, transition: { duration: DURATION.exit, ease: EASE.out } }}
+                >
+                  <ViewEntranceProvider value={entrance}>
+                    {view === "board" ? <BoardView /> : view === "list" ? <ListView /> : <OrgView />}
+                  </ViewEntranceProvider>
+                </motion.div>
+              ) : null}
             </AnimatePresence>
           </div>
         </div>

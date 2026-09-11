@@ -2,27 +2,32 @@
 
 import * as React from "react";
 
-// The chart's first-mount entrance, rank by rank: the team, then Atlas, then
+// The chart's first-paint entrance, rank by rank: the team, then Atlas, then
 // the leads, then the specialists, each row fading up from 95% one stagger
 // (80ms) after the row above, 200ms apiece, so the last row lands by 440ms.
 // Edges fade in with the row they lead to.
 //
-// TWO PHASES, because React Flow measures each node's handles with
+// THREE PHASES, because React Flow measures each node's handles with
 // getBoundingClientRect: a card measured mid-scale would pin its edges a few
 // pixels inside the card for good (a transform never re-triggers the
 // measurement). So until every node is measured the cards are only
-// transparent, at full size; once `useNodesInitialized()` is true the view
-// flips `entered` and the scale-and-fade runs. `fill-mode-backwards` holds
-// each card at its first keyframe through its delay, so nothing flashes.
+// transparent, at full size ("measuring"); once `useNodesInitialized()` is
+// true the view moves on. When the chart is the first view the page paints
+// it plays the scale-and-fade ("enter"; `fill-mode-backwards` holds each
+// card at its first keyframe through its delay, so nothing flashes).
+// Arriving from another view, the page cross-fade is already fading it in,
+// so the cards simply show ("rest"; fleet/view-entrance.tsx).
 //
 // Reduced motion: every class is `motion-safe:`, so the cards and edges
 // simply appear once measured. (The live edges' dash stops in flow.css.)
 
-const OrgEntranceContext = React.createContext(false);
+export type OrgEntrancePhase = "measuring" | "enter" | "rest";
+
+const OrgEntranceContext = React.createContext<OrgEntrancePhase>("measuring");
 
 export const OrgEntranceProvider = OrgEntranceContext.Provider;
 
-export function useOrgEntered(): boolean {
+export function useOrgEntrance(): OrgEntrancePhase {
   return React.useContext(OrgEntranceContext);
 }
 
@@ -32,9 +37,12 @@ const LAST_STAGGERED_RANK = 3;
 const ENTER =
   "motion-safe:animate-in motion-safe:fade-in motion-safe:fill-mode-backwards motion-safe:animation-duration-(--duration-normal) ease-out-expo";
 
+const HIDDEN = "motion-safe:opacity-0";
+
 /** For a node's card (the FlowNode root), with `cardEntranceStyle` for its delay. */
-export function cardEntranceClass(entered: boolean): string {
-  return entered ? `${ENTER} motion-safe:zoom-in-95` : "motion-safe:opacity-0";
+export function cardEntranceClass(phase: OrgEntrancePhase): string {
+  if (phase === "measuring") return HIDDEN;
+  return phase === "enter" ? `${ENTER} motion-safe:zoom-in-95` : "";
 }
 
 export function cardEntranceStyle(rank: number): React.CSSProperties {
@@ -51,6 +59,7 @@ const EDGE_DELAY = [
 ] as const;
 
 /** For an edge, timed with the rank of the node it leads to. */
-export function edgeEntranceClass(entered: boolean, targetRank: number): string {
-  return entered ? `${ENTER} ${EDGE_DELAY[Math.min(targetRank, LAST_STAGGERED_RANK)]}` : "motion-safe:opacity-0";
+export function edgeEntranceClass(phase: OrgEntrancePhase, targetRank: number): string {
+  if (phase === "measuring") return HIDDEN;
+  return phase === "enter" ? `${ENTER} ${EDGE_DELAY[Math.min(targetRank, LAST_STAGGERED_RANK)]}` : "";
 }

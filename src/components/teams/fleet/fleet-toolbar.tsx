@@ -17,7 +17,8 @@ import { useFleet } from "@/components/teams/fleet/fleet-context";
 // Labels collapse to icons below `sm` and stay in the accessibility tree.
 // Search filters runs by title, id, project and agent (fleet-context.tsx);
 // while a query is set a live count says how much of the team it kept, and
-// Escape or the clear button empties it.
+// Escape or the clear button empties it (the button hands focus back to the
+// field, since it leaves with the query).
 
 export type FleetView = "board" | "list" | "org";
 
@@ -31,11 +32,19 @@ export const FLEET_VIEWS: { key: FleetView; label: string; icon: TablerIcon }[] 
 const ITEM =
   "relative h-7 gap-1.5 px-3 aria-checked:bg-transparent aria-checked:text-foreground data-[state=on]:bg-transparent";
 
+const SEARCH_ID = "fleet-search";
+
+/** Puts the keyboard back in the search field (after a clear control that leaves with the query). */
+export function focusFleetSearch() {
+  document.getElementById(SEARCH_ID)?.focus();
+}
+
 export function FleetToolbar({
   view,
   onViewChange,
 }: {
-  view: FleetView;
+  /** null in the prerendered shell: nothing is pressed until the URL is read. */
+  view: FleetView | null;
   onViewChange?: (view: FleetView) => void;
 }) {
   const { query, setQuery, runs, allRuns } = useFleet();
@@ -46,7 +55,7 @@ export function FleetToolbar({
         <ToggleGroup
           type="single"
           spacing={1}
-          value={view}
+          value={view ?? ""}
           onValueChange={(next) => {
             if (next) onViewChange?.(next as FleetView);
           }}
@@ -76,6 +85,7 @@ export function FleetToolbar({
           {query ? `${runs.length} of ${allRuns.length} runs` : ""}
         </p>
         <SearchInput
+          id={SEARCH_ID}
           className="w-full max-w-72"
           placeholder="Search runs, agents, projects"
           aria-label="Search runs"
@@ -90,7 +100,14 @@ export function FleetToolbar({
         >
           {query ? (
             <InputGroupAddon align="inline-end">
-              <InputGroupButton size="icon-xs" aria-label="Clear search" onClick={() => setQuery("")}>
+              <InputGroupButton
+                size="icon-xs"
+                aria-label="Clear search"
+                onClick={() => {
+                  setQuery("");
+                  focusFleetSearch();
+                }}
+              >
                 <IconX aria-hidden="true" />
               </InputGroupButton>
             </InputGroupAddon>

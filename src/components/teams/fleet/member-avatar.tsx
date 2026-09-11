@@ -4,12 +4,14 @@ import type { TeamMember } from "@/lib/mock/teams";
 
 // A person's initials in a circle (agents are rounded squares, see
 // agent-avatar.tsx). People stay neutral, on the chip pair the brand already
-// checks for contrast, so colour is left to the agents. Presence is a ring:
-// online draws a thin success ring hugging the face with a band of canvas
-// outside it, the multiplayer convention (Figma, Conductor); offline keeps
-// only the band, so an overlapping stack stays cleanly cut out either way.
-// The band reads `--avatar-cutout` (default: the canvas), as the agent
-// avatar's dot does.
+// checks for contrast, so colour is left to the agents. Presence is a ring
+// hugging the face, with a band of canvas outside it, the multiplayer
+// convention (Figma, Conductor): online is a success ring, offline a neutral
+// hairline (tint-40, the divider strength). The offline ring is not
+// decoration: in dark the chip fill is neutral-900, the same step as a card,
+// an org node and the sheet, so without it an offline face on any of those
+// has no edge at all. The band reads `--avatar-cutout` (default: the canvas),
+// as the agent avatar's dot does, so an overlapping stack stays cut out.
 
 const SIZES = {
   xs: "size-5 text-[0.5625rem]",
@@ -35,7 +37,7 @@ export function MemberAvatar({
         "relative inline-flex shrink-0 items-center justify-center rounded-full bg-chip font-semibold leading-none text-chip-foreground select-none",
         member.online
           ? "ring-[1.5px] ring-success shadow-[0_0_0_3.5px_var(--avatar-cutout,var(--background))]"
-          : "shadow-[0_0_0_2px_var(--avatar-cutout,var(--background))]",
+          : "ring-1 ring-tint-40 shadow-[0_0_0_3px_var(--avatar-cutout,var(--background))]",
         SIZES[size],
         className,
       )}

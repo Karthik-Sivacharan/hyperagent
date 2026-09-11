@@ -11,19 +11,25 @@ export const TEAM_NODE_ID = "team";
 
 /** Node boxes, in px. The node components set exactly these, so the layout
  *  never waits for a measurement. The team is wider: the root of the chart,
- *  with its people beside its name. */
+ *  with its people beside its name. Specialists (agents nobody reports to)
+ *  take the compact card, 64px narrower. */
 export const ORG_NODE_SIZE = {
   team: { width: 304, height: 64 },
   agent: { width: 240, height: 168 },
+  specialist: { width: 176, height: 156 },
 } as const;
 
-// Seven specialists side by side make the tree width-bound on any laptop
-// frame, so the vertical gap is free: a generous one gives the elbows and the
-// live dashes room to read without costing a point of zoom.
-export const ORG_SPACING = { sibling: 20, cousin: 40, rank: 96 } as const;
+// LEGIBILITY. The bottom rank sets the chart's width, and the width sets the
+// zoom the canvas fits at: seven specialists on full 240px cards made a tree
+// 1860px wide, which fit a laptop frame at 0.58 (card text near 8px). On
+// compact cards, with families 12px apart inside and 20px between, it is
+// 1360px wide and fits the 1152px frame of a 1456px window at 0.81. Width is
+// still the bound, so the rank gap only needs room for the elbows and the
+// live dashes; any more would only shrink the chart on shorter windows.
+export const ORG_SPACING = { sibling: 12, cousin: 20, rank: 56 } as const;
 
 export type TeamNodeData = { rank: number };
-export type AgentNodeData = { agentId: string; rank: number; hasReports: boolean };
+export type AgentNodeData = { agentId: string; rank: number; hasReports: boolean; compact: boolean };
 export type OrgTeamNode = Node<TeamNodeData, "team">;
 export type OrgAgentNode = Node<AgentNodeData, "agent">;
 export type OrgNode = OrgTeamNode | OrgAgentNode;
@@ -38,13 +44,22 @@ export function isActiveRun(run: FleetRun): boolean {
   return run.status === "needs-you" || run.status === "working" || run.status === "queued";
 }
 
+/** A specialist: an agent that reports to another agent and has no reports of its own. */
+function isSpecialist(agent: FleetAgent, leads: ReadonlySet<string | null>): boolean {
+  return agent.parentId !== null && !leads.has(agent.id);
+}
+
 export function buildOrgNodes(team: Team, agents: readonly FleetAgent[]): OrgNode[] {
+  const leads = new Set(agents.map((agent) => agent.parentId));
   const items: TreeItem[] = [
     { id: TEAM_NODE_ID, parentId: null, ...ORG_NODE_SIZE.team },
-    ...agents.map((agent) => ({ id: agent.id, parentId: chartParentOf(agent), ...ORG_NODE_SIZE.agent })),
+    ...agents.map((agent) => ({
+      id: agent.id,
+      parentId: chartParentOf(agent),
+      ...(isSpecialist(agent, leads) ? ORG_NODE_SIZE.specialist : ORG_NODE_SIZE.agent),
+    })),
   ];
   const placed = layoutTidyTree(items, ORG_SPACING);
-  const leads = new Set(agents.map((agent) => agent.parentId));
 
   const teamPlacement = placed.get(TEAM_NODE_ID) ?? { x: 0, y: 0, rank: 0 };
   const teamNode: OrgTeamNode = {
@@ -64,7 +79,12 @@ export function buildOrgNodes(team: Team, agents: readonly FleetAgent[]): OrgNod
       id: agent.id,
       type: "agent",
       position: { x: placement.x, y: placement.y },
-      data: { agentId: agent.id, rank: placement.rank, hasReports: leads.has(agent.id) },
+      data: {
+        agentId: agent.id,
+        rank: placement.rank,
+        hasReports: leads.has(agent.id),
+        compact: isSpecialist(agent, leads),
+      },
       ariaLabel: `${agent.name}, ${agent.role}`,
     };
   });

@@ -17,10 +17,11 @@ import {
 import { DURATION, EASE } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 import { useFleet } from "@/components/teams/fleet/fleet-context";
+import { useViewEntrance } from "@/components/teams/fleet/view-entrance";
 import { AgentNode } from "@/components/teams/org/agent-node";
 import { TeamNode } from "@/components/teams/org/team-node";
 import { OrgLegend } from "@/components/teams/org/org-legend";
-import { OrgEntranceProvider, edgeEntranceClass } from "@/components/teams/org/org-entrance";
+import { OrgEntranceProvider, edgeEntranceClass, type OrgEntrancePhase } from "@/components/teams/org/org-entrance";
 import {
   TEAM_NODE_ID,
   buildOrgEdges,
@@ -37,27 +38,32 @@ import {
 // (org/agent-node.tsx); hairlines for "reports to" and travelling dashes
 // where a working run has handed work down right now (org/org-graph.ts).
 //
-// READING THE CHART. Hovering a card, or selecting one, lights its chain of
-// command (everyone above it up to the team, everyone below it) and dims the
-// rest to 40% over 200ms; a short grace on leaving a card keeps the chart
-// from flashing back to full while the pointer crosses a gap. Search lights
-// the agents it finds instead of removing anyone, so the shape of the team
-// never changes under the reader. Precedence: the card under the pointer,
-// then the search, then the selection (a stale selection must not hide
-// what the reader just typed). Click, or Enter on a focused card, opens the
-// agent sheet.
+// READING THE CHART. Hovering a card, focusing one from the keyboard, or
+// selecting one lights its chain of command (everyone above it up to the
+// team, everyone below it) and dims the rest to 40% over 200ms; a short
+// grace on leaving a card keeps the chart from flashing back to full while
+// the pointer crosses a gap. Search lights the agents it finds instead of
+// removing anyone, so the shape of the team never changes under the reader.
+// Precedence: the card under the pointer, then the card with keyboard focus,
+// then the search, then the selection (a stale selection must not hide what
+// the reader just typed). Click, or Enter on a focused card, opens the agent
+// sheet; Tab walks the cards and the canvas pans to the one it lands on.
 //
-// ARRIVING. The canvas fits the tree, starts 6% further out and settles in
-// over 400ms (reveal, ease-out-expo) while the rows fade up rank by rank
-// (org/org-entrance.tsx). Reduced motion: an instant fit and no entrance.
+// ARRIVING. When the chart is the first view the page paints, the canvas
+// fits the tree, starts 6% further out and settles in over 400ms (reveal,
+// ease-out-expo) while the rows fade up rank by rank (org/org-entrance.tsx).
+// Arriving from another view it fits at once and the page cross-fade does
+// the rest. Reduced motion: an instant fit and no entrance.
 //
 // The canvas is framed in the page gutter like the board's columns, and the
 // fit is tighter than the canvas default: the tree is wide (seven
-// specialists across), so every point of zoom is legibility.
+// specialists across, on compact cards, org/org-graph.ts), so every point of
+// zoom is legibility. The key sits top left and the zoom controls top right:
+// the bottom corners belong to the specialists at the fitted zoom.
 
 const NODE_TYPES: NodeTypes = { team: TeamNode, agent: AgentNode };
 
-const ORG_FIT: FitViewOptions = { padding: "32px", maxZoom: 1 };
+const ORG_FIT: FitViewOptions = { padding: "24px", maxZoom: 1 };
 
 const SETTLE_FROM = 0.94;
 const settleEase = cubicBezier(...EASE.outExpo);
@@ -88,10 +94,13 @@ function OrgCanvas() {
   const rankOf = React.useMemo(() => new Map(initialNodes.map((node) => [node.id, node.data.rank])), [initialNodes]);
 
   const frameRef = React.useRef<HTMLDivElement>(null);
-  const entered = useSettleIn(frameRef);
+  const entrance = useViewEntrance();
+  const phase = useSettleIn(frameRef, entrance);
 
-  // What is lit: the chain under the pointer, else the search, else the selection.
+  // What is lit: the chain under the pointer, else the one with keyboard
+  // focus, else the search, else the selection.
   const [hoveredId, setHoveredId] = React.useState<string | null>(null);
+  const [focusedId, setFocusedId] = React.useState<string | null>(null);
   const graceRef = React.useRef<number | undefined>(undefined);
   React.useEffect(() => () => window.clearTimeout(graceRef.current), []);
 
@@ -101,7 +110,7 @@ function OrgCanvas() {
     [trimmed, team, agents, runs],
   );
   const selectedId = nodes.find((node) => node.selected)?.id ?? null;
-  const focusId = hoveredId ?? (matches ? null : selectedId);
+  const focusId = hoveredId ?? focusedId ?? (matches ? null : selectedId);
   const lit = React.useMemo(() => (focusId ? chainOf(focusId, agents) : matches), [focusId, agents, matches]);
 
   const shownNodes = React.useMemo(
@@ -115,19 +124,19 @@ function OrgCanvas() {
           ...edge,
           className: cn(
             EDGE_WRAPPER,
-            edgeEntranceClass(entered, rankOf.get(edge.target) ?? 1),
+            edgeEntranceClass(phase, rankOf.get(edge.target) ?? 1),
             lit && !(lit.has(edge.source) && lit.has(edge.target)) && DIMMED,
           ),
         }),
       ),
-    [edges, entered, rankOf, lit],
+    [edges, phase, rankOf, lit],
   );
 
   const agentMatchCount = matches ? [...matches].filter((id) => id !== TEAM_NODE_ID).length : null;
 
   return (
     <div ref={frameRef} className="relative min-h-0 flex-1 overflow-hidden rounded-3xl shadow-card">
-      <OrgEntranceProvider value={entered}>
+      <OrgEntranceProvider value={phase}>
         <FlowCanvas<OrgNode, FlowEdge>
           aria-label={`${team.name} org chart`}
           nodes={shownNodes}
@@ -146,6 +155,16 @@ function OrgCanvas() {
             window.clearTimeout(graceRef.current);
             graceRef.current = window.setTimeout(() => setHoveredId(null), HOVER_GRACE_MS);
           }}
+          // Keyboard focus lights a chain the way the pointer does. Only
+          // `:focus-visible`, so the focus a click leaves behind does not
+          // outrank the search; the selection covers the clicked card.
+          onFocus={(event) => {
+            const node = focusedNodeOf(event.target);
+            setFocusedId(node && node.matches(":focus-visible") ? (node.dataset.id ?? null) : null);
+          }}
+          onBlur={(event) => {
+            if (!focusedNodeOf(event.relatedTarget)) setFocusedId(null);
+          }}
           onKeyDown={(event) => {
             // React Flow selects a focused node on Enter or Space; the sheet opens with it.
             if (event.key !== "Enter" && event.key !== " ") return;
@@ -155,32 +174,38 @@ function OrgCanvas() {
           }}
         >
           <OrgLegend matchCount={agentMatchCount} />
-          <FlowControls position="bottom-left" orientation="horizontal" fitViewOptions={ORG_FIT} />
+          <FlowControls position="top-right" orientation="horizontal" fitViewOptions={ORG_FIT} />
         </FlowCanvas>
       </OrgEntranceProvider>
     </div>
   );
 }
 
+/** The React Flow node wrapper an event target is, if it is one (what Tab lands on). */
+function focusedNodeOf(target: EventTarget | null): HTMLElement | null {
+  return target instanceof HTMLElement && target.classList.contains("react-flow__node") ? target : null;
+}
+
 /**
- * The entrance switch, and the camera settle that goes with it. React Flow
+ * The entrance phase, and the camera settle that goes with it. React Flow
  * fits the canvas (with ORG_FIT) synchronously in the same update that
  * measures the nodes, before `useNodesInitialized()` can turn true, so by
  * the time the cards may enter, the viewport already IS the fit: the settle
  * reads it as its end, jumps out 6% about the frame's centre before paint,
  * and eases back. (Awaiting a second `fitView()` here would race the
  * canvas's own: its tail clears the shared resolver and the promise never
- * settles.) `entered` latches, so a later re-measure never replays it.
+ * settles.) The phase latches once measured, so a later re-measure never
+ * replays it; without `entrance` it goes straight to "rest" and nothing moves.
  */
-function useSettleIn(frameRef: React.RefObject<HTMLDivElement | null>): boolean {
+function useSettleIn(frameRef: React.RefObject<HTMLDivElement | null>, entrance: boolean): OrgEntrancePhase {
   const initialized = useNodesInitialized();
   const { getViewport, setViewport } = useReactFlow();
-  const [entered, setEntered] = React.useState(false);
-  if (initialized && !entered) setEntered(true);
+  const [phase, setPhase] = React.useState<OrgEntrancePhase>("measuring");
+  if (initialized && phase === "measuring") setPhase(entrance ? "enter" : "rest");
 
   const settledRef = React.useRef(false);
   React.useLayoutEffect(() => {
-    if (!entered || settledRef.current) return;
+    if (phase !== "enter" || settledRef.current) return;
     settledRef.current = true;
     const frame = frameRef.current;
     if (!frame || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
@@ -194,7 +219,7 @@ function useSettleIn(frameRef: React.RefObject<HTMLDivElement | null>): boolean 
       y: cy - (cy - end.y) * SETTLE_FROM,
     });
     void setViewport(end, { duration: DURATION.reveal * 1000, ease: settleEase });
-  }, [entered, frameRef, getViewport, setViewport]);
+  }, [phase, frameRef, getViewport, setViewport]);
 
-  return entered;
+  return phase;
 }

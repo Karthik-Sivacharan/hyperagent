@@ -14,9 +14,13 @@
 //      their last child's, so a single child sits straight under its parent
 //      and the elbows below a parent are symmetric.
 //
-// With every node in a rank as wide as its neighbours this never overlaps:
-// a parent covers the span of its own leaves, and no two families share a
-// leaf slot. (The one wider node, the team at the root, has a rank to itself.)
+// A parent wider than its family (a full card over one compact card)
+// overhangs its children, into the gap beside them. That is allowed while it
+// keeps the gap to the box before it in its own rank; when it would not, the
+// whole subtree moves right by the difference (a one-sided contour check,
+// which is all a left-to-right placement needs). So nothing ever overlaps,
+// and a tree whose parents fit over their families is laid out exactly as
+// before.
 //
 // Positions are top-left corners, React Flow's default `nodeOrigin`, with the
 // root centred on x = 0.
@@ -72,12 +76,25 @@ export function layoutTidyTree(items: readonly TreeItem[], spacing: TreeSpacing)
     top += height + spacing.rank;
   }
 
-  // 2 and 3. Leaf slots, then parents over their children.
+  // 2 and 3. Leaf slots, then parents over their children. `lastInRank` is
+  // the box placed most recently in each rank (the rightmost, since placement
+  // runs left to right) and where its right edge landed.
   const centreOf = new Map<string, number>();
+  const lastInRank: { item: TreeItem; right: number }[] = [];
   let cursor = 0;
   let previousLeaf: TreeItem | null = null;
+
+  const shiftSubtree = (item: TreeItem, dx: number) => {
+    const centre = (centreOf.get(item.id) ?? 0) + dx;
+    centreOf.set(item.id, centre);
+    const last = lastInRank[rankOf.get(item.id) ?? 0];
+    if (last?.item === item) last.right = centre + item.width / 2;
+    for (const child of children.get(item.id) ?? []) shiftSubtree(child, dx);
+  };
+
   const place = (item: TreeItem): number => {
     const kids = children.get(item.id) ?? [];
+    const rank = rankOf.get(item.id) ?? 0;
     let centre: number;
     if (kids.length === 0) {
       if (previousLeaf) cursor += previousLeaf.parentId === item.parentId ? spacing.sibling : spacing.cousin;
@@ -89,6 +106,18 @@ export function layoutTidyTree(items: readonly TreeItem[], spacing: TreeSpacing)
       centre = (centres[0] + centres[centres.length - 1]) / 2;
     }
     centreOf.set(item.id, centre);
+
+    const before = lastInRank[rank];
+    if (before) {
+      const gap = before.item.parentId === item.parentId ? spacing.sibling : spacing.cousin;
+      const overlap = before.right + gap - (centre - item.width / 2);
+      if (overlap > 0) {
+        shiftSubtree(item, overlap);
+        cursor += overlap;
+        centre += overlap;
+      }
+    }
+    lastInRank[rank] = { item, right: centre + item.width / 2 };
     return centre;
   };
   for (const root of roots) place(root);

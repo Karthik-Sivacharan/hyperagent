@@ -3,6 +3,8 @@
 import * as React from "react";
 import { RUN_STATUS_ORDER } from "@/lib/mock/teams";
 import { useFleet } from "@/components/teams/fleet/fleet-context";
+import { RunSearchEmpty } from "@/components/teams/fleet/run-search-empty";
+import { useViewEntrance } from "@/components/teams/fleet/view-entrance";
 import { BoardColumn } from "@/components/teams/board/board-column";
 
 // The Board: the team's runs as a kanban, one lane per status in
@@ -17,17 +19,14 @@ import { BoardColumn } from "@/components/teams/board/board-column";
 // lane scrolls on its own. The gutter sits on an inner `w-max` row rather
 // than on the scroller, so the right-hand gutter survives horizontal scroll.
 //
-// FIRST PAINT. The lanes rise in once, on the board's first mount in this
-// page session. Coming back to the board from another view is the view
-// cross-fade's job (teams-page.tsx), so the flag below is flipped after the
-// first mount and never read at render on the server (it is always false
-// there), which keeps the server and client first renders identical.
+// FIRST PAINT. The lanes rise in once, when the board is the first view the
+// page paints. Arriving on the board from another view is the view
+// cross-fade's job (teams-page.tsx), so then the lanes render at rest; the
+// page decides which it is (fleet/view-entrance.tsx).
 //
 // KEYBOARD. Tab walks the cards and the controls inside them; the arrow keys
 // move between cards: up and down within a lane, left and right to the
 // nearest card at the same height in the next lane that has any.
-
-let boardHasEntered = false;
 
 const ARROWS: Record<string, [column: number, row: number]> = {
   ArrowUp: [0, -1],
@@ -67,11 +66,17 @@ function moveBetweenCards(event: React.KeyboardEvent<HTMLElement>) {
 }
 
 export function BoardView() {
-  const { runsByStatus, allRuns, query } = useFleet();
-  const [entrance] = React.useState(() => !boardHasEntered);
-  React.useEffect(() => {
-    boardHasEntered = true;
-  }, []);
+  const { runs, runsByStatus, allRuns, query } = useFleet();
+  const searching = query.trim().length > 0;
+  const entrance = useViewEntrance();
+
+  // A search that keeps no run at all gets one empty state, not five empty
+  // lanes. The lanes it replaces come back at rest: their rise is a first
+  // paint, and once a miss has happened this is no longer one (state
+  // adjusted during render).
+  const miss = searching && runs.length === 0;
+  const [missed, setMissed] = React.useState(false);
+  if (miss && !missed) setMissed(true);
 
   // The team's queue, oldest first (the mock lists each status newest first).
   // From every run, not the search result, so a search never renumbers it.
@@ -79,6 +84,8 @@ export function BoardView() {
     const queued = allRuns.filter((run) => run.status === "queued").reverse();
     return new Map(queued.map((run, i) => [run.id, i + 1]));
   }, [allRuns]);
+
+  if (miss) return <RunSearchEmpty />;
 
   return (
     <div
@@ -94,8 +101,8 @@ export function BoardView() {
             status={status}
             index={index}
             runs={runsByStatus[status]}
-            searching={query.trim().length > 0}
-            entrance={entrance}
+            searching={searching}
+            entrance={entrance && !missed}
             queuePositions={queuePositions}
           />
         ))}

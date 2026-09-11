@@ -1,6 +1,7 @@
 "use client";
 
 import { FlowPanel } from "@/components/ui/flow";
+import { Overline } from "@/components/ui/overline";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { useFleet } from "@/components/teams/fleet/fleet-context";
@@ -34,6 +35,11 @@ export function OrgLegend({ matchCount }: { matchCount: number | null }) {
 
   return (
     <FlowPanel position="top-left" className="w-44 px-3 py-2.5 text-xs">
+      {/* The unit, said once: these count agents, where the summary line
+          above the chart counts runs ("6 working now" there, 8 here). */}
+      <Overline aria-hidden="true" className="mb-2">
+        Agents
+      </Overline>
       <ul aria-label="Agents by state" className="flex flex-col gap-1.5">
         {rows.map((row) => (
           <li key={row.label} className="flex items-center gap-2">

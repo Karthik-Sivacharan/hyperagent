@@ -10,6 +10,7 @@ import type { FleetAgent, FleetRun, TeamMember } from "@/lib/mock/teams";
 import { useFleet } from "@/components/teams/fleet/fleet-context";
 import { AGENT_STATE_META, AgentAvatar } from "@/components/teams/fleet/agent-avatar";
 import { MemberAvatar } from "@/components/teams/fleet/member-avatar";
+import { RUN_TONE_CLASSES } from "@/components/teams/fleet/run-status";
 import { formatMinutes, formatUsd } from "@/components/teams/fleet/format";
 import { RUN_TRIGGER_META } from "@/components/teams/board/triggers";
 import { StepBar } from "@/components/teams/board/step-bar";
@@ -90,7 +91,7 @@ export function RunCard({ run, queuePosition, phase = 0 }: { run: FleetRun; queu
           <span className="shrink-0 tabular-nums">{run.updated}</span>
         </div>
 
-        <h3 id={titleId} className="line-clamp-2 text-sm font-medium text-foreground">
+        <h3 id={titleId} className="line-clamp-2 text-sm font-medium text-pretty text-foreground">
           {run.title}
         </h3>
 
@@ -131,8 +132,8 @@ function RunDetail({
   switch (run.status) {
     case "needs-you":
       return (
-        <div className="flex items-center gap-2 rounded-xl bg-brand-subtle py-1.5 pr-1.5 pl-2.5">
-          <p className="min-w-0 flex-1 text-md font-medium text-brand-subtle-foreground">{run.needs}</p>
+        <div className={cn("flex items-center gap-2 rounded-xl py-1.5 pr-1.5 pl-2.5", RUN_TONE_CLASSES.brand.tint)}>
+          <p className="min-w-0 flex-1 text-md font-medium text-pretty text-brand-subtle-foreground">{run.needs}</p>
           {/* v1: no action behind it yet. */}
           <Button size="xs" variant="outline" className="shrink-0" onClick={own()}>
             Review
@@ -148,7 +149,7 @@ function RunDetail({
         <p className="flex items-start gap-1.5 text-md text-muted-foreground">
           <IconCornerDownRight className="mt-0.5 size-3.5 shrink-0 text-foreground-low" aria-hidden="true" />
           <span className="sr-only">Outcome: </span>
-          <span className="line-clamp-2">{run.outcome}</span>
+          <span className="line-clamp-2 text-pretty">{run.outcome}</span>
         </p>
       );
   }
@@ -161,7 +162,7 @@ function WorkingDetail({ run, agent, phase }: { run: FleetRun; agent: FleetAgent
 
   return (
     <div className="flex flex-col gap-2">
-      {agent.activity ? <p className="line-clamp-2 text-md text-muted-foreground">{agent.activity}</p> : null}
+      {agent.activity ? <p className="line-clamp-2 text-md text-pretty text-muted-foreground">{agent.activity}</p> : null}
       {progress || helpers.length ? (
         <div className="flex h-5 items-center gap-2.5">
           {progress ? (
@@ -229,7 +230,7 @@ function QueuedDetail({ run, agent, queuePosition }: { run: FleetRun; agent: Fle
           )}
           aria-hidden="true"
         />
-        <span className="line-clamp-2">{text}</span>
+        <span className="line-clamp-2 text-pretty">{text}</span>
       </p>
       {total ? <span className="mt-px shrink-0 text-xs text-foreground-low tabular-nums">{total} steps</span> : null}
     </div>
@@ -268,8 +269,7 @@ function Delegation({
       <span className="text-xs text-foreground-low">for</span>
       <Tooltip>
         <TooltipTrigger asChild>
-          {/* On a tint, not the chip fill: in dark the chip is the card's own neutral-900. */}
-          <MemberAvatar member={owner} size="xs" className="bg-tint-15" />
+          <MemberAvatar member={owner} size="xs" />
         </TooltipTrigger>
         <TooltipContent>Owner · {owner.name}</TooltipContent>
       </Tooltip>

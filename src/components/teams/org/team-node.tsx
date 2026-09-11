@@ -17,7 +17,7 @@ import { cn } from "@/lib/utils";
 import { useFleet } from "@/components/teams/fleet/fleet-context";
 import { MemberAvatar } from "@/components/teams/fleet/member-avatar";
 import { ORG_NODE_SIZE, type OrgTeamNode } from "@/components/teams/org/org-graph";
-import { cardEntranceClass, cardEntranceStyle, useOrgEntered } from "@/components/teams/org/org-entrance";
+import { cardEntranceClass, cardEntranceStyle, useOrgEntrance } from "@/components/teams/org/org-entrance";
 
 // The root of the chart: the team the orchestrator reports to, with its
 // people beside its name (spaced, not stacked, like the page header, so two
@@ -26,12 +26,12 @@ import { cardEntranceClass, cardEntranceStyle, useOrgEntered } from "@/component
 
 export function TeamNode({ data }: NodeProps<OrgTeamNode>) {
   const { team, agents } = useFleet();
-  const entered = useOrgEntered();
+  const phase = useOrgEntrance();
 
   return (
     <FlowNode
       handles={{ target: false, source: agents.length > 0 }}
-      className={cn("justify-center [--avatar-cutout:var(--surface-elevated)]", cardEntranceClass(entered))}
+      className={cn("justify-center [--avatar-cutout:var(--surface-elevated)]", cardEntranceClass(phase))}
       style={{ ...ORG_NODE_SIZE.team, ...cardEntranceStyle(data.rank) }}
     >
       <FlowNodeHeader>

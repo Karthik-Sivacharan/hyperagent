@@ -167,10 +167,7 @@ export function AgentProfile({ agent }: { agent: FleetAgent }) {
           <dl className="grid grid-cols-[6rem_minmax(0,1fr)] items-center gap-x-4 gap-y-1.5 border-b border-border-subtle p-5 text-sm">
             <Fact label="Model">{agent.model}</Fact>
             <Fact label="Owner">
-              {/* A tint, not the chip fill: in dark the chip fill is the
-                  sheet's own neutral-900, so an offline face (no presence
-                  ring) would have no edge at all. */}
-              <MemberAvatar member={owner} size="xs" aria-hidden="true" className="bg-tint-15" />
+              <MemberAvatar member={owner} size="xs" aria-hidden="true" />
               <span className="truncate">{owner.name}</span>
               <span className="sr-only">{owner.online ? ", online" : ", away"}</span>
             </Fact>
