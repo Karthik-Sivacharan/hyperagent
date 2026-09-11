@@ -32,7 +32,7 @@ export const SEED: Record<ActorId, Placement> = {
   "a-tally": seated("desk-tally"),
 
   // People. Priya waits in the hall outside the meeting room door, facing it.
-  "m-priya": { tile: { x: 17, y: 12 }, facing: "down" },
+  "m-priya": { tile: { x: 19, y: 12 }, facing: "down" },
   "m-diego": seated("desk-diego"),
 };
 

@@ -47,13 +47,13 @@ const GRID = [
   "...................................#", // 11
   "...................................#", // 12
   "...................................#", // 13 behind the hall wall
-  "####..###########..#####..##..######", // 14 hall wall, four doors
-  "#.........#........#......#........#", // 15 content | meeting | lounge | finance
-  "#.........#........#......#........#", // 16
-  "#.........#........#......#........#", // 17
-  "#.........#........#......#........#", // 18
-  "#.........#........#......#........#", // 19
-  "#.........#........#......#........#", // 20
+  "####..#############..###..##..######", // 14 hall wall, four doors
+  "#.........#..........#....#........#", // 15 content | meeting | lounge | finance
+  "#.........#..........#....#........#", // 16
+  "#.........#..........#....#........#", // 17
+  "#.........#..........#....#........#", // 18
+  "#.........#..........#....#........#", // 19
+  "#.........#..........#....#........#", // 20
   "####################################", // 21 south wall, drawn low
 ] as const;
 
@@ -103,8 +103,8 @@ export const ROOMS: Room[] = [
   { id: "outbound", name: "Outbound", x: 23, y: 2, w: 12, h: 7 },
   { id: "hall", name: "Hall", x: 0, y: 10, w: 35, h: 4 },
   { id: "content", name: "Content", x: 1, y: 15, w: 9, h: 6 },
-  { id: "meeting", name: "Meeting room", x: 11, y: 15, w: 8, h: 6 },
-  { id: "lounge", name: "Lounge", x: 20, y: 15, w: 6, h: 6 },
+  { id: "meeting", name: "Meeting room", x: 11, y: 15, w: 10, h: 6 },
+  { id: "lounge", name: "Lounge", x: 22, y: 15, w: 4, h: 6 },
   { id: "finance", name: "Finance ops", x: 27, y: 15, w: 8, h: 6 },
 ];
 
@@ -124,7 +124,7 @@ export const DOORS: Door[] = [
   { room: "atlas", side: "south", tiles: [{ x: 17, y: 9 }, { x: 18, y: 9 }] },
   { room: "outbound", side: "south", tiles: [{ x: 24, y: 9 }, { x: 25, y: 9 }] },
   { room: "content", side: "north", tiles: [{ x: 4, y: 14 }, { x: 5, y: 14 }] },
-  { room: "meeting", side: "north", tiles: [{ x: 17, y: 14 }, { x: 18, y: 14 }] },
+  { room: "meeting", side: "north", tiles: [{ x: 19, y: 14 }, { x: 20, y: 14 }] },
   { room: "lounge", side: "north", tiles: [{ x: 24, y: 14 }, { x: 25, y: 14 }] },
   { room: "finance", side: "north", tiles: [{ x: 28, y: 14 }, { x: 29, y: 14 }] },
   {
@@ -188,24 +188,28 @@ export const RUGS: (Rect & { rug: RugName })[] = [
   { rug: "mat", x: 0, y: 10, w: 2, h: 3 },
   { rug: "stone", x: 19, y: 5, w: 3, h: 3 },
   { rug: "oat", x: 11, y: 15, w: 5, h: 6 },
-  { rug: "oat", x: 20, y: 17, w: 4, h: 3 },
+  { rug: "oat", x: 22, y: 17, w: 3, h: 2 },
 ];
 
 // ---------------------------------------------------------------------------
-// Room signs (room-labels.tsx): each room's name on the wall face beside its
-// door, like a plate by a doorway. One rule, so no plate is ambiguous: every
-// sign starts at the tile edge just right of its door (`x`) and runs right,
-// on the face of the hall wall in `wallRow`. The wall decor keeps clear of
-// them, and no seat puts a head in front of one.
+// Room signs (room-labels.tsx): each room's name on its own wall beside its
+// door, like a plate by a doorway. A sign never leaves its room's span or
+// crosses a partition, and none sits where a seated head or the meeting
+// table's merged tag would cover it. `x` is the door edge the plate starts
+// from; `align` says which way it runs ("start": rightwards, "end": leftwards).
+// The plates sit on the face of the hall wall in `wallRow`, and the wall
+// decor keeps clear of them.
 
-export const SIGNS: { room: RoomId; x: number; wallRow: number }[] = [
-  { room: "research", x: 7, wallRow: 9 },
-  { room: "atlas", x: 19, wallRow: 9 },
-  { room: "outbound", x: 26, wallRow: 9 },
-  { room: "content", x: 6, wallRow: 14 },
-  { room: "meeting", x: 19, wallRow: 14 },
-  { room: "lounge", x: 26, wallRow: 14 },
-  { room: "finance", x: 30, wallRow: 14 },
+export const SIGNS: { room: RoomId; x: number; wallRow: number; align: "start" | "end" }[] = [
+  { room: "research", x: 7, wallRow: 9, align: "start" },
+  { room: "atlas", x: 19, wallRow: 9, align: "start" },
+  { room: "outbound", x: 26, wallRow: 9, align: "start" },
+  { room: "content", x: 6, wallRow: 14, align: "start" },
+  // Left of its door, well right of the table (the merged tag and Atlas's
+  // bubbles end near x 15.5).
+  { room: "meeting", x: 19, wallRow: 14, align: "end" },
+  { room: "lounge", x: 24, wallRow: 14, align: "end" },
+  { room: "finance", x: 30, wallRow: 14, align: "start" },
 ];
 
 // ---------------------------------------------------------------------------
@@ -484,20 +488,22 @@ const DRESSING: Furniture[] = [
   onTable("meeting-folders", "folders", 14, 17, -3, 4),
   onTable("meeting-papers-2", "papers", 12, 18, 4, 0),
   onTable("meeting-mug-2", "mug", 14, 18, -6, 8),
-  stand("meeting-plant", "large-plant", { x: 17, y: 20 }, 32, 48, { block: [2, 1] }),
-  stand("meeting-plant-2", "plant-2", { x: 16, y: 16 }, 16, 32),
+  stand("meeting-credenza", "side-table", { x: 17, y: 16 }, 32, 32),
+  surface("meeting-credenza-plant", "small-plant", { x: 17, y: 16 }, 16, 16, 2, -12),
+  surface("meeting-credenza-folders", "folders", { x: 18, y: 16 }, 16, 16, -2, -9),
+  stand("meeting-plant", "large-plant", { x: 19, y: 20 }, 32, 48, { block: [2, 1] }),
+  stand("meeting-plant-2", "plant-2", { x: 16, y: 20 }, 16, 32),
 
-  // Lounge: sofa and coffee table on a rug, an armchair, the coffee corner.
-  onWall("lounge-painting", "painting", 23, 14, 16, 32),
-  stand("lounge-sofa", "sofa", { x: 20, y: 16 }, 32, 32, { block: [2, 2] }),
-  stand("lounge-table", "coffee-table", { x: 20, y: 18 }, 32, 32, { block: [2, 2] }),
-  stand("lounge-chair", "sofa-side", { x: 22, y: 18 }, 32, 32, { dx: -8, block: [1, 1] }),
-  stand("lounge-counter", "small-table", { x: 22, y: 15 }, 16, 16),
-  surface("lounge-coffee", "coffee-machine", { x: 22, y: 15 }, 16, 16, 0, -7),
-  stand("lounge-plant-2", "small-plant", { x: 23, y: 15 }, 16, 16),
-  stand("lounge-water", "water-dispenser", { x: 25, y: 17 }, 32, 32, { dx: -8, block: [1, 1] }),
+  // Lounge: the sofa against its wall, a coffee table and an armchair on a
+  // rug; along the bottom the coffee counter, water and a vending machine.
+  stand("lounge-sofa", "sofa", { x: 22, y: 16 }, 32, 32, { block: [2, 2] }),
+  stand("lounge-table", "coffee-table", { x: 22, y: 18 }, 32, 32, { block: [2, 2] }),
+  stand("lounge-chair", "sofa-side", { x: 24, y: 18 }, 32, 32, { dx: -8, block: [1, 1] }),
+  stand("lounge-plant", "small-plant", { x: 25, y: 16 }, 16, 16),
+  stand("lounge-counter", "small-table", { x: 22, y: 20 }, 16, 16),
+  surface("lounge-coffee", "coffee-machine", { x: 22, y: 20 }, 16, 16, 0, -7),
+  stand("lounge-water", "water-dispenser", { x: 23, y: 20 }, 32, 32, { dx: -8, block: [1, 1] }),
   stand("lounge-vending", "vending-machine", { x: 24, y: 20 }, 32, 32, { block: [2, 1] }),
-  stand("lounge-plant", "plant-2", { x: 20, y: 20 }, 16, 32),
 
   // Finance ops: cabinets, a copier, the numbers on the wall.
   onWall("finance-clock", "wall-clock", 34, 14, 16, 16, 0, 12),
