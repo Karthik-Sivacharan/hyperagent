@@ -23,9 +23,12 @@ import { UserMessage } from "@/components/thread/user-message";
 //
 // The dump also carries, at z-0 behind the chat column, a blurred radial
 // gradient backdrop (`background-color: rgb(183, 172, 180)` plus three
-// gradient circles). It is the floor of the preview/window panel that the
-// "Open panel" button reveals; with the panel closed the chat column (z-10,
-// full width) covers it completely, so it is not reproduced.
+// gradient circles). It is the wallpaper of the artifact workspace, the
+// desktop the site opens beside a thread that has produced something; with no
+// artifacts the chat column (z-10, full width) covers it completely. Pass
+// `workspace` (src/components/workspace/) to open it: the chat column then
+// takes the site's 512px and the workspace fills the rest of the frame. No
+// cloned route passes it, so they render exactly as before.
 
 type UserItem = Extract<ConversationItem, { role: "user" }>;
 type AgentItem = Exclude<ConversationItem, { role: "user" }>;
@@ -64,7 +67,16 @@ const SCROLL_END_THRESHOLD = 40;
 const VIEWPORT =
   "overflow-auto duration-(--duration-fast) ease-out-quart focus-visible:outline-1 focus-visible:ring-[3px] focus-visible:ring-ring/50 [overflow-anchor:none] pb-10 [&>div]:!flex [&>div]:!flex-col [&>div]:!justify-end [&>div]:!min-h-full";
 
-export function ThreadView({ thread, conversation }: { thread: Thread; conversation: Conversation }) {
+export function ThreadView({
+  thread,
+  conversation,
+  workspace,
+}: {
+  thread: Thread;
+  conversation: Conversation;
+  /** The artifact workspace to open beside the conversation. */
+  workspace?: React.ReactNode;
+}) {
   const viewportRef = useRef<HTMLDivElement>(null);
   const [atBottom, setAtBottom] = useState(true);
 
@@ -87,7 +99,12 @@ export function ThreadView({ thread, conversation }: { thread: Thread; conversat
     <div className="flex-1 overflow-y-auto md:pt-2 md:pr-2 md:pb-2">
       <div className="relative flex h-full flex-col">
         <div className="relative flex min-h-0 min-w-0 flex-1 overflow-clip rounded-3xl border border-border-subtle">
-          <div className="relative z-10 h-full min-h-0 bg-surface-secondary min-w-0 flex-1 transition-[width] duration-(--duration-slow) ease-out">
+          <div
+            className={cn(
+              "relative z-10 h-full min-h-0 bg-surface-secondary min-w-0 flex-1 transition-[width] duration-(--duration-slow) ease-out",
+              workspace && "w-lg flex-none",
+            )}
+          >
             <div className="safe-area-bottom relative flex h-full min-w-0 flex-col bg-background">
               <div className="relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden border-border-subtle border-r bg-background">
                 <ThreadHeader thread={thread} model={conversation.model} />
@@ -167,6 +184,7 @@ export function ThreadView({ thread, conversation }: { thread: Thread; conversat
               </div>
             </div>
           </div>
+          {workspace ? <div className="relative min-w-0 flex-1">{workspace}</div> : null}
         </div>
       </div>
     </div>

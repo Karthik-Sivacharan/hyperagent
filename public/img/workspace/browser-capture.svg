@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="800" viewBox="0 0 1280 800">
+  <!-- Mock browser capture for the workspace's image artifact: a generic signup form
+       with its email field filled in. Stands in for the live screenshot, which
+       belongs to a third-party site and carries a real address. -->
+  <defs>
+    <pattern id="mesh" width="56" height="56" patternUnits="userSpaceOnUse">
+      <path d="M0 0L56 56M56 0L0 56" stroke="#ffffff" stroke-opacity=".22" stroke-width="1.5" fill="none"/>
+    </pattern>
+  </defs>
+  <rect width="1280" height="800" fill="#ffffff"/>
+  <rect x="560" width="720" height="800" fill="#5f5fe0"/>
+  <rect x="752" width="336" height="800" fill="url(#mesh)"/>
+  <rect x="860" y="190" width="120" height="120" rx="10" fill="#ffffff" fill-opacity=".18"/>
+  <rect x="860" y="470" width="120" height="120" rx="10" fill="#ffffff" fill-opacity=".18"/>
+  <g font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" text-anchor="middle">
+    <rect x="258" y="232" width="44" height="44" rx="12" fill="#1e1e1d"/>
+    <text x="280" y="336" font-size="34" font-weight="600" fill="#1e1e1d">Create an account</text>
+    <text x="280" y="368" font-size="15" fill="#6b6a65">Already have an account? <tspan fill="#4b4bd1" font-weight="500">Log in</tspan></text>
+  </g>
+  <g font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">
+    <text x="80" y="438" font-size="13" fill="#64635e">Work email</text>
+    <rect x="80.5" y="450.5" width="399" height="47" rx="7" fill="#ffffff" stroke="#dad9d6"/>
+    <text x="98" y="480" font-size="15" fill="#1e1e1d">you@company.com</text>
+    <text x="80" y="538" font-size="13" fill="#64635e">Password</text>
+    <rect x="80.5" y="550.5" width="399" height="47" rx="7" fill="#ffffff" stroke="#dad9d6"/>
+    <rect x="80" y="626" width="400" height="48" rx="8" fill="#1e1e1d"/>
+    <text x="280" y="656" font-size="15" font-weight="500" fill="#ffffff" text-anchor="middle">Continue</text>
+  </g>
+</svg>

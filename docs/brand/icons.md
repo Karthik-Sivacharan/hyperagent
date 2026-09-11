@@ -171,6 +171,7 @@ matching glyph: check the shape on tabler.io before trusting the prefix rule.
 
 | lucide | Tabler |
 |---|---|
+| `ArrowDownUp` | `IconArrowsDownUp` |
 | `ArrowRightLeft` | `IconArrowsRightLeft` |
 | `ArrowUpDown` | `IconArrowsUpDown` |
 | `BadgeDollarSign` | `IconCoin` |
@@ -181,12 +182,15 @@ matching glyph: check the shape on tabler.io before trusting the prefix rule.
 | `CheckCheck` | `IconChecks` |
 | `CircleQuestionMark` | `IconHelpCircle` |
 | `Ellipsis` | `IconDots` |
+| `GalleryHorizontalEnd` | `IconCarouselHorizontal` |
+| `GalleryThumbnails` | `IconSlideshow` |
 | `Globe` | `IconWorld` |
 | `GraduationCap` | `IconSchool` |
 | `Grid3x3` | `IconLayoutGrid` |
 | `Image` | `IconPhoto` |
 | `Info` | `IconInfoCircle` |
 | `KeyRound` | `IconKey` |
+| `Layers` | `IconStack2` |
 | `LifeBuoy` | `IconLifebuoy` |
 | `Lightbulb` | `IconBulb` |
 | `ListFilter` | `IconFilter2` |

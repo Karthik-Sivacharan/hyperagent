@@ -37,15 +37,15 @@ import { cn } from "@/lib/utils";
 //
 // SELECTION SPENDS NO ACCENT. Brand rule 3 gives this screen exactly one
 // tangerine and it is the composer's send arrow, so being picked is told in
-// ink: `bg-tint-20` (rule 4's "active fill") under a hairline ring on the
-// FOREGROUND. The fills run 7 at rest, 10 on hover, 20 picked.
+// ink: `bg-tint-20` (rule 4's "active fill") under a hairline ring in
+// `tint-40`. The fills run 7 at rest, 10 on hover, 20 picked.
 //
 // The ring was `border-loud` first, which is tint-20 — the same value as the
 // fill it sits on, so the whole state came down to one tint step and read as
-// a card that might be slightly lighter than its neighbours. A foreground
-// hairline is the treatment thread/option-cards.tsx already gives a chosen
-// card, and it is the thing that makes this one unmistakably picked while
-// still costing no colour.
+// a card that might be slightly lighter than its neighbours. Then it was the
+// FOREGROUND, which read as a white outline and was louder than the choice
+// needed. `tint-40` (the brand's divider tint) sits two steps over the fill:
+// the neutral hairline that still separates the picked card, in both themes.
 //
 // It cannot lean on `after:shadow-rim` for this: HANDOFF records that the rim
 // is close to invisible in light, so it would be a dark-only selected state.
@@ -94,7 +94,7 @@ export function AgentCard({
         // fades the three cards you did not pick (chat-step.tsx passes the
         // `opacity-0`). Before send it never changes, so it costs nothing.
         "transition-[background-color,box-shadow,opacity] duration-(--duration-slow) ease-out motion-reduce:transition-none",
-        selected ? "bg-tint-20 shadow-card-hover ring-1 ring-foreground" : "bg-tint-7",
+        selected ? "bg-tint-20 shadow-card-hover ring-1 ring-tint-40" : "bg-tint-7",
         ready && !selected && "hover:bg-tint-10",
         ready ? "cursor-pointer" : "cursor-default",
         // The `.focus-ring` class expanded rather than applied. It sets a raw

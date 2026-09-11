@@ -45,6 +45,7 @@ const ALLOW = [
   'src/components/thread/openclaw-icon.tsx',
   'src/components/marketplace/agent-icon.tsx',
   'src/components/signup/provider-marks.tsx',
+  'src/components/workspace/workspace-artwork.tsx', // the desktop wallpaper and the document tile's face
   'src/app/design/brand/', // the swatch page prints hex labels on purpose
 ];
 
