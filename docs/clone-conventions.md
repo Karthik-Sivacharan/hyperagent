@@ -48,7 +48,7 @@ rules keep the parallel branches mergeable and the clone honest.
 | Page-specific components | `src/components/<page>/` (e.g. `src/components/skills/skill-card.tsx`) |
 | Mock data for the page | `src/lib/mock/<page>.ts` |
 | Shared shell (sidebar, frame, composer) | `src/components/app/`, `src/components/composer/` (foundation-owned) |
-| shadcn primitives | `src/components/ui/` (foundation-owned; the only place `radix-ui` and `cmdk` are imported; add new ones with `npx shadcn@latest add <name>` and re-skin them per `docs/components.md` §3, do not edit existing ones) |
+| shadcn primitives | `src/components/ui/` (foundation-owned; the only place `radix-ui`, `cmdk` and `@xyflow/react` are imported; add new ones with `npx shadcn@latest add <name>` and re-skin them per `docs/components.md` §3, do not edit existing ones) |
 | Shared composites used by two or more pages | `src/components/patterns/` (`PageHeading`, `SearchInput`, `EmptyState`, `ShowArchivedSwitch`; add one only when a shape recurs with the same intent on two pages) |
 
 Page components compose `ui/` and `patterns/` and hold no raw control: no
