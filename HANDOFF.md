@@ -159,6 +159,19 @@ node scripts/dev/screenshot-pages.mjs out/ http://localhost:3000   # every route
 node scripts/dev/contact-sheet.mjs out/light out/sheet-light.png "main"
 ```
 
+- **The signup demo is hosted, and its agent panel is the full panel
+  (2026-09-10, late).** Live at https://hyperagent-onboard.vercel.app (Vercel
+  project `hyperagent-onboard`, connected to this repo: every push to `main`
+  deploys to production). After send the shell arrives with the sidebar on
+  its 64px rail and the agent panel at 684px on four tabs: Computer (the
+  artifact workspace, open on a Design system drift project document),
+  Configuration, Learning and Usage. The panel follows one spacing scale
+  (2/8/12/16/20) and has no mono type. The thread bar's model pill is gone
+  from signup. Sections: "The computer in the signup handoff" and "The
+  Learning tab, and where the demo is hosted". Not yet run since these
+  merges: `npm run build` locally (Vercel's build passes), `probe:signup`, and
+  the 17-route pixel comparison.
+
 ## How the brand is wired
 
 - `src/design/brand/brand.css` is the single source of truth for the tokens
@@ -1359,65 +1372,32 @@ removed afterwards.
 
 ## Prompt to start the next session
 
-Everything is on `main` and pushed. The streaming agent turn merged from
-`feat/agent-stream` with `--no-ff`; its worktree
-(`.claude/worktrees/agent-stream`) and branch can be removed. The unrelated
-`onboarding-exact` worktree is still there. The largest open pieces are now
-the static agent panel (it always describes Design system drift) and a real
-follow-up turn.
+Everything is on `main` and pushed (`9f80335` plus this handoff), and
+production at https://hyperagent-onboard.vercel.app is built from it. Merged
+branches still on origin: `feat/workspace-panel`, `feat/computer-tab`,
+`fix/panel-spacing`, `feat/learning-tab`. Local worktrees left by other
+sessions: `agent-stream` and `workspace-panel` (both merged, safe to remove;
+`workspace-panel` may still be serving a preview on :3004) and the unrelated
+`onboarding-exact`.
 
-> Read HANDOFF.md in ~/Projects/hyperagent — especially "The signup flow",
-> "The shell yields, the conversation does not", "The agent streams" and
-> "Decided 2026-09-10: never name `transform` in a `transition-[…]` list" —
-> then AGENTS.md, docs/brand/reskin-conventions.md and docs/components.md.
+The next session is ORIENTATION ONLY: read, then report. Paste this:
+
+> Read-only orientation of ~/Projects/hyperagent. Do not run tests, builds,
+> probes or a dev server, and do not edit, commit or push anything.
 >
-> You are on `main`, clean and pushed, all six gates passing. `/signup` is a
-> five-beat invented flow (providers → a spinning-mark wait → a
-> confirm-your-record screen → a chat screen that reads five public sources
-> while four suggested-agent cards fill in behind it → and on send, the app
-> shell arriving around the conversation while the agent streams its answer:
-> reasoning, tool rows, prose, and a skills question you can answer).
-> Everything is static mock data, nothing authenticates, the app defaults to
-> dark.
+> Read AGENTS.md, then HANDOFF.md: "Where things stand" (the last bullet is
+> the current state), "The signup flow", "The agent streams", "The computer
+> in the signup handoff", "The Learning tab, and where the demo is hosted"
+> and "Known gaps and follow-ups". Skim docs/components.md and
+> src/components/agent-panel/.
 >
-> Three things on that page are load-bearing. The Hyperagent mark is a single
-> never-unmounted element FLIPped between per-screen seats — read that effect
-> in signup-screen.tsx before changing any layout, and never transform the
-> stage or an ancestor of it. Nothing on the fourth screen may change height
-> BEFORE SEND, because all four screens share one centred grid cell. And that
-> cell must FIT THE VIEWPORT, or every screen scrolls and the column stops
-> being centred. After send `<main>` becomes the thread's scroller with its
-> top frozen where the stage stood, and the composer sits in a sticky dock:
-> read "The agent streams" before touching either.
+> In short: a Next.js 16 + Tailwind v4 + shadcn clone of the hyperagent.com
+> dashboard, re-skinned in the brand design language, plus an invented
+> `/signup` onboarding demo. After send the app shell arrives around the
+> conversation while the agent streams its answer; the right panel has
+> Computer, Configuration, Learning and Usage tabs. All data is static mock,
+> nothing authenticates. Live at https://hyperagent-onboard.vercel.app; a
+> push to `main` redeploys it.
 >
-> Two gates exist so you do not have to re-derive any of this. `npm run
-> probe:signup` drives the flow through send, waits for the streamed turn to
-> reach its question, and sweeps 14 widths, asserting the conversation never
-> falls under 512 while the panel is docked, the PAGE never scrolls (the
-> thread may), nothing escapes the column or the agent panel, the composer is
-> docked, and every control in the chrome is the topmost thing at its own
-> centre; it exits 2 rather than publishing numbers if the shell or the turn
-> did not actually arrive.
-> `npm test` includes a rule that catches `transition-[…]` lists naming
-> `transform` beside a v4 translate/scale/rotate utility.
->
-> Know the three traps this repo has already paid for. (1) `overflow-x:
-> hidden` on html/body forces their used `overflow-y` to `auto`, so a body
-> scroll can exist while `documentElement` reports none — check all three
-> scrollers and dispatch a real wheel. (2) Dispatch that wheel over the
-> conversation, not at a fixed point, or it lands inside the panel and scrolls
-> that instead. (3) **The gates do not look inside the agent panel.** A
-> clipped panel passed every gate and `probe:signup` 3 of 3; it was caught by
-> opening a screenshot; the probe now walks the panel too, but look at the
-> pixels anyway. (4) **A programmatic `el.click()` proves nothing about
-> whether a person can click it.** Twice now a control has been covered by an
-> invisible layer and still passed; the probe hit-tests the chrome and presses
-> a real mouse for its toggles. Do the same in any check you write.
->
-> Two more things that will bite a rename or a refactor: `probe-signup.mjs`
-> drives the flow by clicking the profile CTA's exact string ("Find agents for
-> me"), and `HEADING_CHARS` in chat-step.tsx counts the h1's fixed words to
-> size the shimmer band.
->
-> Run `npm run dev` and walk the flow in both themes. **Do not start work:
-> report what you have read and wait for instructions.**
+> Reply with a short summary of what you understood (what the demo shows,
+> where each piece lives, what is still open) and wait for instructions.
