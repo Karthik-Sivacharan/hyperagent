@@ -11,6 +11,75 @@ this first in a new session, then `README.md`, `docs/components.md`,
 `docs/brand/reskin-conventions.md`, `docs/brand/icons.md` and
 `docs/clone-conventions.md`.
 
+## /teams polish: fewer things, said once (2026-09-11)
+
+**Same data, less on screen** (branch `feat/teams-fleet`; spec
+`docs/plans/2026-09-11-teams-fleet-polish.md`, which wins where the v1 plan
+disagrees). Each surface says one thing and puts the rest one interaction
+deeper (a hover reveal in reserved space, a tooltip, the sheet); accessible
+names keep every fact. Tangerine marks Needs you and nothing else.
+
+**Cuts.** Shell: the description, "2 online" and the summary strip (its
+counts were already on the headers below). Board: lane grounds, and every
+card row but title, caption, agent and time; Done folds, so 1456 never
+scrolls sideways. List: the column header and five columns; one line a run,
+agent and cost fading in on hover. Org chart: legend, frame, dots, blue
+edges and node trays; 208×56 nodes at zoom 1, specialists stacked on
+elbows, the rest in a 250ms tooltip. Sheet: bands, caps and the week chart;
+now Needs you, Runs, Details (folded). One caption rule: `fleet/run-caption.ts`.
+
+**Avatars.** An agent is a rounded square holding Hyperagent's own orb (the
+tile `app/agent-orb.tsx` draws for agent templates) in its hue, with a
+Tabler glyph for its role; a person is initials in a neutral circle, so the
+two never read alike at 20px. notion-avatar and Avatartion draw human
+faces, molt.avatars and unabotter mint theirs on a server, and Gravatar is a
+remote call. State dot, turning orb and presence ring are opt-in
+(`showState`, `live`, `showPresence`); /teams sets none. The comparison
+sheets stayed in the session scratchpad, not the repo.
+
+**Rough edges.**
+- `layout.ts` stacks a lead only when all its reports are leaves; a deeper
+  team goes back to rows, so the zoom-1 fit holds for this mock's shape.
+- Leftovers: `spokenMinutes` twice, three `SPOKEN_STATE` maps that disagree
+  ("in error", "Error"), `formatMinutes` with no caller, and a comment in
+  `view-entrance.tsx` on the board and list entrances the polish removed.
+
+## /teams: the fleet views (2026-09-10)
+
+**`/teams` is designed, not cloned** (branch `feat/teams-fleet`; plan, data
+contract and as-built notes in `docs/plans/2026-09-10-teams-fleet-v1.md`).
+One mock team, Growth Ops (3 people, 12 agents in a three-level tree, 24
+runs), under a header and a toolbar, seen three ways: a **Board** of five
+lanes keyed to what the person owes next, Needs you first; a **List** of the
+same runs in folding status groups; an **Org chart** on a canvas, reporting
+lines as hairlines, live delegation as travelling dashes.
+Any agent avatar, run card, row or agent node opens the **agent sheet**. The
+view is `?view=board|list|org`; the cloned empty state is `/teams?state=empty`.
+
+**Files.** `src/components/teams/` (map and `useFleet()` contract in
+`docs/components.md` §2), `src/components/ui/flow.tsx` + `flow.css`,
+`src/lib/motion.ts`, `src/lib/mock/teams.ts`; `/design/flow` previews the parts.
+
+**Two new dependencies.** `@xyflow/react` 12 for the org chart's pan, zoom,
+node measurement, edge paths and node focus; only `ui/flow.tsx` imports it
+(`components.test.ts` locks that), its CSS in `@layer components`, its
+`--xy-*` variables on brand tokens. `motion` 13 for what CSS cannot do: exits
+(view cross-fade, sheet page swap, runs leaving under a search) and layout
+reflow (the Done lane opening), timed from `lib/motion.ts`.
+
+**Rough edges.**
+- No run page and no drag and drop. A run card or row opens its agent's
+  sheet; Review, Invite, New agent, Open agent and Pause are inert.
+- React Flow's attribution is hidden (`proOptions.hideAttribution`): MIT
+  allows it, React Flow asks for a Pro subscription. Decide before merging,
+  since `main` is the hosted demo.
+- `screenshot-pages.mjs` captures `/teams`, so the 17-route pixel comparison
+  differs there by design; `/teams?state=empty` is the cloned page.
+
+**What v2 could do.** Drag a run between lanes (a status change), a run page
+for cards and rows to open, real actions behind the inert buttons, and live
+data: `FleetProvider` already takes `team`, `agents` and `runs` as props.
+
 ## Where things stand
 
 - **Phase 1 is complete:** a pixel-faithful clone of the hyperagent.com
@@ -203,6 +272,11 @@ node scripts/dev/contact-sheet.mjs out/light out/sheet-light.png "main"
   `ToolMark` is now exported from `signup/tool-icon-row.tsx` for the cards.
   Dismissal and tuning are session state: a reload brings the default tray
   back.
+- **`/teams` is designed, not cloned (2026-09-10, `feat/teams-fleet`).** One
+  mock team as a Board, a List and an Org chart, with an agent sheet; the new
+  `ui/flow.tsx` primitive wraps `@xyflow/react`, and `motion` joins the
+  dependencies. The cloned empty state is at `/teams?state=empty`. See the
+  two /teams sections at the top of this file, the 2026-09-11 polish first.
 
 ## How the brand is wired
 
@@ -256,8 +330,8 @@ node scripts/dev/contact-sheet.mjs out/light out/sheet-light.png "main"
   dependency block, and that every name imported from `@tabler/icons-react`
   is one the installed package exports (the `TablerIcon`, `Icon` and
   `IconProps` types included); `src/components/components.test.ts`
-  asserts the component rules: `radix-ui` and `cmdk` only under `ui/`, no
-  raw control outside `ui/` (the rendered element of an `asChild`
+  asserts the component rules: `radix-ui`, `cmdk` and `@xyflow/react` only
+  under `ui/`, no raw control outside `ui/` (the rendered element of an `asChild`
   primitive and the swatch page's three motion specimens excepted), the
   prototype copies absent, every `data-slot` in the reference dumps
   defined under `ui/` or `patterns/`, every primitive naming a slot.
@@ -1226,15 +1300,17 @@ git-ignored file (docs/research, other worktrees) left the machine.
 | `src/components/composer/` | Composer and its four menus |
 | `src/components/patterns/` | Composites of primitives used by two or more pages: `PageHeading`, `SearchInput`, `EmptyState`, `ShowArchivedSwitch` |
 | `src/components/<page>/` | Page components: layout, data wiring and composition of `ui/` and `patterns/`; never a raw control |
-| `src/components/ui/` | 29 shadcn primitives in the brand skin (pills, tints, hairlines, glass), phase-1 API; the only place `radix-ui` and `cmdk` are imported; every one carries a `data-slot` |
+| `src/components/ui/` | 29 shadcn primitives in the brand skin (pills, tints, hairlines, glass), phase-1 API, plus `flow` (React Flow); the only place `radix-ui`, `cmdk` and `@xyflow/react` are imported; every one carries a `data-slot` |
 | `src/components/icons.test.ts` | vitest: no lucide import under `src/`, Tabler in the dependencies, every imported icon name exists |
 | `src/components/components.test.ts` | vitest: the component rules and the `data-slot` lock (`docs/components.md` §1) |
 | `src/lib/mock/` | All data (static) |
 | `src/lib/utils.ts`, `utils.test.ts` | The brand's `cn()` and its tests |
 | `src/design/brand/` | `brand.css` (the app's token sheet), `brand.test.ts`, the Geist loaders, `README.md` with the wiring and the phase-2 mapping table |
 | `src/app/design/brand/` | Swatch page at `/design/brand` with its own local light/dark toggle |
-| `src/app/design/` | The comparison pages: `/design/tools` (three composer Tools panels), `/design/skill-suggestions` (three ways to offer skills, none wired), `/design/agent-panel` (the config panel, not yet consolidated), `/design/agent-stream` (every streaming-turn block in every state), `/design/workspace` (the artifact workspace beside the thread view, not wired), `/design/logo` (the logo-motion studies the signup mark came from) |
+| `src/app/design/` | The comparison pages: `/design/tools` (three composer Tools panels), `/design/skill-suggestions` (three ways to offer skills, none wired), `/design/agent-panel` (the config panel, not yet consolidated), `/design/agent-stream` (every streaming-turn block in every state), `/design/workspace` (the artifact workspace beside the thread view, not wired), `/design/logo` (the logo-motion studies the signup mark came from), `/design/flow` (the flow primitives on a sample org) |
 | `src/components/workspace/` | The artifact workspace: wallpaper, glass toolbar, artifact cards, dock; static, Carousel layout only; mounts in any positioned box or through `ThreadView`'s `workspace` prop |
+| `src/components/teams/` | `/teams`: the fleet views (Board, List, Org chart) and the agent sheet over one mock team, every view reading `useFleet()`; `?state=empty` keeps the cloned empty state |
+| `src/lib/motion.ts` | The brand motion tokens as numbers for `motion/react`, copied from brand.css (change both) |
 | `docs/brand/` | `design.md` (the brand language), `reskin-conventions.md` (the phase-2 contract), `icons.md` (Tabler only, the lucide-to-Tabler names), the style audit |
 | `docs/components.md` | The component system: tiers, rules, the component map with live evidence, how to add a component, the live UI the clone lacks |
 | `docs/plans/` | Implementation plans, one file per sweep, the boxes ticked as the work landed |

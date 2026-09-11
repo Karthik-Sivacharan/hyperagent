@@ -99,6 +99,14 @@ describe("the component tree", () => {
     expect(offenders).toEqual([]);
   });
 
+  // React Flow reaches the app through src/components/ui/flow.tsx alone (its
+  // parts, its CSS layer and the types and hooks it re-exports).
+  it("imports @xyflow/react only under src/components/ui/", () => {
+    const xyflow = specifier("@xyflow/react");
+    const offenders = sources.filter(({ path, text }) => !inUi(path) && xyflow.test(text)).map(({ path }) => path);
+    expect(offenders).toEqual([]);
+  });
+
   it("renders no raw button, input, textarea, select or label outside src/components/ui/", () => {
     // The swatch page keeps three raw buttons on purpose: they are the
     // press / hover / focus motion specimens of the brand's motion section
