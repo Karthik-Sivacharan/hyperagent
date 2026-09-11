@@ -69,7 +69,7 @@ const H = FH * ROWS;
 const SPIKY_BASE = 4;
 
 /** People: which source sheet each one wears, unchanged. `fallback` is for a member id sprites.ts does not know. */
-const PEOPLE = { "m-priya": 5, "m-diego": 4, "m-sam": 0, fallback: 3 };
+const PEOPLE = { "m-karthik": 2, "m-diego": 4, "m-sam": 0, fallback: 3 };
 
 /**
  * Agents: `base` is the source sheet, `shade` nudges the body's tone. The
@@ -96,7 +96,7 @@ const CAST = {
 
 /** Contact sheet order: people and Atlas, then one row per department. */
 const CONTACT_ROWS = [
-  ["member-m-priya", "member-m-diego", "member-m-sam", "agent-a-atlas"],
+  ["member-m-karthik", "member-m-diego", "member-m-sam", "agent-a-atlas"],
   ["agent-a-iris", "agent-a-scout", "agent-a-gauge"],
   ["agent-a-rook", "agent-a-finch", "agent-a-echo"],
   ["agent-a-quill", "agent-a-cadence", "agent-a-mosaic"],

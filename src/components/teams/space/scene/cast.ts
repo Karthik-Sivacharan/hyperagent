@@ -9,7 +9,7 @@ import type { Rest } from "@/components/teams/space/scene/store";
 // runs they share, and the pose each one rests in.
 
 /** You: the person the keyboard walks and the ask card answers to. */
-export const YOU: ActorId = "m-priya";
+export const YOU: ActorId = "m-karthik";
 
 export type CastMember =
   | { id: ActorId; kind: "agent"; agent: FleetAgent }

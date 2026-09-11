@@ -21,7 +21,7 @@ import { asksWaiting } from "@/components/teams/space/scene/labels";
 //   agent   the live line; the run it is on and that run's caption (unless
 //           the caption only repeats the live line); the first ask, "+1
 //           more"; the owner, spend of budget and score
-//   person  "Priya Nair, Founder, online" and the asks waiting on them
+//   person  "Karthik Sivacharan, Founder, online" and the asks waiting on them
 //   group   the live run they share and its caption, or "Chatting"
 
 const FADE_ONLY = {

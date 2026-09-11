@@ -238,7 +238,7 @@ export function liveLine(agent: FleetAgent): string {
   return agent.activity ?? "Working";
 }
 
-/** "Priya Nair, $119 of $200, score 89" */
+/** "Karthik Sivacharan, $119 of $200, score 89" */
 export function accountLine(agent: FleetAgent, ownerName: string): string {
   return `${ownerName}, ${spendOfBudget(agent.spend, agent.budget)}, score ${agent.score}`;
 }

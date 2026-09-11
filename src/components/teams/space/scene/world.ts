@@ -85,9 +85,9 @@ export const SIT_DROP = sprites.SITTING_OFFSET_PX;
 
 /**
  * Art px from a frame's top to the top of the head, facing down or up: the
- * robots' antenna tips and Diego's spikes reach row 1, Priya's and Sam's
+ * robots' antenna tips and Diego's spikes reach row 1, Karthik's and Sam's
  * hair row 3 (world/sprites.ts).
  */
 export function headInset(id: ActorId): number {
-  return id === "m-priya" || id === "m-sam" ? 3 : 1;
+  return id === "m-karthik" || id === "m-sam" ? 3 : 1;
 }

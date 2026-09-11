@@ -11,7 +11,7 @@
 // a visor and lit eyes, an antenna (Atlas has two), and a body in the agent's
 // own orb hue, so it matches its avatar. Facing down or up, a standing
 // frame's top is art row 1 for the robots (antenna tips) and Diego (spikes)
-// and row 3 for Priya and Sam; up to two rows lower facing sideways, and one
+// and row 3 for Karthik and Sam; up to two rows lower facing sideways, and one
 // row higher on walk frames 0 and 2.
 //
 // Timings are Pixel Agents' (webview-ui/src/constants.ts). Pure data and
@@ -42,7 +42,7 @@ export const WALK_SPEED_PX_PER_SEC = 48;
  */
 export const SITTING_OFFSET_PX = 6;
 
-const PEOPLE: readonly ActorId[] = ["m-priya", "m-diego", "m-sam"];
+const PEOPLE: readonly ActorId[] = ["m-karthik", "m-diego", "m-sam"];
 const AGENTS: readonly ActorId[] = [
   "a-atlas",
   "a-iris",

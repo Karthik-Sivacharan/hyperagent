@@ -1,7 +1,7 @@
 // Where everyone is when the office opens (docs/plans/2026-09-11-teams-space-v1.md
 // §2). The mock is a moment in time, so the scene starts where the data says:
 // the week 37 growth review (RUN-224: Atlas with Iris, Rook and Quill) sits
-// round the meeting table, everyone else works at their own desk, Priya (you)
+// round the meeting table, everyone else works at their own desk, Karthik (you)
 // stands in the hall outside the meeting room door, Diego is at his Outbound
 // desk, and Sam is offline, so his Finance ops desk is empty and tagged away.
 
@@ -31,8 +31,8 @@ export const SEED: Record<ActorId, Placement> = {
   "a-ledger": seated("desk-ledger"),
   "a-tally": seated("desk-tally"),
 
-  // People. Priya waits in the hall outside the meeting room door, facing it.
-  "m-priya": { tile: { x: 19, y: 12 }, facing: "down" },
+  // People. Karthik waits in the hall outside the meeting room door, facing it.
+  "m-karthik": { tile: { x: 19, y: 12 }, facing: "down" },
   "m-diego": seated("desk-diego"),
 };
 

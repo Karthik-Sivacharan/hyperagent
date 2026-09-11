@@ -326,9 +326,9 @@ const DESKS: DeskSpec[] = [
   { seat: "desk-scout", room: "research", owner: "a-scout", x: 7, y: 2, kind: "a" },
   { seat: "desk-gauge", room: "research", owner: "a-gauge", x: 10, y: 2, kind: "b" },
   { seat: "desk-research-4", room: "research", x: 10, y: 5, kind: "b" },
-  // Atlas's office: Atlas and Priya.
+  // Atlas's office: Atlas and Karthik.
   { seat: "desk-atlas", room: "atlas", owner: "a-atlas", x: 15, y: 2, kind: "lead" },
-  { seat: "desk-priya", room: "atlas", owner: "m-priya", x: 19, y: 2, kind: "b" },
+  { seat: "desk-karthik", room: "atlas", owner: "m-karthik", x: 19, y: 2, kind: "b" },
   // Outbound: Rook, Finch, Echo and Diego.
   { seat: "desk-rook", room: "outbound", owner: "a-rook", x: 27, y: 2, kind: "lead" },
   { seat: "desk-finch", room: "outbound", owner: "a-finch", x: 31, y: 2, kind: "a" },

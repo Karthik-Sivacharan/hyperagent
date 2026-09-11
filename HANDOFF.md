@@ -42,7 +42,7 @@ backend, and nothing persists.
 - The seed is a moment in time (`world/seed.ts`): the week 37 growth review
   (RUN-224, Atlas with Iris, Rook and Quill) sits round the meeting table,
   so a meeting room means a live multi-agent run; everyone else works at
-  their desk; you are Priya, in the hall outside the meeting room; Diego is
+  their desk; you are Karthik, in the hall outside the meeting room; Diego is
   at his desk; Sam is offline, so no character, and his empty desk carries
   a quiet "away" tag in the room of the broken agent (Tally).
 - State is motion, not colour: working agents type (read, at the meeting
@@ -80,7 +80,7 @@ sheet; a search dims the agents it misses.
   and name too); a click on a person does nothing; a card closes when its
   character moves, since it is anchored where they stood.
 - Where a tag points assumes the sheets' head rows (row 1 for the robots
-  and Diego, row 3 for Priya and Sam): `headInset` in `scene/world.ts`.
+  and Diego, row 3 for Karthik and Sam): `headInset` in `scene/world.ts`.
 
 ## /teams polish: fewer things, said once (2026-09-11)
 
