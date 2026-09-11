@@ -7,6 +7,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { SearchInput } from "@/components/patterns/search-input";
 import { useFleet } from "@/components/teams/fleet/fleet-context";
+import { SpaceHint } from "@/components/teams/space/actors/hint";
 
 // The toolbar over the views, laid out as every resource page's is
 // (/threads, /agents): search on the left, the view switch on the right
@@ -86,6 +87,8 @@ export function FleetToolbar({
           </InputGroupAddon>
         ) : null}
       </SearchInput>
+
+      {view === "space" ? <SpaceHint className="mr-auto max-lg:sr-only" /> : null}
 
       <div className="flex shrink-0 items-center gap-3">
         <p

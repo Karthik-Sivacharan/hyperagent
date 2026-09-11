@@ -12,7 +12,7 @@ import { AskCard } from "@/components/teams/space/actors/ask-card";
 import { HeadBubble, type BubbleKind } from "@/components/teams/space/actors/bubbles";
 import { Character } from "@/components/teams/space/actors/character";
 import { AgentCard, GroupCard, PersonCard, SceneTip } from "@/components/teams/space/actors/character-card";
-import { SpaceHint } from "@/components/teams/space/actors/hint";
+import { SPACE_HINT_ID } from "@/components/teams/space/actors/hint";
 import { AgentTag, AwayTag, GroupTag, PersonTag } from "@/components/teams/space/actors/name-tag";
 import { YOU, buildCast, type Cast } from "@/components/teams/space/scene/cast";
 import { nearestAsk, proximityGroups, type Placed, type ProximityGroup } from "@/components/teams/space/scene/groups";
@@ -81,7 +81,6 @@ export function SpaceView() {
   }, [store]);
   React.useEffect(() => store.setReducedMotion(Boolean(reduced)), [store, reduced]);
 
-  const hintId = React.useId();
   const frameRef = React.useRef<HTMLDivElement>(null);
   const mapRef = React.useRef<HTMLDivElement>(null);
   const fit = useFitStage(frameRef);
@@ -186,7 +185,7 @@ export function SpaceView() {
               ref={mapRef}
               role="region"
               aria-label={`${team.name} office`}
-              aria-describedby={hintId}
+              aria-describedby={SPACE_HINT_ID}
               tabIndex={0}
               className="absolute isolate select-none outline-none focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               style={{ left: fit.left, top: fit.top, width: fit.width, height: fit.height }}
@@ -331,10 +330,6 @@ export function SpaceView() {
                 );
               })}
 
-              <SpaceHint
-                id={hintId}
-                className="pointer-events-none absolute bottom-2 left-2 rounded-md bg-card/90 px-2 py-0.5 text-md text-muted-foreground shadow-xs"
-              />
             </div>
           </div>
         </SceneProvider>
