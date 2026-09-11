@@ -478,8 +478,13 @@ function FlowControls({
   className,
   position = "bottom-right",
   orientation = "vertical",
+  fitViewOptions = FIT_VIEW_OPTIONS,
   ...props
-}: Omit<React.ComponentProps<typeof Panel>, "children"> & { orientation?: "vertical" | "horizontal" }) {
+}: Omit<React.ComponentProps<typeof Panel>, "children"> & {
+  orientation?: "vertical" | "horizontal";
+  /** What "Fit to view" frames; pass the canvas's own `fitViewOptions` when it sets them. */
+  fitViewOptions?: FitViewOptions;
+}) {
   const { zoomIn, zoomOut, fitView } = useReactFlow();
   const atMaxZoom = useStore((state) => state.transform[2] >= state.maxZoom);
   const atMinZoom = useStore((state) => state.transform[2] <= state.minZoom);
@@ -512,7 +517,7 @@ function FlowControls({
       <FlowControl
         label="Fit to view"
         side={side}
-        onClick={() => fitView({ ...FIT_VIEW_OPTIONS, duration: zoomDuration() })}
+        onClick={() => fitView({ ...fitViewOptions, duration: zoomDuration() })}
       >
         <IconFocusCentered aria-hidden="true" />
       </FlowControl>
@@ -547,7 +552,7 @@ export {
   useNodesState,
   useReactFlow,
 } from "@xyflow/react";
-export type { Edge, EdgeProps, EdgeTypes, Node, NodeProps, NodeTypes } from "@xyflow/react";
+export type { Edge, EdgeProps, EdgeTypes, FitViewOptions, Node, NodeProps, NodeTypes } from "@xyflow/react";
 
 export {
   FlowCanvas,
