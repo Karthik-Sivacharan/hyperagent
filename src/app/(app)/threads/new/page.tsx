@@ -1,11 +1,12 @@
 import { MaterialMark } from "@/components/brand/logo-motion/material-mark";
-import { Composer } from "@/components/composer/composer";
+import { HomeComposer } from "@/components/home/home-composer";
 import { QuickActions } from "@/components/home/quick-actions";
 
-// The home screen (hyperagent.com/threads/new): the mark, the hero and the
-// composer with its quick-action chips, centred in the window. Structure and
-// classes follow docs/reference/pages/threads-new.html; the shell owns the
-// mobile header above this scroll container.
+// The home screen (hyperagent.com/threads/new): the mark, the hero, the
+// composer in its "Suggested for you" tray (home-composer.tsx) and the
+// quick-action chips, centred in the window. Structure and classes follow
+// docs/reference/pages/threads-new.html; the shell owns the mobile header
+// above this scroll container.
 //
 // The live page also lists recent threads and a "See what Hyperagent is capable
 // of building" showcase under the composer. Both are off for now, so the
@@ -34,7 +35,7 @@ export default function NewThreadPage() {
                 Let&apos;s get to work.
               </h1>
             </div>
-            <Composer />
+            <HomeComposer />
             <QuickActions />
           </section>
         </div>
