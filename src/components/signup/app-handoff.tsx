@@ -325,6 +325,7 @@ export function AppHandoff({
             id={panelId}
             maxWidth={panelMax}
             onWidthChange={onPanelWidthChange}
+            learning
             computer={<Workspace artifacts={SIGNUP_WORKSPACE_ARTIFACTS} activeId={SIGNUP_WORKSPACE_ACTIVE_ID} />}
           />
         </div>

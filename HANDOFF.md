@@ -1110,6 +1110,34 @@ card is still the drawn signup capture. `/design/workspace` keeps its own set.
 **Not verified yet.** This pass was built without the probe, screenshots or
 the cloned-route pixel diff; those gates (plan, "Gates") are still to run.
 
+## The Learning tab, and where the demo is hosted (2026-09-10)
+
+**Learning tab.** `AgentPanel`'s opt-in `learning` prop adds a tab between
+Configuration and Usage (`src/components/agent-panel/learning-tab.tsx`); the
+signup handoff passes it, `/design/agent-panel` does not. Ground truth is
+`docs/reference/overlays/thread-panel-learning.html`, a SCRUBBED capture:
+every live insight was about the account (one quoted its email address), so
+the text is replaced and only structure and classes are kept. Three sections
+on the Configuration tab's own shell and spacing: Knowledge (Discover
+knowledge, then Memories / Skills / Agents / Rubrics with Suggest and Auto),
+Generation (the model that drafts insights) and Insights, which is its empty
+line, because an agent that has never run has learned nothing. The switches
+sit in two fixed-width columns so Suggest lines up down the list even where a
+row has no Auto; the live panel right-aligns them and they wander. `Field`
+moved to `panel-section.tsx` as `PanelField`, shared by both tabs.
+
+**Hosting.** Vercel project `hyperagent-onboard` (scope "Karthik Sivacharan's
+projects"), connected to this GitHub repo: every push to `main` deploys to
+production at https://hyperagent-onboard.vercel.app, and other branches get
+preview URLs. The project was created with `vercel project add`, which leaves
+the framework preset at "Other" and serves `public/` only (the first deploy
+was a 404 everywhere); it is set to Next.js now (`vercel api
+/v9/projects/hyperagent-onboard -X PATCH -f framework=nextjs`). The first
+production deploy was uploaded from a `git archive` of `main`, so no
+git-ignored file (docs/research, other worktrees) left the machine.
+`vercel link` also wrote a git-ignored `.env.local` with a short-lived
+`VERCEL_OIDC_TOKEN` in the main checkout.
+
 ## Design decisions worth knowing
 
 - **Keep the layout, change the skin.** Element trees, copy, icon sizes,
