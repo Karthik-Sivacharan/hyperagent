@@ -1,0 +1,89 @@
+/* ==========================================================================
+   FLOW: React Flow on the brand tokens (imported by src/components/ui/flow.tsx
+   and nothing else)
+   ==========================================================================
+
+   React Flow ships two sheets. `base.css` is the structural one (pane,
+   viewport, handle and panel positioning, the edge path fill); `style.css`
+   adds a default skin for the built-in nodes, controls and minimap, none of
+   which we render. So only `base.css` is imported, and it is imported INTO A
+   CASCADE LAYER.
+
+   That layer is the whole point of this file existing. React Flow's rules are
+   unlayered, and an unlayered rule beats every layered one whatever its
+   specificity, so `.react-flow__panel { margin: 15px }` would silently win
+   over a `m-3` on a panel, and `.react-flow__handle { background-color }`
+   over a `bg-*` on a handle (AI Elements papers over this with `!important`
+   on its classes). Inside `@layer components` the same rules sit below
+   Tailwind's `utilities` layer, so a class on any React Flow part just works.
+   Tailwind resolves the `@import … layer()` itself (a CSS file with an
+   `@import` is not skipped by @tailwindcss/postcss), and the layer order
+   (theme, base, components, utilities) is the one globals.css declares.
+
+   The `--xy-*` variables below are React Flow's own theming hooks: its rules
+   read `var(--xy-edge-stroke, var(--xy-edge-stroke-default))`, so setting the
+   un-suffixed name overrides the default without touching a selector. Every
+   value is a brand token, and the tokens re-map under `.dark` on <html>, so
+   light and dark both follow next-themes with no `.dark` block here. */
+
+@import "@xyflow/react/dist/base.css" layer(components);
+
+@layer components {
+  [data-slot="flow-canvas"] {
+    /* The hairline every "reports to" edge and handle is drawn in. OPAQUE on
+       purpose: siblings share a trunk under their parent, and a translucent
+       tint (`--tint-40`) would compound where the paths overlap, drawing the
+       shared segment darker than the branches. `--border` alone sat too close
+       to the sunken canvas (a queued edge's dashes all but vanished), so a
+       quarter of the tier-3 text colour is mixed in; both are opaque, so the
+       mix is too, and it flips with the theme like its two parents. */
+    --flow-edge: color-mix(in oklab, var(--border), var(--foreground-low) 25%);
+
+    /* The pane paints nothing itself; FlowCanvas puts `bg-surface-secondary`
+       on the root, so a caller swaps the ground with one class. (Without
+       this, React Flow's `.dark` default paints #141414 over it.) */
+    --xy-background-color: transparent;
+    --xy-background-pattern-color: var(--tint-40);
+
+    --xy-edge-stroke: var(--flow-edge);
+    --xy-edge-stroke-width: 1;
+    --xy-edge-stroke-selected: var(--foreground-low);
+    --xy-connectionline-stroke: var(--foreground-low);
+    --xy-connectionline-stroke-width: 1;
+
+    --xy-handle-background-color: var(--flow-edge);
+    --xy-handle-border-color: transparent;
+
+    --xy-selection-background-color: var(--selection);
+    --xy-selection-border: 1px solid var(--brand-accent);
+    --xy-attribution-background-color: transparent;
+  }
+
+  /* React Flow focuses the node WRAPPER (a square, unstyled div), so the
+     app's `:focus-visible` outline would draw a sharp rectangle around a
+     rounded card. The wrapper drops it; FlowNode draws the ring on the card
+     itself (`[:focus-visible>&]:outline-*` in flow.tsx). */
+  [data-slot="flow-canvas"] .react-flow__node:focus-visible {
+    outline: none;
+  }
+
+  /* The live-delegation edge: dashes that travel from source to target, one
+     dash period (5 + 5) per cycle, so 20px of travel a second. A loop's
+     period is a SPEED, not a UI duration, which is why it is not one of the
+     --duration-* tokens. Motion-safe only; with reduced motion the edge stays
+     a still, dashed, coloured line (the colour carries "live"). */
+  @media (prefers-reduced-motion: no-preference) {
+    [data-slot="flow-edge"][data-variant="animated"] {
+      animation: flow-edge-dash 0.5s linear infinite;
+    }
+  }
+}
+
+@keyframes flow-edge-dash {
+  from {
+    stroke-dashoffset: 10;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
