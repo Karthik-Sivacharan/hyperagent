@@ -171,6 +171,21 @@ node scripts/dev/contact-sheet.mjs out/light out/sheet-light.png "main"
   Learning tab, and where the demo is hosted". Not yet run since these
   merges: `npm run build` locally (Vercel's build passes), `probe:signup`, and
   the 17-route pixel comparison.
+- **The home screen is no longer a pixel clone (2026-09-11, `feat/home-hero`).**
+  `/threads/new` drops Recent threads and the "See what Hyperagent is capable
+  of building" showcase (the components stay in `src/components/home/`), puts
+  the 64px `MaterialMark` above "Let's get to work." and centres the block with
+  `my-auto` (not `justify-center`, which clips a too-tall block above the
+  scroller's reach). The "Set up your agent" chip left `brand-subtle`, whose
+  dark value is tangerine-950 and reads as brown, for the neutral `tint` pill
+  with a tangerine sparkle; the same brown still shows wherever else
+  `brand-subtle` is used in dark (the work-email nudge, `Badge` brand,
+  `IconTile` brand). The account menu's bonus reads $100 (was $1,000, ring
+  recomputed). The Vercel favicon is gone: `src/app/icon.svg` (the mark, ink
+  or near-white by `prefers-color-scheme`), `icon1.png` (192, the mark on an
+  ink tile) and `apple-icon.png` (180), the same three files the live site
+  ships. So the 17-route pixel comparison now differs on home by design, and
+  the account menu differs wherever it is opened.
 
 ## How the brand is wired
 
