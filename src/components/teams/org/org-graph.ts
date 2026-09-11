@@ -1,6 +1,7 @@
-import type { FlowEdge, Node } from "@/components/ui/flow";
+import type { FlowEdge, FlowNodeHandles, Node } from "@/components/ui/flow";
 import type { FleetAgent, FleetRun, Team } from "@/lib/mock/teams";
-import { layoutTidyTree, type TreeItem } from "@/components/teams/org/layout";
+import { formatUsd } from "@/components/teams/fleet/format";
+import { layoutOrgTree, type TreeItem } from "@/components/teams/org/layout";
 
 // The org chart as React Flow data, derived from the fleet: one node for the
 // team, one per agent, a "reports to" edge per `parentId`, and live
@@ -9,27 +10,31 @@ import { layoutTidyTree, type TreeItem } from "@/components/teams/org/layout";
 
 export const TEAM_NODE_ID = "team";
 
-/** Node boxes, in px. The node components set exactly these, so the layout
- *  never waits for a measurement. The team is wider: the root of the chart,
- *  with its people beside its name. Specialists (agents nobody reports to)
- *  take the compact card, 64px narrower. */
-export const ORG_NODE_SIZE = {
-  team: { width: 304, height: 64 },
-  agent: { width: 240, height: 168 },
-  specialist: { width: 176, height: 156 },
-} as const;
+/** Every agent node's box, in px: AgentNode is `w-52 h-14`, at every rank, so
+ *  the layout never waits for a measurement. The team node is `h-12` and
+ *  sizes its width to its content. */
+export const AGENT_NODE_SIZE = { width: 208, height: 56 } as const;
+export const TEAM_NODE_HEIGHT = 48;
 
-// LEGIBILITY. The bottom rank sets the chart's width, and the width sets the
-// zoom the canvas fits at: seven specialists on full 240px cards made a tree
-// 1860px wide, which fit a laptop frame at 0.58 (card text near 8px). On
-// compact cards, with families 12px apart inside and 20px between, it is
-// 1360px wide and fits the 1152px frame of a 1456px window at 0.81. Width is
-// still the bound, so the rank gap only needs room for the elbows and the
-// live dashes; any more would only shrink the chart on shorter windows.
-export const ORG_SPACING = { sibling: 12, cousin: 20, rank: 56 } as const;
+// THE SHAPE. The team, Atlas under it, the four leads in a row, and each
+// lead's specialists stacked under it (layout.ts). A specialist hangs off
+// Linear's delegate line: an elbow out of the lead's bottom edge 24px in from
+// its corner (clear of the 14px radius, under the avatar) that turns into the
+// specialist's left side. The turn needs room, an 8px corner and 8px of
+// straight, so a specialist sits 40px in from its lead rather than 24px (at
+// 24px the line would run down the specialist's own edge). Columns sit 32px
+// apart, so a clear 32px gutter runs from the leads' row to the bottom of the
+// chart and each column reads as one family. Four columns of 248px make the
+// tree 1088px wide, inside the 1104px a 1456px window leaves the canvas after
+// its 48px fit padding: the chart fits at zoom 1, and its text renders at its
+// true size.
+export const ORG_SPACING = { rank: 40, column: 32, indent: 40, stack: 12 } as const;
+
+/** The elbow's source: the lead's bottom edge, 24px in from the left corner. */
+const ELBOW_SOURCE = { id: "elbow", at: { side: "bottom", offset: 24 } } as const;
 
 export type TeamNodeData = { rank: number };
-export type AgentNodeData = { agentId: string; rank: number; hasReports: boolean; compact: boolean };
+export type AgentNodeData = { agentId: string; rank: number; handles: FlowNodeHandles };
 export type OrgTeamNode = Node<TeamNodeData, "team">;
 export type OrgAgentNode = Node<AgentNodeData, "agent">;
 export type OrgNode = OrgTeamNode | OrgAgentNode;
@@ -44,37 +49,37 @@ export function isActiveRun(run: FleetRun): boolean {
   return run.status === "needs-you" || run.status === "working" || run.status === "queued";
 }
 
-/** A specialist: an agent that reports to another agent and has no reports of its own. */
-function isSpecialist(agent: FleetAgent, leads: ReadonlySet<string | null>): boolean {
-  return agent.parentId !== null && !leads.has(agent.id);
+function placeTree(agents: readonly FleetAgent[]) {
+  const items: TreeItem[] = [
+    { id: TEAM_NODE_ID, parentId: null, width: 0, height: TEAM_NODE_HEIGHT },
+    ...agents.map((agent) => ({ id: agent.id, parentId: chartParentOf(agent), ...AGENT_NODE_SIZE })),
+  ];
+  return layoutOrgTree(items, ORG_SPACING);
 }
 
-export function buildOrgNodes(team: Team, agents: readonly FleetAgent[]): OrgNode[] {
-  const leads = new Set(agents.map((agent) => agent.parentId));
-  const items: TreeItem[] = [
-    { id: TEAM_NODE_ID, parentId: null, ...ORG_NODE_SIZE.team },
-    ...agents.map((agent) => ({
-      id: agent.id,
-      parentId: chartParentOf(agent),
-      ...(isSpecialist(agent, leads) ? ORG_NODE_SIZE.specialist : ORG_NODE_SIZE.agent),
-    })),
-  ];
-  const placed = layoutTidyTree(items, ORG_SPACING);
+export function buildOrgNodes(team: Team, agents: readonly FleetAgent[], runs: readonly FleetRun[]): OrgNode[] {
+  const placed = placeTree(agents);
+  const ownerName = (id: string) => team.members.find((member) => member.id === id)?.name ?? id;
+  const at = (id: string) => placed.get(id) ?? { x: 0, y: 0, rank: 0, children: null };
 
-  const teamPlacement = placed.get(TEAM_NODE_ID) ?? { x: 0, y: 0, rank: 0 };
+  const teamPlacement = at(TEAM_NODE_ID);
   const teamNode: OrgTeamNode = {
     id: TEAM_NODE_ID,
     type: "team",
     position: { x: teamPlacement.x, y: teamPlacement.y },
+    // Its width is its content's, so it is centred on its point.
+    origin: [0.5, 0],
     data: { rank: teamPlacement.rank },
-    ariaLabel: `${team.name} team, ${team.members.length} people and ${agents.length} agents`,
-    // Context, not a destination: nothing to open, so no tab stop and no selection.
+    ariaLabel: teamLabel(team, agents),
+    // Context, not a destination: nothing opens from it, so no selection. It
+    // keeps a tab stop so its tooltip (the team's spend and score) is
+    // reachable from the keyboard too.
     selectable: false,
-    focusable: false,
   };
 
   const agentNodes = agents.map((agent): OrgAgentNode => {
-    const placement = placed.get(agent.id) ?? { x: 0, y: 0, rank: 1 };
+    const placement = at(agent.id);
+    const stacked = at(chartParentOf(agent)).children === "stack";
     return {
       id: agent.id,
       type: "agent",
@@ -82,10 +87,17 @@ export function buildOrgNodes(team: Team, agents: readonly FleetAgent[]): OrgNod
       data: {
         agentId: agent.id,
         rank: placement.rank,
-        hasReports: leads.has(agent.id),
-        compact: isSpecialist(agent, leads),
+        handles: {
+          target: stacked ? "left" : "top",
+          source: placement.children === "row",
+          extraSource: placement.children === "stack" ? ELBOW_SOURCE : undefined,
+        },
       },
-      ariaLabel: `${agent.name}, ${agent.role}`,
+      ariaLabel: agentLabel(
+        agent,
+        ownerName(agent.ownerId),
+        runs.filter((run) => run.agentId === agent.id),
+      ),
     };
   });
 
@@ -93,25 +105,29 @@ export function buildOrgNodes(team: Team, agents: readonly FleetAgent[]): OrgNod
 }
 
 /**
- * Edges: a static hairline from every agent up to whoever it reports to, and
- * live delegation drawn from each working run's `helpers`. When the helper is
- * a direct report (always, in today's mock) the reporting line itself turns
- * live, so the chart never doubles a line; a helper elsewhere in the tree
- * gets its own curve. Live edges sit one layer up so their dashes draw over
- * the hairlines that share their trunk.
+ * Edges: a static hairline from every agent up to whoever it reports to (the
+ * bus out of a row parent's bottom centre, the elbow out of a lead's corner
+ * into a stacked specialist), and live delegation drawn from each working
+ * run's `helpers`. When the helper is a direct report (always, in today's
+ * mock) the reporting line itself turns live, so the chart never doubles a
+ * line; a helper elsewhere in the tree gets its own curve. Live edges sit one
+ * layer up so their dashes draw over the hairlines that share their trunk.
  */
 export function buildOrgEdges(team: Team, agents: readonly FleetAgent[], runs: readonly FleetRun[]): FlowEdge[] {
   const byId = new Map(agents.map((agent) => [agent.id, agent]));
   const nameOf = (id: string) => (id === TEAM_NODE_ID ? team.name : (byId.get(id)?.name ?? id));
+  const placed = placeTree(agents);
 
   const edges = new Map<string, FlowEdge>();
   for (const agent of agents) {
     const source = chartParentOf(agent);
+    const elbow = placed.get(source)?.children === "stack";
     edges.set(`${source}->${agent.id}`, {
       id: `${source}->${agent.id}`,
       source,
       target: agent.id,
       type: "static",
+      ...(elbow ? { sourceHandle: ELBOW_SOURCE.id, data: { curve: "elbow" } } : {}),
       ariaLabel: `${agent.name} reports to ${nameOf(source)}`,
     });
   }
@@ -193,4 +209,64 @@ export function searchMatches(
   }
   if (team.name.toLowerCase().includes(q)) matches.add(TEAM_NODE_ID);
   return matches;
+}
+
+// WORDS. The tooltips (org/node-tip.tsx) and the accessible names say the
+// same facts, so both read them from here. A node's wrapper is what Tab lands
+// on, so its label carries everything the node and its tooltip show, plus the
+// two facts the old card showed that now live in the sheet (active runs, the
+// model).
+
+/** The team's totals: people, agents, spend against budget, average score. */
+export function teamTotals(team: Team, agents: readonly FleetAgent[]) {
+  const spend = agents.reduce((sum, agent) => sum + agent.spend, 0);
+  const budget = agents.reduce((sum, agent) => sum + agent.budget, 0);
+  const score = agents.length > 0 ? agents.reduce((sum, agent) => sum + agent.score, 0) / agents.length : 0;
+  return { people: team.members.length, agents: agents.length, spend, budget, score: Math.round(score) };
+}
+
+/** "$1,000 of $1,620" */
+export function spendOfBudget(spend: number, budget: number): string {
+  return `${formatUsd(spend, { whole: true })} of ${formatUsd(budget, { whole: true })}`;
+}
+
+/** What the agent is doing, why it stopped, or how busy it has been. */
+export function liveLine(agent: FleetAgent): string {
+  if (agent.state === "idle") return `Idle, ${agent.runsThisWeek} runs this week`;
+  if (agent.state === "paused") return agent.activity ?? "Paused";
+  if (agent.state === "error") return agent.activity ?? "Stopped with an error";
+  return agent.activity ?? "Working";
+}
+
+/** "Priya Nair, $119 of $200, score 89" */
+export function accountLine(agent: FleetAgent, ownerName: string): string {
+  return `${ownerName}, ${spendOfBudget(agent.spend, agent.budget)}, score ${agent.score}`;
+}
+
+function listOf(names: readonly string[]): string {
+  if (names.length <= 1) return names.join("");
+  return `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
+}
+
+function teamLabel(team: Team, agents: readonly FleetAgent[]): string {
+  const totals = teamTotals(team, agents);
+  return [
+    `${team.name} team, ${totals.people} people and ${totals.agents} agents`,
+    listOf(team.members.map((member) => member.name)),
+    team.description.replace(/\.$/, ""),
+    `${spendOfBudget(totals.spend, totals.budget)} this month, average score ${totals.score}`,
+  ].join(". ");
+}
+
+function agentLabel(agent: FleetAgent, ownerName: string, runs: readonly FleetRun[]): string {
+  const asks = runs.filter((run) => run.status === "needs-you");
+  const active = runs.filter(isActiveRun).length;
+  const state = agent.state === "paused" ? "Paused: " : agent.state === "error" ? "Error: " : "";
+  return [
+    `${agent.name}, ${agent.role}`,
+    `${state}${liveLine(agent)}`,
+    ...asks.map((run) => `Needs you: ${run.needs ?? run.title}`),
+    `Owner ${accountLine(agent, ownerName)}`,
+    `${active} active ${active === 1 ? "run" : "runs"}, ${agent.model}`,
+  ].join(". ");
 }

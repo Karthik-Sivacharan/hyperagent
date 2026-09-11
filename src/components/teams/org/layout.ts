@@ -1,29 +1,28 @@
-// A tidy tree for the org chart: small, deterministic, no dependency.
+// The org chart's layout: small, deterministic, no dependency.
 //
-// Top-down, in three passes over the items in the order given (the mock's
-// order, so the chart reads the way the data is written):
+// Two ways to hang children under a parent, picked per parent:
 //
-//   1. Ranks. Depth from the root; each rank's top is the previous rank's
-//      top plus the TALLEST node in it plus one rank gap, so the gap between
-//      the bottom of one row and the top of the next is the same everywhere.
-//   2. Leaves. Every node without children takes the next slot left to right,
-//      a sibling gap after a leaf with the same parent, a wider cousin gap
-//      after one from another family (d3's `separation`: families read as
-//      groups before a line is followed).
-//   3. Parents. Centred over the span from their first child's centre to
-//      their last child's, so a single child sits straight under its parent
-//      and the elbows below a parent are symmetric.
+//   ROW. The children's subtrees side by side, `column` px between their
+//   bounding boxes, top-aligned one `rank` gap under the parent, and the
+//   parent centred over its first and last child, so the bus under it is
+//   symmetric and a single child sits straight below. The team over Atlas,
+//   Atlas over the four leads.
 //
-// A parent wider than its family (a full card over one compact card)
-// overhangs its children, into the gap beside them. That is allowed while it
-// keeps the gap to the box before it in its own rank; when it would not, the
-// whole subtree moves right by the difference (a one-sided contour check,
-// which is all a left-to-right placement needs). So nothing ever overlaps,
-// and a tree whose parents fit over their families is laid out exactly as
-// before.
+//   STACK. When every child is a leaf, the children list down under the
+//   parent, `indent` px in from its left edge and `stack` px apart (the first
+//   one `stack` under the parent): an outline, the way Linear nests a
+//   delegated agent under its owner. A lead over its specialists. Stacking
+//   the bottom rank is what keeps the chart narrow enough to read at its true
+//   size: seven specialists in a row made the old tree 1360px wide; stacked,
+//   the widest rank is the four leads' columns.
 //
-// Positions are top-left corners, React Flow's default `nodeOrigin`, with the
-// root centred on x = 0.
+// Each subtree is laid out on its own origin first and its bounding box read
+// from the boxes actually placed, then packed into its parent's row, so a
+// parent wider than its row, or a stack wider than its parent, never
+// overlaps a neighbour. Positions are top-left corners (React Flow's default
+// `nodeOrigin`), shifted so the chart's left edge is x = 0. An item of width 0
+// is placed as a point: the team node sizes to its content, and org-graph.ts
+// centres it on that point with `origin: [0.5, 0]`.
 
 export type TreeItem = {
   id: string;
@@ -34,19 +33,32 @@ export type TreeItem = {
 };
 
 export type TreeSpacing = {
-  /** Between leaves with the same parent. */
-  sibling: number;
-  /** Between leaves of different parents. */
-  cousin: number;
-  /** Between the bottom of one rank and the top of the next. */
+  /** Between a row parent's bottom and its children's tops. */
   rank: number;
+  /** Between neighbouring subtrees in a row. */
+  column: number;
+  /** How far a stacked child's left edge sits in from its parent's. */
+  indent: number;
+  /** Between a stack parent and its first child, and between the children. */
+  stack: number;
 };
 
-export type TreePlacement = { x: number; y: number; rank: number };
+export type TreeArrangement = "row" | "stack";
 
-export function layoutTidyTree(items: readonly TreeItem[], spacing: TreeSpacing): Map<string, TreePlacement> {
+export type TreePlacement = {
+  x: number;
+  y: number;
+  /** Depth from the root: 0 for the root. */
+  rank: number;
+  /** How this item's children hang under it; null for a leaf. */
+  children: TreeArrangement | null;
+};
+
+type Subtree = { boxes: Map<string, { x: number; y: number }>; left: number; right: number };
+
+export function layoutOrgTree(items: readonly TreeItem[], spacing: TreeSpacing): Map<string, TreePlacement> {
   const byId = new Map(items.map((item) => [item.id, item]));
-  const children = new Map<string, TreeItem[]>();
+  const childrenOf = new Map<string, TreeItem[]>();
   const roots: TreeItem[] = [];
   for (const item of items) {
     const parent = item.parentId === null ? undefined : byId.get(item.parentId);
@@ -54,82 +66,87 @@ export function layoutTidyTree(items: readonly TreeItem[], spacing: TreeSpacing)
       roots.push(item);
       continue;
     }
-    const siblings = children.get(parent.id);
+    const siblings = childrenOf.get(parent.id);
     if (siblings) siblings.push(item);
-    else children.set(parent.id, [item]);
+    else childrenOf.set(parent.id, [item]);
   }
 
-  // 1. Ranks and the top of each.
+  const kidsOf = (item: TreeItem) => childrenOf.get(item.id) ?? [];
+  const arrangementOf = (item: TreeItem): TreeArrangement | null => {
+    const kids = kidsOf(item);
+    if (kids.length === 0) return null;
+    return kids.every((kid) => kidsOf(kid).length === 0) ? "stack" : "row";
+  };
+
+  const bounds = (boxes: Subtree["boxes"]): Subtree => {
+    let left = Infinity;
+    let right = -Infinity;
+    for (const [id, box] of boxes) {
+      left = Math.min(left, box.x);
+      right = Math.max(right, box.x + (byId.get(id)?.width ?? 0));
+    }
+    return { boxes, left, right };
+  };
+
+  // Subtrees side by side from x = 0, `column` apart, each dropped by `top`.
+  // Returns the boxes and the centre of each subtree's own root.
+  const packRow = (row: readonly TreeItem[], top: number) => {
+    const boxes: Subtree["boxes"] = new Map();
+    const centres: number[] = [];
+    let cursor = 0;
+    for (const item of row) {
+      const sub = layout(item);
+      const dx = cursor - sub.left;
+      for (const [id, box] of sub.boxes) boxes.set(id, { x: box.x + dx, y: box.y + top });
+      centres.push(dx + (sub.boxes.get(item.id)?.x ?? 0) + item.width / 2);
+      cursor = sub.right + dx + spacing.column;
+    }
+    return { boxes, centres };
+  };
+
+  // `item`'s subtree with the item's own top at y = 0.
+  const layout = (item: TreeItem): Subtree => {
+    const kids = kidsOf(item);
+    const arrangement = arrangementOf(item);
+
+    if (arrangement === "stack") {
+      const boxes: Subtree["boxes"] = new Map([[item.id, { x: 0, y: 0 }]]);
+      let y = item.height + spacing.stack;
+      for (const kid of kids) {
+        boxes.set(kid.id, { x: spacing.indent, y });
+        y += kid.height + spacing.stack;
+      }
+      return bounds(boxes);
+    }
+
+    if (arrangement === "row") {
+      const { boxes, centres } = packRow(kids, item.height + spacing.rank);
+      const centre = (centres[0] + centres[centres.length - 1]) / 2;
+      boxes.set(item.id, { x: centre - item.width / 2, y: 0 });
+      return bounds(boxes);
+    }
+
+    return bounds(new Map([[item.id, { x: 0, y: 0 }]]));
+  };
+
+  const { boxes } = packRow(roots, 0);
+  const { left } = bounds(boxes);
+
   const rankOf = new Map<string, number>();
-  const rankHeight: number[] = [];
   const assignRank = (item: TreeItem, rank: number) => {
     rankOf.set(item.id, rank);
-    rankHeight[rank] = Math.max(rankHeight[rank] ?? 0, item.height);
-    for (const child of children.get(item.id) ?? []) assignRank(child, rank + 1);
+    for (const kid of kidsOf(item)) assignRank(kid, rank + 1);
   };
   for (const root of roots) assignRank(root, 0);
 
-  const rankTop: number[] = [];
-  let top = 0;
-  for (const [rank, height] of rankHeight.entries()) {
-    rankTop[rank] = top;
-    top += height + spacing.rank;
-  }
-
-  // 2 and 3. Leaf slots, then parents over their children. `lastInRank` is
-  // the box placed most recently in each rank (the rightmost, since placement
-  // runs left to right) and where its right edge landed.
-  const centreOf = new Map<string, number>();
-  const lastInRank: { item: TreeItem; right: number }[] = [];
-  let cursor = 0;
-  let previousLeaf: TreeItem | null = null;
-
-  const shiftSubtree = (item: TreeItem, dx: number) => {
-    const centre = (centreOf.get(item.id) ?? 0) + dx;
-    centreOf.set(item.id, centre);
-    const last = lastInRank[rankOf.get(item.id) ?? 0];
-    if (last?.item === item) last.right = centre + item.width / 2;
-    for (const child of children.get(item.id) ?? []) shiftSubtree(child, dx);
-  };
-
-  const place = (item: TreeItem): number => {
-    const kids = children.get(item.id) ?? [];
-    const rank = rankOf.get(item.id) ?? 0;
-    let centre: number;
-    if (kids.length === 0) {
-      if (previousLeaf) cursor += previousLeaf.parentId === item.parentId ? spacing.sibling : spacing.cousin;
-      centre = cursor + item.width / 2;
-      cursor += item.width;
-      previousLeaf = item;
-    } else {
-      const centres = kids.map(place);
-      centre = (centres[0] + centres[centres.length - 1]) / 2;
-    }
-    centreOf.set(item.id, centre);
-
-    const before = lastInRank[rank];
-    if (before) {
-      const gap = before.item.parentId === item.parentId ? spacing.sibling : spacing.cousin;
-      const overlap = before.right + gap - (centre - item.width / 2);
-      if (overlap > 0) {
-        shiftSubtree(item, overlap);
-        cursor += overlap;
-        centre += overlap;
-      }
-    }
-    lastInRank[rank] = { item, right: centre + item.width / 2 };
-    return centre;
-  };
-  for (const root of roots) place(root);
-
-  const shift = roots.length > 0 ? (centreOf.get(roots[0].id) ?? 0) : 0;
   const placements = new Map<string, TreePlacement>();
   for (const item of items) {
-    const rank = rankOf.get(item.id) ?? 0;
+    const box = boxes.get(item.id) ?? { x: 0, y: 0 };
     placements.set(item.id, {
-      x: (centreOf.get(item.id) ?? 0) - shift - item.width / 2,
-      y: rankTop[rank] ?? 0,
-      rank,
+      x: box.x - left,
+      y: box.y,
+      rank: rankOf.get(item.id) ?? 0,
+      children: arrangementOf(item),
     });
   }
   return placements;

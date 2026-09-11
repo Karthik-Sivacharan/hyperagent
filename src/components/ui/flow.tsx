@@ -14,7 +14,6 @@ import {
   ReactFlow,
   useReactFlow,
   useStore,
-  type ColorMode,
   type DefaultEdgeOptions,
   type Edge,
   type EdgeProps,
@@ -27,7 +26,6 @@ import {
 } from "@xyflow/react";
 import { IconFocusCentered, IconMinus, IconPlus } from "@tabler/icons-react";
 import { cva, type VariantProps } from "class-variance-authority";
-import { useTheme } from "next-themes";
 
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -46,7 +44,10 @@ import "./flow.css";
 // The React Flow CSS comes in through ./flow.css, which imports React Flow's
 // structural sheet into `@layer components` (so Tailwind classes on any part
 // beat it) and maps its `--xy-*` variables onto the brand tokens (so light
-// and dark follow next-themes' `.dark` on <html>).
+// and dark follow next-themes' `.dark` on <html>). React Flow's own
+// `colorMode` is left at its default: its `.dark` only swaps defaults that
+// flow.css already overrides, and a `.dark` class on the canvas would re-map
+// the brand tokens inside it on its own schedule instead of <html>'s.
 //
 // Defaults are a VIEWER's, not an editor's: pan by dragging or two-finger
 // scroll, zoom with ⌘/Ctrl + scroll or a pinch, nodes selectable and
@@ -66,20 +67,6 @@ const ARIA_LABEL_CONFIG: ReactFlowProps["ariaLabelConfig"] = {
   "node.a11yDescription.default": "Press enter or space to select.",
   "node.a11yDescription.keyboardDisabled": "Press enter or space to select.",
 };
-
-const subscribeNever = () => () => {};
-
-/** React Flow's colour mode, following next-themes. "light" until mounted, so
- *  the server markup and the first client render agree. */
-function useFlowColorMode(): ColorMode {
-  const { resolvedTheme } = useTheme();
-  const mounted = React.useSyncExternalStore(
-    subscribeNever,
-    () => true,
-    () => false,
-  );
-  return mounted && resolvedTheme === "dark" ? "dark" : "light";
-}
 
 type FlowCanvasProps<N extends Node = Node, E extends Edge = Edge> = ReactFlowProps<N, E> & {
   /** The dotted ground. On by default. */
@@ -105,13 +92,10 @@ function FlowCanvas<N extends Node = Node, E extends Edge = Edge>({
   children,
   ...props
 }: FlowCanvasProps<N, E>) {
-  const colorMode = useFlowColorMode();
-
   return (
     <ReactFlow<N, E>
       data-slot="flow-canvas"
       className={cn("bg-surface-secondary", className)}
-      colorMode={colorMode}
       proOptions={PRO_OPTIONS}
       ariaLabelConfig={ARIA_LABEL_CONFIG}
       edgeTypes={flowEdgeTypes}
@@ -147,7 +131,8 @@ function FlowCanvas<N extends Node = Node, E extends Edge = Edge>({
 // Rendered as the ROOT of a custom node component: the selected, focus and
 // hover states read React Flow's wrapper classes through the direct-child
 // arbitrary variants below (`.selected>&`, `.selectable>&`, `:focus-visible>&`),
-// so nothing has to thread `selected` through by hand.
+// so nothing has to thread `selected` through by hand. The surface is the
+// native card's (`bg-card shadow-card`, the hover lift `shadow-card-hover`).
 //
 // Selected is an ink outline and keyboard focus the brand's tangerine one,
 // never both at once (`:not(:focus-visible)`), and neither transitions:
@@ -156,15 +141,52 @@ function FlowCanvas<N extends Node = Node, E extends Edge = Edge>({
 // (`--scale-press` at the button speed, motion-safe), both only on
 // selectable nodes, the same pair every pressable card in the app wears.
 //
-// No `overflow-hidden` on the root, because the handles sit half outside it;
+// HANDLES. Where lines meet the node. `direction` puts the pair on its
+// sides ("TB": in on top, out at the bottom; "LR": left to right); either
+// can move to another side, or to a point along one (`{ side, offset }`,
+// px from the side's top or left end), and one more source can leave from
+// its own spot (`extraSource`, named by an `id` the edge gives as
+// `sourceHandle`): an org chart's bus out of the bottom centre and a tree
+// elbow out of the bottom-left corner, say. Every handle is a point with no
+// size and no paint: the canvas is a viewer's, never connectable, so there is
+// nothing to grab, and a line meets the card exactly at its edge.
+//
+// No `overflow-hidden` on the root, because the handles sit on its edge;
 // the footer rounds its own bottom corners instead.
 
-type FlowNodeHandles = { target?: boolean; source?: boolean };
+type FlowHandleSide = "top" | "right" | "bottom" | "left";
 
-const HANDLE_POSITIONS = {
-  TB: { target: Position.Top, source: Position.Bottom },
-  LR: { target: Position.Left, source: Position.Right },
-} as const;
+/** A side (the handle sits at its middle), or a side and a distance along it
+ *  in px from its top or left end. */
+type FlowHandleAt = FlowHandleSide | { side: FlowHandleSide; offset: number };
+
+type FlowNodeHandles = {
+  /** Where edges arrive: `true` for the direction's entry side, or a spot. */
+  target?: boolean | FlowHandleAt;
+  /** Where edges leave: `true` for the direction's exit side, or a spot. */
+  source?: boolean | FlowHandleAt;
+  /** A second source, for a second kind of line leaving the node. */
+  extraSource?: { id: string; at: FlowHandleAt };
+};
+
+const DIRECTION_SIDES = {
+  TB: { target: "top", source: "bottom" },
+  LR: { target: "left", source: "right" },
+} as const satisfies Record<string, { target: FlowHandleSide; source: FlowHandleSide }>;
+
+/** A handle's React Flow position, and its offset along the side as an inline
+ *  `left` / `top` (which beats base.css's centring `50%`). */
+function handleSpot(
+  at: boolean | FlowHandleAt | undefined,
+  fallback: FlowHandleSide,
+): { position: Position; style?: React.CSSProperties } | null {
+  if (!at) return null;
+  const spot = at === true ? fallback : at;
+  // Position's values are these same four strings.
+  if (typeof spot === "string") return { position: spot as Position };
+  const horizontal = spot.side === "top" || spot.side === "bottom";
+  return { position: spot.side as Position, style: horizontal ? { left: spot.offset } : { top: spot.offset } };
+}
 
 function FlowNode({
   className,
@@ -173,22 +195,24 @@ function FlowNode({
   children,
   ...props
 }: React.ComponentProps<"div"> & {
-  /** Which connection points to render: `target` where edges arrive, `source`
-   *  where they leave. A node with no handle on a side cannot be connected on
-   *  that side (React Flow drops the edge and warns). */
+  /** Which connection points to render and where. A node with no handle of a
+   *  type cannot be connected that way (React Flow drops the edge and warns). */
   handles?: FlowNodeHandles;
   /** "TB": edges arrive on top and leave from the bottom (an org chart).
    *  "LR": left to right (a pipeline). */
   direction?: "TB" | "LR";
 }) {
-  const positions = HANDLE_POSITIONS[direction];
+  const sides = DIRECTION_SIDES[direction];
+  const target = handleSpot(handles.target, sides.target);
+  const source = handleSpot(handles.source, sides.source);
+  const extra = handles.extraSource ? handleSpot(handles.extraSource.at, sides.source) : null;
 
   return (
     <div
       data-slot="flow-node"
       data-direction={direction}
       className={cn(
-        "relative flex w-60 flex-col gap-(--node-spacing) rounded-2xl bg-surface-elevated py-(--node-spacing) text-foreground shadow-card [--node-spacing:--spacing(3)] has-data-[slot=flow-node-footer]:pb-0",
+        "relative flex w-60 flex-col gap-(--node-spacing) rounded-2xl bg-card py-(--node-spacing) text-foreground shadow-card [--node-spacing:--spacing(3)] has-data-[slot=flow-node-footer]:pb-0",
         "[transition:box-shadow_var(--duration-slow)_var(--ease-out),scale_var(--duration-fast)_var(--ease-out-quart)] [.selectable>&]:hover:shadow-card-hover motion-safe:[.selectable>&]:active:scale-(--scale-press)",
         "[.selected:not(:focus-visible)>&]:outline-[1.5px] [.selected:not(:focus-visible)>&]:outline-offset-2 [.selected:not(:focus-visible)>&]:outline-primary",
         "[:focus-visible>&]:outline-2 [:focus-visible>&]:outline-offset-2 [:focus-visible>&]:outline-ring",
@@ -196,22 +220,23 @@ function FlowNode({
       )}
       {...props}
     >
-      {handles.target ? <FlowNodeHandle type="target" position={positions.target} /> : null}
+      {target ? <FlowNodeHandle type="target" {...target} /> : null}
       {children}
-      {handles.source ? <FlowNodeHandle type="source" position={positions.source} /> : null}
+      {source ? <FlowNodeHandle type="source" {...source} /> : null}
+      {extra ? <FlowNodeHandle type="source" id={handles.extraSource?.id} {...extra} /> : null}
     </div>
   );
 }
 
-// A 6px dot in the edge colour, centred on the card's edge, so a line lands on
-// something rather than stopping at a hairline. Not a control: the canvas is
-// not connectable, so it takes no pointer and no focus.
+// A point, not a dot: no size, no border, no fill, so React Flow reads the
+// card's own edge as the line's end. Not a control: it takes no pointer and
+// no focus.
 function FlowNodeHandle({ className, ...props }: React.ComponentProps<typeof Handle>) {
   return (
     <Handle
       data-slot="flow-node-handle"
       isConnectable={false}
-      className={cn("size-1.5 min-h-0 min-w-0 rounded-full border-0 bg-(--flow-edge)", className)}
+      className={cn("size-0 min-h-0 min-w-0 border-0 bg-transparent", className)}
       {...props}
     />
   );
@@ -304,24 +329,28 @@ function FlowNodeFooter({ className, ...props }: React.ComponentProps<"div">) {
 // is live delegation (dashes travelling source → target, motion-safe only; the
 // keyframes are in flow.css), `temporary` is the same dash standing still
 // (queued, planned, paused). All three draw a rounded step by default (an org
-// chart's elbows; siblings share one bus under their parent) or a bezier with
-// `data.curve: "bezier"`.
+// chart's bus: siblings share one trunk under their parent), a bezier with
+// `data.curve: "bezier"`, or an elbow with `data.curve: "elbow"`: one
+// rounded right angle, straight out of the source's side and straight into
+// the target (Linear's delegate line, from a bottom handle into a report
+// stacked below and to the right).
 //
-// Colour is a tone, not a hex: `neutral` is the hairline, the rest are the
-// status tokens. The live edge defaults to `info`; pass the tone your
-// "working" status uses so edge and badge agree. Stroke goes inline because
-// React Flow paints the path through its own class; inline wins, and the tone
-// then flips with the theme like any token.
+// Colour is a tone, not a hex: `neutral` is the hairline, `strong` the tier-3
+// text colour (what the live dash draws in by default: visibly a different
+// line from the hairline, in no hue), the rest are the status tokens. Stroke
+// goes inline because React Flow paints the path through its own class;
+// inline wins, and the tone then flips with the theme like any token.
 //
 // A live edge usually shares its parent's trunk with static siblings. Give it
 // `zIndex: 1` (or list it last) so its dashes draw OVER the hairline, not
 // under it.
 
-type FlowEdgeTone = "neutral" | "info" | "success" | "warning" | "destructive";
+type FlowEdgeTone = "neutral" | "strong" | "success" | "warning" | "destructive";
 
 type FlowEdgeData = {
-  /** "step" (default): rounded right angles. "bezier": one smooth curve. */
-  curve?: "step" | "bezier";
+  /** "step" (default): rounded right angles. "bezier": one smooth curve.
+   *  "elbow": one rounded corner between the source's side and the target's. */
+  curve?: "step" | "bezier" | "elbow";
   tone?: FlowEdgeTone;
 };
 
@@ -332,23 +361,44 @@ type FlowEdge = Edge<FlowEdgeData, FlowEdgeType>;
 
 const EDGE_TONES: Record<FlowEdgeTone, string> = {
   neutral: "var(--flow-edge)",
-  info: "var(--info)",
+  strong: "var(--foreground-low)",
   success: "var(--success)",
   warning: "var(--warning)",
   destructive: "var(--destructive)",
 };
 
-function flowEdgePath({
-  sourceX,
-  sourceY,
-  sourcePosition,
-  targetX,
-  targetY,
-  targetPosition,
-  data,
-}: EdgeProps<FlowEdge>): string {
+/** Dashes for the live and temporary edges: 4 on, 4 off (flow.css moves the
+ *  live one by one period, 8px, per cycle). */
+const EDGE_DASH = "4 4";
+
+/** The step's corners and the elbow's one corner. */
+const EDGE_RADIUS = { step: 10, elbow: 8 } as const;
+
+/**
+ * The elbow: out of the source along its side's normal to the target's line,
+ * one quadratic corner (React Flow's own step corners are the same curve),
+ * then straight into the target. The radius shrinks to fit a short leg, so a
+ * target straight across or straight below draws a plain line.
+ */
+function elbowPath({ sourceX, sourceY, sourcePosition, targetX, targetY }: EdgeProps<FlowEdge>): string {
+  const verticalFirst = sourcePosition === Position.Top || sourcePosition === Position.Bottom;
+  const cornerX = verticalFirst ? sourceX : targetX;
+  const cornerY = verticalFirst ? targetY : sourceY;
+  const r = Math.min(EDGE_RADIUS.elbow, Math.abs(targetX - sourceX), Math.abs(targetY - sourceY));
+  const dx = Math.sign(targetX - sourceX);
+  const dy = Math.sign(targetY - sourceY);
+  const [inX, inY, outX, outY] = verticalFirst
+    ? [cornerX, cornerY - r * dy, cornerX + r * dx, cornerY]
+    : [cornerX - r * dx, cornerY, cornerX, cornerY + r * dy];
+  return `M${sourceX},${sourceY} L${inX},${inY} Q${cornerX},${cornerY} ${outX},${outY} L${targetX},${targetY}`;
+}
+
+function flowEdgePath(props: EdgeProps<FlowEdge>): string {
+  const { sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition, data } = props;
+  if (data?.curve === "elbow") return elbowPath(props);
   const ends = { sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition };
-  const [path] = data?.curve === "bezier" ? getBezierPath(ends) : getSmoothStepPath({ ...ends, borderRadius: 10 });
+  const [path] =
+    data?.curve === "bezier" ? getBezierPath(ends) : getSmoothStepPath({ ...ends, borderRadius: EDGE_RADIUS.step });
   return path;
 }
 
@@ -379,7 +429,7 @@ function FlowEdgeAnimated(props: EdgeProps<FlowEdge>) {
       markerStart={markerStart}
       markerEnd={markerEnd}
       interactionWidth={0}
-      style={{ stroke: EDGE_TONES[data?.tone ?? "info"], strokeWidth: 1.5, strokeDasharray: "5 5", ...style }}
+      style={{ stroke: EDGE_TONES[data?.tone ?? "strong"], strokeWidth: 1, strokeDasharray: EDGE_DASH, ...style }}
     />
   );
 }
@@ -395,7 +445,7 @@ function FlowEdgeTemporary(props: EdgeProps<FlowEdge>) {
       markerStart={markerStart}
       markerEnd={markerEnd}
       interactionWidth={0}
-      style={{ stroke: EDGE_TONES[data?.tone ?? "neutral"], strokeWidth: 1, strokeDasharray: "5 5", ...style }}
+      style={{ stroke: EDGE_TONES[data?.tone ?? "neutral"], strokeWidth: 1, strokeDasharray: EDGE_DASH, ...style }}
     />
   );
 }
@@ -574,4 +624,13 @@ export {
   FlowPanel,
   FlowToolbar,
 };
-export type { FlowCanvasProps, FlowEdge, FlowEdgeData, FlowEdgeTone, FlowEdgeType };
+export type {
+  FlowCanvasProps,
+  FlowEdge,
+  FlowEdgeData,
+  FlowEdgeTone,
+  FlowEdgeType,
+  FlowHandleAt,
+  FlowHandleSide,
+  FlowNodeHandles,
+};

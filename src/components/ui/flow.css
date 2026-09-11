@@ -30,7 +30,7 @@
 
 @layer components {
   [data-slot="flow-canvas"] {
-    /* The hairline every "reports to" edge and handle is drawn in. OPAQUE on
+    /* The hairline every "reports to" edge is drawn in. OPAQUE on
        purpose: siblings share a trunk under their parent, and a translucent
        tint (`--tint-40`) would compound where the paths overlap, drawing the
        shared segment darker than the branches. `--border` alone sat too close
@@ -40,8 +40,8 @@
     --flow-edge: color-mix(in oklab, var(--border), var(--foreground-low) 25%);
 
     /* The pane paints nothing itself; FlowCanvas puts `bg-surface-secondary`
-       on the root, so a caller swaps the ground with one class. (Without
-       this, React Flow's `.dark` default paints #141414 over it.) */
+       on the root, so a caller swaps the ground with one class. (Were React
+       Flow ever given `colorMode="dark"`, its default would paint #141414.) */
     --xy-background-color: transparent;
     --xy-background-pattern-color: var(--tint-40);
 
@@ -51,6 +51,8 @@
     --xy-connectionline-stroke: var(--foreground-low);
     --xy-connectionline-stroke-width: 1;
 
+    /* FlowNode's handles are unpainted points; these only cover a bare
+       React Flow <Handle> a caller renders itself. */
     --xy-handle-background-color: var(--flow-edge);
     --xy-handle-border-color: transparent;
 
@@ -68,20 +70,21 @@
   }
 
   /* The live-delegation edge: dashes that travel from source to target, one
-     dash period (5 + 5) per cycle, so 20px of travel a second. A loop's
-     period is a SPEED, not a UI duration, which is why it is not one of the
-     --duration-* tokens. Motion-safe only; with reduced motion the edge stays
-     a still, dashed, coloured line (the colour carries "live"). */
+     dash period (4 + 4, EDGE_DASH in flow.tsx) per cycle, so 20px of travel a
+     second. A loop's period is a SPEED, not a UI duration, which is why it is
+     not one of the --duration-* tokens. Motion-safe only; with reduced motion
+     the edge stays a still dashed line, darker than the hairline (the dash
+     and the tone carry "live"). */
   @media (prefers-reduced-motion: no-preference) {
     [data-slot="flow-edge"][data-variant="animated"] {
-      animation: flow-edge-dash 0.5s linear infinite;
+      animation: flow-edge-dash 0.4s linear infinite;
     }
   }
 }
 
 @keyframes flow-edge-dash {
   from {
-    stroke-dashoffset: 10;
+    stroke-dashoffset: 8;
   }
   to {
     stroke-dashoffset: 0;

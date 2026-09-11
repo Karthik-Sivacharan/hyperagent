@@ -29,6 +29,7 @@ import {
   FlowPanel,
   FlowToolbar,
   type FlowEdge,
+  type FlowNodeHandles,
   type Node,
   type NodeProps,
   type NodeTypes,
@@ -58,7 +59,8 @@ type AgentData = {
 type SampleNode = Node<TeamData, "team"> | Node<AgentData, "agent">;
 
 // Positions are top-left corners; every node is 240px wide (FlowNode's w-60),
-// so a centre line at x = 0 puts a node at x = -120.
+// so a centre line at x = 0 puts a node at x = -120. Quill is stacked under
+// Relay, 40px in, on an elbow from Relay's bottom-left corner.
 const NODES: SampleNode[] = [
   {
     id: "team",
@@ -77,28 +79,28 @@ const NODES: SampleNode[] = [
   {
     id: "scout",
     type: "agent",
-    position: { x: -400, y: 340 },
+    position: { x: -420, y: 340 },
     ariaLabel: "Scout, Research lead",
     data: { name: "Scout", role: "Research lead", icon: IconSearch, spend: "$18", state: "working", status: "Reading 14 competitor sites" },
   },
   {
     id: "relay",
     type: "agent",
-    position: { x: -120, y: 340 },
+    position: { x: -140, y: 340 },
     ariaLabel: "Relay, Outbound lead",
     data: { name: "Relay", role: "Outbound lead", icon: IconMail, spend: "$26", state: "idle", status: "Idle · 9 runs this week" },
   },
   {
     id: "ledger",
     type: "agent",
-    position: { x: 160, y: 340 },
+    position: { x: 180, y: 340 },
     ariaLabel: "Ledger, Finance ops lead",
     data: { name: "Ledger", role: "Finance ops lead", icon: IconReceipt, spend: "$7", state: "queued", status: "Refund triage queued" },
   },
   {
     id: "quill",
     type: "agent",
-    position: { x: -120, y: 500 },
+    position: { x: -100, y: 450 },
     ariaLabel: "Quill, Copywriter",
     data: { name: "Quill", role: "Copywriter", icon: IconPencil, spend: "$12", state: "idle", status: "Idle · 6 runs this week" },
   },
@@ -106,26 +108,36 @@ const NODES: SampleNode[] = [
 
 // Every edge is a reporting line; the live one is Atlas handing the weekly
 // competitor digest to Scout, the queued one a run waiting on Ledger. The live
-// edge shares Atlas's trunk with its siblings, so it sits one layer up.
+// edge shares Atlas's trunk with its siblings, so it sits one layer up. Relay
+// to Quill is the elbow, out of Relay's extra source handle.
 const EDGES: FlowEdge[] = [
   { id: "team-atlas", source: "team", target: "atlas" },
   { id: "atlas-scout", source: "atlas", target: "scout", type: "animated", zIndex: 1 },
   { id: "atlas-relay", source: "atlas", target: "relay" },
   { id: "atlas-ledger", source: "atlas", target: "ledger", type: "temporary" },
-  { id: "relay-quill", source: "relay", target: "quill" },
+  { id: "relay-quill", source: "relay", target: "quill", sourceHandle: "elbow", data: { curve: "elbow" } },
 ];
 
-const HAS_CHILDREN = new Set(EDGES.map((edge) => edge.source));
+// Where each node's lines meet it: the bus in on top and out at the bottom
+// centre, Relay's elbow out of its bottom edge 24px in, Quill's in on its left.
+const HANDLES: Record<string, FlowNodeHandles> = {
+  team: { target: false, source: true },
+  atlas: { target: true, source: true },
+  scout: { target: true, source: false },
+  relay: { target: true, source: false, extraSource: { id: "elbow", at: { side: "bottom", offset: 24 } } },
+  ledger: { target: true, source: false },
+  quill: { target: "left", source: false },
+};
 
 const STATE_DOT: Record<AgentData["state"], string> = {
-  working: "bg-info motion-safe:animate-pulse",
+  working: "bg-foreground motion-safe:animate-pulse",
   queued: "bg-foreground-low",
   idle: "bg-tint-40",
 };
 
 function TeamNode({ id, data }: NodeProps<Node<TeamData, "team">>) {
   return (
-    <FlowNode handles={{ target: false, source: HAS_CHILDREN.has(id) }}>
+    <FlowNode handles={HANDLES[id]}>
       <FlowNodeHeader>
         <FlowNodeMedia>
           <IconTile size="lg" shape="soft" tone="raised" className="size-9">
@@ -143,7 +155,7 @@ function TeamNode({ id, data }: NodeProps<Node<TeamData, "team">>) {
 function AgentNode({ id, data }: NodeProps<Node<AgentData, "agent">>) {
   const Icon = data.icon;
   return (
-    <FlowNode handles={{ target: true, source: HAS_CHILDREN.has(id) }}>
+    <FlowNode handles={HANDLES[id]}>
       <FlowToolbar>
         <Button variant="ghost" size="xs">
           Profile
@@ -172,10 +184,11 @@ function AgentNode({ id, data }: NodeProps<Node<AgentData, "agent">>) {
 
 const NODE_TYPES: NodeTypes = { team: TeamNode, agent: AgentNode };
 
+// The three edge looks, drawn the way flow.tsx draws them.
 const LEGEND = [
-  { label: "Reports to", stroke: "var(--flow-edge)", width: 1, dash: undefined },
-  { label: "Delegating now", stroke: "var(--info)", width: 1.5, dash: "5 5" },
-  { label: "Queued", stroke: "var(--flow-edge)", width: 1, dash: "5 5" },
+  { label: "Reports to", stroke: "var(--flow-edge)", dash: undefined },
+  { label: "Delegating now", stroke: "var(--foreground-low)", dash: "4 4" },
+  { label: "Queued", stroke: "var(--flow-edge)", dash: "4 4" },
 ] as const;
 
 function Legend() {
@@ -185,7 +198,7 @@ function Legend() {
         {LEGEND.map((row) => (
           <li key={row.label} className="flex items-center gap-2">
             <svg width="24" height="4" viewBox="0 0 24 4" aria-hidden="true" className="shrink-0">
-              <line x1="0" y1="2" x2="24" y2="2" stroke={row.stroke} strokeWidth={row.width} strokeDasharray={row.dash} />
+              <line x1="0" y1="2" x2="24" y2="2" stroke={row.stroke} strokeWidth={1} strokeDasharray={row.dash} />
             </svg>
             {row.label}
           </li>
@@ -212,7 +225,9 @@ function ThemeSwitch() {
       type="single"
       spacing={0}
       aria-label="Theme"
-      value={mounted ? resolvedTheme : undefined}
+      // "" (nothing pressed) until mounted, so the group is controlled from
+      // its first render.
+      value={mounted ? (resolvedTheme ?? "") : ""}
       onValueChange={(value) => value && setTheme(value)}
     >
       <ToggleGroupItem value="light" className="gap-1.5">
@@ -237,9 +252,9 @@ export default function FlowDesignPage() {
             <h1 className="font-heading text-2xl">Flow canvas</h1>
             <p className="max-w-content text-muted-foreground text-sm">
               The parts in src/components/ui/flow.tsx on a six-node sample org: a static, a live and a
-              queued edge, a panel, the zoom controls and a node toolbar. Drag or two-finger scroll to
-              pan, ⌘ or Ctrl with scroll (or a pinch) to zoom, Tab to walk the nodes, click one to
-              select it.
+              queued edge on the bus, an elbow into a stacked report, a panel, the zoom controls and a
+              node toolbar. Drag or two-finger scroll to pan, ⌘ or Ctrl with scroll (or a pinch) to
+              zoom, Tab to walk the nodes, click one to select it.
             </p>
           </div>
           <ThemeSwitch />
