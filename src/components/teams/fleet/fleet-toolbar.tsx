@@ -1,6 +1,6 @@
 "use client";
 
-import { IconLayoutKanban, IconList, IconSitemap, IconX, type TablerIcon } from "@tabler/icons-react";
+import { IconBuilding, IconLayoutKanban, IconList, IconSitemap, IconX, type TablerIcon } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 import { InputGroupAddon, InputGroupButton } from "@/components/ui/input-group";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
@@ -24,12 +24,13 @@ import { useFleet } from "@/components/teams/fleet/fleet-context";
 // empties the query (the button hands focus back to the field, since it
 // leaves with the query).
 
-export type FleetView = "board" | "list" | "org";
+export type FleetView = "board" | "list" | "org" | "space";
 
 export const FLEET_VIEWS: { key: FleetView; label: string; icon: TablerIcon }[] = [
   { key: "board", label: "Board", icon: IconLayoutKanban },
   { key: "list", label: "List", icon: IconList },
   { key: "org", label: "Org chart", icon: IconSitemap },
+  { key: "space", label: "Office", icon: IconBuilding },
 ];
 
 // Copied from the /threads layout switch (threads-page.tsx). The tooltip
@@ -91,7 +92,7 @@ export function FleetToolbar({
           aria-live="polite"
           className={cn(
             "text-md whitespace-nowrap text-foreground-low tabular-nums max-sm:sr-only",
-            view === "org" && "sr-only",
+            (view === "org" || view === "space") && "sr-only",
           )}
         >
           {query ? `${runs.length} of ${allRuns.length} runs` : ""}

@@ -12,33 +12,75 @@ this first in a new session, then `README.md`, `docs/components.md`,
 `docs/brand/reskin-conventions.md`, `docs/brand/icons.md` and
 `docs/clone-conventions.md`.
 
-## Next: a spatial view of the fleet (idea, not started)
+## /teams office: the fleet as a place (2026-09-11, feat/teams-space)
 
-The user wants to explore a fourth way to see the team: a 2D workspace in
-the spirit of Gather (gather.town), where the fleet is a place rather than a
-chart. Build it as another view on the same data, not a new page:
-`?view=space` beside Board / List / Org chart, reading `useFleet()`
-(`src/components/teams/fleet/fleet-context.tsx`) and opening the same agent
-sheet on click. Starting points:
+**A fourth view, `?view=space`, labelled Office** (branch `feat/teams-space`,
+worktree `.claude/worktrees/teams-space`; plan, contract and file ownership
+in `docs/plans/2026-09-11-teams-space-v1.md`; the map of its files is
+`docs/components.md` §2, "/teams office"). The team is a top-down pixel
+office in the spirit of Gather: departments are rooms off one hall, every
+agent and every present person is a character, and you walk, drag, hover
+and click them. Same data (`useFleet()`), same agent sheet. A prototype: no
+backend, and nothing persists.
 
-- The data already has what a floor plan needs: four departments under
-  Atlas (research, outbound, content, finance ops) are natural rooms;
-  `FleetAgent.state` (working / idle / paused / error), `activity`, and
-  runs with `helpers` (who is delegating to whom right now) can drive where
-  an agent sits and who it is "talking" to. Humans are `TEAM.members`.
-- Spatial references from the 2026-09-10 research
-  (`docs/research/09-agent-orchestration-ux.md`, git-ignored, and the
-  private artifact "Agent Fleet Swipe File"): Pixel Agents (agents as
-  characters in an office, a speech bubble when one needs permission),
-  tldraw fairies (agents as sprites on a shared canvas, an elected
-  orchestrator), VibeCraft (an RTS map), and presence from Conductor and
-  OpenClaw 2.0.
-- Keep the polish rules (`docs/plans/2026-09-11-teams-fleet-polish.md`):
-  tangerine only for Needs you, detail one interaction deeper, the brand
-  tokens, Tabler icons, brand-orb agent avatars, `motion` with reduced
-  motion respected. `ui/flow.tsx` (React Flow) can host a pannable floor if
-  it fits; otherwise a new `ui/` primitive, since only `ui/` may import
-  rendering libraries.
+**Decisions.**
+- No game engine. Floors, rugs and walls bake once into a `<canvas>`, as
+  Gather does; furniture and characters are DOM sprites y-sorted by
+  `z-index` in the map's one stacking context; tags, bubbles and cards are
+  DOM chrome at their natural size. No dependency, no `ssr: false`, and
+  every character is a real `Button` whose name says everything drawn
+  around it, so Tab and screen readers work as on the other views. PixiJS
+  behind a `ui/` primitive is the way out if the scene ever needs zoom or
+  hundreds of sprites.
+- Licence-clean art (`public/space/CREDITS.md`): Pixel Agents v1.4.1 (MIT)
+  for walls, floors, rugs, plants and the people, and its BFS, wall
+  auto-tiling and colorize, each file carrying the MIT notice; Antea's Free
+  Office Furniture Set (CC BY 4.0, credited) for the desks and the modern
+  pieces. Agents are robots palette-swapped from the Pixel Agents sheets by
+  `scripts/space/make-agent-sprites.mjs`, each body in its orb hue. Nothing
+  from Gather, LimeZu, Donarg or the other office packs.
+- The seed is a moment in time (`world/seed.ts`): the week 37 growth review
+  (RUN-224, Atlas with Iris, Rook and Quill) sits round the meeting table,
+  so a meeting room means a live multi-agent run; everyone else works at
+  their desk; you are Karthik, in the hall outside the meeting room; Diego is
+  at his desk; Sam is offline, so no character, and his empty desk carries
+  a quiet "away" tag in the room of the broken agent (Tally).
+- State is motion, not colour: working agents type (read, at the meeting
+  table), idle ones stand at their desks, paused and error ones sit still
+  with the tag's glyph. Tangerine is the Needs you bubble and nothing else.
+- `scene/world.ts` is the only door from the scene to the world and
+  sprites files, so the three builders could work in parallel against
+  `space/types.ts`.
+
+**Controls.** The arrow keys or WASD walk you, a tile a tap and on at 6
+tiles a second while held, whenever focus is in the map (or nowhere). A
+click on the floor walks you there by the shortest path. Anyone drags after
+4px, so a click still opens the sheet, and drops onto the nearest free
+tile. Hover or keyboard focus adds the role to a tag at once and rings the
+agents on its live run; 250ms later the org chart's tooltip shows the live
+line, the run, the first ask and the account. Characters within 2 tiles in
+one room merge their tags ("Atlas, Iris, Rook, Quill", a people glyph for a
+shared run, a chat glyph otherwise); bubbles and error glyphs stay on the
+heads, and the member you point at gets a second line with its role.
+Standing next to an agent with an ask opens its card (Review inert, Open
+the sheet), hung clear of every tag and bubble. Click or Enter opens the
+sheet; a search dims the agents it misses.
+
+**Rough edges.**
+- Nothing persists: positions reset on reload. Nothing moves on its own
+  either: agent states and runs do not walk anyone anywhere.
+- Other characters do not block a walk, and the keyboard moves only you
+  (dragging is pointer only).
+- No camera: the map fits at a whole scale and scrolls below 1x; no zoom,
+  no pan, and nothing follows you off screen.
+- Close neighbours' tags are not pulled apart (the seed's desks sit far
+  enough apart). The ask card keeps clear of tags, bubbles, you and its
+  agent, but may cover someone else's sprite.
+- A group tag answers the pointer only (its run is in each member's card
+  and name too); a click on a person does nothing; a card closes when its
+  character moves, since it is anchored where they stood.
+- Where a tag points assumes the sheets' head rows (row 1 for the robots
+  and Diego, row 3 for Karthik and Sam): `headInset` in `scene/world.ts`.
 
 ## /teams polish: fewer things, said once (2026-09-11)
 

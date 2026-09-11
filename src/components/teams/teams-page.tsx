@@ -14,6 +14,7 @@ import { FleetToolbar, type FleetView } from "@/components/teams/fleet/fleet-too
 import { BoardView } from "@/components/teams/board-view";
 import { ListView } from "@/components/teams/list-view";
 import { OrgView } from "@/components/teams/org-view";
+import { SpaceView } from "@/components/teams/space-view";
 import { AgentSheet } from "@/components/teams/agent-sheet";
 
 // /teams: one populated team, Growth Ops, and its fleet of agents seen three
@@ -25,7 +26,8 @@ import { AgentSheet } from "@/components/teams/agent-sheet";
 // on a lane or group header just below. The agent sheet is rendered once,
 // inside the provider, and opens on `openAgent`.
 //
-// URL STATE. `?view=board|list|org` (default board) is the view, written with
+// URL STATE. `?view=board|list|org|space` (default board; `space` is the
+// office, docs/plans/2026-09-11-teams-space-v1.md) is the view, written with
 // history.replaceState, which Next folds into useSearchParams without a
 // server round trip: switching views is a display choice, not a navigation,
 // so it does not stack history entries, and the URL stays shareable.
@@ -49,7 +51,7 @@ import { AgentSheet } from "@/components/teams/agent-sheet";
 // the fades.
 
 function parseView(value: string | null): FleetView {
-  return value === "list" || value === "org" ? value : "board";
+  return value === "list" || value === "org" || value === "space" ? value : "board";
 }
 
 export function TeamsPage() {
@@ -108,7 +110,15 @@ function TeamsFleet({
                   exit={{ opacity: 0, transition: { duration: DURATION.exit, ease: EASE.out } }}
                 >
                   <ViewEntranceProvider value={entrance}>
-                    {view === "board" ? <BoardView /> : view === "list" ? <ListView /> : <OrgView />}
+                    {view === "board" ? (
+                      <BoardView />
+                    ) : view === "list" ? (
+                      <ListView />
+                    ) : view === "org" ? (
+                      <OrgView />
+                    ) : (
+                      <SpaceView />
+                    )}
                   </ViewEntranceProvider>
                 </motion.div>
               ) : null}

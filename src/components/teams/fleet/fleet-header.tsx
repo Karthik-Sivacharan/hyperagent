@@ -14,7 +14,7 @@ import { MemberAvatar } from "@/components/teams/fleet/member-avatar";
 // who is here, a quiet way to add someone, and the one ink action: the
 // people as a stack of 24px faces overlapped by 6px, Invite as a ghost icon
 // button, New agent on ink. Presence and role live in each face's tooltip
-// and accessible name ("Priya Nair, Founder, online"), not on the face, and
+// and accessible name ("Karthik Sivacharan, Founder, online"), not on the face, and
 // the group's name keeps the count the old "2 online" label showed.
 
 function memberLabel(member: TeamMember): string {
