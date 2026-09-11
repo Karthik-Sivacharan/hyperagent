@@ -10,7 +10,6 @@ import { DURATION, EASE } from "@/lib/motion";
 import { FleetProvider } from "@/components/teams/fleet/fleet-context";
 import { ViewEntranceProvider } from "@/components/teams/fleet/view-entrance";
 import { FleetHeader } from "@/components/teams/fleet/fleet-header";
-import { FleetSummary } from "@/components/teams/fleet/fleet-summary";
 import { FleetToolbar, type FleetView } from "@/components/teams/fleet/fleet-toolbar";
 import { BoardView } from "@/components/teams/board-view";
 import { ListView } from "@/components/teams/list-view";
@@ -18,11 +17,13 @@ import { OrgView } from "@/components/teams/org-view";
 import { AgentSheet } from "@/components/teams/agent-sheet";
 
 // /teams: one populated team, Growth Ops, and its fleet of agents seen three
-// ways (docs/plans/2026-09-10-teams-fleet-v1.md). Top to bottom: the header
-// (fleet-header.tsx), the summary line (fleet-summary.tsx), the toolbar with
-// the view switcher and search (fleet-toolbar.tsx), then the view, which
-// fills the rest of the height and scrolls inside itself. The agent sheet is
-// rendered once, inside the provider, and opens on `openAgent`.
+// ways (docs/plans/2026-09-10-teams-fleet-v1.md, trimmed by
+// docs/plans/2026-09-11-teams-fleet-polish.md). Top to bottom: the header
+// (fleet-header.tsx), the toolbar with search and the view switch
+// (fleet-toolbar.tsx), then the view, which fills the rest of the height and
+// scrolls inside itself. There is no summary strip: every count it held is
+// on a lane or group header just below. The agent sheet is rendered once,
+// inside the provider, and opens on `openAgent`.
 //
 // URL STATE. `?view=board|list|org` (default board) is the view, written with
 // history.replaceState, which Next folds into useSearchParams without a
@@ -34,17 +35,18 @@ import { AgentSheet } from "@/components/teams/agent-sheet";
 // which is the whole static HTML of a prerendered /teams, is the page's
 // chrome with no view in it: the prerender cannot know `?view`, and a board
 // painted there would flash before the list or the org chart replaced it.
-// The header, summary and toolbar are identical in both trees, so the swap
-// only fills the view area, and the view arrives with its entrance.
+// The header and toolbar are identical in both trees, so the swap only
+// fills the view area.
 //
-// MOTION. The first view the page paints plays its own entrance (the
-// board's lanes, the list's groups, the org chart's ranks) and the page adds
-// nothing to it. After that, switching views cross-fades: the outgoing view
-// leaves in 90ms on opacity alone, the incoming one enters in 200ms with a
-// 6px rise and renders at rest inside it (fleet/view-entrance.tsx), and both
-// sit absolutely inside the view area so nothing around them jumps.
-// MotionConfig reducedMotion="user" drops the rises and every layout slide
-// for people who ask for less motion, and keeps the fades.
+// MOTION. The first view the page paints appears at rest, except the org
+// chart, which plays its rank-by-rank entrance; the page adds nothing to
+// either. After that, switching views cross-fades: the outgoing view leaves
+// in 90ms on opacity alone, the incoming one enters in 200ms with a 6px rise
+// and renders at rest inside it (fleet/view-entrance.tsx tells the org chart
+// which case it is in), and both sit absolutely inside the view area so
+// nothing around them jumps. MotionConfig reducedMotion="user" drops the
+// rise and every layout move for people who ask for less motion, and keeps
+// the fades.
 
 function parseView(value: string | null): FleetView {
   return value === "list" || value === "org" ? value : "board";
@@ -93,7 +95,6 @@ function TeamsFleet({
       <FleetProvider>
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
           <FleetHeader />
-          <FleetSummary />
           <FleetToolbar view={view} onViewChange={onViewChange} />
           <div className="relative min-h-0 flex-1">
             <AnimatePresence mode="wait">
