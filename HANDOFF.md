@@ -5,15 +5,45 @@ the app's only palette), updated the same day for the move to Tabler
 icons and for the component system sweep, on 2026-09-09 for the composer
 Tools panel merge and the heading-cut decision, and rewritten on
 2026-09-10 when the signup / hyper-personalized onboarding work merged, and
-extended the same day for the streaming agent turn (`feat/agent-stream`).
+extended the same day for the streaming agent turn (`feat/agent-stream`),
+and on 2026-09-11 when the `/teams` fleet views merged (`28f8359`).
 **Everything described here is on `main`, and `main` is pushed.** Read
 this first in a new session, then `README.md`, `docs/components.md`,
 `docs/brand/reskin-conventions.md`, `docs/brand/icons.md` and
 `docs/clone-conventions.md`.
 
+## Next: a spatial view of the fleet (idea, not started)
+
+The user wants to explore a fourth way to see the team: a 2D workspace in
+the spirit of Gather (gather.town), where the fleet is a place rather than a
+chart. Build it as another view on the same data, not a new page:
+`?view=space` beside Board / List / Org chart, reading `useFleet()`
+(`src/components/teams/fleet/fleet-context.tsx`) and opening the same agent
+sheet on click. Starting points:
+
+- The data already has what a floor plan needs: four departments under
+  Atlas (research, outbound, content, finance ops) are natural rooms;
+  `FleetAgent.state` (working / idle / paused / error), `activity`, and
+  runs with `helpers` (who is delegating to whom right now) can drive where
+  an agent sits and who it is "talking" to. Humans are `TEAM.members`.
+- Spatial references from the 2026-09-10 research
+  (`docs/research/09-agent-orchestration-ux.md`, git-ignored, and the
+  private artifact "Agent Fleet Swipe File"): Pixel Agents (agents as
+  characters in an office, a speech bubble when one needs permission),
+  tldraw fairies (agents as sprites on a shared canvas, an elected
+  orchestrator), VibeCraft (an RTS map), and presence from Conductor and
+  OpenClaw 2.0.
+- Keep the polish rules (`docs/plans/2026-09-11-teams-fleet-polish.md`):
+  tangerine only for Needs you, detail one interaction deeper, the brand
+  tokens, Tabler icons, brand-orb agent avatars, `motion` with reduced
+  motion respected. `ui/flow.tsx` (React Flow) can host a pannable floor if
+  it fits; otherwise a new `ui/` primitive, since only `ui/` may import
+  rendering libraries.
+
 ## /teams polish: fewer things, said once (2026-09-11)
 
-**Same data, less on screen** (branch `feat/teams-fleet`; spec
+**Same data, less on screen** (merged to `main` as `28f8359`, live at
+https://hyperagent-onboard.vercel.app/teams; spec
 `docs/plans/2026-09-11-teams-fleet-polish.md`, which wins where the v1 plan
 disagrees). Each surface says one thing and puts the rest one interaction
 deeper (a hover reveal in reserved space, a tooltip, the sheet); accessible
@@ -46,7 +76,7 @@ sheets stayed in the session scratchpad, not the repo.
 
 ## /teams: the fleet views (2026-09-10)
 
-**`/teams` is designed, not cloned** (branch `feat/teams-fleet`; plan, data
+**`/teams` is designed, not cloned** (merged 2026-09-11; plan, data
 contract and as-built notes in `docs/plans/2026-09-10-teams-fleet-v1.md`).
 One mock team, Growth Ops (3 people, 12 agents in a three-level tree, 24
 runs), under a header and a toolbar, seen three ways: a **Board** of five
@@ -272,7 +302,7 @@ node scripts/dev/contact-sheet.mjs out/light out/sheet-light.png "main"
   `ToolMark` is now exported from `signup/tool-icon-row.tsx` for the cards.
   Dismissal and tuning are session state: a reload brings the default tray
   back.
-- **`/teams` is designed, not cloned (2026-09-10, `feat/teams-fleet`).** One
+- **`/teams` is designed, not cloned (2026-09-10, merged 2026-09-11).** One
   mock team as a Board, a List and an Org chart, with an agent sheet; the new
   `ui/flow.tsx` primitive wraps `@xyflow/react`, and `motion` joins the
   dependencies. The cloned empty state is at `/teams?state=empty`. See the
