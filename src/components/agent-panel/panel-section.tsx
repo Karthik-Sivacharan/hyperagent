@@ -69,7 +69,10 @@ export function PanelSection({
   return (
     <section
       aria-labelledby={titleId}
-      className="border-b border-border-subtle px-5 py-4 last:border-b-0"
+      // 20px on every side, the panel's own side gutter: an even inset is
+      // what lets the hairline between two sections read as the one division
+      // in the panel (rows inside a section are spaced, never ruled).
+      className="border-b border-border-subtle p-5 last:border-b-0"
     >
       {/* `min-h-7` holds every header row to the 28px of the Add button, so a
           section without one (Model, Autonomy) keeps the same rhythm as a
@@ -80,9 +83,12 @@ export function PanelSection({
           {count !== undefined && <span className="tabular-nums">{count}</span>}
         </Overline>
 
-        <div className="ml-auto flex shrink-0 items-center gap-1.5">
+        {/* Two spacings on purpose: 8px holds a label to its own switch, 12px
+            separates that pair from the Add button, so the header reads as
+            two controls rather than one run of three things. */}
+        <div className="ml-auto flex shrink-0 items-center gap-3">
           {meta.aiManagedLabel && (
-            <div className="flex items-center gap-2 pr-0.5">
+            <div className="flex items-center gap-2">
               <Label
                 htmlFor={switchId}
                 className="cursor-pointer text-xs font-normal text-foreground-low transition-[color] duration-(--duration-fast) ease-out-quart hover:text-muted-foreground"
