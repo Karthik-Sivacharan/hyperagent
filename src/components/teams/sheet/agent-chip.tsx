@@ -3,21 +3,28 @@
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import type { FleetAgent } from "@/lib/mock/teams";
-import { AGENT_STATE_META, AgentAvatar } from "@/components/teams/fleet/agent-avatar";
+import type { AgentState, FleetAgent } from "@/lib/mock/teams";
+import { AgentAvatar } from "@/components/teams/fleet/agent-avatar";
 
-// An agent as a pressable chip: its monogram with the state dot, then its
-// name. The sheet uses it for "Reports to" and for the sub-agents, and
-// pressing one moves the sheet to that agent without closing it.
+// An agent as something to press: its 20px face and its name. The sheet's
+// details use it for "Reports to" and the sub-agents, and pressing one moves
+// the sheet to that agent without closing it.
 //
-// A SOFT SQUARE, NOT A PILL. Agents are rounded squares everywhere in the
-// fleet (agent-avatar.tsx), so the chip that carries one takes the same
-// shape: 10px outside, 4px of padding, the 20px monogram's 6px inside, which
-// keeps the two corners concentric. A pill around a square monogram leaves a
-// wedge of fill in each corner.
+// A ghost, not a chip. Nothing in the sheet is filled at rest (plan §3), so
+// the pill fill only shows on hover and focus, and at rest the face and name
+// read as a value in the details column like the owner's beside it. The name
+// keeps the body weight of the other values for the same reason. Callers
+// pull it 4px left (`-ml-1`) so the face lines up with the owner's face.
 //
 // The visible text is the name alone; the accessible name adds the role and
 // the state ("Iris, Research lead, working"), and the role shows on hover.
+
+const SPOKEN_STATE: Record<AgentState, string> = {
+  working: "working",
+  idle: "idle",
+  paused: "paused",
+  error: "in error",
+};
 
 export function AgentChip({
   agent,
@@ -32,16 +39,13 @@ export function AgentChip({
     <Tooltip>
       <TooltipTrigger asChild>
         <Button
-          variant="tint"
+          variant="ghost"
           size="none"
           onClick={() => onSelect(agent.id)}
-          aria-label={`${agent.name}, ${agent.role}, ${AGENT_STATE_META[agent.state].label.toLowerCase()}`}
-          className={cn(
-            "h-7 gap-1.5 rounded-lg py-1 pr-2.5 pl-1 text-foreground hover:text-foreground",
-            className,
-          )}
+          aria-label={`${agent.name}, ${agent.role}, ${SPOKEN_STATE[agent.state]}`}
+          className={cn("h-7 max-w-full gap-1.5 pr-2.5 pl-1 font-normal", className)}
         >
-          <AgentAvatar agent={agent} size="xs" showState aria-hidden="true" />
+          <AgentAvatar agent={agent} size="xs" aria-hidden="true" />
           <span className="truncate">{agent.name}</span>
         </Button>
       </TooltipTrigger>

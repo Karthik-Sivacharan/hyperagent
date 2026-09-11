@@ -1,26 +1,20 @@
 "use client";
 
-import type { ElementType, ReactNode } from "react";
+import { useState, type ElementType } from "react";
 import { motion, useIsPresent } from "motion/react";
-import { IconArrowUpRight, IconPlayerPause, IconPlayerPlay, IconUsersGroup } from "@tabler/icons-react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { SheetDescription, SheetTitle } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { DURATION, EASE } from "@/lib/motion";
-import { RUN_STATUS_ORDER, type AgentState, type FleetAgent, type FleetRun } from "@/lib/mock/teams";
-import { PanelEmpty, PanelSection } from "@/components/agent-panel/panel-section";
+import type { FleetAgent } from "@/lib/mock/teams";
 import { useFleet } from "@/components/teams/fleet/fleet-context";
-import { AGENT_STATE_META, AgentAvatar, AgentStateDot } from "@/components/teams/fleet/agent-avatar";
-import { MemberAvatar } from "@/components/teams/fleet/member-avatar";
-import { RunStatusBadge } from "@/components/teams/fleet/run-status";
-import { AgentChip } from "@/components/teams/sheet/agent-chip";
-import { SpendSection } from "@/components/teams/sheet/spend-meter";
-import { WeekActivitySection } from "@/components/teams/sheet/week-activity";
+import { AgentAvatar } from "@/components/teams/fleet/agent-avatar";
+import { AgentDetails } from "@/components/teams/sheet/agent-details";
+import { NeedsYouSection, RunsSection } from "@/components/teams/sheet/sheet-runs";
+import { ToneGlyph } from "@/components/teams/sheet/sheet-parts";
 
 // One agent's page inside the sheet. agent-sheet.tsx keys it by agent id
-// under AnimatePresence, so moving to another agent (a sub-agent chip, the
+// under AnimatePresence, so moving to another agent (a sub-agent, the
 // "Reports to" chip) swaps one of these for the next in place: the old one
 // fades out in 90ms while the new one fades in over 200ms with a 4px rise,
 // and the sheet itself never moves. Each page is absolutely stacked in the
@@ -31,85 +25,68 @@ import { WeekActivitySection } from "@/components/teams/sheet/week-activity";
 // and description drop the dialog's ids, so for those 90ms the sheet still
 // has exactly one title for aria-labelledby to find.
 //
-// LAYOUT. The header does not scroll: who this is, what it is doing now,
-// and the two actions stay in reach. Under it, in the agent panel's own
-// bands (PanelSection: 20px inset, a caps group label, hairlines between
-// bands, never between rows): the facts, this month's spend, the week's
-// runs, the runs themselves with the ones waiting on a person first, the
-// sub-agents, the skills. Summary before detail, the page shell's rule.
+// THE HEADER does not scroll: the 48px face, the name over the role, and one
+// more line only when there is something to say (what a working agent is
+// doing, or why a paused or broken one stopped, after its tone glyph). An
+// idle agent gets nothing. The More menu and the close button are not here:
+// agent-sheet.tsx pins them over the header's top right, outside the
+// cross-fade, so they hold still while pages swap; `pr-17` keeps the name
+// clear of them, and they centre on this row's 48px (top 28px = 20px of
+// padding plus 24px, less half their 32px).
+//
+// The header's hairline shows only while the body is scrolled, the one rule
+// on the sheet, and only when content is actually passing under it.
+//
+// THE BODY is sections 32px apart and nothing else: Needs you (only when the
+// agent is blocked on someone), Runs, then Details, folded.
 
 const TITLE = "truncate font-heading text-xl font-semibold text-foreground";
-const DESCRIPTION = "truncate text-sm text-muted-foreground";
+const DESCRIPTION = "truncate text-md text-muted-foreground";
 
-/** The state line's colour: the live line reads as copy; paused and error in their tone. */
-const STATE_LINE: Record<AgentState, string> = {
-  working: "text-muted-foreground",
-  idle: "text-foreground-low",
-  paused: "text-warning",
-  error: "text-destructive",
-};
+const SPOKEN_STATE = { working: "Working", paused: "Paused", error: "Error" } as const;
 
-function stateLine(agent: FleetAgent) {
-  if (agent.activity) return agent.activity;
-  return agent.state === "idle" ? "Idle, nothing running right now" : AGENT_STATE_META[agent.state].label;
-}
+function StateLine({ agent }: { agent: FleetAgent }) {
+  // Nothing to say is said to a screen reader only, so the fact the old
+  // state dot carried is still in the page.
+  if (agent.state === "idle") return <p className="sr-only">Idle</p>;
+  if (agent.state === "working" && !agent.activity) return <p className="sr-only">Working</p>;
 
-/** The second line of a run row: what the person owes, how far it got, or what it produced. */
-function runDetail(run: FleetRun): string | undefined {
-  switch (run.status) {
-    case "needs-you":
-      return run.needs;
-    case "working":
-      return run.progress ? `${run.progress.done} of ${run.progress.total} steps` : undefined;
-    case "queued":
-      return run.progress ? `${run.progress.total} steps planned` : undefined;
-    default:
-      return run.outcome;
-  }
-}
-
-function Fact({ label, children }: { label: string; children: ReactNode }) {
+  const spoken = SPOKEN_STATE[agent.state];
   return (
-    <>
-      <dt className="text-foreground-low">{label}</dt>
-      <dd className="flex min-h-7 min-w-0 items-center gap-2 text-foreground">{children}</dd>
-    </>
-  );
-}
-
-function RunRow({ run }: { run: FleetRun }) {
-  const detail = runDetail(run);
-  return (
-    <li className="flex min-h-10 items-center gap-3">
-      <div className="flex min-w-0 flex-1 flex-col justify-center">
-        <span className="truncate text-sm leading-5 font-medium text-foreground">{run.title}</span>
-        <span className="flex min-w-0 items-center gap-1.5 text-xs leading-4 text-foreground-low">
-          {detail ? (
-            <>
-              {/* What the person has to do is read, not scanned: tier two. */}
-              <span className={cn("truncate", run.status === "needs-you" && "text-muted-foreground")}>{detail}</span>
-              <span aria-hidden="true">·</span>
-            </>
-          ) : null}
-          <span className="shrink-0">{run.updated}</span>
+    <p className="mt-3 flex gap-1.5 text-md text-muted-foreground">
+      {agent.state !== "working" ? (
+        <span className="flex h-4.5 shrink-0 items-center">
+          <ToneGlyph tone={agent.state} />
         </span>
-      </div>
-      <RunStatusBadge status={run.status} />
-    </li>
+      ) : null}
+      {agent.activity ? (
+        <span className="min-w-0">
+          <span className="sr-only">{spoken}: </span>
+          {agent.activity}
+        </span>
+      ) : (
+        <span>{spoken}</span>
+      )}
+    </p>
   );
 }
 
-export function AgentProfile({ agent }: { agent: FleetAgent }) {
+export function AgentProfile({
+  agent,
+  detailsOpen,
+  onDetailsOpenChange,
+}: {
+  agent: FleetAgent;
+  detailsOpen: boolean;
+  onDetailsOpenChange: (open: boolean) => void;
+}) {
   const isPresent = useIsPresent();
-  const { team, agentById, memberById, subAgentsOf, runsForAgent, openAgent } = useFleet();
+  const { runsForAgent } = useFleet();
+  const [scrolled, setScrolled] = useState(false);
 
-  const owner = memberById(agent.ownerId);
-  const parent = agent.parentId ? agentById(agent.parentId) : null;
-  const subAgents = subAgentsOf(agent.id);
-  const runs = [...runsForAgent(agent.id)].sort(
-    (a, b) => RUN_STATUS_ORDER.indexOf(a.status) - RUN_STATUS_ORDER.indexOf(b.status),
-  );
-  const paused = agent.state === "paused";
+  const runs = runsForAgent(agent.id);
+  const asks = runs.filter((run) => run.status === "needs-you");
+  const rest = runs.filter((run) => run.status !== "needs-you");
 
   const Title: ElementType = isPresent ? SheetTitle : "h2";
   const Description: ElementType = isPresent ? SheetDescription : "p";
@@ -123,108 +100,37 @@ export function AgentProfile({ agent }: { agent: FleetAgent }) {
       animate={{ opacity: 1, y: 0, transition: { duration: DURATION.normal, ease: EASE.outQuart } }}
       exit={{ opacity: 0, transition: { duration: DURATION.exit, ease: EASE.out } }}
     >
-      <header className="shrink-0 border-b border-border-subtle p-5">
-        {/* pr-10 keeps the name clear of the close button in the corner. The
-            monogram leaves its state dot off here: the state line under it
-            carries the same dot, and two of them 40px apart read as two
-            signals. */}
-        <div className="flex items-center gap-4 pr-10">
+      <header
+        className={cn(
+          "shrink-0 border-b px-5 pt-5 pb-4 transition-[border-color] duration-(--duration-fast) ease-out-quart",
+          scrolled ? "border-border-subtle" : "border-transparent",
+        )}
+      >
+        <div className="flex items-center gap-4 pr-17">
           <AgentAvatar agent={agent} size="lg" aria-hidden="true" />
           <div className="min-w-0 flex-1">
             <Title className={TITLE}>{agent.name}</Title>
             <Description className={DESCRIPTION}>{agent.role}</Description>
           </div>
         </div>
-
-        <p className="mt-4 flex items-start gap-2 text-sm">
-          <AgentStateDot state={agent.state} className="mt-1.5" />
-          <span className={STATE_LINE[agent.state]}>
-            <span className="sr-only">{AGENT_STATE_META[agent.state].label}: </span>
-            {stateLine(agent)}
-          </span>
-        </p>
-
-        {/* Both actions are placeholders in v1: there is no agent page to
-            open and nothing to pause. */}
-        <div className="mt-4 flex flex-wrap items-center gap-2">
-          <Button variant="outline" size="sm">
-            <IconArrowUpRight aria-hidden="true" />
-            Open agent
-          </Button>
-          <Button variant="outline" size="sm">
-            {paused ? <IconPlayerPlay aria-hidden="true" /> : <IconPlayerPause aria-hidden="true" />}
-            {paused ? "Resume" : "Pause"}
-          </Button>
-        </div>
+        <StateLine agent={agent} />
       </header>
 
       {/* `[&>div]:!block`: Radix wraps the viewport's content in an inline
           `display: table` box that sizes to its widest line, which would
           stop the run titles from truncating (agent-panel.tsx has the long
           version of this note). */}
-      <ScrollArea className="min-h-0 flex-1" viewportProps={{ className: "[&>div]:!block" }}>
-        <div className="pb-8">
-          <dl className="grid grid-cols-[6rem_minmax(0,1fr)] items-center gap-x-4 gap-y-1.5 border-b border-border-subtle p-5 text-sm">
-            <Fact label="Model">{agent.model}</Fact>
-            <Fact label="Owner">
-              <MemberAvatar member={owner} size="xs" aria-hidden="true" />
-              <span className="truncate">{owner.name}</span>
-              <span className="sr-only">{owner.online ? ", online" : ", away"}</span>
-            </Fact>
-            <Fact label="Reports to">
-              {parent ? (
-                <AgentChip agent={parent} onSelect={openAgent} />
-              ) : (
-                <>
-                  <IconUsersGroup className="size-4 shrink-0 text-foreground-low" aria-hidden="true" />
-                  <span className="truncate">{team.name}</span>
-                </>
-              )}
-            </Fact>
-            <Fact label="Score">
-              <span className="tabular-nums">
-                {agent.score}
-                <span className="text-foreground-low"> / 100</span>
-              </span>
-            </Fact>
-          </dl>
-
-          <SpendSection agent={agent} />
-          <WeekActivitySection agent={agent} />
-
-          <PanelSection meta={{ id: "runs", title: "Runs", empty: "" }} count={runs.length}>
-            {runs.length ? (
-              <ul className="flex flex-col gap-2">
-                {runs.map((run) => (
-                  <RunRow key={run.id} run={run} />
-                ))}
-              </ul>
-            ) : (
-              <PanelEmpty>Nothing on its plate this week.</PanelEmpty>
-            )}
-          </PanelSection>
-
-          {subAgents.length ? (
-            <PanelSection meta={{ id: "sub-agents", title: "Sub-agents", empty: "" }} count={subAgents.length}>
-              <ul className="flex flex-wrap gap-2">
-                {subAgents.map((sub) => (
-                  <li key={sub.id} className="min-w-0">
-                    <AgentChip agent={sub} onSelect={openAgent} />
-                  </li>
-                ))}
-              </ul>
-            </PanelSection>
-          ) : null}
-
-          <PanelSection meta={{ id: "skills", title: "Skills", empty: "" }} count={agent.skills.length}>
-            <ul className="flex flex-wrap gap-1.5">
-              {agent.skills.map((skill) => (
-                <li key={skill}>
-                  <Badge variant="secondary">{skill}</Badge>
-                </li>
-              ))}
-            </ul>
-          </PanelSection>
+      <ScrollArea
+        className="min-h-0 flex-1"
+        viewportProps={{
+          className: "[&>div]:!block",
+          onScroll: (event) => setScrolled(event.currentTarget.scrollTop > 0),
+        }}
+      >
+        <div className="flex flex-col gap-8 px-5 pt-4 pb-8">
+          {asks.length ? <NeedsYouSection runs={asks} /> : null}
+          <RunsSection agent={agent} runs={rest} hasAsks={asks.length > 0} />
+          <AgentDetails agent={agent} open={detailsOpen} onOpenChange={onDetailsOpenChange} />
         </div>
       </ScrollArea>
     </motion.div>
