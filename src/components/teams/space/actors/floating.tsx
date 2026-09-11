@@ -6,7 +6,7 @@ import type { Transition } from "motion/react";
 import { DURATION, EASE } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 import { useFollow } from "@/components/teams/space/scene/scene-context";
-import type { SceneStore } from "@/components/teams/space/scene/store";
+import type { FollowPoint, SceneStore } from "@/components/teams/space/scene/store";
 
 // The chrome's shared parts. Chrome (tags, bubbles, the ask card) is not
 // scaled with the art: it is set at its natural size in the stage's px
@@ -23,7 +23,7 @@ export function Floating({
   children,
   ...props
 }: {
-  anchor: (store: SceneStore) => { x: number; y: number } | null;
+  anchor: (store: SceneStore) => FollowPoint | null;
   deps: React.DependencyList;
   className?: string;
   style?: React.CSSProperties;

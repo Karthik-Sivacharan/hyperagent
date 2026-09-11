@@ -2,7 +2,7 @@
 
 import * as React from "react";
 
-import type { SceneSnapshot, SceneStore } from "@/components/teams/space/scene/store";
+import type { FollowPoint, SceneSnapshot, SceneStore } from "@/components/teams/space/scene/store";
 
 // The store and the stage's scale, for every character and piece of chrome
 // under the stage. The snapshot hook re-renders a reader only when a
@@ -34,7 +34,7 @@ export function useSceneSnapshot(store: SceneStore): SceneSnapshot {
  * changes, the element is placed again at once, before paint.
  */
 export function useFollow<T extends HTMLElement>(
-  anchor: (store: SceneStore) => { x: number; y: number } | null,
+  anchor: (store: SceneStore) => FollowPoint | null,
   anchorKey: string,
 ) {
   const { store } = useScene();

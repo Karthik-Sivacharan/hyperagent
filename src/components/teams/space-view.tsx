@@ -55,8 +55,8 @@ import {
 //
 // DISCLOSURE (plan §3). Level 0 is always drawn: the sprite in its pose, a
 // tag, a Needs you bubble. Level 1, on hover or keyboard focus at once: the
-// tag adds the role, and the agents on a live run with it get a ring on
-// their tags. Level 2, 250ms later (the org chart's intent timing,
+// tag adds the role (a group tag, a second line for the member meant), and
+// the agents on a live run with it get a ring on their tags. Level 2, 250ms later (the org chart's intent timing,
 // org/node-intent.ts): the card. Level 3, click or Enter: the agent sheet.
 // Precedence as on the org chart: the pointer, then keyboard focus.
 //
@@ -140,6 +140,10 @@ export function SpaceView() {
     if (tipId && snapshot[tipId]?.moving) dismiss();
   }, [tipId, snapshot, dismiss]);
 
+  // A reveal or a merge resizes tags without moving anyone: the ask card,
+  // which keeps clear of them, looks again.
+  React.useEffect(() => store.nudge(), [store, meant, groups, askId]);
+
   const keys = useWalkKeys(store, mapRef, dismiss);
 
   const onHover = React.useCallback((id: ActorId | null) => (id ? pointerEnter(id) : pointerLeave()), [pointerEnter, pointerLeave]);
@@ -204,7 +208,7 @@ export function SpaceView() {
                       agent={askAgent}
                       asks={askRuns}
                       ownerName={askOwner}
-                      company={groupOf.get(askAgent.id)?.members ?? [askAgent.id]}
+                      you={YOU}
                       onOpen={() => onActivate(askAgent.id)}
                     />
                   ) : null}
@@ -268,6 +272,7 @@ export function SpaceView() {
                         members={group.members}
                         names={group.members.map((m) => shortName(cast, m))}
                         run={group.run}
+                        detail={meant && group.members.includes(meant) ? detailOf(cast, meant) : null}
                         highlighted={group.members.some((m) => m === meant || collaborators.has(m))}
                         dimmed={agentsIn.length > 0 && agentsIn.every(isDimmed)}
                         pill={(pill) => (
@@ -344,6 +349,15 @@ export function SpaceView() {
       </p>
     </div>
   );
+}
+
+/** Level 1 inside a group tag: the meant member's name and role. */
+function detailOf(cast: Cast, id: ActorId): { id: ActorId; name: string; role: string } | null {
+  const member = cast.byId.get(id);
+  if (!member) return null;
+  return member.kind === "agent"
+    ? { id, name: member.agent.name, role: member.agent.role }
+    : { id, name: firstName(member.member.name), role: member.member.role };
 }
 
 /**

@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "motion/react";
+import { motion, useIsPresent } from "motion/react";
 import { IconProgressHelp } from "@tabler/icons-react";
 
 import { cn } from "@/lib/utils";
@@ -52,6 +52,7 @@ export function HeadBubble({
 }) {
   const right = slot === "right";
   const tone = state === "paused" || state === "error" ? TONE_GLYPH[state] : null;
+  const present = useIsPresent();
   return (
     <Floating anchor={(store) => slotOf(store, id, slot)} deps={[id, slot]}>
       <motion.div
@@ -60,6 +61,7 @@ export function HeadBubble({
       >
         <div
           aria-hidden="true"
+          data-obstacle={present ? "" : undefined}
           className={cn(
             "flex h-6 min-w-6 items-center justify-center bg-card shadow-md transition-opacity duration-(--duration-normal) ease-out",
             right ? "rounded-full rounded-bl-xs" : "rounded-full rounded-br-xs",

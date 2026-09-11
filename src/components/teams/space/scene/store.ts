@@ -146,10 +146,24 @@ class Actor {
   }
 }
 
+/**
+ * Where a follower goes, in stage px. A follower that chooses where to hang
+ * (the ask card) also names its `side`, written to `data-side`, and a
+ * `caret` offset in px, written to `--caret`, for its CSS to read.
+ */
+export interface FollowPoint {
+  x: number;
+  y: number;
+  side?: string;
+  caret?: number;
+}
+
 interface Follower {
   el: HTMLElement;
-  anchor: () => { x: number; y: number } | null;
+  anchor: () => FollowPoint | null;
   written: string;
+  side: string;
+  caret: string;
 }
 
 function phaseOf(id: string): number {
@@ -237,8 +251,8 @@ export class SceneStore {
   }
 
   /** Keeps `el` translated to `anchor()` (stage px) as characters move. */
-  follow(el: HTMLElement, anchor: () => { x: number; y: number } | null) {
-    const follower: Follower = { el, anchor, written: "" };
+  follow(el: HTMLElement, anchor: () => FollowPoint | null) {
+    const follower: Follower = { el, anchor, written: "", side: "", caret: "" };
     this.followers.add(follower);
     this.place(follower);
     return () => {
@@ -518,9 +532,28 @@ export class SceneStore {
     const at = follower.anchor();
     if (!at) return;
     const transform = `translate3d(${Math.round(at.x)}px, ${Math.round(at.y)}px, 0)`;
-    if (transform === follower.written) return;
-    follower.el.style.transform = transform;
-    follower.written = transform;
+    if (transform !== follower.written) {
+      follower.el.style.transform = transform;
+      follower.written = transform;
+    }
+    if (at.side !== undefined && at.side !== follower.side) {
+      follower.el.dataset.side = at.side;
+      follower.side = at.side;
+    }
+    const caret = at.caret === undefined ? "" : `${Math.round(at.caret)}px`;
+    if (caret && caret !== follower.caret) {
+      follower.el.style.setProperty("--caret", caret);
+      follower.caret = caret;
+    }
+  }
+
+  /**
+   * Places every follower again on the next frame, though nothing moved:
+   * for chrome whose place depends on other chrome (the ask card keeps
+   * clear of the tags, whose sizes change with a reveal or a merge).
+   */
+  nudge() {
+    this.moved = true;
   }
 
   // Commits ------------------------------------------------------------------

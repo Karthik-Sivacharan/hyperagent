@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, motion, useIsPresent } from "motion/react";
 import { IconMessageCircle, IconUsers } from "@tabler/icons-react";
 
 import { cn } from "@/lib/utils";
@@ -28,9 +28,13 @@ import type { SceneStore } from "@/components/teams/space/scene/store";
 //   away     an empty desk whose owner is offline: quieter, on the card
 //
 // Level 1 of the disclosure (hover or keyboard focus, at once) adds the role
-// after the name; an agent's collaborators on its live run get a ring on
-// their tags. Both fade (140ms in, 90ms out); the pill takes its new width
-// at once, which moves nothing, since a tag floats.
+// after the name, or, on a group tag, a second line with the meant member's
+// name and role; an agent's collaborators on its live run get a ring on
+// their tags. All of it fades (140ms in, 90ms out); the pill takes its new
+// size at once, which moves nothing, since a tag floats.
+//
+// Every tag on screen marks itself `data-obstacle` (and says whose it is,
+// `data-tag-members`), so the ask card can hang where it covers none.
 
 /** The head of a character, where a tag's caret points. */
 export function headOf(store: SceneStore, id: ActorId) {
@@ -59,6 +63,7 @@ const PILL =
 const HIGHLIGHT = "ring-2 ring-primary/70 ring-offset-2 ring-offset-background";
 
 function TagFrame({
+  members,
   anchor,
   deps,
   dimmed,
@@ -68,6 +73,8 @@ function TagFrame({
   pill,
   children,
 }: {
+  /** Whose tag it is: the ask card finds its agent's tag, and keeps clear of everyone else's, by this. */
+  members: readonly ActorId[];
   anchor: (store: SceneStore) => { x: number; y: number } | null;
   deps: React.DependencyList;
   dimmed?: boolean;
@@ -79,8 +86,15 @@ function TagFrame({
   pill?: (pill: React.ReactElement) => React.ReactElement;
   children: React.ReactNode;
 }) {
+  // A tag fading out (its owner just joined a group) no longer takes up room.
+  const present = useIsPresent();
   const body = (
-    <span className={cn(PILL, highlighted && HIGHLIGHT, className)} style={INK_VARS}>
+    <span
+      data-obstacle={present ? "" : undefined}
+      data-tag-members={members.join(" ")}
+      className={cn(PILL, highlighted && HIGHLIGHT, className)}
+      style={INK_VARS}
+    >
       {children}
     </span>
   );
@@ -129,6 +143,7 @@ export function AgentTag({
   const tone = agent.state === "paused" || agent.state === "error" ? TONE_GLYPH[agent.state] : null;
   return (
     <TagFrame
+      members={[agent.id]}
       anchor={(store) => headOf(store, agent.id)}
       deps={[agent.id]}
       dimmed={dimmed}
@@ -178,6 +193,7 @@ export function PersonTag({
 }) {
   return (
     <TagFrame
+      members={[member.id]}
       anchor={(store) => headOf(store, member.id)}
       deps={[member.id]}
       highlighted={highlighted}
@@ -202,6 +218,7 @@ export function GroupTag({
   members,
   names,
   run,
+  detail,
   highlighted,
   dimmed,
   pill,
@@ -209,6 +226,11 @@ export function GroupTag({
   members: readonly ActorId[];
   names: readonly string[];
   run: FleetRun | null;
+  /**
+   * Level 1 for one member: a merged tag has no room for a role, so the
+   * member the reader means gets a second line, "Rook, Outbound lead".
+   */
+  detail: { id: ActorId; name: string; role: string } | null;
   highlighted: boolean;
   dimmed: boolean;
   pill: (pill: React.ReactElement) => React.ReactElement;
@@ -217,15 +239,27 @@ export function GroupTag({
   const key = members.join("+");
   return (
     <TagFrame
+      members={members}
       anchor={(store) => groupHeadOf(store, members)}
       deps={[key]}
       dimmed={dimmed}
       highlighted={highlighted}
-      className="pointer-events-auto cursor-default px-2"
+      className="pointer-events-auto h-auto min-h-6 cursor-default flex-col items-start gap-0 px-2 py-1"
       pill={pill}
     >
-      <Icon aria-hidden="true" stroke={1.5} className="size-3.5 text-muted-foreground" />
-      <span>{names.join(", ")}</span>
+      <span className="flex h-4 items-center gap-1.5">
+        <Icon aria-hidden="true" stroke={1.5} className="size-3.5 text-muted-foreground" />
+        <span>{names.join(", ")}</span>
+      </span>
+      <AnimatePresence initial={false}>
+        {detail ? (
+          // Under the names, past the icon (14px and the 6px gap).
+          <motion.span key={detail.id} {...FADE} className="block pl-5 leading-4">
+            {detail.name}
+            <span className="text-muted-foreground">, {detail.role}</span>
+          </motion.span>
+        ) : null}
+      </AnimatePresence>
     </TagFrame>
   );
 }
@@ -235,7 +269,10 @@ export function AwayTag({ member, tile }: { member: TeamMember; tile: Tile }) {
   return (
     <Floating anchor={(store) => store.tileHead(tile, member.id)} deps={[member.id, tile.x, tile.y]}>
       <div className="absolute bottom-1 left-0 flex -translate-x-1/2 flex-col items-center">
-        <span className="flex h-6 items-center gap-1.5 whitespace-nowrap rounded-md bg-card px-2 text-xs font-medium text-muted-foreground shadow-card">
+        <span
+          data-obstacle=""
+          className="flex h-6 items-center gap-1.5 whitespace-nowrap rounded-md bg-card px-2 text-xs font-medium text-muted-foreground shadow-card"
+        >
           <Presence online={false} />
           {member.name.split(" ")[0]}, away
         </span>
