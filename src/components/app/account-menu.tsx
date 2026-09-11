@@ -53,11 +53,12 @@ const TOKEN_STATS = [
 ];
 
 function UsageRing() {
-  // 0.0532% of the $1,000 bonus used: stroke-dasharray is the r=7 circumference.
+  // 0.53% of the $100 bonus used: stroke-dasharray is the r=7 circumference,
+  // and the offset is that circumference times the share still unused.
   return (
     <div
       role="progressbar"
-      aria-valuenow={0.053257875}
+      aria-valuenow={0.53257875}
       aria-valuemin={0}
       aria-valuemax={100}
       className="relative inline-flex items-center justify-center mt-0.5 shrink-0 text-brand-accent"
@@ -74,7 +75,7 @@ function UsageRing() {
           strokeWidth="2"
           strokeLinecap="round"
           strokeDasharray="43.982297150257104"
-          strokeDashoffset="43.95887311341869"
+          strokeDashoffset="43.748056781872975"
           className="origin-center -rotate-90 transition-[stroke-dashoffset] duration-500"
           style={{ transitionTimingFunction: "var(--ease-out-expo)", transformOrigin: "center center" }}
         />
@@ -97,7 +98,7 @@ export function AccountMenu({ children }: { children: React.ReactNode }) {
               <span className="flex min-w-0 flex-col">
                 <span className="truncate font-medium text-sm">Free Plan</span>
                 <span className="flex items-center gap-1 whitespace-nowrap text-muted-foreground text-xs">
-                  $0.54 / $1,000 bonus used
+                  $0.54 / $100 bonus used
                 </span>
               </span>
             </span>
