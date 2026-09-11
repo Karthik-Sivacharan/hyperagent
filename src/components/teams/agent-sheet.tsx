@@ -142,6 +142,9 @@ export function AgentSheet() {
         // sheet's own surface, so anything an avatar cuts out of its ground
         // is cut from the panel, not from the page canvas.
         className="gap-0 outline-none data-[side=right]:w-full data-[side=right]:sm:max-w-[460px] [--avatar-cutout:var(--overlay)]"
+        // Half the brand scrim's 4px blur: the board, chart or office behind
+        // stays legible as the place you opened the agent from.
+        overlayClassName="backdrop-blur-[2px]"
       >
         <div className="relative min-h-0 flex-1">
           <AnimatePresence initial={false}>
