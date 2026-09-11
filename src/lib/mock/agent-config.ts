@@ -162,3 +162,40 @@ export const PANEL_SECTIONS: SectionMeta[] = [
     empty: "Ask before anything that leaves the building.",
   },
 ];
+
+// The Learning tab (src/components/agent-panel/learning-tab.tsx). What the
+// agent may learn, and what it has learned, which at signup is nothing: the
+// Insights section is its empty line, because an agent that has never run has
+// no insights to show and inventing some would be the research pass's lie.
+// The four kinds and their modes are the live panel's
+// (docs/reference/overlays/thread-panel-learning.html): memories and skills
+// can be suggested or added automatically, agents and rubrics only suggested.
+export type LearningTarget = {
+  id: "memories" | "skills" | "agents" | "rubrics";
+  label: string;
+  suggest: boolean;
+  /** Absent where the kind can only be suggested, never added on its own. */
+  auto?: boolean;
+};
+
+export const LEARNING_TARGETS: LearningTarget[] = [
+  { id: "memories", label: "Memories", suggest: true, auto: false },
+  { id: "skills", label: "Skills", suggest: true, auto: false },
+  { id: "agents", label: "Agents", suggest: true },
+  { id: "rubrics", label: "Rubrics", suggest: true },
+];
+
+export const LEARNING_CONFIG = {
+  discoverKnowledge: true,
+  model: "Opus 5",
+};
+
+export const LEARNING_SECTIONS: [SectionMeta, SectionMeta, SectionMeta] = [
+  { id: "knowledge", title: "Knowledge", empty: "" },
+  { id: "generation", title: "Generation", empty: "" },
+  {
+    id: "insights",
+    title: "Insights",
+    empty: "Nothing learned yet. After each run, what it picks up about your work lands here for you to approve.",
+  },
+];

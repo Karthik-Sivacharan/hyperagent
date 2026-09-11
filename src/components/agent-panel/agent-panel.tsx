@@ -25,7 +25,7 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { PanelEmpty, PanelSection } from "@/components/agent-panel/panel-section";
+import { PanelEmpty, PanelField, PanelSection } from "@/components/agent-panel/panel-section";
 import {
   ConnectorRows,
   KnowledgeRows,
@@ -33,6 +33,7 @@ import {
   SubagentRows,
   TriggerRows,
 } from "@/components/agent-panel/resource-rows";
+import { LearningTab } from "@/components/agent-panel/learning-tab";
 import { EFFORTS, MODELS, type Effort } from "@/components/composer/thread-settings-menu";
 import { AGENT_CONFIG, PANEL_SECTIONS, type SectionMeta } from "@/lib/mock/agent-config";
 import { cn } from "@/lib/utils";
@@ -197,42 +198,20 @@ function sameDraft(a: Draft, b: Draft) {
 const clampWidth = (px: number, ceiling = PANEL_MAX_WIDTH) =>
   Math.max(AGENT_PANEL_MIN_WIDTH, Math.min(Math.min(PANEL_MAX_WIDTH, ceiling), px));
 
-// One setting: what it is called on the left, what it is set to on the right.
-// The hint sits under the label rather than under the control because the
-// control column is ragged (a 32px select, an 18px switch) and a caption hung
-// off it would be too. Local, because a settings row is not a shape two pages
-// share yet; it becomes a pattern the day a second surface wants it.
-function Field({
-  label,
-  htmlFor,
-  hint,
-  children,
-}: {
-  label: string;
-  htmlFor: string;
-  hint?: React.ReactNode;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="flex items-start justify-between gap-4">
-      <div className="min-w-0 flex-1">
-        <Label htmlFor={htmlFor} className="cursor-pointer text-sm font-medium text-foreground">
-          {label}
-        </Label>
-        {hint && <p className="mt-0.5 text-xs text-foreground-low">{hint}</p>}
-      </div>
-      <div className="flex shrink-0 items-center gap-2">{children}</div>
-    </div>
-  );
-}
-
 export function AgentPanel({
   id,
   className,
   maxWidth,
   onWidthChange,
   computer,
+  learning = false,
 }: {
+  /**
+   * Adds a Learning tab between Configuration and Usage: what the agent may
+   * learn from its runs and what it has learned (learning-tab.tsx). Opt-in
+   * like `computer`, so /design/agent-panel keeps its two tabs.
+   */
+  learning?: boolean;
   /**
    * The agent's computer: when given, it becomes a first "Computer" tab, the
    * default one, ahead of Configuration and Usage, and the panel rests at
@@ -367,7 +346,7 @@ export function AgentPanel({
   // and a negative margin to cancel it at the ends.
   const modelBody = (
     <div className="flex flex-col gap-4">
-      <Field label="Model" htmlFor={modelId} hint={AGENT_CONFIG.modelNote}>
+      <PanelField label="Model" htmlFor={modelId} hint={AGENT_CONFIG.modelNote}>
         <Select value={draft.model} onValueChange={(model) => setDraft((d) => ({ ...d, model }))}>
           <SelectTrigger id={modelId} size="sm" className="max-w-48">
             <SelectValue />
@@ -394,11 +373,11 @@ export function AgentPanel({
           </TooltipTrigger>
           <TooltipContent>Always uses the latest model in this family.</TooltipContent>
         </Tooltip>
-      </Field>
+      </PanelField>
 
       {/* The hint is the chosen effort's own description rather than a fixed
           line, so the row explains the setting it is currently in. */}
-      <Field label="Reasoning effort" htmlFor={effortId} hint={currentEffort?.description}>
+      <PanelField label="Reasoning effort" htmlFor={effortId} hint={currentEffort?.description}>
         <Select
           value={draft.effort}
           onValueChange={(effort) => setDraft((d) => ({ ...d, effort: effort as Effort }))}
@@ -414,7 +393,7 @@ export function AgentPanel({
             ))}
           </SelectContent>
         </Select>
-      </Field>
+      </PanelField>
 
       <div>
         <Label htmlFor={instructionsId} className="cursor-pointer text-sm font-medium text-foreground">
@@ -435,7 +414,7 @@ export function AgentPanel({
         />
       </div>
 
-      <Field
+      <PanelField
         label="Self-updates"
         htmlFor={selfUpdatesId}
         hint="The agent may rewrite these instructions after a run, and tells you what changed."
@@ -445,14 +424,14 @@ export function AgentPanel({
           checked={draft.selfUpdates}
           onCheckedChange={(selfUpdates) => setDraft((d) => ({ ...d, selfUpdates }))}
         />
-      </Field>
+      </PanelField>
     </div>
   );
 
   const autonomyBody = (
     <div className="flex flex-col gap-4">
       {AUTONOMY_RULES.map((rule) => (
-        <Field key={rule.id} label={rule.label} htmlFor={`${autonomyId}-${rule.id}`} hint={rule.hint}>
+        <PanelField key={rule.id} label={rule.label} htmlFor={`${autonomyId}-${rule.id}`} hint={rule.hint}>
           <Switch
             id={`${autonomyId}-${rule.id}`}
             checked={draft.autonomy[rule.id]}
@@ -460,7 +439,7 @@ export function AgentPanel({
               setDraft((d) => ({ ...d, autonomy: { ...d.autonomy, [rule.id]: on } }))
             }
           />
-        </Field>
+        </PanelField>
       ))}
     </div>
   );
@@ -542,6 +521,7 @@ export function AgentPanel({
             <TabsList>
               {computer && <TabsTrigger value="computer">Computer</TabsTrigger>}
               <TabsTrigger value="configuration">Configuration</TabsTrigger>
+              {learning && <TabsTrigger value="learning">Learning</TabsTrigger>}
               <TabsTrigger value="usage">Usage</TabsTrigger>
             </TabsList>
 
@@ -634,6 +614,20 @@ export function AgentPanel({
             </div>
           </ScrollArea>
         </TabsContent>
+
+        {/* Scrolls like Configuration, and needs the same `[&>div]:!block` on
+            the viewport for the same reason (see that tab's note). */}
+        {learning && (
+          <TabsContent
+            value="learning"
+            forceMount={forceMount}
+            className={cn("min-h-0 flex-1", hideInactive)}
+          >
+            <ScrollArea className="h-full" viewportProps={{ className: "[&>div]:!block" }}>
+              <LearningTab />
+            </ScrollArea>
+          </TabsContent>
+        )}
 
         <TabsContent
           value="usage"
