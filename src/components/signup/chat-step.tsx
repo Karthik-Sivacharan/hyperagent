@@ -333,9 +333,11 @@ export function ChatStep({
           running sentence reads as a shout. `leading-9` (36px against a 26px
           default) is bought for the chips: it is the line box they have to fit
           inside without making their own line taller than its neighbours.
-          `text-balance` because the sentence runs to two lines and the chips
+          `text-pretty` because the sentence runs to two lines and the chips
           are wide: left to itself the break dropped "Trainwell" alone onto a
-          line with half of the first one empty.
+          line. It was `text-balance` first, which fixed that by evening the
+          two lines out and left half the column empty; pretty only guards the
+          last line, so the sentence fills the column's width, whatever it is.
 
           It shimmers while the research pass runs, and stops when it lands.
           The sentence is already in the present tense — "Researching agents
@@ -366,7 +368,7 @@ export function ChatStep({
         ref={headingRef}
         tabIndex={-1}
         className={cn(
-          "mt-6 text-xl leading-9 font-normal text-balance text-foreground outline-none",
+          "mt-6 text-xl leading-9 font-normal text-pretty text-foreground outline-none",
           "@max-sm/chat:text-lg @max-sm/chat:leading-8",
           active && !research.done && SHIMMER,
         )}
