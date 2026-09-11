@@ -186,6 +186,23 @@ node scripts/dev/contact-sheet.mjs out/light out/sheet-light.png "main"
   ink tile) and `apple-icon.png` (180), the same three files the live site
   ships. So the 17-route pixel comparison now differs on home by design, and
   the account menu differs wherever it is opened.
+- **The home composer has a "Suggested for you" tray (2026-09-11,
+  `feat/suggestion-tray`).** Modelled on the tray under Manus's composer
+  (manus.im/app, measured live, read-only): the composer sits raised in a
+  sunken frame (`home-composer.tsx`), and the tray (`suggestion-tray.tsx`)
+  shows three cards (tool marks or a glyph, an up-left arrow, the task at
+  13/18) with refresh, dismiss and a third action of ours, Tune (a gear;
+  sliders is the thread-settings pill just above, and no sparkles). Tune is a
+  popover: topics as Spotify-style filter chips ("All" until you pick) and
+  three "based on" switches (role, company, tools). Every control filters
+  the real list (`src/lib/mock/home-suggestions.ts`, 15 prompts for the
+  signup persona, each tagged with a topic and a source); refresh walks it
+  three at a time and disables itself when there is nothing more. A card puts
+  its full prompt in the composer and focuses it; dismiss collapses the tray
+  by `grid-template-rows` so the centred block settles instead of jumping.
+  `ToolMark` is now exported from `signup/tool-icon-row.tsx` for the cards.
+  Dismissal and tuning are session state: a reload brings the default tray
+  back.
 
 ## How the brand is wired
 
