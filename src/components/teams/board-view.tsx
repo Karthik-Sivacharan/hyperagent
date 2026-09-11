@@ -1,32 +1,38 @@
 "use client";
 
 import * as React from "react";
+import { LayoutGroup, useReducedMotion } from "motion/react";
 import { RUN_STATUS_ORDER } from "@/lib/mock/teams";
 import { useFleet } from "@/components/teams/fleet/fleet-context";
 import { RunSearchEmpty } from "@/components/teams/fleet/run-search-empty";
-import { useViewEntrance } from "@/components/teams/fleet/view-entrance";
 import { BoardColumn } from "@/components/teams/board/board-column";
 
-// The Board: the team's runs as a kanban, one lane per status in
-// RUN_STATUS_ORDER, so the columns read left to right as what the human owes
-// next (Needs you) through to what is finished (Devin's Sessions board, with
-// Vibe Kanban's live cards and Linear's owner-plus-agent; the lane and the
-// card are board/board-column.tsx and board/run-card.tsx).
+// The Board: what each run needs next, one lane per status in
+// RUN_STATUS_ORDER, read left to right from what the human owes (Needs you)
+// to what is finished (Done). The lane and the card are
+// board/board-column.tsx and board/run-card.tsx.
 //
 // LAYOUT. The view slot (teams-page.tsx) is an absolutely positioned column
-// with no padding, so the board brings its own 24px gutter. Lanes are a fixed
-// 288px; when five of them do not fit, the board scrolls sideways and each
-// lane scrolls on its own. The gutter sits on an inner `w-max` row rather
-// than on the scroller, so the right-hand gutter survives horizontal scroll.
+// with no padding, so the board brings its own 24px gutter. The lanes share
+// the width, each between 240px and 320px, 16px apart; Done starts folded to
+// its header, so at 1456px four lanes and the folded Done fit with no
+// sideways scroll. The row is `min-w-min`, so only when the lanes reach
+// 240px does the board scroll sideways, gutter included. The board is one
+// scroller in both directions, like a page: the lanes grow to their cards
+// and their headers stick to the top.
 //
-// FIRST PAINT. The lanes rise in once, when the board is the first view the
-// page paints. Arriving on the board from another view is the view
-// cross-fade's job (teams-page.tsx), so then the lanes render at rest; the
-// page decides which it is (fleet/view-entrance.tsx).
+// FOLDING DONE. Opening Done widens the row past the view at 1456, so the
+// board then scrolls to its end to show the whole lane (smoothly unless the
+// reader asks for less motion). Everything that moves is a `layout` node in
+// one LayoutGroup. The scroller is deliberately not `layoutScroll`: motion
+// then measures in view coordinates, so when folding Done shrinks the row
+// and the browser clamps the scroll back, the lanes slide back into place
+// instead of jumping.
 //
-// KEYBOARD. Tab walks the cards and the controls inside them; the arrow keys
-// move between cards: up and down within a lane, left and right to the
-// nearest card at the same height in the next lane that has any.
+// KEYBOARD. Tab walks the cards and the Done header; the arrow keys move
+// between cards: up and down within a lane, left and right to the nearest
+// card at the same height in the next lane that has any (a folded lane has
+// none, so it is skipped).
 
 const ARROWS: Record<string, [column: number, row: number]> = {
   ArrowUp: [0, -1],
@@ -68,45 +74,54 @@ function moveBetweenCards(event: React.KeyboardEvent<HTMLElement>) {
 export function BoardView() {
   const { runs, runsByStatus, allRuns, query } = useFleet();
   const searching = query.trim().length > 0;
-  const entrance = useViewEntrance();
-
-  // A search that keeps no run at all gets one empty state, not five empty
-  // lanes. The lanes it replaces come back at rest: their rise is a first
-  // paint, and once a miss has happened this is no longer one (state
-  // adjusted during render).
-  const miss = searching && runs.length === 0;
-  const [missed, setMissed] = React.useState(false);
-  if (miss && !missed) setMissed(true);
+  const [doneOpen, setDoneOpen] = React.useState(false);
+  const scrollerRef = React.useRef<HTMLDivElement>(null);
+  const reduceMotion = useReducedMotion();
 
   // The team's queue, oldest first (the mock lists each status newest first).
   // From every run, not the search result, so a search never renumbers it.
+  // Cards say it to screen readers only.
   const queuePositions = React.useMemo(() => {
     const queued = allRuns.filter((run) => run.status === "queued").reverse();
     return new Map(queued.map((run, i) => [run.id, i + 1]));
   }, [allRuns]);
 
-  if (miss) return <RunSearchEmpty />;
+  const toggleDone = (open: boolean) => {
+    setDoneOpen(open);
+    if (!open) return;
+    // After the commit (a click's update is flushed before the next frame).
+    requestAnimationFrame(() => {
+      const scroller = scrollerRef.current;
+      scroller?.scrollTo({ left: scroller.scrollWidth, behavior: reduceMotion ? "auto" : "smooth" });
+    });
+  };
+
+  // A search that keeps no run at all gets one empty state, not five empty
+  // lanes.
+  if (searching && runs.length === 0) return <RunSearchEmpty />;
 
   return (
     <div
+      ref={scrollerRef}
       role="region"
       aria-label="Runs by status"
-      className="min-h-0 flex-1 overflow-x-auto overflow-y-hidden overscroll-x-contain"
+      className="min-h-0 flex-1 overflow-auto overscroll-contain"
       onKeyDown={moveBetweenCards}
     >
-      <div className="flex h-full w-max gap-3 px-6 pb-6">
-        {RUN_STATUS_ORDER.map((status, index) => (
-          <BoardColumn
-            key={status}
-            status={status}
-            index={index}
-            runs={runsByStatus[status]}
-            searching={searching}
-            entrance={entrance && !missed}
-            queuePositions={queuePositions}
-          />
-        ))}
-      </div>
+      <LayoutGroup>
+        <div className="flex w-full min-w-min gap-4 px-6 pb-6">
+          {RUN_STATUS_ORDER.map((status) => (
+            <BoardColumn
+              key={status}
+              status={status}
+              runs={runsByStatus[status]}
+              searching={searching}
+              queuePositions={queuePositions}
+              {...(status === "done" ? { open: doneOpen, onOpenChange: toggleDone } : {})}
+            />
+          ))}
+        </div>
+      </LayoutGroup>
     </div>
   );
 }

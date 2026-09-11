@@ -1,53 +1,48 @@
 "use client";
 
 import * as React from "react";
-import { IconAlertTriangle, IconCornerDownRight, IconHourglassLow, IconPlayerPause } from "@tabler/icons-react";
+import { IconAlertTriangle, IconPlayerPause, type TablerIcon } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import type { FleetAgent, FleetRun, TeamMember } from "@/lib/mock/teams";
+import type { FleetAgent, FleetRun, RunTrigger, TeamMember } from "@/lib/mock/teams";
 import { useFleet } from "@/components/teams/fleet/fleet-context";
-import { AGENT_STATE_META, AgentAvatar } from "@/components/teams/fleet/agent-avatar";
-import { MemberAvatar } from "@/components/teams/fleet/member-avatar";
-import { RUN_TONE_CLASSES } from "@/components/teams/fleet/run-status";
-import { formatMinutes, formatUsd } from "@/components/teams/fleet/format";
-import { RUN_TRIGGER_META } from "@/components/teams/board/triggers";
-import { StepBar } from "@/components/teams/board/step-bar";
+import { AgentAvatar } from "@/components/teams/fleet/agent-avatar";
+import { formatUsd } from "@/components/teams/fleet/format";
+import { runCaption, type HeldState, type RunCaption } from "@/components/teams/board/run-caption";
 
-// One run on the board. Top to bottom: where it came from (the trigger glyph
-// and the project) and how fresh it is; the title, two lines at most; one
-// row that changes with the status, because each column asks a different
-// question of a card; and who is on it with what it has cost so far.
+// One run on the board, in three lines: the title (two lines at most), the
+// caption (one line of state in words, run-caption.ts; a plain queued run
+// has none), and a footer with the agent doing the work and how fresh the
+// run is. Everything else a card used to show (project, trigger, owner,
+// cost, run time, steps, helpers, place in the queue) is one interaction
+// deeper, in the agent sheet, and in the card's accessible description, so
+// a screen reader still hears every fact the old card showed.
 //
-// THE MIDDLE ROW. Needs you: the ask itself on the tangerine tint, the only
-// place the accent lands on a card, with a Review pill beside it. Working:
-// the agent's live line and its steps, the step under way sweeping softly
-// (step-bar.tsx), and the sub-agents it has handed work to. Queued: where it
-// sits in the team's queue, or why it cannot start (its agent is paused or
-// broken). In review and Done: the receipt, what the run produced.
+// The shell is the native interactive card (/home's featured card, /threads'
+// rows): `bg-card shadow-card`, 18px corners, the shadow lifting at
+// --duration-slow on hover and nothing else; the card never grows. It is one
+// target with no controls inside: a button, so a click, Enter or Space opens
+// the agent sheet, which holds the ask and its Review action (v1 has no run
+// page). The arrow keys move between cards (board-view.tsx); the scroll
+// margins keep a card that takes focus clear of the sticky lane header and
+// the board's gutters.
 //
-// WHO. The agent doing the work leads, and the person who answers for it
-// follows as "for" plus their face: Linear's delegate-not-reassign, where the
-// human stays accountable and the agent is nested under them. The agent's
-// state dot shows only when something is wrong (paused, error); a board full
-// of healthy working dots would pulse for no reason.
-//
-// INTERACTION. The card is a focusable `article` (the ARIA feed shape: a
-// focusable item that holds its own controls), so Tab lands on each card and
-// then on the controls inside it; arrow keys move between cards
-// (board-view.tsx). A click or Enter on the card opens the agent sheet for
-// the run's agent, the same thing the agent's name does, since v1 has no run
-// page. Hover lifts the shadow at --duration-slow; press scales to
-// --scale-press at the button speed, but not while an inner control is the
-// one being pressed.
+// Colour: only a queued run whose agent is paused or in error carries a
+// hue, the 14px tone glyph before the reason (docs/plans/2026-09-11-teams-
+// fleet-polish.md §3). The reason itself stays muted-foreground.
 
-export function RunCard({ run, queuePosition, phase = 0 }: { run: FleetRun; queuePosition?: number; phase?: number }) {
+const HELD: Record<HeldState, { icon: TablerIcon; className: string; label: string }> = {
+  paused: { icon: IconPlayerPause, className: "text-warning", label: "Paused" },
+  error: { icon: IconAlertTriangle, className: "text-destructive", label: "Error" },
+};
+
+export function RunCard({ run, queuePosition }: { run: FleetRun; queuePosition?: number }) {
   const { agentById, memberById, openAgent } = useFleet();
   const agent = agentById(run.agentId);
   const owner = memberById(run.ownerId);
-  const trigger = RUN_TRIGGER_META[run.trigger];
-  const TriggerIcon = trigger.icon;
+  const helpers = (run.helpers ?? []).map((id) => agentById(id).name);
+  const caption = runCaption(run, agent);
+  const held = caption?.held ? HELD[caption.held] : null;
   const titleId = React.useId();
   const detailId = React.useId();
 
@@ -55,224 +50,112 @@ export function RunCard({ run, queuePosition, phase = 0 }: { run: FleetRun; queu
     <Card
       asChild
       size="none"
-      className={cn(
-        "cursor-pointer gap-2.5 rounded-2xl p-3 outline-none [--avatar-cutout:var(--card)]",
-        "[transition:box-shadow_var(--duration-slow)_var(--ease-out),scale_var(--duration-fast)_var(--ease-out-quart)] hover:shadow-card-hover",
-        "motion-safe:active:not-has-[button:active]:scale-(--scale-press)",
-        "focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-secondary",
-      )}
+      variant="interactive"
+      className="relative w-full scroll-mx-6 scroll-mt-12 scroll-mb-6 cursor-pointer rounded-2xl p-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
     >
-      <article
+      <button
+        type="button"
         data-run-card=""
         data-status={run.status}
-        tabIndex={0}
         aria-labelledby={titleId}
         aria-describedby={detailId}
         onClick={() => openAgent(agent.id)}
-        onKeyDown={(event) => {
-          if (event.target !== event.currentTarget || event.key !== "Enter") return;
-          event.preventDefault();
-          openAgent(agent.id);
-        }}
       >
-        <div className="flex items-center justify-between gap-3 text-xs text-foreground-low">
-          <span className="flex min-w-0 items-center gap-1.5">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span className="inline-flex shrink-0">
-                  <TriggerIcon className="size-3.5" aria-hidden="true" />
-                </span>
-              </TooltipTrigger>
-              <TooltipContent>{trigger.label}</TooltipContent>
-            </Tooltip>
-            <span className="sr-only">{trigger.label}, </span>
-            <span className="truncate">{run.project}</span>
-          </span>
-          <span className="shrink-0 tabular-nums">{run.updated}</span>
-        </div>
-
-        <h3 id={titleId} className="line-clamp-2 text-sm font-medium text-pretty text-foreground">
+        <span id={titleId} className="line-clamp-2 text-sm font-medium text-pretty text-foreground">
           {run.title}
-        </h3>
+        </span>
 
-        <div id={detailId}>
-          <RunDetail run={run} agent={agent} queuePosition={queuePosition} phase={phase} />
-        </div>
-
-        <div className="flex items-center justify-between gap-3">
-          <Delegation agent={agent} owner={owner} onOpenAgent={openAgent} />
-          <span className="shrink-0 text-xs text-foreground-low tabular-nums">
-            {formatUsd(run.cost)} · {formatMinutes(run.minutes)}
+        {caption ? (
+          <span className="mt-0.5 flex min-w-0 items-center gap-1.5 text-md text-muted-foreground">
+            {held ? <held.icon className={cn("size-3.5 shrink-0", held.className)} aria-hidden="true" /> : null}
+            <span className="truncate">{caption.text}</span>
           </span>
-        </div>
-      </article>
+        ) : null}
+
+        <span className="mt-3 flex items-center justify-between gap-3">
+          <span className="flex min-w-0 items-center gap-1.5">
+            <AgentAvatar agent={agent} size="xs" aria-hidden="true" />
+            <span className="truncate text-md text-muted-foreground">{agent.name}</span>
+          </span>
+          <span className="shrink-0 text-md text-foreground-low tabular-nums">{run.updated}</span>
+        </span>
+
+        <span id={detailId} className="sr-only">
+          {describeRun({ run, agent, owner, caption, helpers, queuePosition })}
+        </span>
+      </button>
     </Card>
   );
 }
 
-/** Stops a control's click from also landing on the card behind it. */
-function own(handler?: () => void) {
-  return (event: React.MouseEvent) => {
-    event.stopPropagation();
-    handler?.();
-  };
-}
+// ---------------------------------------------------------------------------
+// The accessible description: the caption, the agent and the time as shown,
+// then the facts the card no longer draws, in sentences.
 
-function RunDetail({
+const TRIGGER_WORDS: Record<RunTrigger, string> = {
+  thread: "started from a thread",
+  slack: "started from Slack",
+  schedule: "runs on a schedule",
+  email: "started from an email",
+  webhook: "started by a webhook",
+  agent: "handed off by another agent",
+};
+
+function describeRun({
   run,
   agent,
+  owner,
+  caption,
+  helpers,
   queuePosition,
-  phase,
 }: {
   run: FleetRun;
   agent: FleetAgent;
+  owner: TeamMember;
+  caption: RunCaption | null;
+  helpers: string[];
   queuePosition?: number;
-  phase: number;
 }) {
-  switch (run.status) {
-    case "needs-you":
-      return (
-        <div className={cn("flex items-center gap-2 rounded-xl py-1.5 pr-1.5 pl-2.5", RUN_TONE_CLASSES.brand.tint)}>
-          <p className="min-w-0 flex-1 text-md font-medium text-pretty text-brand-subtle-foreground">{run.needs}</p>
-          {/* v1: no action behind it yet. */}
-          <Button size="xs" variant="outline" className="shrink-0" onClick={own()}>
-            Review
-          </Button>
-        </div>
-      );
-    case "working":
-      return <WorkingDetail run={run} agent={agent} phase={phase} />;
-    case "queued":
-      return <QueuedDetail run={run} agent={agent} queuePosition={queuePosition} />;
-    default:
-      return (
-        <p className="flex items-start gap-1.5 text-md text-muted-foreground">
-          <IconCornerDownRight className="mt-0.5 size-3.5 shrink-0 text-foreground-low" aria-hidden="true" />
-          <span className="sr-only">Outcome: </span>
-          <span className="line-clamp-2 text-pretty">{run.outcome}</span>
-        </p>
-      );
+  const sentences: string[] = [];
+  if (caption) {
+    const label = caption.held ? HELD[caption.held].label : "";
+    const said = label && !caption.text.toLowerCase().startsWith(label.toLowerCase());
+    sentences.push(said ? `${label}: ${caption.text}` : caption.text);
   }
-}
-
-function WorkingDetail({ run, agent, phase }: { run: FleetRun; agent: FleetAgent; phase: number }) {
-  const { agentById, openAgent } = useFleet();
-  const helpers = (run.helpers ?? []).map(agentById);
-  const progress = run.progress;
-
-  return (
-    <div className="flex flex-col gap-2">
-      {agent.activity ? <p className="line-clamp-2 text-md text-pretty text-muted-foreground">{agent.activity}</p> : null}
-      {progress || helpers.length ? (
-        <div className="flex h-5 items-center gap-2.5">
-          {progress ? (
-            <>
-              <StepBar done={progress.done} total={progress.total} live phase={phase} />
-              <span className="shrink-0 text-xs text-foreground-low tabular-nums">
-                <span className="sr-only">Step </span>
-                {progress.done}/{progress.total}
-                <span className="sr-only"> done</span>
-              </span>
-            </>
-          ) : (
-            <span className="flex-1" />
-          )}
-          {helpers.length ? (
-            <div role="group" aria-label="Helping on this run" className="flex shrink-0 items-center -space-x-1">
-              {helpers.map((helper) => (
-                <Tooltip key={helper.id}>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="none"
-                      className="relative rounded-sm hover:z-10 hover:bg-transparent focus-visible:z-10"
-                      onClick={own(() => openAgent(helper.id))}
-                    >
-                      <AgentAvatar agent={helper} size="xs" aria-hidden="true" className="shadow-[0_0_0_2px_var(--card)]" />
-                      <span className="sr-only">{helper.name}</span>
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    {helper.name} · {helper.role}
-                  </TooltipContent>
-                </Tooltip>
-              ))}
-            </div>
-          ) : null}
-        </div>
-      ) : null}
-    </div>
+  sentences.push(`${agent.name}, updated ${run.updated}`);
+  sentences.push(
+    `${run.project}, ${TRIGGER_WORDS[run.trigger]}, for ${owner.name}, ${formatUsd(run.cost)} over ${spokenMinutes(run.minutes)}`,
   );
+  if (run.status === "working" && run.progress) {
+    sentences.push(`${run.progress.done} of ${run.progress.total} steps done`);
+  }
+  if (run.status === "queued") {
+    const steps = run.progress?.total;
+    sentences.push([queuePosition ? inLine(queuePosition) : "Queued", steps ? `${steps} steps` : ""].filter(Boolean).join(", "));
+  }
+  if (helpers.length) sentences.push(`Helped by ${listNames(helpers)}`);
+  return `${sentences.join(". ")}.`;
 }
 
-function ordinal(position: number) {
+/** "Next up", "2nd in line", "11th in line". */
+function inLine(position: number) {
   if (position === 1) return "Next up";
   const tens = position % 100;
-  const suffix = tens >= 11 && tens <= 13 ? "th" : ({ 1: "st", 2: "nd", 3: "rd" } as Record<number, string>)[position % 10] ?? "th";
+  const suffixes: Record<number, string> = { 1: "st", 2: "nd", 3: "rd" };
+  const suffix = tens >= 11 && tens <= 13 ? "th" : (suffixes[position % 10] ?? "th");
   return `${position}${suffix} in line`;
 }
 
-function QueuedDetail({ run, agent, queuePosition }: { run: FleetRun; agent: FleetAgent; queuePosition?: number }) {
-  // A queued run waits either for its turn or, if its agent cannot work, for
-  // a person to unblock the agent; the second is the one worth saying.
-  const held = agent.state === "paused" || agent.state === "error";
-  const Icon = agent.state === "error" ? IconAlertTriangle : agent.state === "paused" ? IconPlayerPause : IconHourglassLow;
-  const text = held ? (agent.activity ?? AGENT_STATE_META[agent.state].label) : queuePosition ? ordinal(queuePosition) : "Queued";
-  const total = run.progress?.total;
-
-  return (
-    <div className="flex items-start justify-between gap-3">
-      <p className="flex min-w-0 items-start gap-1.5 text-md text-muted-foreground">
-        <Icon
-          className={cn(
-            "mt-0.5 size-3.5 shrink-0",
-            agent.state === "error" ? "text-destructive" : agent.state === "paused" ? "text-warning" : "text-foreground-low",
-          )}
-          aria-hidden="true"
-        />
-        <span className="line-clamp-2 text-pretty">{text}</span>
-      </p>
-      {total ? <span className="mt-px shrink-0 text-xs text-foreground-low tabular-nums">{total} steps</span> : null}
-    </div>
-  );
+/** "15 minutes", "1 hour 20 minutes": the words a screen reader should say for "15m". */
+function spokenMinutes(minutes: number) {
+  const total = Math.max(1, Math.round(minutes));
+  const hours = Math.floor(total / 60);
+  const rest = total % 60;
+  const unit = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
+  return [hours ? unit(hours, "hour") : "", rest ? unit(rest, "minute") : ""].filter(Boolean).join(" ");
 }
 
-function Delegation({
-  agent,
-  owner,
-  onOpenAgent,
-}: {
-  agent: FleetAgent;
-  owner: TeamMember;
-  onOpenAgent: (id: string) => void;
-}) {
-  const flagged = agent.state === "paused" || agent.state === "error";
-  return (
-    <div className="flex min-w-0 items-center gap-1.5">
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            variant="ghost"
-            size="none"
-            className="-my-0.5 -ml-1 h-6 min-w-0 gap-1.5 py-0 pr-2 pl-0.5 text-md"
-            aria-label={flagged ? `${agent.name}, ${AGENT_STATE_META[agent.state].label.toLowerCase()}` : undefined}
-            onClick={own(() => onOpenAgent(agent.id))}
-          >
-            <AgentAvatar agent={agent} size="xs" showState={flagged} aria-hidden="true" />
-            <span className="truncate">{agent.name}</span>
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent>
-          {agent.role} · {agent.model}
-        </TooltipContent>
-      </Tooltip>
-      <span className="text-xs text-foreground-low">for</span>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <MemberAvatar member={owner} size="xs" />
-        </TooltipTrigger>
-        <TooltipContent>Owner · {owner.name}</TooltipContent>
-      </Tooltip>
-    </div>
-  );
+/** "Iris", "Iris and Rook", "Iris, Rook and Quill". */
+function listNames(names: string[]) {
+  return names.length < 2 ? names.join("") : `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
 }
