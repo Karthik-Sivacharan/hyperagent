@@ -62,8 +62,10 @@ function describeRow(shown: string[], hidden: number): string {
   return `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
 }
 
-/** One mark, drawn at 16px whichever source it came from. */
-function ToolMark({ id }: { id: string }) {
+/** One mark, drawn at 16px whichever source it came from. Exported for the
+ *  home suggestion tray, which draws the same marks at 20px by sizing the
+ *  svg or img from outside, the way `ToolTile` does. */
+export function ToolMark({ id }: { id: string }) {
   const Inline = inlineLogos[id];
   // The inline marks are fixed 24px SVGs with no size prop, so the tile sizes
   // them from outside; a class beats the element's width/height attributes.
