@@ -1,18 +1,17 @@
 "use client";
 
 import * as React from "react";
-import { IconAlertTriangle, IconPlayerPause, type TablerIcon } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
 import type { FleetAgent, FleetRun, RunTrigger, TeamMember } from "@/lib/mock/teams";
 import { useFleet } from "@/components/teams/fleet/fleet-context";
 import { AgentAvatar } from "@/components/teams/fleet/agent-avatar";
 import { formatUsd } from "@/components/teams/fleet/format";
-import { runCaption, type HeldState, type RunCaption } from "@/components/teams/board/run-caption";
+import { runCaption, TONE_GLYPH, type RunCaption } from "@/components/teams/fleet/run-caption";
 
 // One run on the board, in three lines: the title (two lines at most), the
-// caption (one line of state in words, run-caption.ts; a plain queued run
-// has none), and a footer with the agent doing the work and how fresh the
+// caption (one line of state in words, fleet/run-caption.ts; a plain queued
+// run has none), and a footer with the agent doing the work and how fresh the
 // run is. Everything else a card used to show (project, trigger, owner,
 // cost, run time, steps, helpers, place in the queue) is one interaction
 // deeper, in the agent sheet, and in the card's accessible description, so
@@ -31,18 +30,13 @@ import { runCaption, type HeldState, type RunCaption } from "@/components/teams/
 // hue, the 14px tone glyph before the reason (docs/plans/2026-09-11-teams-
 // fleet-polish.md §3). The reason itself stays muted-foreground.
 
-const HELD: Record<HeldState, { icon: TablerIcon; className: string; label: string }> = {
-  paused: { icon: IconPlayerPause, className: "text-warning", label: "Paused" },
-  error: { icon: IconAlertTriangle, className: "text-destructive", label: "Error" },
-};
-
 export function RunCard({ run, queuePosition }: { run: FleetRun; queuePosition?: number }) {
   const { agentById, memberById, openAgent } = useFleet();
   const agent = agentById(run.agentId);
   const owner = memberById(run.ownerId);
   const helpers = (run.helpers ?? []).map((id) => agentById(id).name);
   const caption = runCaption(run, agent);
-  const held = caption?.held ? HELD[caption.held] : null;
+  const held = caption?.tone ? TONE_GLYPH[caption.tone] : null;
   const titleId = React.useId();
   const detailId = React.useId();
 
@@ -118,7 +112,7 @@ function describeRun({
 }) {
   const sentences: string[] = [];
   if (caption) {
-    const label = caption.held ? HELD[caption.held].label : "";
+    const label = caption.tone ? TONE_GLYPH[caption.tone].label : "";
     const said = label && !caption.text.toLowerCase().startsWith(label.toLowerCase());
     sentences.push(said ? `${label}: ${caption.text}` : caption.text);
   }

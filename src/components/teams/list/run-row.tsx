@@ -1,7 +1,6 @@
 "use client";
 
 import { motion } from "motion/react";
-import { IconAlertTriangle, IconPlayerPause, type TablerIcon } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { DURATION, EASE, LAYOUT_TRANSITION } from "@/lib/motion";
@@ -10,10 +9,10 @@ import { useFleet } from "@/components/teams/fleet/fleet-context";
 import { AgentAvatar } from "@/components/teams/fleet/agent-avatar";
 import { RUN_STATUS_META } from "@/components/teams/fleet/run-status";
 import { formatUsd } from "@/components/teams/fleet/format";
-import { runCaption, type RunCaptionTone } from "@/components/teams/list/run-caption";
+import { runCaption, TONE_GLYPH } from "@/components/teams/fleet/run-caption";
 
-// One run, one line: the agent's face, the title, the caption (run-caption.ts)
-// and, on the right, when it last moved. The whole row is the control (the
+// One run, one line: the agent's face, the title, the caption
+// (fleet/run-caption.ts) and, on the right, when it last moved. The whole row is the control (the
 // shared ghost `Button` as a grid): a click or Enter opens the agent's sheet,
 // which holds everything else, so there is nothing inside it to tab through.
 // The group header above says the status; the row does not repeat it.
@@ -42,12 +41,6 @@ const REVEAL =
 const ENTER = { duration: DURATION.normal, ease: EASE.out };
 const EXIT = { opacity: 0, transition: { duration: DURATION.exit, ease: EASE.out } };
 
-/** A stuck agent's glyph, before its reason: the only status colour on a row. */
-const TONE_GLYPH: Record<RunCaptionTone, { icon: TablerIcon; className: string }> = {
-  paused: { icon: IconPlayerPause, className: "text-warning" },
-  error: { icon: IconAlertTriangle, className: "text-destructive" },
-};
-
 const SPOKEN_STATE: Record<AgentState, string> = {
   working: "working",
   idle: "idle",
@@ -71,6 +64,7 @@ export function RunRow({ run }: { run: FleetRun }) {
   const owner = memberById(run.ownerId);
   const caption = runCaption(run, agent);
   const cost = formatUsd(run.cost);
+  // A stuck agent's glyph, before its reason: the only status colour on a row.
   const tone = caption?.tone ? TONE_GLYPH[caption.tone] : null;
 
   // Every fact the row used to show stays in its name, even the ones the

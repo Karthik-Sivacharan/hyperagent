@@ -6,9 +6,10 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { SheetDescription, SheetTitle } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { DURATION, EASE } from "@/lib/motion";
-import type { FleetAgent } from "@/lib/mock/teams";
+import type { AgentState, FleetAgent } from "@/lib/mock/teams";
 import { useFleet } from "@/components/teams/fleet/fleet-context";
 import { AgentAvatar } from "@/components/teams/fleet/agent-avatar";
+import { agentLine } from "@/components/teams/fleet/run-caption";
 import { AgentDetails } from "@/components/teams/sheet/agent-details";
 import { NeedsYouSection, RunsSection } from "@/components/teams/sheet/sheet-runs";
 import { ToneGlyph } from "@/components/teams/sheet/sheet-parts";
@@ -43,30 +44,28 @@ import { ToneGlyph } from "@/components/teams/sheet/sheet-parts";
 const TITLE = "truncate font-heading text-xl font-semibold text-foreground";
 const DESCRIPTION = "truncate text-md text-muted-foreground";
 
-const SPOKEN_STATE = { working: "Working", paused: "Paused", error: "Error" } as const;
+const SPOKEN_STATE: Record<AgentState, string> = { working: "Working", idle: "Idle", paused: "Paused", error: "Error" };
 
+// The agent's own line (fleet/run-caption.ts), the same words the run rows
+// below check against so they never repeat it.
 function StateLine({ agent }: { agent: FleetAgent }) {
+  const line = agentLine(agent);
+  const spoken = SPOKEN_STATE[agent.state];
   // Nothing to say is said to a screen reader only, so the fact the old
   // state dot carried is still in the page.
-  if (agent.state === "idle") return <p className="sr-only">Idle</p>;
-  if (agent.state === "working" && !agent.activity) return <p className="sr-only">Working</p>;
+  if (!line) return <p className="sr-only">{spoken}</p>;
 
-  const spoken = SPOKEN_STATE[agent.state];
   return (
     <p className="mt-3 flex gap-1.5 text-md text-muted-foreground">
-      {agent.state !== "working" ? (
+      {line.tone ? (
         <span className="flex h-4.5 shrink-0 items-center">
-          <ToneGlyph tone={agent.state} />
+          <ToneGlyph tone={line.tone} />
         </span>
       ) : null}
-      {agent.activity ? (
-        <span className="min-w-0">
-          <span className="sr-only">{spoken}: </span>
-          {agent.activity}
-        </span>
-      ) : (
-        <span>{spoken}</span>
-      )}
+      <span className="min-w-0">
+        {line.text === spoken ? null : <span className="sr-only">{spoken}: </span>}
+        {line.text}
+      </span>
     </p>
   );
 }

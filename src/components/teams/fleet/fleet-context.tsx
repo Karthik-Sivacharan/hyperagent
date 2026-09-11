@@ -19,9 +19,11 @@ import {
 // static mock; the provider takes it as props so a story or a test can pass
 // its own.
 //
-// `runs` is filtered; `allRuns` never is (the summary strip and the agent
-// sheet count the whole team). A query matches a run's title, id or
-// project, or its agent's name or role, case-insensitively.
+// `runs` is filtered; `allRuns` and `runsForAgent` never are, since some
+// facts belong to the whole team whatever the search: the toolbar's "8 of 24
+// runs", the board's queue order, the org chart's asks and live edges, and
+// the agent sheet. A query matches a run's title, id or project, or its
+// agent's name or role, case-insensitively.
 
 export interface FleetContextValue {
   team: Team;

@@ -46,6 +46,7 @@ export function BoardColumn({
   runs,
   searching,
   queuePositions,
+  narrow = false,
   open = true,
   onOpenChange,
 }: {
@@ -54,6 +55,8 @@ export function BoardColumn({
   /** A search is active, so an empty lane means "no match", not "nothing here". */
   searching: boolean;
   queuePositions: Map<string, number>;
+  /** Lets an open lane shrink to 208px instead of 240px (the board sets it while Done is open). */
+  narrow?: boolean;
   /** Whether a foldable lane shows its cards. */
   open?: boolean;
   /** Makes the lane foldable. */
@@ -66,8 +69,7 @@ export function BoardColumn({
 
   const label = (
     <>
-      {/* The accent is spent on Needs you alone (polish plan §3). */}
-      <RunStatusIcon status={status} className={meta.tone === "brand" ? undefined : "text-foreground-low"} />
+      <RunStatusIcon status={status} />
       <span className="text-sm font-medium text-foreground">{meta.label}</span>
       <span className="text-sm font-normal text-foreground-low tabular-nums">
         <span className="sr-only">, </span>
@@ -84,7 +86,10 @@ export function BoardColumn({
       // An open lane is `contain-inline-size`: its cards' one-line captions
       // would otherwise lend it their full width as a minimum, and the board
       // would scroll long before the lanes reached 240px.
-      className={cn("relative flex flex-col", open ? "min-w-60 max-w-80 flex-1 contain-inline-size" : "flex-none")}
+      className={cn(
+        "relative flex flex-col",
+        open ? cn("max-w-80 flex-1 contain-inline-size", narrow ? "min-w-52" : "min-w-60") : "flex-none",
+      )}
     >
       <motion.div layout="position" transition={LAYOUT_TRANSITION} className="sticky top-0 z-10 bg-background">
         {foldable ? (
@@ -101,7 +106,7 @@ export function BoardColumn({
               <IconChevronRight
                 aria-hidden="true"
                 className={cn(
-                  "size-4 text-foreground-low transition-[opacity,rotate] duration-(--duration-exit) ease-out group-hover/button:duration-(--duration-fast) group-focus-visible/button:duration-(--duration-fast)",
+                  "size-3.5 text-foreground-low transition-[opacity,rotate] duration-(--duration-exit) ease-out group-hover/button:duration-(--duration-fast) group-focus-visible/button:duration-(--duration-fast)",
                   open && "rotate-90 opacity-0 group-hover/button:opacity-100 group-focus-visible/button:opacity-100",
                 )}
               />

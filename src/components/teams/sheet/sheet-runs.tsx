@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { RUN_STATUS_ORDER, type FleetAgent, type FleetRun } from "@/lib/mock/teams";
 import { RUN_STATUS_META, RunStatusIcon } from "@/components/teams/fleet/run-status";
-import { runCaption } from "@/components/teams/sheet/run-caption";
+import { agentLine, runCaption } from "@/components/teams/fleet/run-caption";
 import {
   FOLD_CHEVRON,
   FOLD_CONTENT,
@@ -26,11 +26,14 @@ import {
 // the sentence the person came to read.
 //
 // RUNS lists the rest by status (working, queued, in review), each as the
-// neutral status glyph, the title over its caption (run-caption.ts) and when
-// it last moved. The status label is spoken, not shown: the glyph carries it
-// by eye. Done runs fold away behind "Show N done", closed every time the
-// page mounts (a new agent, or the sheet opened again), because a receipt is
-// rarely what brought someone here.
+// neutral status glyph, the title over its caption (fleet/run-caption.ts)
+// and when it last moved. A working run's caption, and a queued one's when
+// the agent is stuck, is the agent's own line, which the header already
+// shows word for word (Atlas working, Gauge paused), so here that row has no
+// caption rather than saying it twice. The status label is spoken, not
+// shown: the glyph carries it by eye. Done runs fold away behind "Show N
+// done", closed every time the page mounts (a new agent, or the sheet opened
+// again), because a receipt is rarely what brought someone here.
 //
 // Glyphs sit in a 20px box so they centre on the first line of text, not on
 // the whole row; the time shares the title's 20px line for the same reason.
@@ -70,7 +73,8 @@ export function NeedsYouSection({ runs }: { runs: FleetRun[] }) {
 }
 
 function RunLine({ run, agent }: { run: FleetRun; agent: FleetAgent }) {
-  const caption = runCaption(run, agent);
+  const own = runCaption(run, agent);
+  const caption = own && own.text === agentLine(agent)?.text ? null : own;
   const steps = spokenSteps(run);
   return (
     <li className="flex gap-3">

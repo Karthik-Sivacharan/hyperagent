@@ -1,9 +1,8 @@
 "use client";
 
 import { useId, type ReactNode } from "react";
-import { IconAlertTriangle, IconPlayerPause, type TablerIcon } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
-import type { RunCaptionTone } from "@/components/teams/sheet/run-caption";
+import { TONE_GLYPH, type RunCaptionTone } from "@/components/teams/fleet/run-caption";
 
 // The pieces every section of the agent sheet's body shares.
 //
@@ -45,15 +44,11 @@ export function SheetSection({ title, children }: { title: string; children: Rea
   );
 }
 
-// A stuck agent's glyph, before its reason, in the header's state line and
-// on a queued run's caption. The only status colour the sheet spends besides
+// A stuck agent's glyph, before its reason, in the header's state line (and
+// on a run's caption, though the sheet drops a caption that only repeats the
+// header, sheet-runs.tsx). The only status colour the sheet spends besides
 // the Needs you glyph and the spend meter's fill (plan §3); the reason
 // beside it stays muted.
-const TONE_GLYPH: Record<RunCaptionTone, { icon: TablerIcon; className: string }> = {
-  paused: { icon: IconPlayerPause, className: "text-warning" },
-  error: { icon: IconAlertTriangle, className: "text-destructive" },
-};
-
 export function ToneGlyph({ tone, className }: { tone: RunCaptionTone; className?: string }) {
   const { icon: Icon, className: toneClass } = TONE_GLYPH[tone];
   return <Icon className={cn("size-3.5 shrink-0", toneClass, className)} aria-hidden="true" />;

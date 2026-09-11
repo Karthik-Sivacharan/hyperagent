@@ -21,13 +21,17 @@ import { BoardColumn } from "@/components/teams/board/board-column";
 // scroller in both directions, like a page: the lanes grow to their cards
 // and their headers stick to the top.
 //
-// FOLDING DONE. Opening Done widens the row past the view at 1456, so the
-// board then scrolls to its end to show the whole lane (smoothly unless the
-// reader asks for less motion). Everything that moves is a `layout` node in
-// one LayoutGroup. The scroller is deliberately not `layoutScroll`: motion
-// then measures in view coordinates, so when folding Done shrinks the row
-// and the browser clamps the scroll back, the lanes slide back into place
-// instead of jumping.
+// FOLDING DONE. Done opens on a click, or by itself while a search finds a
+// run in it, as the list's groups do. While it is open every lane may shrink
+// to 208px instead of 240px, so at 1456 the five open lanes still share the
+// width (about 218px each) and Needs you stays in view. Only on a narrower
+// window does the open lane still overflow; a click then scrolls the board
+// to its end to show the whole lane (smoothly unless the reader asks for
+// less motion). Everything that moves is a `layout` node in one
+// LayoutGroup. The scroller is deliberately not `layoutScroll`: motion then
+// measures in view coordinates, so when folding Done shrinks the row and the
+// browser clamps the scroll back, the lanes slide back into place instead of
+// jumping.
 //
 // KEYBOARD. Tab walks the cards and the Done header; the arrow keys move
 // between cards: up and down within a lane, left and right to the nearest
@@ -74,9 +78,22 @@ function moveBetweenCards(event: React.KeyboardEvent<HTMLElement>) {
 export function BoardView() {
   const { runs, runsByStatus, allRuns, query } = useFleet();
   const searching = query.trim().length > 0;
-  const [doneOpen, setDoneOpen] = React.useState(false);
   const scrollerRef = React.useRef<HTMLDivElement>(null);
   const reduceMotion = useReducedMotion();
+
+  // Done's fold, as the list keeps its groups': folded outside a search
+  // unless the reader opened it; during one, open whenever it holds a match
+  // (a result behind a fold reads as no result) until the reader toggles it.
+  // The search-time choice resets each time a search starts (state adjusted
+  // during render, not in an effect).
+  const [doneOpenAtRest, setDoneOpenAtRest] = React.useState(false);
+  const [doneOpenInSearch, setDoneOpenInSearch] = React.useState<boolean | null>(null);
+  const [wasSearching, setWasSearching] = React.useState(searching);
+  if (searching !== wasSearching) {
+    setWasSearching(searching);
+    setDoneOpenInSearch(null);
+  }
+  const doneOpen = searching ? (doneOpenInSearch ?? runsByStatus.done.length > 0) : doneOpenAtRest;
 
   // The team's queue, oldest first (the mock lists each status newest first).
   // From every run, not the search result, so a search never renumbers it.
@@ -87,12 +104,14 @@ export function BoardView() {
   }, [allRuns]);
 
   const toggleDone = (open: boolean) => {
-    setDoneOpen(open);
+    if (searching) setDoneOpenInSearch(open);
+    else setDoneOpenAtRest(open);
     if (!open) return;
     // After the commit (a click's update is flushed before the next frame).
     requestAnimationFrame(() => {
       const scroller = scrollerRef.current;
-      scroller?.scrollTo({ left: scroller.scrollWidth, behavior: reduceMotion ? "auto" : "smooth" });
+      if (!scroller || scroller.scrollWidth <= scroller.clientWidth) return;
+      scroller.scrollTo({ left: scroller.scrollWidth, behavior: reduceMotion ? "auto" : "smooth" });
     });
   };
 
@@ -117,6 +136,7 @@ export function BoardView() {
               runs={runsByStatus[status]}
               searching={searching}
               queuePositions={queuePositions}
+              narrow={doneOpen}
               {...(status === "done" ? { open: doneOpen, onOpenChange: toggleDone } : {})}
             />
           ))}

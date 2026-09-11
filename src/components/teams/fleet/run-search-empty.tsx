@@ -11,8 +11,9 @@ import { focusFleetSearch } from "@/components/teams/fleet/fleet-toolbar";
 // What the Board and the List show when a search keeps no run at all: one
 // statement of the miss, what search looks at, and the way out, instead of
 // an empty lane per status or a blank list. (The org chart keeps its shape
-// under a search and says "No agents match" in its key.) Clearing puts the
-// keyboard back in the search field, since this button leaves with the miss.
+// under a search, dims the agents it did not find, and says "No agents
+// match" to screen readers.) Clearing puts the keyboard back in the search
+// field, since this button leaves with the miss.
 
 export function RunSearchEmpty() {
   const { query, setQuery } = useFleet();

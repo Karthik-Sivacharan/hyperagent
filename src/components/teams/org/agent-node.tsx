@@ -1,7 +1,5 @@
 "use client";
 
-import { IconAlertTriangle, IconPlayerPause } from "@tabler/icons-react";
-
 import {
   FlowNode,
   FlowNodeAction,
@@ -16,6 +14,7 @@ import type { FleetAgent, FleetRun } from "@/lib/mock/teams";
 import { useFleet } from "@/components/teams/fleet/fleet-context";
 import { AgentAvatar } from "@/components/teams/fleet/agent-avatar";
 import { RunStatusIcon } from "@/components/teams/fleet/run-status";
+import { TONE_GLYPH } from "@/components/teams/fleet/run-caption";
 import { accountLine, liveLine, type OrgAgentNode } from "@/components/teams/org/org-graph";
 import { cardEntranceClass, cardEntranceStyle, useOrgEntrance } from "@/components/teams/org/org-entrance";
 import { NodeTip } from "@/components/teams/org/node-tip";
@@ -38,13 +37,9 @@ import { NodeTip } from "@/components/teams/org/node-tip";
 
 function StateGlyph({ agent, asks }: { agent: FleetAgent; asks: number }) {
   if (asks > 0) return <RunStatusIcon status="needs-you" />;
-  if (agent.state === "error") {
-    return <IconAlertTriangle className="size-4 shrink-0 text-destructive" aria-hidden="true" />;
-  }
-  if (agent.state === "paused") {
-    return <IconPlayerPause className="size-4 shrink-0 text-warning" aria-hidden="true" />;
-  }
-  return null;
+  if (agent.state !== "error" && agent.state !== "paused") return null;
+  const { icon: Icon, className } = TONE_GLYPH[agent.state];
+  return <Icon className={cn("size-4 shrink-0", className)} aria-hidden="true" />;
 }
 
 function AgentTip({ agent, ownerName, asks }: { agent: FleetAgent; ownerName: string; asks: FleetRun[] }) {
