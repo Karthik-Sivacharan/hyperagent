@@ -30,8 +30,9 @@
 // two specialists. Hue is the department: research runs blue, outbound
 // rose, content green, finance gold, Atlas violet, so a branch of the org
 // chart reads as one family at a glance. No agent sits in 10-55, the band
-// the tangerine accent and the destructive red own. Monogram initials are
-// unique across the fleet (A, I, S, G, R, F, E, Q, C, M, L, T).
+// the tangerine accent and the destructive red own. Each agent wears a glyph
+// for its job (`glyph`, drawn by agent-avatar.tsx), unique across the fleet
+// and never the same silhouette twice inside one department.
 //
 // The states are chosen so every view has something to show: eight agents
 // working, two idle (Mosaic, Ledger), Gauge paused at its monthly cap, and
@@ -59,12 +60,41 @@ export interface TeamMember {
   online: boolean;
 }
 
+/**
+ * The pictogram an agent wears in its avatar, a key into agent-avatar.tsx's
+ * Tabler map. The first twelve are the fleet's jobs; the rest are abstract
+ * marks the avatar falls back on (by a hash of the id) when none was picked.
+ */
+export type AgentGlyph =
+  | "compass"
+  | "eye"
+  | "binoculars"
+  | "chart-line"
+  | "speakerphone"
+  | "list-search"
+  | "mail"
+  | "feather"
+  | "headphones"
+  | "presentation"
+  | "report-money"
+  | "credit-card-refund"
+  | "hexagon"
+  | "atom"
+  | "planet"
+  | "anchor"
+  | "cube"
+  | "diamond"
+  | "leaf"
+  | "prism";
+
 export interface FleetAgent {
   id: string;
   name: string;
   role: string;
-  /** OKLCH hue 0-360 for the monogram tint. */
+  /** OKLCH hue 0-360 for the avatar orb. */
   hue: number;
+  /** The avatar's pictogram; when absent the avatar picks a stable abstract mark from the id. */
+  glyph?: AgentGlyph;
   model: string;
   /** The agent it reports to; null = reports to the team. */
   parentId: string | null;
@@ -134,6 +164,7 @@ export const FLEET_AGENTS: FleetAgent[] = [
     name: "Atlas",
     role: "Chief of staff",
     hue: 285,
+    glyph: "compass",
     model: "Opus 5",
     parentId: null,
     ownerId: "m-priya",
@@ -152,6 +183,7 @@ export const FLEET_AGENTS: FleetAgent[] = [
     name: "Iris",
     role: "Research lead",
     hue: 220,
+    glyph: "eye",
     model: "Opus 5",
     parentId: "a-atlas",
     ownerId: "m-priya",
@@ -168,6 +200,7 @@ export const FLEET_AGENTS: FleetAgent[] = [
     name: "Scout",
     role: "Competitor watcher",
     hue: 195,
+    glyph: "binoculars",
     model: "Gemini 3.8 Flash",
     parentId: "a-iris",
     ownerId: "m-priya",
@@ -184,6 +217,7 @@ export const FLEET_AGENTS: FleetAgent[] = [
     name: "Gauge",
     role: "Market analyst",
     hue: 245,
+    glyph: "chart-line",
     model: "Fable 5.1",
     parentId: "a-iris",
     ownerId: "m-priya",
@@ -202,6 +236,7 @@ export const FLEET_AGENTS: FleetAgent[] = [
     name: "Rook",
     role: "Outbound lead",
     hue: 330,
+    glyph: "speakerphone",
     model: "Sonnet 5",
     parentId: "a-atlas",
     ownerId: "m-diego",
@@ -218,6 +253,7 @@ export const FLEET_AGENTS: FleetAgent[] = [
     name: "Finch",
     role: "Prospect researcher",
     hue: 305,
+    glyph: "list-search",
     model: "GPT 5.6 Terra",
     parentId: "a-rook",
     ownerId: "m-diego",
@@ -234,6 +270,7 @@ export const FLEET_AGENTS: FleetAgent[] = [
     name: "Echo",
     role: "Email copywriter",
     hue: 350,
+    glyph: "mail",
     model: "Sonnet 5",
     parentId: "a-rook",
     ownerId: "m-diego",
@@ -252,6 +289,7 @@ export const FLEET_AGENTS: FleetAgent[] = [
     name: "Quill",
     role: "Content lead",
     hue: 150,
+    glyph: "feather",
     model: "Opus 5",
     parentId: "a-atlas",
     ownerId: "m-diego",
@@ -268,6 +306,7 @@ export const FLEET_AGENTS: FleetAgent[] = [
     name: "Cadence",
     role: "Podcast producer",
     hue: 125,
+    glyph: "headphones",
     model: "Sonnet 5",
     parentId: "a-quill",
     ownerId: "m-diego",
@@ -284,6 +323,7 @@ export const FLEET_AGENTS: FleetAgent[] = [
     name: "Mosaic",
     role: "Deck designer",
     hue: 170,
+    glyph: "presentation",
     model: "GPT-6 Astra",
     parentId: "a-quill",
     ownerId: "m-priya",
@@ -301,6 +341,7 @@ export const FLEET_AGENTS: FleetAgent[] = [
     name: "Ledger",
     role: "Finance ops lead",
     hue: 80,
+    glyph: "report-money",
     model: "Opus 5",
     parentId: "a-atlas",
     ownerId: "m-sam",
@@ -316,6 +357,7 @@ export const FLEET_AGENTS: FleetAgent[] = [
     name: "Tally",
     role: "Refunds and disputes",
     hue: 100,
+    glyph: "credit-card-refund",
     model: "Sonnet 5",
     parentId: "a-ledger",
     ownerId: "m-sam",
