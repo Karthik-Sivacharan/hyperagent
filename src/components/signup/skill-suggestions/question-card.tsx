@@ -43,13 +43,12 @@ import { cn } from "@/lib/utils";
 //
 // `repo` and `installs` are the receipt, and they sit together at the row's
 // far edge because that is what they are: where the thing came from and how
-// many people took it. Both go in `text-label-12-mono` — brand.css reserves
-// that role for "figures and provenance", which is these two exactly — and
-// the marketplace's own install stat (`ListingStatPills`) already spells the
-// pair as a download glyph plus the count, so this is the same object twice
-// rather than a new one. The NAME stays in the sans: brand.css is explicit
-// that a label naming a thing is not a mono label, and six mono names beside
-// six sans clauses would turn a suggestion into a lockfile.
+// many people took it. Both are 12px sans, a tier down, with tabular figures
+// so the counts line up; they were `text-label-12-mono` until 2026-09-10,
+// when the user asked for one face, and the mono read wider and louder than
+// the name. The marketplace's own install stat (`ListingStatPills`) already
+// spells the pair as a download glyph plus the count, so this is the same
+// object twice rather than a new one.
 //
 // NO ACCENT, and no ring either. The screen's one tangerine is the composer's
 // send button (brand rule 3), so a tick is told in ink and tint: the row fills
@@ -227,7 +226,7 @@ function SkillRow({
       {/* The receipt. `aria-label` carries the unit the glyph carries visually,
           exactly as ListingStatPills does it, so the row's accessible name ends
           "259.3K installs" rather than a bare number. */}
-      <span className="flex min-w-0 shrink items-center gap-3 text-label-12-mono text-foreground-low">
+      <span className="flex min-w-0 shrink items-center gap-3 text-xs text-foreground-low tabular-nums">
         <span className="truncate">{skill.repo}</span>
         <span className="inline-flex shrink-0 items-center gap-1" aria-label={`${skill.installs} installs`}>
           <IconDownload className="size-3" aria-hidden="true" />

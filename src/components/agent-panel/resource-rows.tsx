@@ -296,11 +296,10 @@ export function ConnectorRows({ empty }: RowsProps = {}) {
  * that lists what was declined would be a suggestion screen, not a record of
  * this agent.
  *
- * The name is mono because it is an address, not a title: skills.sh addresses
- * this thing as `skills.sh/<repo>/<name>` and both halves are typed rather
- * than read. The shelf that offered these skills sets them the same way
- * (src/components/signup/skill-suggestions/skill-shelf.tsx), so a skill looks
- * like the same object here as it did when it was chosen.
+ * The name and the repo are in the sans, like every other row in this panel.
+ * They were mono (an address, `skills.sh/<repo>/<name>`), and the user asked
+ * for the panel to be one face on 2026-09-10: the mono ran wider and read a
+ * size larger than the 14px names beside it.
  *
  * REMOVE IS REAL, and it is the only control in this file that is. Removing a
  * skill is entirely local — the flow picked these three a minute ago, nothing
@@ -338,10 +337,9 @@ export function SkillRows({ empty }: RowsProps = {}) {
             </RowLead>
           }
           title={skill.name}
-          titleClassName="font-mono"
           // The repo is the half that truncates because it is the half a
           // reader can still place from its first few characters.
-          meta={<span className="truncate font-mono">{skill.repo}</span>}
+          meta={<span className="truncate">{skill.repo}</span>}
           menuLabel={`More actions for ${skill.name}`}
           menu={
             <>
@@ -440,10 +438,9 @@ export function SubagentRows({ empty }: RowsProps = {}) {
 }
 
 /**
- * Triggers. The detail is a repository path, so it takes the mono provenance
- * role the skill repo takes one section up — the label is the sentence a
- * person wrote ("On merge to main") and the detail is the string a machine
- * matches on, and setting the two in the same face would hide that.
+ * Triggers. The label is the sentence a person wrote ("On merge to main") and
+ * the detail is the repository it watches, one text tier down in the same
+ * face: the panel is set in the sans throughout.
  *
  * The lead glyph is a webhook rather than the bolt: the bolt is spoken for in
  * this product, it is Fast inference on the composer's thread-settings menu,
@@ -463,7 +460,7 @@ export function TriggerRows({ empty }: RowsProps = {}) {
             </RowLead>
           }
           title={trigger.label}
-          meta={<span className="truncate font-mono">{trigger.detail}</span>}
+          meta={<span className="truncate">{trigger.detail}</span>}
           menuLabel={`More actions for ${trigger.label}`}
           menu={
             <>
