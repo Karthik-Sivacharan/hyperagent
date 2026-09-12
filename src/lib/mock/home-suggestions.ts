@@ -1,7 +1,7 @@
 // "Suggested for you": the prompts the tray under the home composer offers
 // (src/components/home/suggestion-tray.tsx). Static, like the rest of
-// src/lib/mock/. The reference is the suggestion tray under Manus's composer
-// (manus.im/app, measured live 2026-09-11): a header, a refresh, a dismiss and
+// src/lib/mock/. The reference is the suggestion tray under a rival
+// general-agent app's composer (measured live 2026-09-11): a header, a refresh, a dismiss and
 // three cards, each a tool row over one line of task.
 //
 // The person they are for is the one the signup flow builds

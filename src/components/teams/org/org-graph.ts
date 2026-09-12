@@ -17,8 +17,9 @@ export const AGENT_NODE_SIZE = { width: 208, height: 56 } as const;
 export const TEAM_NODE_HEIGHT = 48;
 
 // THE SHAPE. The team, Atlas under it, the four leads in a row, and each
-// lead's specialists stacked under it (layout.ts). A specialist hangs off
-// Linear's delegate line: an elbow out of the lead's bottom edge 24px in from
+// lead's specialists stacked under it (layout.ts). A specialist hangs off the
+// delegate elbow, the shape an issue tracker draws when work is handed to
+// someone who answers to the owner: an elbow out of the lead's bottom edge 24px in from
 // its corner (clear of the 14px radius, under the avatar) that turns into the
 // specialist's left side. The turn needs room, an 8px corner and 8px of
 // straight, so a specialist sits 40px in from its lead rather than 24px (at

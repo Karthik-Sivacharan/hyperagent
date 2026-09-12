@@ -1,7 +1,7 @@
 // Tool/product logos for the small integration tiles on an agent card (a row
-// of ~24-32px square marks, like the "connected tools" strip on a Gumloop
-// agent card). Static prototype, no runtime CDN: every file below lives in
-// `public/tools/` so it ships with the app instead of depending on a
+// of ~24-32px square marks, like the "connected tools" strip on a competing
+// agent-builder's card). Static prototype, no runtime CDN: every file below
+// lives in `public/tools/` so it ships with the app instead of depending on a
 // third-party icon host at render time.
 //
 // Sources (fetched 2026-09-09):

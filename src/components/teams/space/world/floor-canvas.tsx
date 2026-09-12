@@ -2,7 +2,7 @@
 
 // The office's baked layer: floors, rugs and walls, painted once into a
 // <canvas> at 1x (one canvas px per art px) and scaled up by CSS with
-// `image-rendering: pixelated`, the way Gather draws its map. Furniture,
+// `image-rendering: pixelated`, the way 2D pixel offices draw their maps. Furniture,
 // characters and every label are DOM on top of it.
 //
 // The wall auto-tiling is a port of Pixel Agents' wallTiles.ts (the 4-bit

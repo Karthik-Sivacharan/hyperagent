@@ -17,7 +17,7 @@ import type { SceneStore } from "@/components/teams/space/scene/store";
 //           the view
 //   state   the paused or error glyph, lifted out of a tag that merged into a
 //           group, so a merge never hides that an agent is stuck
-//   dots    Gather's static "…" at the lead of a live shared run
+//   dots    the 2D-office static "…" at the lead of a live shared run
 //
 // A head has two slots: up and to the right (first), up and to the left.
 // The bubble's sharp corner points at the head. They pop in (140ms, opacity

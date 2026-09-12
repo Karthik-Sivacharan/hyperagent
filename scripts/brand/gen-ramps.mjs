@@ -28,7 +28,7 @@ const FAMILIES = {
   neutral:   { hue: 100, chroma: [0.0013, 0.0025, 0.0042, 0.0042, 0.0087, 0.0100, 0.0089, 0.0078, 0.0053, 0.0036, 0.0019] },
   // Brand orange, hue 42 (Brand --tangerine-*-oklch). Peak chroma = sRGB gamut max at L 0.67.
   tangerine: { hue: 42,  chroma: [0.012, 0.022, 0.045, 0.075, 0.160, 0.220, 0.200, 0.170, 0.115, 0.085, 0.060] },
-  // Status hues share one envelope (peak 0.16 @ 500) - below brand, above Mirendil's 0.10.
+  // Status hues share one envelope (peak 0.16 @ 500) - below brand, above the 0.10 a quieter reference system caps at.
   red:   { hue: 25,  chroma: [0.012, 0.024, 0.050, 0.085, 0.125, 0.160, 0.155, 0.135, 0.100, 0.075, 0.050] },
   green: { hue: 158, chroma: [0.012, 0.024, 0.050, 0.085, 0.125, 0.160, 0.155, 0.135, 0.100, 0.075, 0.050] },
   amber: { hue: 70,  chroma: [0.012, 0.024, 0.050, 0.085, 0.125, 0.160, 0.155, 0.135, 0.100, 0.075, 0.050] },

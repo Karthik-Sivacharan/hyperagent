@@ -32,7 +32,7 @@ import { cn } from "@/lib/utils";
 // what the actors walk on: walkable tiles, room rects, doors, seats with the
 // way they face, and where everyone starts. The stand-in characters are
 // drawn straight from the sheets in public/space/characters/ at their seed,
-// seated ones lowered as Pixel Agents lowers them, only to judge how desks
+// seated ones lowered as the sprite pack lowers them, only to judge how desks
 // and chairs overlap people; the real ones live in the office view.
 
 const SCALE = 2;
@@ -45,7 +45,7 @@ const FACING_ICON: Record<Facing, typeof IconArrowUp> = {
   right: IconArrowRight,
 };
 
-// Pixel Agents' sheet layout: 7 columns x 3 rows of 16 x 32 frames; rows face
+// The sprite pack's sheet layout: 7 columns x 3 rows of 16 x 32 frames; rows face
 // down, up, right (left mirrors right); column 1 stands, 3 types.
 const FRAME_ROW: Record<Facing, number> = { down: 0, up: 1, right: 2, left: 2 };
 

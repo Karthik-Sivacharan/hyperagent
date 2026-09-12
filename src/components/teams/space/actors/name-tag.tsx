@@ -12,8 +12,8 @@ import { TONE_GLYPH } from "@/components/teams/fleet/run-caption";
 import { Caret, FADE, Floating, INK_VARS } from "@/components/teams/space/actors/floating";
 import type { SceneStore } from "@/components/teams/space/scene/store";
 
-// Name tags (docs/plans/2026-09-11-teams-space-v1.md §3): Gather's pill in
-// the brand. 24px tall, 8px corners, `text-xs font-medium`, a caret pointing
+// Name tags (docs/plans/2026-09-11-teams-space-v1.md §3): the 2D-office name
+// pill in the brand. 24px tall, 8px corners, `text-xs font-medium`, a caret pointing
 // down at the head with its tip 4px above it, taking no pointer so the
 // character under it gets the hover and the click. The colours are the ink
 // Tooltip's (ink in light, the light pill in dark), so a tag reads as the

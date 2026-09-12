@@ -3,27 +3,30 @@
 // mock in this directory: no clock, no randomness, every relative time is a
 // pre-baked string, so the server render and the client render agree.
 //
-// WHERE THIS SHAPE COMES FROM. Three products, read on 2026-09-10
-// (docs/research/09-agent-orchestration-ux.md in the main checkout):
+// WHERE THIS SHAPE COMES FROM. Three patterns, taken off a survey of
+// agent-orchestration tools read on 2026-09-10. The survey itself, with the
+// products named, is local only: docs/research/09-agent-orchestration-ux.md in
+// the main checkout, which git ignores.
 //
-//   - Devin Desktop's Sessions board sorts work by what the human owes next
-//     (Running / Waiting for review / Done), not by agent or model. `RunStatus`
-//     is that idea with the two states Devin folds away made explicit: a run
-//     that is blocked on a person ("needs-you", Claude Code's "Needs input",
-//     Antigravity's "User Review Required") and one that has not started
+//   - A coding-agent desktop whose sessions board sorts work by what the human
+//     owes next (Running / Waiting for review / Done), not by agent or model.
+//     `RunStatus` is that idea with the two states such a board folds away made
+//     explicit: a run that is blocked on a person ("needs-you", what those
+//     tools call "needs input" or "review required") and one that has not started
 //     ("queued"). RUN_STATUS_ORDER puts the human's debt first.
 //
-//   - Linear for Agents keeps the person as the assignee when work is
-//     delegated to an agent; the agent sits nested under them. So every run
-//     carries both `agentId` (who does it) and `ownerId` (who answers for
-//     it), and every agent has an accountable `ownerId` of its own.
+//   - An issue tracker that delegates to agents keeps the person as the
+//     assignee when work is handed over; the agent sits nested under them. So
+//     every run carries both `agentId` (who does it) and `ownerId` (who answers
+//     for it), and every agent has an accountable `ownerId` of its own.
 //
-//   - Paperclip draws its agents as an org chart with titles, reporting lines
-//     and monthly budgets, and gives each one a dashboard with run activity
-//     and a success rate. `parentId`, `role`, `spend` / `budget` and `score`
-//     are those fields. `helpers` on a working run names the sub-agents it has
-//     handed work to right now, which is what the org view draws as a live
-//     edge (Relevance AI's workforce canvas animates the same handoff).
+//   - An agent-workforce product that draws its agents as an org chart with
+//     titles, reporting lines and monthly budgets, and gives each one a
+//     dashboard with run activity and a success rate. `parentId`, `role`,
+//     `spend` / `budget` and `score` are those fields. `helpers` on a working
+//     run names the sub-agents it has handed work to right now, which is what
+//     the org view draws as a live edge, the way a workforce canvas animates
+//     the same handoff.
 //
 // THE FLEET. Atlas, the chief of staff, reports to the team and routes work
 // to four leads (research, outbound, content, finance ops), each with one or

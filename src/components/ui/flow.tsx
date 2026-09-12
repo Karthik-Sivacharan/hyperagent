@@ -332,7 +332,7 @@ function FlowNodeFooter({ className, ...props }: React.ComponentProps<"div">) {
 // chart's bus: siblings share one trunk under their parent), a bezier with
 // `data.curve: "bezier"`, or an elbow with `data.curve: "elbow"`: one
 // rounded right angle, straight out of the source's side and straight into
-// the target (Linear's delegate line, from a bottom handle into a report
+// the target (the delegate elbow, from a bottom handle into a report
 // stacked below and to the right).
 //
 // Colour is a tone, not a hex: `neutral` is the hairline, `strong` the tier-3

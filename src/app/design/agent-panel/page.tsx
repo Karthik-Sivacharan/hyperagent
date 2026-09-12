@@ -18,7 +18,7 @@ export default function AgentPanelPage() {
         <Overline>Agent panel · open by default</Overline>
         <h1 className="font-heading text-2xl">The config lives here, not in three menus</h1>
         <p className="max-w-content text-muted-foreground text-sm">
-          Gumloop keeps this panel open and flat: every section visible, each with its own add
+          A competing agent builder keeps this panel open and flat: every section visible, each with its own add
           and its own &ldquo;AI managed&rdquo; state. hyperagent.com has the same information
           behind tabs and an accordion, closed on arrival — and the same model and tool list
           again in the composer&rsquo;s pill and its <span className="font-mono">+</span> menu,

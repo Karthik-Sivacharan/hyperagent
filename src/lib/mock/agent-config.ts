@@ -3,9 +3,9 @@
 //
 // WHERE THIS SHAPE COMES FROM. Two live products, read on 2026-09-10:
 //
-//   - Gumloop's agent page (gumloop.com/agents/…) keeps a ~550px panel open on
-//     the right by DEFAULT, tabbed "Agent / Settings", with a Save. Its
-//     sections are flat and always visible — Agent Preferences (model, system
+//   - A competitor's agent page keeps a ~550px panel open on the right by
+//     DEFAULT, tabbed "Agent / Settings", with a Save. Its sections are flat
+//     and always visible — Agent Preferences (model, system
 //     prompt, self-updates), Triggers, Connectors, Skills, Knowledge Sources,
 //     Subagents — and every one of them carries its own "+ Add" and its own
 //     "AI managed" state on the header row. Nothing is behind an accordion.
@@ -16,17 +16,18 @@
 //     Capabilities (17 active · 1 overriding agent) and Visual, closed on
 //     arrival and closed again on every visit.
 //
-// The panel follows Gumloop. The reason is not novelty: on hyperagent.com the
-// same model and the same tool list are ALSO reachable from the composer's
-// settings pill and its "+" menu, so the config exists twice and the copy that
-// is easiest to reach is the one that is hardest to see whole. A panel that
-// opens closed is a panel that loses that race every time, which is why the
-// duplicate menus grew in the first place. Open by default, one place.
+// The panel follows the competitor. The reason is not novelty: on
+// hyperagent.com the same model and the same tool list are ALSO reachable from
+// the composer's settings pill and its "+" menu, so the config exists twice and
+// the copy that is easiest to reach is the one that is hardest to see whole.
+// A panel that opens closed is a panel that loses that race every time, which
+// is why the duplicate menus grew in the first place. Open by default, one
+// place.
 //
-// `aiManaged` is Gumloop's idea and worth keeping: a section can be run by the
-// agent itself ("AI Discovery: ON") rather than by hand, which is the honest
-// answer to "why is this list empty" at the end of a signup flow — nothing is
-// configured yet because nothing needs to be yet.
+// `aiManaged` is the competitor's idea and worth keeping: a section can be run
+// by the agent itself ("AI Discovery: ON") rather than by hand, which is the
+// honest answer to "why is this list empty" at the end of a signup flow:
+// nothing is configured yet because nothing needs to be yet.
 
 export type ConnectorStatus = "connected" | "available";
 
@@ -59,7 +60,7 @@ export type AgentKnowledgeSource = {
 
 /**
  * A panel section's header state. `count` is the figure beside the title,
- * `aiManaged` the "AI Discovery: ON" pill Gumloop puts on the header row.
+ * `aiManaged` the "AI Discovery: ON" pill the reference puts on the header row.
  */
 export type SectionMeta = {
   id: string;

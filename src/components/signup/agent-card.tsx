@@ -141,7 +141,7 @@ export function AgentCard({
             <span className="truncate font-heading text-base leading-snug font-medium text-foreground">
               {agent.name}
             </span>
-            {/* Two lines, the measurement taken off the Gumloop tile and already
+            {/* Two lines, the measurement taken off the reference tile and already
                 used by the company card upstairs. The third line is never the one
                 that matters, and letting it exist makes a row of cards ragged. */}
             <span className="line-clamp-2 text-sm text-muted-foreground">{agent.description}</span>

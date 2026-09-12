@@ -34,7 +34,7 @@ import {
 
 // The Org chart view: who reports to whom. The team at the top, Atlas under
 // it, the four leads in a row and each lead's specialists stacked under it on
-// Linear's delegate line (org/layout.ts, org/org-graph.ts). Every node is a
+// the delegate elbow (org/layout.ts, org/org-graph.ts). Every node is a
 // small card with a face, a name, a role and at most one glyph for a person
 // being needed (org/agent-node.tsx); hairlines for "reports to" and
 // travelling dashes where a working run has handed work down right now.

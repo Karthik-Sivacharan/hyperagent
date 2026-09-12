@@ -76,7 +76,7 @@ export const FRAME_MS: Record<Pose, number> = {
 };
 
 /**
- * Where a frame stands: Pixel Agents anchors its bottom-centre on the
+ * Where a frame stands: the upstream sprite pack anchors its bottom-centre on the
  * tile's centre, so a standing frame rises 24 art px above the tile's top;
  * a typing or reading one is drawn SIT_DROP lower, into its chair.
  */

@@ -64,9 +64,9 @@ import { cn } from "@/lib/utils";
 // ---- the 480 reasoning, kept because it is the load-bearing part ----
 //
 // Corrected 2026-09-10 from 560 after measuring the reference
-// rather than trusting a remembered figure. This comment used to say "Gumloop
-// ~550"; Gumloop's panel is **477px at a 1456px viewport**, read off a live
-// agent page. It is not even a fixed width there — it is a split pane at
+// rather than trusting a remembered figure. This comment used to say the
+// reference was ~550; its panel is **477px at a 1456px viewport**, read off a
+// live agent page. It is not even a fixed width there — it is a split pane at
 // `flex: 33.898 1 0px`, so it is 33.9% of the content area and grows with the
 // window. 560 was therefore not "between the two references", it was 80px wider
 // than the one it named.
@@ -80,8 +80,8 @@ import { cn } from "@/lib/utils";
 // What it has to hold: 480 less the 2x20px gutters is 440px of content, which
 // is about 61 characters of the 14px body face in the instructions field — the
 // only control in the panel that is really prose. That is just under the 65-75
-// character band, and it is where the reference sits too: Gumloop's own
-// instructions box measures 407px inner at 14px, which is 63 characters. A
+// character band, and it is where the reference sits too: the measured
+// instructions box is 407px inner at 14px, which is 63 characters. A
 // number the live product reads comfortably at beats a band this panel was
 // never actually failing.
 //

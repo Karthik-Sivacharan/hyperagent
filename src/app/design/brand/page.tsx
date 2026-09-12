@@ -69,7 +69,7 @@ function text(name: string, weight = false): CSSProperties {
 const heading: CSSProperties = { fontFamily: v("font-heading") };
 
 const TYPE: { label: string; style?: CSSProperties; className?: string; sample: string }[] = [
-  { label: "display · heading", style: { ...text("display", true), ...heading }, sample: "Nir Eyal" },
+  { label: "display · heading", style: { ...text("display", true), ...heading }, sample: "Display heading" },
   { label: "5xl · heading", style: { ...text("5xl", true), ...heading }, sample: "Ask me anything" },
   { label: "4xl · heading", style: { ...text("4xl", true), ...heading }, sample: "Ask me anything" },
   { label: "3xl · heading", style: { ...text("3xl", true), ...heading }, sample: "Dr. Ellen Langer" },

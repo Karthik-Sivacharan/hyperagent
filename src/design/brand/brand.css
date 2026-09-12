@@ -556,7 +556,7 @@
   --mind-skilled: oklch(0.5905 0.2264 30.22);    /* #e52310 · 4.6:1 */
   --mind-expert: oklch(0.4365 0.2141 315.82);    /* #7c009e · 8.9:1 */
   --mind-master: oklch(0.5752 0.0868 248.54);    /* #4e7daa · 4.3:1 */
-  --mind-sage: oklch(0.4050 0.0966 149.88);      /* #17572b · 8.6:1 (Nir Eyal's tier) */
+  --mind-sage: oklch(0.4050 0.0966 149.88);      /* #17572b · 8.6:1 (the profile tier) */
   --mind-legendary: oklch(0.6921 0.1160 73.48);  /* #c79041 · 2.8:1 */
   --mind-eternal: oklch(0 0 0);                  /* #000000 */
 

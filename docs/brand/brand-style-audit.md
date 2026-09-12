@@ -242,7 +242,7 @@ Explore page adds: category chips (`rounded-full px-4 py-2.5 text-sm font-medium
 | `--mind-skilled` | `#e52310` | `#ff7a66` | |
 | `--mind-expert` | `#7c009e` | `#b366cc` | |
 | `--mind-master` | `#4e7daa` | `#7da3cc` | |
-| `--mind-sage` | `#17572b` | `#4a8a5c` | the tier shown on Nir Eyal's profile (`div.mind-score-icon.text-mind-sage`, leaf / orbit / circle parts) |
+| `--mind-sage` | `#17572b` | `#4a8a5c` | the tier shown on the brand site's own profile (`div.mind-score-icon.text-mind-sage`, leaf / orbit / circle parts) |
 | `--mind-legendary` | `#c79041` | `#e6b973` | |
 | `--mind-eternal` | `#000` | `#66a3b8` | |
 | `--avatar-shadow` / `--avatar-shadow-inset` | stacked umbra + white insets `.5/.4` | insets `.15/.1`, umbra `.2/.15/.1` | |
@@ -280,7 +280,7 @@ Running copy inherits **-0.24px** from a `tracking-[-0.015em]` wrapper computed 
 
 ### 10.5 The sign-in gate (design-relevant)
 
-On page load — with no interaction at all — Brand opens a **sign-in dialog** ("Sign in to continue with [avatar] Nir" · "Continue with Google" ink pill · "or" · "Continue with Email" sand pill · close ×). It is a Radix dialog: `fixed inset-0 z-50 bg-black/30 supports-backdrop-filter:backdrop-blur-sm duration-200 ease-out-quart` scrim + a `rounded-4xl` 365×338 card; `body` gets `pointer-events: none`. The profile behind it stays fully rendered (name, role "Speaker", 31K Mind badge, bio with entity chips, "Ask me about" questions, composer) but is inert. For the *Personalized Profiles* assignment this is the current baseline of "a gated wall".
+On page load — with no interaction at all — Brand opens a **sign-in dialog** ("Sign in to continue with [avatar] <the profile's name>" · "Continue with Google" ink pill · "or" · "Continue with Email" sand pill · close ×). It is a Radix dialog: `fixed inset-0 z-50 bg-black/30 supports-backdrop-filter:backdrop-blur-sm duration-200 ease-out-quart` scrim + a `rounded-4xl` 365×338 card; `body` gets `pointer-events: none`. The profile behind it stays fully rendered (name, role "Speaker", 31K Mind badge, bio with entity chips, "Ask me about" questions, composer) but is inert. For the *Personalized Profiles* assignment this is the current baseline of "a gated wall".
 
 ### 10.6 Corrections to sections 1–9
 

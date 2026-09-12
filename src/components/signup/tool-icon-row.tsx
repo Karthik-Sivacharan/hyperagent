@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 // The "what this agent touches" strip on an agent card: a short run of tool
 // marks with the rest folded into a `+N`.
 //
-// The structure is the Gumloop agent tile's, measured 2026-09-09: flat square
+// The structure is a competing agent builder's tile, measured 2026-09-09: flat square
 // tiles butted edge to edge, separated by a 1px divider, the whole run inside
 // ONE bordered, rounded group — and the `+N` is another tile in that same
 // group rather than a pill sitting next to it. That last detail is the reason

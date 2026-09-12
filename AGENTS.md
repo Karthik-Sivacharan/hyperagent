@@ -42,8 +42,8 @@ pixel proof) and `finishing-a-development-branch` (merge `--no-ff`, re-run the
 gates, drop the worktree). `frontend-design` covers the phase-2 re-skin.
 
 No browser is declared, because the right one depends on where you run: BrowserOS
-neo on a local machine, the platform's own browser on a cloud agent (Hyperagent,
-Comet and the like), a hosted session such as Browserbase otherwise, and
+neo on a local machine, the platform's own browser when you run inside a cloud
+agent or an agentic browser, a hosted session such as Browserbase otherwise, and
 `docs/reference/` alone when you have none. Whichever it is, work in your own tab
 and stay read-only on the live account. `docs/agent-setup.md` has that routing
 rule, the full map from skill to convention, the optional extras with their exact

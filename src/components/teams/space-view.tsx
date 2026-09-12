@@ -36,7 +36,8 @@ import {
 } from "@/components/teams/space/scene/world";
 
 // The Office view (docs/plans/2026-09-11-teams-space-v1.md): the fleet as a
-// place. A top-down pixel office in the spirit of Gather, departments as
+// place. A top-down pixel office in the spirit of a 2D virtual-office
+// product, departments as
 // rooms, every agent and every present person a character you can walk,
 // drag, hover and click. Same data as the other views (`useFleet()`), same
 // agent sheet.

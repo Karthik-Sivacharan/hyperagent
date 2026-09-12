@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 // object twice rather than two cards that happen to sit together: same media
 // slot, same title/subtitle pair, same corner action, same optional footer.
 //
-// Borrowed from the Gumloop agent tile (measured 2026-09-09): a flat surface
+// Borrowed from a competing agent builder's tile (measured 2026-09-09): a flat surface
 // whose separation is a hairline rather than a shadow, a title at ~500 weight
 // over a two-line clamped description, a footer row of small bordered pieces,
 // and a corner action that is fully visible at rest — that last one is worth

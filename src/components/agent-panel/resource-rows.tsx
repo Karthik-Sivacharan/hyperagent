@@ -193,12 +193,12 @@ function ConnectorMark({ toolId }: { toolId: string }) {
 /**
  * Connectors.
  *
- * CONNECTED VERSUS AVAILABLE, WITHOUT A HUE. Gumloop settles this with colour:
- * a blue Connect button on the rows that need one, a quiet tick on the rest.
- * We have no colour to spend — the panel's one accent is the Save button, and
- * a status hue as decoration is out under brand rule 3 — so the difference is
- * carried by weight, by form and by the word, three signals that all survive
- * greyscale:
+ * CONNECTED VERSUS AVAILABLE, WITHOUT A HUE. The reference panel settles this
+ * with colour: a blue Connect button on the rows that need one, a quiet tick
+ * on the rest. We have no colour to spend — the panel's one accent is the
+ * Save button, and a status hue as decoration is out under brand rule 3 — so
+ * the difference is carried by weight, by form and by the word, three signals
+ * that all survive greyscale:
  *
  *   - WEIGHT. An unconnected row carries an ink `Connect` pill, and it is the
  *     only filled control in the whole panel below the header. Ink is the
@@ -215,7 +215,7 @@ function ConnectorMark({ toolId }: { toolId: string }) {
  *
  * The tick is `text-foreground-low`, the same tier as the word beside it. The
  * hierarchy is inverted on purpose — the row that needs nothing is the quiet
- * one — which is Gumloop's arrangement done with weight instead of hue.
+ * one — which is the reference's arrangement done with weight instead of hue.
  *
  * Connect does not connect. Everything in this panel is static mock data, and
  * of the controls here only the skills' Remove is local enough to be made real

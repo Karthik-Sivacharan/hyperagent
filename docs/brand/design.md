@@ -338,7 +338,7 @@ Motion respects `prefers-reduced-motion`. Focus is a 2px solid `--ring` outline,
 
 ## 11. Voice & UX copy
 
-Write like the product reads: first-person, warm, direct. the brand site speaks as the person ("I'm Nir, author of…", "Ask me about", "Ask Nir Eyal anything…").
+Write like the product reads: first-person, warm, direct. the brand site speaks as the person it is about ("I'm <name>, author of…", "Ask me about", "Ask <name> anything…").
 
 - Sentence case everywhere except names and product names.
 - Name actions with a verb and an object (`Ask a question`, `Share profile`), never `OK` or `Submit`.

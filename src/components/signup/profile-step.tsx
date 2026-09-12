@@ -162,7 +162,7 @@ export function ProfileStep({
               </div>
             }
           >
-            {/* Clamped at two lines, the measurement taken off the Gumloop tile:
+            {/* Clamped at two lines, the measurement taken off the reference tile:
               a description that can grow to four lines makes a row of cards
               ragged, and the third line is never the one that matters. */}
             <p className="line-clamp-2 text-sm text-muted-foreground">

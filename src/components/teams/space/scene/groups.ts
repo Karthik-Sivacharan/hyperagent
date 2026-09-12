@@ -9,7 +9,7 @@ import type { ActorId, RoomId, Tile } from "@/components/teams/space/types";
 // anything else is an ad hoc chat (IconMessageCircle).
 //
 // Two characters working at their own desks never link, however close the
-// desks: a desk is where you go to be heads down (Gather's home base), and
+// desks: a desk is where you go to be heads down (the genre's home base), and
 // neighbours at their desks are not in a conversation. Walking up to a desk,
 // or dragging someone to one, is.
 

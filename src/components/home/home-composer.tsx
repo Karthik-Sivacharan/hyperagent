@@ -7,11 +7,12 @@ import { SuggestionTray } from "@/components/home/suggestion-tray";
 import { cn } from "@/lib/utils";
 
 // The home composer with its "Suggested for you" tray. The two are one frame,
-// as in the reference (manus.im/app): the composer is raised and the tray is
-// the sunken base it sits in, so the tray's fill shows in the composer's
-// rounded bottom corners and the composer's shadow falls on the tray. The
-// frame's corners are the composer's own 32px, and the composer spans it
-// edge to edge, so the frame's top half is exactly hidden behind it.
+// as in the reference (a rival general-agent app's home screen): the composer
+// is raised and the tray is the sunken base it sits in, so the tray's fill
+// shows in the composer's rounded bottom corners and the composer's shadow
+// falls on the tray. The frame's corners are the composer's own 32px, and the
+// composer spans it edge to edge, so the frame's top half is exactly hidden
+// behind it.
 //
 // `surface-secondary` is the composer's own footer strip ("Connect your
 // integrations"), so the strip and the tray read as one continuous base.

@@ -32,7 +32,7 @@ import {
 import { cn } from "@/lib/utils";
 
 // "Suggested for you": the tray under the home composer. The reference is the
-// one under Manus's composer (manus.im/app, measured live 2026-09-11): a
+// one under a rival general-agent app's composer (measured live 2026-09-11): a
 // 32px header row with the label at its start and icon buttons at its end,
 // then three cards of a tool row over the task at 13/18. Its two actions,
 // refresh and dismiss, are here as they are there. The third is ours: TUNE,
@@ -46,12 +46,12 @@ import { cn } from "@/lib/utils";
 // retry gives: they promise a different KIND of answer, and this is the same
 // list with a filter on it.
 //
-// Inside the panel, topics follow Spotify's home filter chips: "All" is on
-// until you pick a topic, picking narrows, and emptying the picks is "All"
-// again, so the panel can never be tuned into an empty topic set by accident.
-// The sources are plain switches because they are independent facts about
-// where a suggestion came from (your role, your company, your tools), not a
-// choice between them. Every control re-filters the live list behind the
+// Inside the panel, topics follow the home filter chips a music app uses:
+// "All" is on until you pick a topic, picking narrows, and emptying the picks
+// is "All" again, so the panel can never be tuned into an empty topic set by
+// accident. The sources are plain switches because they are independent facts
+// about where a suggestion came from (your role, your company, your tools),
+// not a choice between them. Every control re-filters the live list behind the
 // panel; nothing here is decoration.
 
 /** Cards per batch, and so per refresh. The reference shows three. */
@@ -268,8 +268,8 @@ function SuggestionCard({
 
 // The chip variant's resting fill is `chip`, which in dark is the popover's
 // own surface, so an unpicked topic read as bare text beside the ink of a
-// picked one. A tint keeps every option a visible pill, as Spotify's are;
-// picked stays the variant's ink.
+// picked one. A tint keeps every option a visible pill, as the reference's
+// filter chips are; picked stays the variant's ink.
 const TOPIC_CHIP = "bg-tint-10 hover:bg-tint-15";
 
 function TunePanel({ tuning, onTune }: { tuning: Tuning; onTune: (next: Tuning) => void }) {

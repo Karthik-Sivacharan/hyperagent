@@ -1,4 +1,4 @@
-# Agent panel consolidation: what following Gumloop costs
+# Agent panel consolidation: what following the competitor costs
 
 > **Status:** audit. No code changed. The decision — the right-hand panel opens
 > by default, flat and tabbed, and becomes the one place the agent is
@@ -12,7 +12,7 @@ on every visit; the menus are one click from the text box. The menus win, so
 the configuration that should be seen whole is only ever seen in slices — and
 because the panel loses that race, the menus keep growing (the 2026-09-07 live
 re-sweep found the `+` menu had grown an Integrations sub-menu of its own,
-`docs/components.md:93`). Gumloop's agent page does the opposite: ~550px open
+`docs/components.md:93`). A competitor's agent page does the opposite: ~550px open
 by default, tabs "Agent / Settings", Save top-right, every section flat and
 always visible with its own `+ Add` and its own "AI managed" toggle.
 
@@ -101,7 +101,7 @@ work.
 
 **Model is genuinely contested, and it gets the one exception.**
 
-The case for the panel: Gumloop puts it in Agent Preferences; our own
+The case for the panel: the competitor puts it in Agent Preferences; our own
 `AGENT_CONFIG.model` is the record's first field and `PANEL_SECTIONS[0]` is
 "Model & compute"; and the panel is the only surface that can show the model
 next to the reasoning effort, the 2x cost multiplier and the instructions that
@@ -203,7 +203,7 @@ Verified against the current tree.
 | 1 | finds the sources, the primitives, the patterns and the dumps | `:86-91` | **Safe.** Asserts `primitives.length > 20` (29 today) and `patterns.length > 0`. Only a deletion under `ui/` threatens it |
 | 2 | imports `radix-ui` and `cmdk` only under `src/components/ui/` | `:93-100` | **At risk.** A tabbed, sticky-header, 550px panel invites a direct Radix import in `src/components/thread/`. `Tabs` already exists in `ui/`; `RadioGroup` and `Progress` do not (`docs/components.md:87`) |
 | 3 | renders no raw `button` / `input` / `textarea` / `select` / `label` outside `ui/` | `:102-121` | **At risk, and the likeliest failure.** A panel is mostly form: seven section headers with `+ Add` buttons, "AI managed" toggles, a Save, field labels. The only legal raw element is the rendered child of an `asChild` primitive (`:72-83`) |
-| 4 | keeps the prototype copies retired | `:123-129` | **Safe**, unless someone resurrects `src/design/brand/ui/accordion.tsx` for the panel. They should not need to: Gumloop's sections are flat, so the consolidation *removes* the need for an accordion primitive that `ui/` has never had |
+| 4 | keeps the prototype copies retired | `:123-129` | **Safe**, unless someone resurrects `src/design/brand/ui/accordion.tsx` for the panel. They should not need to: the competitor's sections are flat, so the consolidation *removes* the need for an accordion primitive that `ui/` has never had |
 | 5 | reads the slots the live site emits (`seen.size > 50`) | `:142-144` | **Safe.** The union across `docs/reference/pages` and `overlays` is 58, and **zero `data-slot` values are unique to the seven `composer-*.html` dumps** — deleting them all would leave `seen` at 58. Gate-safe; still a bad idea, per the divergence note above |
 | 6 | defines every `data-slot` in the dumps under `ui/` or `patterns/` | `:146-149` | **Safe, and worth stating plainly because it is the obvious worry:** removing a composer menu cannot break this lock. `seen` is read from the dumps (unchanged) and `defined` from `src/components/ui/**` and `src/components/patterns/**` — `src/components/composer/` is in neither set. `dropdown-menu-*`, `switch`, `overline` and `tooltip-*` keep their definitions in `ui/` whether or not the composer still renders them. It breaks only if a *primitive* is deleted as newly-unused; `Switch` and `Overline` both have other callers (`patterns/show-archived-switch.tsx`, the settings headings), so neither is |
 | 7 | gives every primitive under `ui/` a `data-slot` | `:151-154` | **At risk only through carelessness** — any new panel primitive must name its slot |
@@ -308,12 +308,12 @@ before the panel section that replaces it exists in the same commit.
    exception in §2 stops being an exception, which would dissolve the rule.
    This is the question everything else depends on.
 
-2. **Does the panel Save, or apply immediately?** Gumloop has a Save top-right;
+2. **Does the panel Save, or apply immediately?** The competitor has a Save top-right;
    menus apply on click. A Save introduces a dirty state, an unsaved-changes
    guard and a discard — a surface this repo has never built. Auto-apply keeps
    the current semantics and drops a button that is on the reference.
 
-3. **Skills: one place or two?** Gumloop has no per-message skill attach;
+3. **Skills: one place or two?** The competitor has no per-message skill attach;
    hyperagent's `+` menu does, over the same fifteen names
    (`add-menu.tsx:41-57`). The panel owning installation is clear. Whether the
    composer keeps an attach-for-this-turn picker is a product call, and it is

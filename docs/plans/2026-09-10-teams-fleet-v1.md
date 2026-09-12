@@ -6,27 +6,30 @@ Branch `feat/teams-fleet`, worktree `.claude/worktrees/teams-fleet`, dev server 
 
 `/teams` today is an empty state ("You're not on any teams yet"). v1 turns it into one populated team, **Growth Ops**, whose fleet of named agents and their runs can be seen three ways:
 
-1. **Board**: kanban of runs, columns keyed to what the human owes next (Devin Desktop's Sessions board, Vibe Kanban's cards, Linear's owner-plus-delegated-agent).
-2. **List**: the same runs grouped by status, dense rows, collapsible groups (Claude Code agent view's Needs input / Working / Completed, GitHub mission control's rows with outcomes, Codex's inbox).
-3. **Org chart**: the hierarchy of the team: team at the top, the orchestrator agent, lead agents, specialist sub-agents, each node a small profile card; live delegation drawn as animated edges (Paperclip's org chart, Relevance AI's workforce canvas). Built on React Flow (`@xyflow/react`) through our own `ui/flow.tsx` primitives modelled on Vercel AI Elements' workflow components (Canvas, Node, Edge, Controls, Panel).
+1. **Board**: kanban of runs, columns keyed to what the human owes next (a coding-agent desktop's sessions board, a kanban whose cards carry live agent state, an issue tracker's owner with the delegated agent nested under).
+2. **List**: the same runs grouped by status, dense rows, collapsible groups (an agent console's Needs input / Working / Completed, a mission-control view whose rows end in an outcome, an agent inbox's groups).
+3. **Org chart**: the hierarchy of the team: team at the top, the orchestrator agent, lead agents, specialist sub-agents, each node a small profile card; live delegation drawn as animated edges (an agent-workforce product's org chart and its workforce canvas). Built on React Flow (`@xyflow/react`) through our own `ui/flow.tsx` primitives modelled on Vercel AI Elements' workflow components (Canvas, Node, Edge, Controls, Panel).
 
 Clicking any agent (card avatar, row, node) opens an **agent sheet** (profile, budget, score, current runs, sub-agents). The old empty state stays reachable at `/teams?state=empty`.
 
 This is v1: static mock data, no persistence, no drag and drop. Make it look and move like a shipped product.
 
-## Reference screenshots (Read these before designing your part)
+## Reference material (Read this before designing your part)
 
-`SHOTS=/private/tmp/claude-501/-Users-karthiksivacharan-Projects-hyperagent/f01e62d4-6c38-43b4-a2da-730dc1f2e425/scratchpad`
+The survey, the six recurring patterns and the screenshots behind them live in
+the git-ignored research folder: `docs/research/09-agent-orchestration-ux.md` in
+the main checkout (`/Users/karthiksivacharan/Projects/hyperagent/docs/research/`),
+with the images beside it. That file names the products it read. This plan
+describes the patterns only, and the table below says which pattern each part of
+`/teams` is answering.
 
-| Part | Look at |
+| Part | The pattern to study |
 |---|---|
-| Board | `$SHOTS/publish/img/devin.jpg` (Running / Waiting for review / Done), `$SHOTS/publish/img/vibekanban.jpg` (cards with live agent state + diff), `$SHOTS/publish/img/linear.jpg` (owner with delegated agent nested under), `$SHOTS/publish/img/antigravity.jpg` (running glow) |
-| List | `$SHOTS/publish/img/claudeview.jpg` (grouped triage), `$SHOTS/publish/img/agenthq.jpg` (rows with outcome), `$SHOTS/publish/img/codex.jpg` (inbox groups) |
-| Org chart | `$SHOTS/publish/img/paperclip.jpg` (org chart), `$SHOTS/publish/img/relevance.jpg` (named agents on a canvas), `$SHOTS/img/paperclip-dash.jpg` (per-agent page) |
-| Agent sheet | `$SHOTS/img/paperclip-dash.jpg` (agent profile with run charts), `$SHOTS/publish/img/oz.jpg` (run receipt pane), `$SHOTS/publish/img/vibekanban.jpg` (side panel) |
-| Presence | `$SHOTS/publish/img/conductor.jpg`, `$SHOTS/publish/img/openclaw.jpg` (avatars on work, online roster) |
-
-Research notes and the six recurring patterns: `docs/research/09-agent-orchestration-ux.md` in the main checkout (`/Users/karthiksivacharan/Projects/hyperagent/docs/research/`).
+| Board | A coding-agent desktop's sessions board (Running / Waiting for review / Done); a kanban whose cards carry live agent state and a diff; an issue tracker showing the owner with the delegated agent nested under; a glow on the card that is running |
+| List | Grouped triage in an agent console; rows that end in an outcome; an inbox grouped by what it is waiting on |
+| Org chart | An agent-workforce product's org chart, its named agents laid out on a canvas, and its per-agent dashboard |
+| Agent sheet | That same per-agent dashboard (profile with run charts); a run receipt pane; a kanban's side panel |
+| Presence | Avatars parked on the work they are doing, and an online roster |
 
 ## Rules that apply to every agent
 

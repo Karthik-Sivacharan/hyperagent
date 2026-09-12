@@ -56,7 +56,7 @@ a routing rule rather than a dependency. Take the first row that applies:
 | Where you run | Use |
 |---|---|
 | A local machine (macOS, Linux, Windows) | **BrowserOS neo** — a desktop app that registers its own MCP server on `http://127.0.0.1:9010/mcp` and holds the live login |
-| A cloud agent platform with its own browser (Hyperagent, Perplexity Comet, Claude in Chrome, and the like) | **That platform's browser.** It is already signed in and already sandboxed; do not install a second one |
+| A cloud agent platform with a browser of its own, or an agentic browser you are already running inside | **That platform's browser.** It is already signed in and already sandboxed; do not install a second one |
 | A cloud runtime or CI with no browser of its own | **A hosted session** — Browserbase, or Playwright/Chromium in the sandbox. You have to handle the login yourself, so prefer the row above |
 | Nothing with a browser | **Do not guess at the live site.** `docs/reference/` holds a DOM dump per page, the compiled CSS and `overlays/` with every captured menu and dialog. Work from those, and say plainly in your report that the live check was skipped |
 

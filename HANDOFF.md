@@ -18,27 +18,30 @@ this first in a new session, then `README.md`, `docs/components.md`,
 worktree `.claude/worktrees/teams-space`; plan, contract and file ownership
 in `docs/plans/2026-09-11-teams-space-v1.md`; the map of its files is
 `docs/components.md` §2, "/teams office"). The team is a top-down pixel
-office in the spirit of Gather: departments are rooms off one hall, every
-agent and every present person is a character, and you walk, drag, hover
-and click them. Same data (`useFleet()`), same agent sheet. A prototype: no
+office in the spirit of a 2D virtual-office product: departments are rooms
+off one hall, every agent and every present person is a character, and you
+walk, drag, hover and click them. Same data (`useFleet()`), same agent sheet.
+A prototype: no
 backend, and nothing persists.
 
 **Decisions.**
 - No game engine. Floors, rugs and walls bake once into a `<canvas>`, as
-  Gather does; furniture and characters are DOM sprites y-sorted by
+  such products do; furniture and characters are DOM sprites y-sorted by
   `z-index` in the map's one stacking context; tags, bubbles and cards are
   DOM chrome at their natural size. No dependency, no `ssr: false`, and
   every character is a real `Button` whose name says everything drawn
   around it, so Tab and screen readers work as on the other views. PixiJS
   behind a `ui/` primitive is the way out if the scene ever needs zoom or
   hundreds of sprites.
-- Licence-clean art (`public/space/CREDITS.md`): Pixel Agents v1.4.1 (MIT)
-  for walls, floors, rugs, plants and the people, and its BFS, wall
-  auto-tiling and colorize, each file carrying the MIT notice; Antea's Free
-  Office Furniture Set (CC BY 4.0, credited) for the desks and the modern
-  pieces. Agents are robots palette-swapped from the Pixel Agents sheets by
+- Licence-clean art. Every pack, author and licence is named once, in
+  `public/space/CREDITS.md`, and nowhere else: an MIT sprite pack for walls,
+  floors, rugs, plants and the people, plus its BFS, wall auto-tiling and
+  colorize, each ported file carrying the MIT notice; a CC BY 4.0 office
+  furniture set for the desks and the modern pieces. Agents are robots
+  palette-swapped from the people sheets by
   `scripts/space/make-agent-sprites.mjs`, each body in its orb hue. Nothing
-  from Gather, LimeZu, Donarg or the other office packs.
+  was taken from the virtual-office products themselves, and CREDITS.md lists
+  the packs that were deliberately not used.
 - The seed is a moment in time (`world/seed.ts`): the week 37 growth review
   (RUN-224, Atlas with Iris, Rook and Quill) sits round the meeting table,
   so a meeting room means a live multi-agent run; everyone else works at
@@ -103,11 +106,11 @@ now Needs you, Runs, Details (folded). One caption rule: `fleet/run-caption.ts`.
 **Avatars.** An agent is a rounded square holding Hyperagent's own orb (the
 tile `app/agent-orb.tsx` draws for agent templates) in its hue, with a
 Tabler glyph for its role; a person is initials in a neutral circle, so the
-two never read alike at 20px. notion-avatar and Avatartion draw human
-faces, molt.avatars and unabotter mint theirs on a server, and Gravatar is a
-remote call. State dot, turning orb and presence ring are opt-in
+two never read alike at 20px. The avatar libraries that were compared and
+rejected draw human faces, mint theirs on a server, or need a remote call.
+State dot, turning orb and presence ring are opt-in
 (`showState`, `live`, `showPresence`); /teams sets none. The comparison
-sheets stayed in the session scratchpad, not the repo.
+sheets and the names stayed in the session scratchpad, not the repo.
 
 **Rough edges.**
 - `layout.ts` stacks a lead only when all its reports are leaves; a deeper
@@ -243,7 +246,7 @@ data: `FleetProvider` already takes `team`, `agents` and `runs` as props.
   conversation does not" below.
 - **The agent panel is 448 and the profile CTA reads "Find agents for me"
   (2026-09-10).** `fix/panel-width`. The width was 560 on a remembered figure
-  ("Gumloop ~550"); Gumloop measures 477 at 1456 and is proportional, not
+  (the reference was "~550"); it measures 477 at 1456 and is proportional, not
   fixed. Going under 480 then needed a bug fixed, not a number changed — see
   the panel-width paragraphs under "The signup flow". The CTA said
   "Hyperpersonalize my onboarding", which named the mechanism; it now names
@@ -272,7 +275,7 @@ data: `FleetProvider` already takes `team`, `agents` and `runs` as props.
 - **Two design pages carry work that is built but not fully wired**:
   `/design/skill-suggestions` (three ways to offer skills; variant A is now in
   the stream, B and C are one import away) and
-  `/design/agent-panel` (the Gumloop-shaped agent config panel, with its
+  `/design/agent-panel` (the competitor-shaped agent config panel, with its
   consolidation audit at `docs/plans/2026-09-10-agent-panel-consolidation.md`).
   Both are described under "The signup flow".
 - **The artifact workspace is built but not wired (2026-09-10,
@@ -328,13 +331,13 @@ node scripts/dev/contact-sheet.mjs out/light out/sheet-light.png "main"
   ships. So the 17-route pixel comparison now differs on home by design, and
   the account menu differs wherever it is opened.
 - **The home composer has a "Suggested for you" tray (2026-09-11,
-  `feat/suggestion-tray`).** Modelled on the tray under Manus's composer
-  (manus.im/app, measured live, read-only): the composer sits raised in a
+  `feat/suggestion-tray`).** Modelled on the tray under a rival
+  general-agent app's composer (measured live, read-only): the composer sits raised in a
   sunken frame (`home-composer.tsx`), and the tray (`suggestion-tray.tsx`)
   shows three cards (tool marks or a glyph, an up-left arrow, the task at
   13/18) with refresh, dismiss and a third action of ours, Tune (a gear;
   sliders is the thread-settings pill just above, and no sparkles). Tune is a
-  popover: topics as Spotify-style filter chips ("All" until you pick) and
+  popover: topics as filter chips of the kind a music app uses ("All" until you pick) and
   three "based on" switches (role, company, tools). Every control filters
   the real list (`src/lib/mock/home-suggestions.ts`, 15 prompts for the
   signup persona, each tagged with a topic and a source); refresh walks it
@@ -495,7 +498,7 @@ a brief → and on send, the app shell arrives around the conversation. It is a
 demo of hyper-personalized onboarding, and the first UI in this repo invented
 rather than cloned, so `docs/reference/` has no ground truth for the flow as a
 whole; the individual blocks inside it do, and each one names its dump below.
-The design references were Gumloop's agent tiles and hyperagent.com's own
+The design references were a competing agent builder's tiles and hyperagent.com's own
 thread column, both measured live rather than eyeballed.
 
 **Nothing authenticates.** `src/lib/mock/signup-identity.ts` is the whole
@@ -720,13 +723,13 @@ hyperagent.com puts the same agent configuration in three places — the
 composer's `+` menu, the composer's settings pill, and a right panel at
 `?panel=settings` that opens CLOSED behind tabs and an accordion — so the
 menus win and the configuration that should be read whole is only read in
-slices. This follows Gumloop instead: a 448px panel open by default, sections
+slices. This follows the competitor instead: a 448px panel open by default, sections
 flat and always visible, each with its own `+ Add` and its own AI-managed
 state on the header row. Model & compute, Skills, Connectors, Knowledge
 sources, Subagents, Triggers, Autonomy & safety, in that order. **480 is
 corrected from 560 (2026-09-10), after measuring the reference instead of
-trusting the figure written down here.** The old comment claimed "Gumloop
-~550"; Gumloop's panel is 477px at a 1456px viewport, and it is not a fixed
+trusting the figure written down here.** The old comment claimed the
+reference was ~550; its panel is 477px at a 1456px viewport, and it is not a fixed
 width at all but a split pane at `flex: 33.898 1 0px` — 33.9% of the content
 area. 560 was 80px wider than the reference it named. Kept as a fixed number
 rather than a percentage because the width is already clamped from both
@@ -797,7 +800,7 @@ without animating, which is what it was written for.
 - `FoundCard` is the shell both record cards wear. `AgentCard` reuses its look
   (same tint, padding, rim light) but NOT the component: FoundCard's row is
   media + title + subtitle + corner action and an agent has none of those.
-- The tool-logo row follows Gumloop's measured structure: one bordered group
+- The tool-logo row follows the reference's measured structure: one bordered group
   with `divide-x` between chrome-less tiles, the `+N` as another tile inside
   that group, not a detached pill.
 - Logos prefer the ~29 already in `settings/integration-logos.tsx` (already on

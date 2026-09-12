@@ -99,7 +99,7 @@ So:
   should drop to one column anyway. One number does both jobs.
 - `PANEL_MIN = 440` — already in `agent-panel.tsx`, unchanged.
 - `PANEL_REST = 560`, `PANEL_MAX = 720` — unchanged at the time of this plan.
-  **`PANEL_REST` became 480 later the same day**, after Gumloop was measured
+  **`PANEL_REST` became 480 later the same day**, after the reference panel was measured
   rather than remembered (477 at 1456, and proportional at that). See the WIDTH
   note in `agent-panel.tsx`. The fit test is unaffected: it keys off `PANEL_MIN`.
 - `GUTTER = 20` — `px-5`, restored on both sides.

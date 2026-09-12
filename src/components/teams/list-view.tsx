@@ -13,7 +13,7 @@ import { RunGroup } from "@/components/teams/list/run-group";
 // The List view of /teams: triage. Every run the search keeps, one line
 // each, grouped by status in RUN_STATUS_ORDER, so the list opens on what the
 // human owes (Needs you) and ends on what is finished (Done, folded by
-// default). Claude Code's agent view gave the shape: a plain group label,
+// default). An agent console's run view gave the shape: a plain group label,
 // then rows of who, what and one line of state, with the time on the right.
 // Everything else about a run is one interaction deeper: on hover in the
 // row's reserved right cluster, and in the agent sheet a click opens.

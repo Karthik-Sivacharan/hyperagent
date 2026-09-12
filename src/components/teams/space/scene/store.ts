@@ -40,7 +40,7 @@ import {
 //
 // SPACE. One coordinate system: px = tile * TILE * scale. A character's tile
 // is where it stands; its sprite (FRAME, a tile wide and two tall) is drawn
-// as Pixel Agents draws it, bottom-centre on the tile's centre (seated a
+// as the upstream sprite pack draws it, bottom-centre on the tile's centre (seated a
 // little lower), and its z-index is the tile's bottom edge in px, which
 // interleaves it with the furniture (whose z-index is its own bottom edge).
 
