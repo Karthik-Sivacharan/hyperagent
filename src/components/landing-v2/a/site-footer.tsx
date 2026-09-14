@@ -1,0 +1,64 @@
+import Link from "next/link";
+
+import { Mark } from "@/components/brand/mark";
+import { Overline } from "@/components/ui/overline";
+
+import { FOOTER, LINKS, type LandingLink } from "./content";
+
+// A footer link: 14px on the second tier, lifting to the first on hover. On
+// a phone each row is 44px tall (a thumb); beside a pointer it drops to 28.
+const LINK_CLASS =
+  "inline-block py-3 text-sm text-muted-foreground transition-colors duration-(--duration-fast) ease-out-quart hover:text-foreground md:py-1";
+
+// In-page links are plain anchors; routes go through next/link.
+function FooterLink({ link }: { link: LandingLink }) {
+  if (link.href.startsWith("#")) {
+    return (
+      <a href={link.href} className={LINK_CLASS}>
+        {link.label}
+      </a>
+    );
+  }
+  return (
+    <Link href={link.href} className={LINK_CLASS}>
+      {link.label}
+    </Link>
+  );
+}
+
+// The footer continues the closing band's dark ground under one hairline,
+// as in v1: the wordmark, then a caps label over each group of links. Every
+// link points at a section on this page or at a route that exists.
+export function SiteFooter() {
+  return (
+    <footer className="dark bg-background px-4 text-foreground sm:px-6">
+      <div className="mx-auto grid max-w-6xl gap-10 border-t border-border-subtle py-12 sm:grid-cols-2 lg:grid-cols-4">
+        <Link
+          href={LINKS.home.href}
+          className="flex items-center gap-2 self-start rounded-md text-base font-semibold text-foreground"
+        >
+          <Mark size={20} />
+          {LINKS.home.label}
+        </Link>
+        {FOOTER.groups.map((group) => (
+          <nav
+            key={group.title}
+            aria-label={group.title}
+            className="flex flex-col gap-2"
+          >
+            <Overline asChild>
+              <p>{group.title}</p>
+            </Overline>
+            <ul role="list" className="flex flex-col">
+              {group.links.map((link) => (
+                <li key={link.href}>
+                  <FooterLink link={link} />
+                </li>
+              ))}
+            </ul>
+          </nav>
+        ))}
+      </div>
+    </footer>
+  );
+}
