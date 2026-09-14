@@ -19,22 +19,35 @@ import { TwoToneText } from "./section";
 // and drop to the brand's 40px large button beside a pointer.
 export function Hero() {
   return (
-    <section aria-labelledby="hero-heading" className="px-4 pt-16 pb-20 sm:px-6 md:pt-24 md:pb-28">
+    <section
+      aria-labelledby="hero-heading"
+      className="px-4 py-16 sm:px-6 md:py-24"
+    >
       <div className="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
         <div className="flex flex-col items-start gap-6">
-          <h1 id="hero-heading" className="text-heading-display text-balance text-foreground">
+          <h1
+            id="hero-heading"
+            className="text-heading-display text-balance text-foreground"
+          >
             <TwoToneText heading={HERO.heading} />
           </h1>
-          <p className="max-w-xl text-lg text-pretty text-muted-foreground">{HERO.lede}</p>
+          <p className="max-w-xl text-lg text-pretty text-muted-foreground">
+            {HERO.lede}
+          </p>
           <div className="flex flex-wrap items-center gap-3">
             <Button asChild size="lg" className="h-11 md:h-10">
               <Link href={LINKS.start.href}>{LINKS.start.label}</Link>
             </Button>
-            <Button asChild size="lg" variant="outline" className="h-11 md:h-10">
+            <Button
+              asChild
+              size="lg"
+              variant="outline"
+              className="h-11 md:h-10"
+            >
               <a href={LINKS.tour.href}>{LINKS.tour.label}</a>
             </Button>
           </div>
-          <p className="text-md text-foreground-low">{HERO.fine}</p>
+          <p className="text-md text-pretty text-foreground-low">{HERO.fine}</p>
         </div>
         <AssetSlot asset={HERO.asset} className="aspect-4/3 w-full" />
       </div>
@@ -47,7 +60,10 @@ export function Hero() {
           <AssetSlot asset={HERO.proof.logos} variant="logos" />
         </div>
         <p className="text-sm text-muted-foreground">
-          <strong className="font-strong text-foreground tabular-nums">{HERO.proof.figure}</strong> {HERO.proof.caption}
+          <strong className="font-strong text-foreground tabular-nums">
+            {HERO.proof.figure}
+          </strong>{" "}
+          {HERO.proof.caption}
         </p>
       </div>
     </section>

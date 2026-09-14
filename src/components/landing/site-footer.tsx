@@ -51,7 +51,7 @@ export function SiteFooter() {
             <Overline asChild>
               <p>{group.title}</p>
             </Overline>
-            <ul className="flex flex-col">
+            <ul role="list" className="flex flex-col">
               {group.links.map((link) => (
                 <li key={link.href}>
                   <FooterLink link={link} />

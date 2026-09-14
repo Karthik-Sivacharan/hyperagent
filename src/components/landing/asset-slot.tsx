@@ -18,7 +18,11 @@ type AssetSlotProps = {
 // the brand skeleton (a tint that pulses, and holds still under reduced
 // motion), named for what will replace it. `data-asset` is the id the next
 // phase searches for; the asset's brief lives with its copy in content.ts.
-export function AssetSlot({ asset, variant = "frame", className }: AssetSlotProps) {
+export function AssetSlot({
+  asset,
+  variant = "frame",
+  className,
+}: AssetSlotProps) {
   return (
     <div
       role="img"
@@ -30,7 +34,9 @@ export function AssetSlot({ asset, variant = "frame", className }: AssetSlotProp
         className,
       )}
     >
-      {variant === "frame" || variant === "bare" ? <Skeleton className="flex-1 rounded-xl" /> : null}
+      {variant === "frame" || variant === "bare" ? (
+        <Skeleton className="flex-1 rounded-xl" />
+      ) : null}
       {variant === "lines" ? (
         <div className="flex flex-col gap-2.5">
           <Skeleton className="h-4 w-full" />

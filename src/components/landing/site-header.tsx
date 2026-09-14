@@ -13,13 +13,25 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-(--z-sticky) border-b border-border-subtle bg-surface-secondary/85 px-4 backdrop-blur-glass sm:px-6">
       <div className="mx-auto flex h-16 max-w-6xl items-center gap-6">
-        <Link href={LINKS.home.href} className="flex items-center gap-2 rounded-md text-base font-semibold text-foreground">
+        <Link
+          href={LINKS.home.href}
+          className="flex items-center gap-2 rounded-md text-base font-semibold text-foreground"
+        >
           <Mark size={20} />
           {LINKS.home.label}
         </Link>
-        <nav aria-label={A11Y.mainNav} className="hidden flex-1 items-center gap-1 md:flex">
+        <nav
+          aria-label={A11Y.mainNav}
+          className="hidden flex-1 items-center gap-1 md:flex"
+        >
           {NAV.map((item) => (
-            <Button key={item.href} asChild variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
+            <Button
+              key={item.href}
+              asChild
+              variant="ghost"
+              size="sm"
+              className="text-muted-foreground hover:text-foreground"
+            >
               <a href={item.href}>{item.label}</a>
             </Button>
           ))}

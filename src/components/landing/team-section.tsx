@@ -11,7 +11,9 @@ import { LandingSection } from "./section";
 // Every panel stays mounted and they all share one grid cell, so the column
 // keeps the height of its tallest list and the quote under it never moves
 // when a tab changes. An inactive panel is `invisible`: it takes no clicks,
-// no focus and no place in the accessibility tree.
+// no focus and no place in the accessibility tree. The active panel is a tab
+// stop (it holds no control of its own), so it gets the page's focus outline
+// back: the primitive clears it, and a stop nobody can see is a trap.
 export function TeamSection() {
   const { section, departments, quote, roster } = TEAM;
   return (
@@ -32,9 +34,12 @@ export function TeamSection() {
                   key={department.value}
                   value={department.value}
                   forceMount
-                  className="col-start-1 row-start-1 data-[state=inactive]:invisible"
+                  className="col-start-1 row-start-1 rounded-md focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-solid focus-visible:outline-ring data-[state=inactive]:invisible"
                 >
-                  <ul className="flex flex-col divide-y divide-border-subtle border-y border-border-subtle">
+                  <ul
+                    role="list"
+                    className="flex flex-col divide-y divide-border-subtle border-y border-border-subtle"
+                  >
                     {department.jobs.map((job) => (
                       <li key={job} className="py-3 text-base text-foreground">
                         {job}
