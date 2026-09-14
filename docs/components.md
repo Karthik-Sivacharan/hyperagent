@@ -52,7 +52,7 @@ Live evidence comes from the 2026-09-07 sweep of hyperagent.com (the DOM dumps u
 | `Select` family (10 exports) | `select.tsx` | `SelectTrigger` `variant` outline (the Button outline look) / tint (the toolbar pill), `size` sm (32px) / default (36); content `position="popper"`, `sideOffset` 4; the item indicator in the accent | `select-trigger[role=combobox]`, `select-value`, `select-content[role=listbox]`, `select-item[role=option]`, `select-item-indicator`, `select-group`, `select-label`, `select-separator`: the four library selects, the skills sort, the Live-mode dialog | library, skills |
 | `Separator` | `separator.tsx` | `orientation`, `decorative`; `bg-border-subtle` | `div[data-slot=separator][role=separator]` in the expanded learning rows and the projects card | workspace, `ui/flow` (the learning and projects states are still not cloned, §4) |
 | `Sheet` family (8 exports) | `sheet.tsx` | `side` top / right / bottom / left; `showCloseButton` | none on the live site | teams (the agent sheet) |
-| `Skeleton` | `skeleton.tsx` | none; `animate-skeleton` on `bg-tint-10` | none on the live site | none yet |
+| `Skeleton` | `skeleton.tsx` | none; `animate-skeleton` on `bg-tint-10` | none on the live site | landing (every placeholder, through AssetSlot) |
 | `Switch` | `switch.tsx` | `size` default (18×32) / sm (14×24, the thread-settings Fast inference row); `data-size` | `button[role=switch][data-slot=switch]` + `switch-thumb`: thread settings, memories filters, projects, library | composer, patterns (`ShowArchivedSwitch`) |
 | `Tabs`, `TabsList`, `TabsTrigger`, `TabsContent` | `tabs.tsx` | `TabsList` `variant` default (pill track) / line (underline); `orientation` | `tabs`, `tabs-list[role=tablist]`, `tabs-trigger[role=tab]`, `tabs-content` on /skills and /memories | memories, skills |
 | `Textarea` | `textarea.tsx` | `variant` default (`rounded-xl` field) / bare (the composer editor); `data-variant` | `data-slot=textarea` in the teams Create and Live-mode dialogs; the live composer itself is a TipTap `[role=textbox]` | composer; `ui/input-group` |
@@ -112,6 +112,20 @@ Views take no props and read `useFleet()` (`fleet/fleet-context.tsx`):
 **One stacking context.** The map box holds the canvas, the furniture sprites and the characters as siblings, and every sprite's `z-index` is the bottom edge, in px, of the tile row it stands on (`Furniture.z * scale` for a piece, `(tile.y + 1) * TILE * scale` for a character; a chair sits 1 under its sitter), so characters pass in front of and behind desks and plants. That is why `FurnitureLayer` returns a fragment: never wrap it, or the characters, in a positioned element of their own. Sprites are drawn as the upstream sprite pack draws them, bottom-centre on the tile's centre, seated 6 art px lower.
 
 **The chrome layer** sits over all of it (`z-index` 20000), at its natural size in the same px space (`px = tile * TILE * scale`): each tag, bubble or card hangs from a zero-size point the loop moves (`store.follow`). Tags wear the ink Tooltip's colours and are hidden from assistive tech, because each character's name already says what is drawn around it ("Echo, Email copywriter, working, needs you: Approve sending 42 emails, Outbound"). The Needs you bubble is the view's only tangerine. Every tag and bubble marks itself `data-obstacle`, and the ask card hangs where it covers none of them. The layer comes first in the DOM, so the ask card is the map's first tab stop.
+
+### Landing page (`src/components/landing/`)
+
+`/landing` (2026-09-14; its plan is kept local and git-ignored in `docs/plans/local/`) is the marketing page, designed rather than cloned, on the brand tokens. It sits outside the `(app)` group like `/signup`, and `src/lib/theme-routes.ts` forces it light through `AppThemeProvider` (`src/components/app/theme-provider.tsx`); the closing band and footer are dark through a local `dark` class. v1 is layout and copy: every picture of the product is an `AssetSlot` placeholder.
+
+| File | Owns |
+|---|---|
+| `content.ts` | Every visible and announced string, link and asset brief, plus `formatUsd` and `creditLine`. `content.test.ts` locks the voice (no retired filler words, no middle dots or em dashes), that every link resolves, the list of 15 placeholders and the plan credit maths. Edit copy here, never in a component. |
+| `asset-slot.tsx` | The placeholder: `Skeleton` inside a `role="img"` named by the asset's `label`, carrying `data-asset="<id>"`. Variants `frame` (a card), `bare`, `lines` (a quote), `logos`. The caller sizes it with an aspect ratio or height. |
+| `section.tsx` | `LandingSection` (hairline, caps eyebrow, two-tone `h2`, intro, `scroll-mt-16`) and `TwoToneText`. |
+| `feature-grid.tsx` | Four columns of asset, title and sentence; `numbered` makes it an `ol` with 01–04. |
+| `site-header.tsx`, `hero.tsx`, `how-it-works.tsx`, `team-section.tsx`, `receipts-section.tsx`, `control-section.tsx`, `learning-section.tsx`, `pricing-section.tsx`, `closing-section.tsx`, `site-footer.tsx` | One band each, in page order; `landing-page.tsx` composes them. |
+
+To replace a placeholder, search for its `data-asset` id, build the asset from the `brief` beside its copy, and delete the `AssetSlot`.
 
 ### Slots the clone emits that the live site does not
 

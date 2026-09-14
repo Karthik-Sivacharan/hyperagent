@@ -12,6 +12,30 @@ this first in a new session, then `README.md`, `docs/components.md`,
 `docs/brand/reskin-conventions.md`, `docs/brand/icons.md` and
 `docs/clone-conventions.md`.
 
+## /landing: the marketing page, v1 (2026-09-14, feat/landing)
+
+**A designed marketing page at `/landing`** (plan kept local and
+git-ignored in `docs/plans/local/`; file map in `docs/components.md` §2,
+"Landing page"). v1 is layout and copy on the brand tokens, with a
+skeleton wherever a picture of the product will go. The research behind
+it is local only, in git-ignored `docs/research/11-landing-pages/`.
+
+**Decisions.** `/` still redirects into the app. The route is forced
+light (`src/lib/theme-routes.ts`) and the closing band and footer are
+dark through a local `dark` class. Type uses the existing roles (H1
+`text-heading-display` at 600). Buttons are ink, with no tangerine on the
+page. The copy has no agent names, customer names, quotes or invented
+figures; every fact comes from Hyperagent's docs.
+
+**Open for the owner.** Display weight 500 instead of 600 for the site;
+named agents in marketing; promoting the page to `/`.
+
+**Next phase.** Build the 15 assets from their briefs in `content.ts`
+(the hero replay first), bring in the motion the research proposed (one
+replay in the hero, 500ms ease-out-expo entrances, colour-only hovers),
+add real customer logos and a quote from a published story, and add a
+phone menu for the section links.
+
 ## /teams office: the fleet as a place (2026-09-11, feat/teams-space)
 
 **A fourth view, `?view=space`, labelled Office** (branch `feat/teams-space`,
