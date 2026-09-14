@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { ThemeProvider } from "next-themes";
+import { AppThemeProvider } from "@/components/app/theme-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { brandFontClassName } from "@/design/brand/fonts";
 import "./globals.css";
@@ -26,11 +26,15 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     // the menu's explicit "System" item follows it — so `enableSystem` stays
     // on to keep that third choice working. This is the app's default only;
     // `:root` is still the light mapping and `.dark` still only re-maps it.
+    //
+    // One exception: a route listed in src/lib/theme-routes.ts (the
+    // /landing marketing page) is forced light while it is open, through
+    // AppThemeProvider, without touching the stored choice.
     <html lang="en" className={brandFontClassName} suppressHydrationWarning>
       <body className="antialiased">
-        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
+        <AppThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
           <TooltipProvider delayDuration={300}>{children}</TooltipProvider>
-        </ThemeProvider>
+        </AppThemeProvider>
       </body>
     </html>
   );
