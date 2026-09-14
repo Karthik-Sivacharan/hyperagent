@@ -49,3 +49,6 @@ next-env.d.ts
 
 # Market research notes (local only)
 /docs/research/
+
+# Implementation plans kept off GitHub (local only)
+/docs/plans/local/
