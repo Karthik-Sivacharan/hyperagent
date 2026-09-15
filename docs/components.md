@@ -69,6 +69,14 @@ Live evidence comes from the 2026-09-07 sweep of hyperagent.com (the DOM dumps u
 | `EmptyState` | `empty-state.tsx` | `icon`, `title`, `description`, `action`, `variant` bubble (a round `IconTile`, xl heading) / plain (a bare icon, lg heading) | The icon + heading + copy + CTA empty states on projects, agents, library, memories | agents, library, memories, projects, teams |
 | `ShowArchivedSwitch` | `show-archived-switch.tsx` | `checked`, `onCheckedChange`, `id` | `switch` + `label` "Show Archived" on projects and library | library, projects |
 
+### Brand artwork (`src/components/brand/`)
+
+Not one of the four tiers: this folder holds the brand's artwork as React SVG (the mark in `mark.tsx`, its motion variants in `logo-motion/`, and since 2026-09-15 the agent glyphs). Pages and patterns compose it the way they compose a primitive. The tier rules still hold here (no raw control, nothing from radix, cmdk or React Flow), and, like the mark, it sits outside the Tabler rule because it is artwork, not an icon. The guide for the glyphs is `docs/brand/agent-glyphs.md`.
+
+| Component | File | Variants, sizes, props worth knowing | Live evidence | Used by |
+|---|---|---|---|---|
+| `AgentGlyph`, `MorphingAgentGlyph`, `GlyphStage` | `agent-glyph/` (import from `index.ts`) | An agent's mark: one solid silhouette with two eyes in a rounded-square tile, any shape morphing into any other. `AgentGlyph` is static and server-safe (`shape` as a shape or id, `size` 40, `tone` sand / ink / tangerine, `tile`, `label`, `aria-hidden` without one); `MorphingAgentGlyph` adds a controlled `shape` or an autoplay `sequence`, `choreography` morph / cut, `pace` expressive (480ms, the default from 64px) / quick (220ms), `hold`, `blink`, `glance`, `paused`, and `progress` + `from` to freeze a frame; `GlyphStage` is the dot-grid presentation at 15 : 11 with corner squares that follow the body. Ships `ORIGINAL_SHAPES` only; the study set rebuilds the reference drawings to learn the grammar. `glyphIssues` checks the shape contract | None: new UI, not cloned from the live site. Previewed at `/design/glyphs` (stage, playground with `?from=&to=&t=&choreo=&tone=`, a 20-glyph roster, every shape at 240 to 16px) | `src/app/design/glyphs` only; the landing page is not wired up yet |
+
 ### Teams fleet (`src/components/teams/`)
 
 `/teams` is the first page on this system that is designed rather than cloned (2026-09-10, trimmed 2026-09-11): one mock team (`src/lib/mock/teams.ts`) seen as a Board, a List or an Org chart, with one agent sheet over all three. Each surface says one thing and puts the rest one interaction deeper: a hover or focus reveal in space already reserved for it, a tooltip, or the sheet. Every accessible name still carries the facts the screen no longer draws. It is a page tier like any other (no raw control, nothing from radix or React Flow directly), a folder per concern:
