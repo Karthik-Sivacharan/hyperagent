@@ -1,32 +1,10 @@
-import {
-  IconBrandSlack,
-  IconBrandTelegram,
-  IconCalendarEvent,
-  IconMail,
-  IconMessage,
-  IconUsers,
-  IconWebhook,
-} from "@tabler/icons-react";
 import Link from "next/link";
 
 import { GLYPH_SETS, MorphingAgentGlyph } from "@/components/brand/agent-glyph";
 import { Button } from "@/components/ui/button";
 
-import { HERO } from "../a/content";
 import { HERO_D, LINKS } from "./content";
 import { HeroWindow } from "./hero-window";
-
-// One glyph per way a job can start, in the order A's content lists them:
-// you ask, Slack, Telegram, email, a webhook, a schedule, another agent.
-const START_ICONS = [
-  IconMessage,
-  IconBrandSlack,
-  IconBrandTelegram,
-  IconMail,
-  IconWebhook,
-  IconCalendarEvent,
-  IconUsers,
-];
 
 // One agent glyph follows the word it stands for, so the line reads "Team
 // of agents, and here is one, that ship real work". It is decorative, so the
@@ -58,22 +36,27 @@ function splitAround(title: string, word: string): [string, string] {
 
 // Variant D's hero: everything on one centre axis. The headline with its
 // glyph, a short lede, the brand's two soft-cornered actions, and the product
-// below as a desktop app window. Under the window, every way a job can start.
-// The window runs wider than the text column (up to 1360px) so the app reads
-// near its real size; the text and the row under it keep their measure.
+// below as a desktop app window, which is the last thing in the band. The
+// window runs wider than the text column (up to 1360px) so the app reads near
+// its real size; the text above it keeps its measure.
 //
-// Spacing steps down from the window outwards: 20px from the headline to the
-// lede, 32px to the actions, 56 to 64px to the window.
+// The headline takes the display cut the other variants' headlines take
+// (`text-heading-display`: fluid 40 → 48px at the heading weight), so the
+// page opens on one statement rather than a large-ish line.
+//
+// Spacing steps down from the window outwards: 24px from the headline to the
+// lede, 40px to the actions, 64 to 80px to the window, and the band's own
+// padding matches the sections below it.
 export function Hero() {
   return (
     <section
       aria-labelledby="hero-heading"
-      className="overflow-x-clip px-4 pt-12 pb-16 sm:px-6 md:pt-20 md:pb-24"
+      className="overflow-x-clip px-4 pt-16 pb-20 sm:px-6 md:pt-24 md:pb-32"
     >
       <div className="mx-auto flex max-w-5xl flex-col items-center text-center">
         <h1
           id="hero-heading"
-          className="max-w-4xl text-4xl font-medium text-balance text-foreground sm:text-5xl"
+          className="max-w-4xl text-heading-display text-balance text-foreground"
         >
           {TITLE_BEFORE}
           <span className="whitespace-nowrap">
@@ -90,7 +73,7 @@ export function Hero() {
           {TITLE_AFTER}
         </h1>
 
-        <p className="mt-5 max-w-content text-lg text-pretty text-muted-foreground">
+        <p className="mt-6 max-w-content text-lg text-pretty text-muted-foreground">
           {HERO_D.description}
         </p>
 
@@ -98,7 +81,7 @@ export function Hero() {
             tangerine, soft-cornered large button and its quiet partner, the
             tinted row with a hairline. The label carries it alone, with no
             mark: two words on a 44px button, which is a thumb on a phone. */}
-        <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+        <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
           <Button
             asChild
             variant="brand"
@@ -120,29 +103,8 @@ export function Hero() {
         </div>
       </div>
 
-      <div className="mx-auto mt-14 max-w-[85rem] md:mt-16">
+      <div className="mx-auto mt-16 max-w-[85rem] md:mt-20">
         <HeroWindow />
-      </div>
-
-      <div className="mx-auto mt-10 flex max-w-5xl flex-col items-center gap-3 text-center">
-        <p className="text-sm text-foreground-low">{HERO.startsFrom.label}</p>
-        <ul
-          role="list"
-          className="flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm text-muted-foreground"
-        >
-          {HERO.startsFrom.items.map((item, index) => {
-            const Icon = START_ICONS[index] ?? IconMessage;
-            return (
-              <li key={item} className="flex items-center gap-1.5">
-                <Icon
-                  className="size-4 text-foreground-low"
-                  aria-hidden="true"
-                />
-                {item}
-              </li>
-            );
-          })}
-        </ul>
       </div>
     </section>
   );

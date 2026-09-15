@@ -47,6 +47,10 @@ const FORMAT_GROUNDS = [
 // on the right. The picture is a tinted ground in v1, with the composer drawn
 // low in it as a picture of the request, not a control. The panel holds one
 // height across all five, so nothing under it moves when a tab changes.
+//
+// Everything in the band hangs off one left edge: the two-tone heading in the
+// hero's display cut, the pill track, the panel and the Previous / Next row
+// all start at the `max-w-6xl` container's left margin.
 export function FormatShowcase() {
   const {
     id,
@@ -71,36 +75,35 @@ export function FormatShowcase() {
     <section
       id={id}
       aria-labelledby={headingId}
-      className="scroll-mt-16 px-4 py-16 sm:px-6 md:py-24"
+      className="scroll-mt-16 px-4 py-20 sm:px-6 md:py-32"
     >
-      <div className="mx-auto flex max-w-6xl flex-col items-center">
+      <div className="mx-auto flex max-w-6xl flex-col">
         <SectionHeading
           id={headingId}
           heading={heading}
-          className="items-center text-center"
+          cut="display"
+          className="max-w-4xl"
         />
 
         <Tabs
           value={value}
           onValueChange={setValue}
-          className="mt-10 w-full gap-6 md:mt-12 md:gap-8"
+          className="mt-12 w-full gap-6 md:mt-16 md:gap-8"
         >
-          {/* The track scrolls rather than wraps on a phone: `min-w-full` on a
-              `w-fit` row centres the pills while they fit and starts them at
-              the left edge once they do not. */}
+          {/* The track scrolls rather than wraps on a phone: `w-max` keeps the
+              row at its natural width, so it starts at the left edge and runs
+              past the gutter into the scroller instead of squeezing. */}
           <div className="-mx-4 overflow-x-auto px-4 [scrollbar-width:none] sm:mx-0 sm:px-0">
-            <div className="flex w-fit min-w-full justify-center">
-              <TabsList
-                aria-label={tabsLabel}
-                className="group-data-horizontal/tabs:h-12 sm:group-data-horizontal/tabs:h-9"
-              >
-                {items.map((item) => (
-                  <TabsTrigger key={item.id} value={item.id} className="px-4">
-                    {item.name}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-            </div>
+            <TabsList
+              aria-label={tabsLabel}
+              className="w-max group-data-horizontal/tabs:h-12 sm:group-data-horizontal/tabs:h-9"
+            >
+              {items.map((item) => (
+                <TabsTrigger key={item.id} value={item.id} className="px-4">
+                  {item.name}
+                </TabsTrigger>
+              ))}
+            </TabsList>
           </div>
 
           <div className="rounded-4xl bg-background p-2 shadow-card">
