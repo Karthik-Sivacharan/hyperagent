@@ -12,6 +12,66 @@ this first in a new session, then `README.md`, `docs/components.md`,
 `docs/brand/reskin-conventions.md`, `docs/brand/icons.md` and
 `docs/clone-conventions.md`.
 
+## Agent glyphs: a mark with eyes for every agent (2026-09-15, feat/agent-glyphs)
+
+**Not merged yet.** Branch `feat/agent-glyphs`, worktree
+`.claude/worktrees/agent-glyphs`. The guide is `docs/brand/agent-glyphs.md`
+(grammar, shape contract, adding a shape, component API, motion, preview);
+the map row is `docs/components.md` §2, "Brand artwork". The build brief
+and the research behind the grammar are git-ignored:
+`docs/plans/local/2026-09-15-agent-glyphs.md` and
+`docs/research/15-agent-glyphs/`.
+
+**What exists.** `src/components/brand/agent-glyph/`: solid silhouettes
+with two eyes on a 14-module grid, in a sand, ink or tangerine tile, any
+of which morphs into any other. `AgentGlyph` is static and server-safe;
+`MorphingAgentGlyph` takes a controlled `shape` or loops a `sequence`, as a
+morph or a cut, at the expressive (480ms) or quick (220ms) pace, with
+blinks and optional glances; `GlyphStage` is the dot-grid landing
+presentation. The engine is pure TypeScript: outlines resample to 240
+points, pair up on least travel, land their longest journeys first, soften
+their folds at the expressive pace, and carry a lagging eye onto the new
+body. The eight originals ship; `step-tower` and `turbine` stay as files
+outside the loop; the study set rebuilds the eight reference drawings to
+learn the grammar and is never shipped. Reduced motion crossfades and holds
+a loop still, and the clock stops offscreen and in hidden tabs.
+
+**Preview.** `/design/glyphs`: the stage loop, a playground that plays or
+freezes any pair (`?from=fork&to=bell&t=0.25&choreo=cut&tone=ink`), a
+roster of twenty 40px glyphs, and every shape at 240 to 16px with its
+contract issues listed.
+
+**Commits.**
+- `55cc3a5` the shape contract (`types.ts`, empty sets).
+- `2c52b9d` the morph engine, the three components, tones, registry,
+  contract checks, tests and the `/design/glyphs` page.
+- `db0e186` the eight originals in loop order, and the two alternates.
+- `6f47cf4` the study set and the grammar helpers it needed.
+- `1bcce99` crisper morphs, eyes that stay on the body, the quick pace,
+  randomised idles, the offscreen pause and the roster section.
+- `200c68b` 16px page gutters on phones; `ad74be8` the roster announced
+  as one image, and each size-sheet name read once.
+- The docs commit that adds this section, the guide and the map row.
+
+**Open follow-ups.**
+- The landing page is not wired up. Its roster (24px), team section
+  (40px), use-case tabs (40px) and closing band (64 to 96px) keep their
+  current avatars; §1 of the guide says what goes where.
+- No state glyphs. Thinking and blocked were meant to turn the whole body
+  into a symbol (three dots, an exclamation mark) that morphs like any
+  other shape. Neither is drawn, and nothing maps an agent's state to a
+  glyph.
+- `/design/glyphs` still needs a review at phone width. Only the page
+  gutters have been fixed (`200c68b`).
+- Design-owner decisions. Do `sweep` and `trefoil` stay in the shipped
+  eight, or do `step-tower` and `turbine` replace them (benched for reading
+  close to `bell` when small, and for being a second spinner beside
+  `pinwheel`)? And do agents get eyes at all: today's agent avatar is an
+  orb with a role pictogram (`teams/fleet/agent-avatar.tsx`), and the
+  `AgentAvatar` comment on `feat/landing-v2` says "never a face".
+- No test stops product code from rendering a study shape
+  (`getGlyph("cog")` resolves); for now that is a review rule.
+
 ## /teams office: the fleet as a place (2026-09-11, feat/teams-space)
 
 **A fourth view, `?view=space`, labelled Office** (branch `feat/teams-space`,
