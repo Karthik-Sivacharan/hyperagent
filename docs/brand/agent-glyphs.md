@@ -25,7 +25,7 @@ Where they are meant to go. None of these is wired up yet (see `HANDOFF.md`).
 Rules for using them:
 
 - Give an agent one shape and keep it wherever that agent appears.
-- Use `tangerine` at most once per view. It has the same budget as the brand's orange button.
+- Use `tangerine` or `accent` at most once per view. They have the same budget as the brand's orange button.
 - A bare glyph (`tile={false}`) still paints its eyes in the tone's tile colour, so put it only on a surface of that colour.
 - Small sizes lose the eyes first. The eye is 14.17 units in a 180-unit tile, so it draws at 1.26px in a 16px tile, 1.89px at 24px, 3.15px at 40px and 7.56px at 96px. Below 24px the silhouette does all the work.
 
@@ -189,6 +189,7 @@ The landing presentation: a dot-grid field in the tone's tile colour, the glyph,
 | `sand` | `--color-neutral-100` | `--color-neutral-950` | `--color-neutral-300` | The default: paper tile, ink body |
 | `ink` | `--color-neutral-950` | `--color-neutral-100` | `--color-neutral-800` | The inverse, for dark bands |
 | `tangerine` | `--color-tangerine-500` | `--color-neutral-950` | `--color-tangerine-400` | The accent, once per view |
+| `accent` | `--color-neutral-100` | `--color-tangerine-500` | `--color-neutral-300` | The accent as the mark, for a bare glyph in a line of type |
 
 Tones read the brand ramps directly rather than the theme-mapped semantics, so an agent looks the same in the light and the dark theme. The eyes are painted in the tile colour: they read as holes without being holes. The tile is 180 units (the box plus 2 modules a side) with a 40-unit radius, 22% of its edge.
 
@@ -283,7 +284,7 @@ The query string presets the playground, so a frame can be linked or screenshott
 | `from`, `to` | any registered id | The pair. A missing or unknown id falls back to `cog` and `arch-ghost` |
 | `t` | 0 to 1, clamped | Freezes every playground view at that linear time. Without it the playground rests on `to` (t = 1) |
 | `choreo` | `morph`, `cut` | The choreography. Anything else is ignored |
-| `tone` | `sand`, `ink`, `tangerine` | The starting tone |
+| `tone` | `sand`, `ink`, `tangerine`, `accent` | The starting tone |
 
 Pace and theme have no parameter; the playground opens at the expressive pace. Example: `/design/glyphs?from=fork&to=bell&t=0.25&choreo=cut&tone=ink` freezes at 120ms, inside the entry-pose hold.
 

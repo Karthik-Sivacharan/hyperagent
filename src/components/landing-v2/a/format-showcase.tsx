@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import {
+  IconAppWindow,
   IconArrowLeft,
   IconArrowRight,
   IconArrowUp,
@@ -21,9 +22,11 @@ import { cn } from "@/lib/utils";
 
 import { FORMATS } from "./content";
 import { SectionHeading } from "./section";
+import { useTypewriter } from "./use-typewriter";
 
 // One glyph per format, in the order content.ts lists them.
 const FORMAT_ICONS = [
+  IconAppWindow,
   IconWorld,
   IconVideo,
   IconPresentation,
@@ -33,8 +36,10 @@ const FORMAT_ICONS = [
 
 // One ground per format, off the tint ladder and nothing else, so moving
 // between tabs reads as a change of material rather than a change of hue.
-// The order is deliberately not a ramp: neighbours differ most.
+// The order is deliberately not a ramp: neighbours differ most, including the
+// pair Previous and Next wrap around between (the last and the first).
 const FORMAT_GROUNDS = [
+  "bg-tint-10",
   "bg-tint-20",
   "bg-tint-12",
   "bg-tint-25",
@@ -42,11 +47,11 @@ const FORMAT_GROUNDS = [
   "bg-surface-raised",
 ];
 
-// The formats, as the product shows them: a pill row of the five, then one
+// The formats, as the product shows them: a pill row of the six, then one
 // panel that says what the format is on the left and stands in for the work
 // on the right. The picture is a tinted ground in v1, with the composer drawn
 // low in it as a picture of the request, not a control. The panel holds one
-// height across all five, so nothing under it moves when a tab changes.
+// height across all six, so nothing under it moves when a tab changes.
 //
 // Everything in the band hangs off one left edge: the two-tone heading in the
 // hero's display cut, the pill track, the panel and the Previous / Next row
@@ -119,9 +124,13 @@ export function FormatShowcase() {
                   <div className="grid gap-2 md:h-104 md:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
                     {/* `min-w-0` lets the grid item shrink to its track:
                         without it the chip row's min-content width pushes the
-                        whole panel past the page gutter on a phone. */}
-                    <div className="flex min-h-72 min-w-0 flex-col justify-center gap-3 px-4 py-6 md:min-h-0 md:px-8 md:py-0">
-                      <p className="text-md text-foreground-low">{item.name}</p>
+                        whole panel past the page gutter on a phone.
+
+                        The title opens the column: the format's name is
+                        already lit in the tab above and read out on the
+                        picture beside it, so an eyebrow repeating it would be
+                        the third time in one glance. */}
+                    <div className="flex min-h-72 min-w-0 flex-col justify-center gap-5 px-4 py-6 md:min-h-0 md:px-8 md:py-0">
                       <div className="flex flex-col gap-2">
                         <h3 className="text-2xl font-medium text-balance text-foreground md:text-3xl">
                           {item.title}
@@ -190,12 +199,31 @@ export function FormatShowcase() {
 }
 
 // The composer as a picture: the request on top, the attach circle and the ink
-// send disc below. It is drawn, not built: no control, no state, and the
-// `role="img"` ground above keeps the whole card out of the tree.
+// send disc below. It is drawn, not built: no control, and the `role="img"`
+// ground above keeps the whole card out of the tree.
+//
+// The request types itself in, on mount and on every tab change, because the
+// card is a picture of somebody asking. The finished line sits underneath it,
+// laid out but not painted, so the card is its final height from the first
+// frame and the composer never grows a line under the reader.
 function RequestCard({ request }: { request: string }) {
+  const { typed, done } = useTypewriter(request);
   return (
     <div className="absolute inset-x-4 bottom-4 mx-auto flex max-w-xl flex-col gap-3 rounded-2xl bg-background p-3.5 shadow-lg sm:inset-x-6 sm:bottom-6">
-      <p className="text-sm text-pretty text-foreground">{request}</p>
+      {/* `aria-hidden` on both copies, so the half-typed line can never reach
+          a reader: the ground's `aria-label` carries the whole request. */}
+      <p
+        aria-hidden="true"
+        className="relative text-sm text-pretty text-foreground"
+      >
+        <span className="invisible">{request}</span>
+        <span className="absolute inset-0">
+          {typed}
+          {done ? null : (
+            <span className="ml-px inline-block h-3 w-px translate-y-0.5 bg-foreground/70 align-baseline" />
+          )}
+        </span>
+      </p>
       <div className="flex items-center justify-between">
         <IconTile size="sm" shape="circle" tone="raised">
           <IconPlus

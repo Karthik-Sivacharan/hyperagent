@@ -13,14 +13,26 @@ import { HeroWindow } from "./hero-window";
 // on), and rests on each for a little over two seconds: one mark changing
 // calmly, not a flicker at the edge of the reader's eye.
 //
-// Bare, without its tile: set in ink on the paper ground it reads as one
-// more letterform of the line, and with no tile the SVG box IS the drawing
-// box. It is sized and placed by eye against the capitals rather than by the
-// baseline: 0.8em of box, whose body fills about 0.72em, lifted 0.12em so
-// the box centres on the cap band (measured on the page: a bare inline glyph
-// hangs 0.164em below the baseline, the cap is 0.71em, so the lift is
-// 0.8/2 - 0.519). The word and the glyph share a no-wrap span, so a narrow
-// screen can break the line anywhere but between them.
+// Bare, without its tile, and in the `accent` tone: the body itself takes the
+// brand's graphics orange, so the mark reads as the one coloured thing in the
+// line rather than as one more ink letterform, and the eyes stay holes punched
+// to the paper. That is the page's whole orange budget bar the call to action
+// below it, which is the rhyme: the mark in the line, the button under it.
+//
+// With no tile the SVG box IS the drawing box. It is sized and placed by eye
+// against the capitals rather than by the baseline: 0.8em of box, whose body
+// fills about 0.72em, lifted 0.12em so the box centres on the cap band
+// (measured on the page: a bare inline glyph hangs 0.164em below the baseline,
+// the cap is 0.71em, so the lift is 0.8/2 - 0.519).
+//
+// Room either side: the display cut carries -0.06em of tracking, which is
+// subtracted from the word space AND from the glyph's own box, leaving it about
+// 0.13em off the words. 8px before and 6px after, on top of the two word
+// spaces, opens that to roughly 0.3em, a beat of its own. The two values differ
+// on purpose: "agents" ends on a round s and "that" opens on a stem that brings
+// its own side bearing, so equal numbers would not look equal. The word and the
+// glyph share a no-wrap span, so a narrow screen can break the line anywhere but
+// between them and the glyph is never left standing alone on a line.
 const GLYPH_SEQUENCE = [0, 2, 4, 6].map((step) => GLYPH_SETS.original[step].id);
 const GLYPH_HOLD_MS = 2200;
 const [TITLE_BEFORE, TITLE_AFTER] = splitAround(
@@ -65,9 +77,10 @@ export function Hero() {
               sequence={GLYPH_SEQUENCE}
               hold={GLYPH_HOLD_MS}
               pace="expressive"
+              tone="accent"
               tile={false}
               size={48}
-              className="inline-block size-[0.8em] -translate-y-[0.12em]"
+              className="ms-2 me-1.5 inline-block size-[0.8em] -translate-y-[0.12em]"
             />
           </span>
           {TITLE_AFTER}

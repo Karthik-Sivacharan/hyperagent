@@ -47,15 +47,21 @@ export type Department = {
   agents: Agent[];
 };
 
-// One format, as the showcase reads it: `name` is the tab and the eyebrow,
-// `title` the claim in the panel, `body` the sentence under it, `request` the
-// one line drawn into the composer beside the work, `examples` the chips.
+// One format, as the showcase reads it: `name` is the tab and the accessible
+// name of the panel's picture, `title` the claim in the panel, `body` the
+// sentence under it, `request` the one line typed into the composer beside the
+// work, `examples` the chips.
 export type Format = {
   id: string;
   name: string;
   title: string;
   body: string;
   request: string;
+  /**
+   * Five is the hard maximum, locked by content.test.ts. Past five the row
+   * wraps to a second line and stops reading as a quick aside. Four is the
+   * house rhythm; only add a fifth when it earns the room.
+   */
   examples: string[];
 };
 
@@ -801,7 +807,23 @@ export const FORMATS = {
   assetLabel: "example work, with the request that asked for it",
   previous: "Previous",
   next: "Next",
+  // Apps leads, so the tabs read in the order the subhead says them and the
+  // panel opens on the one thing the subhead promises that a page, a deck or
+  // a document does not.
   items: [
+    {
+      id: "apps",
+      name: "Apps",
+      title: "Build an app your team can use",
+      body: "A working tool with a login, not a picture of one.",
+      request: "Build an app where the team files expenses and I approve them.",
+      examples: [
+        "Internal tools",
+        "Request forms",
+        "Client portals",
+        "Booking apps",
+      ],
+    },
     {
       id: "websites",
       name: "Websites",

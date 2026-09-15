@@ -138,6 +138,15 @@ describe("landing v2 variant A copy", () => {
     }
   });
 
+  it("gives every format its own tab and at most five chips", () => {
+    const ids = content.FORMATS.items.map((format) => format.id);
+    expect(new Set(ids).size).toBe(ids.length);
+    const overfull = content.FORMATS.items.filter(
+      (format) => format.examples.length > 5,
+    );
+    expect(overfull.map((format) => format.name)).toEqual([]);
+  });
+
   it("keeps the same agent names across the hero, the team, the week and the table", () => {
     const known = new Set(
       content.USE_CASES.departments.flatMap((d) => d.agents.map((a) => a.name)),
