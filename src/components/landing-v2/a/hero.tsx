@@ -4,7 +4,7 @@ import {
   IconCalendarEvent,
   IconMail,
   IconMessage,
-  IconPlug,
+  IconUsers,
   IconWebhook,
 } from "@tabler/icons-react";
 import Link from "next/link";
@@ -14,7 +14,8 @@ import { Button } from "@/components/ui/button";
 import { HERO, LINKS } from "./content";
 import { HeroRun } from "./hero-run";
 
-// One glyph per way a job can start, in the order content.ts lists them.
+// One glyph per way a job can start, in the order content.ts lists them:
+// you ask, Slack, Telegram, email, a webhook, a schedule, another agent.
 const START_ICONS = [
   IconMessage,
   IconBrandSlack,
@@ -22,7 +23,7 @@ const START_ICONS = [
   IconMail,
   IconWebhook,
   IconCalendarEvent,
-  IconPlug,
+  IconUsers,
 ];
 
 // The product is the hero. Above it, the cursor.com shape: the claim, an

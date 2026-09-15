@@ -1,6 +1,6 @@
 "use client";
 
-import { IconBrowser, IconFolder, IconTerminal2 } from "@tabler/icons-react";
+import { IconBrowser, IconFolder, IconMail } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -18,11 +18,11 @@ import {
 } from "./thread-replica";
 
 const { window: WINDOW } = HERO;
-const { thread, sidebar, computer } = WINDOW;
+const { thread, roster, computer } = WINDOW;
 
 // How many rows mount after the request: every step, then the ask, then the
-// receipt. Rows mount one per second, once, after a short pause, the way the
-// devin.ai hero does it; nothing loops and nothing restarts on scroll.
+// receipt line. Rows mount one per second, once, after a short pause;
+// nothing loops and nothing restarts on scroll.
 const TOTAL = thread.steps.length + 2;
 const FIRST_ROW_DELAY_MS = 600;
 const ROW_INTERVAL_MS = 1000;
@@ -33,12 +33,16 @@ const ROW_INTERVAL_MS = 1000;
 const ENTER =
   "animate-in fade-in slide-in-from-bottom-2 fill-mode-both duration-(--duration-normal) ease-out-quart motion-reduce:animate-none";
 
-const COMPUTER_ICONS = [IconBrowser, IconTerminal2, IconFolder];
+// One glyph per row of the agent's computer, in the order content.ts lists
+// them: the page its browser is on, the drafts it holds, the files it wrote.
+const COMPUTER_ICONS = [IconBrowser, IconMail, IconFolder];
 
-// The product, hand-built: a run of the weekly pipeline review inside a
-// browser window. A run list on the left, the thread in the middle (the
-// request, the steps as they land, the one ask that waits for a person, the
-// receipt) and, on a wide screen, the agent's own computer on the right.
+// The product, hand-built: one job inside a browser window. On the left, the
+// team as a message list (name, last report, time), the way a messages app
+// shows people; the agent whose job is open is the highlighted row. In the
+// middle the request, the steps as they land, the one ask that waits for a
+// person, and the line with time, cost and score. On a wide screen, the
+// agent's own computer on the right.
 //
 // The window keeps a fixed height and the band below crops its bottom edge,
 // so the rows mounting never move anything on the page.
@@ -79,38 +83,58 @@ export function HeroRun() {
       url={WINDOW.url}
       label={A11Y.browser}
       className="mx-auto h-[45rem] w-full max-w-5xl rounded-b-none md:h-[36rem] lg:h-[33rem]"
-      bodyClassName="grid md:grid-cols-[13rem_minmax(0,1fr)] lg:grid-cols-[13rem_minmax(0,1fr)_15rem]"
+      bodyClassName="grid md:grid-cols-[15rem_minmax(0,1fr)] lg:grid-cols-[15rem_minmax(0,1fr)_15rem]"
     >
-      <aside className="hidden flex-col gap-5 border-r border-border-subtle bg-surface-secondary p-4 md:flex">
-        {sidebar.map((group) => (
-          <div key={group.label} className="flex flex-col gap-1">
-            <p className="px-2 text-xs text-foreground-low">{group.label}</p>
-            <ul role="list" className="flex flex-col">
-              {group.items.map((item) => (
-                <li
-                  key={item.name}
-                  className={cn(
-                    "flex items-center gap-2 rounded-md px-2 py-1.5 text-md",
-                    item.state === "running"
-                      ? "bg-tint-10 text-foreground"
-                      : "text-muted-foreground",
-                  )}
-                >
+      <aside
+        aria-label={A11Y.roster}
+        className="hidden flex-col gap-2 border-r border-border-subtle bg-surface-secondary p-3 md:flex"
+      >
+        <p className="px-2 text-xs text-foreground-low">{roster.label}</p>
+        <ul role="list" className="flex flex-col gap-0.5">
+          {roster.items.map((item) => {
+            const open = item.name === thread.agent;
+            return (
+              <li
+                key={item.name}
+                className={cn(
+                  "flex items-start gap-2.5 rounded-xl px-2 py-2",
+                  open ? "bg-tint-10" : undefined,
+                )}
+              >
+                <Avatar size="sm" className="mt-0.5">
+                  <AvatarFallback>{item.name.charAt(0)}</AvatarFallback>
+                </Avatar>
+                <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                  <span className="flex items-baseline justify-between gap-2">
+                    <span
+                      className={cn(
+                        "truncate text-sm",
+                        open
+                          ? "font-medium text-foreground"
+                          : "text-foreground",
+                      )}
+                    >
+                      {item.name}
+                    </span>
+                    <span className="shrink-0 text-xs text-foreground-low tabular-nums">
+                      {item.time}
+                    </span>
+                  </span>
                   <span
-                    aria-hidden="true"
                     className={cn(
-                      "size-1.5 shrink-0 rounded-full",
-                      item.state === "running" && "bg-foreground",
-                      item.state === "done" && "bg-tint-40",
-                      item.state === "queued" && "shadow-edge",
+                      "line-clamp-2 text-xs",
+                      item.state === "waiting"
+                        ? "text-foreground"
+                        : "text-muted-foreground",
                     )}
-                  />
-                  <span className="truncate">{item.name}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
+                  >
+                    {item.preview}
+                  </span>
+                </span>
+              </li>
+            );
+          })}
+        </ul>
       </aside>
 
       <div className="flex min-w-0 flex-col overflow-hidden">
@@ -191,7 +215,7 @@ export function HeroRun() {
                   <Icon className="size-3.5" aria-hidden="true" />
                   {row.label}
                 </dt>
-                <dd className="text-label-12-mono break-all text-foreground">
+                <dd className="text-sm break-words text-foreground">
                   {row.value}
                 </dd>
               </div>

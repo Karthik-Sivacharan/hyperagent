@@ -1,17 +1,19 @@
 // Every word on landing v2, variant A, in one place. The components read
 // their copy from here, so a copy edit never touches layout. Product facts
-// (formats, integrations, triggers, plans, control rules) come from
-// src/components/landing/content.ts and the product's current site; every
-// run, name and figure in a product picture is an example and reads as one.
+// (formats, integrations, plans, control rules) come from the product's own
+// docs; every agent, job and figure in a product picture is an example and
+// reads as one.
 //
-// Voice: name the job, not its quality; pair every autonomy claim with its
-// check; numbers carry units; one idea per block; sentence case; no invented
-// customers, quotes or figures; no other company's name except the
-// integrations the product offers.
+// Voice: a smart friend explaining it. Name the job, not its quality. Say
+// what came back, with a number. Put the schedule in human time. Let the
+// agent say the control line. Sentence case, second person, no invented
+// customers or figures, no other company's name except the integrations
+// and the customers in the product's own published stories.
 
-import { PRICING as V1_PRICING } from "@/components/landing/content";
+import type { Plan } from "../../landing/content";
 
-export { creditLine, formatUsd } from "@/components/landing/content";
+export { creditLine, formatUsd } from "../../landing/content";
+export type { Plan } from "../../landing/content";
 
 export type LandingLink = { label: string; href: string };
 
@@ -23,8 +25,8 @@ export type Step = { text: string; at: string };
 
 export type Receipt = { duration: string; cost: string; score: string };
 
-// One run of one agent, drawn as a thread: the request, what the agent did,
-// and the receipt at the end.
+// One job done by one agent, drawn as a conversation: the request, what the
+// agent did, and the line at the end with time, cost and score.
 export type Run = {
   job: string;
   request: string;
@@ -64,9 +66,38 @@ export type RunRow = {
 
 export type ControlItem = { title: string; body: string; example: string };
 
+// One agent in a message list: its name, the department it works for, its
+// last report, when, and whether that report waits on a person.
+export type RosterItem = {
+  name: string;
+  department: string;
+  preview: string;
+  time: string;
+  state: "done" | "waiting" | "running";
+};
+
+// One report from the week: when, who, what came back.
+export type WeekItem = {
+  time: string;
+  agent: string;
+  text: string;
+  needsYou?: boolean;
+};
+
+export type WeekDay = { day: string; items: WeekItem[] };
+
+export type Story = {
+  figure: string;
+  line: string;
+  who: string;
+  href: string;
+};
+
+export type Question = { question: string; answer: string };
+
 export const LINKS = {
   home: { label: "Hyperagent", href: "/landing/a" },
-  start: { label: "Start an agent", href: "/signup" },
+  start: { label: "Start your team", href: "/signup" },
   logIn: { label: "Log in", href: "/threads/new" },
 } satisfies Record<string, LandingLink>;
 
@@ -77,101 +108,254 @@ export const A11Y = {
   agents: "Agents in this department",
   browser: "Browser window",
   computer: "The agent's computer",
-  runs: "Example runs from one Monday morning",
+  runs: "Example jobs from one Monday morning",
   working: "Working",
+  roster: "Your team",
+  week: "Example week",
+  stories: "Customer stories",
 };
 
 export const NAV: LandingLink[] = [
+  { label: "Team", href: "#team" },
   { label: "Use cases", href: "#use-cases" },
-  { label: "Formats", href: "#formats" },
-  { label: "Receipts", href: "#receipts" },
-  { label: "Control", href: "#control" },
+  { label: "A week", href: "#week" },
+  { label: "Stories", href: "#stories" },
   { label: "Pricing", href: "#pricing" },
 ];
 
 export const HERO = {
-  title: "Hand off the weekly work.",
-  sub: "Each recurring job gets an agent with its own computer. You keep the final say.",
-  fine: "Plans from $20 a month. Credit pays for what your agents use.",
+  title: "Meet your team of agents.",
+  sub: "They do the weekly work. You approve what matters.",
+  fine: "Plans from $20 a month. Credit pays for what the team actually does.",
   window: {
-    url: "hyperagent.com/threads/weekly-pipeline-review",
-    sidebar: [
-      {
-        label: "This week",
-        items: [
-          { name: "Weekly pipeline review", state: "running" as const },
-          { name: "Invoice reminders", state: "done" as const },
-          { name: "Late supplier confirmations", state: "done" as const },
-        ],
-      },
-      {
-        label: "Scheduled",
-        items: [
-          {
-            name: "Candidate slate, product designer",
-            state: "queued" as const,
-          },
-          { name: "Market signal brief", state: "queued" as const },
-        ],
-      },
-    ],
+    url: "hyperagent.com/team/invoice-chaser",
+    roster: {
+      label: "Your team",
+      items: [
+        {
+          name: "Invoice chaser",
+          department: "Finance",
+          preview: "Drafting Monday's reminders",
+          time: "now",
+          state: "running",
+        },
+        {
+          name: "Supplier chaser",
+          department: "Operations",
+          preview: "4 chases drafted. Two suppliers are 3 days late.",
+          time: "6:40",
+          state: "waiting",
+        },
+        {
+          name: "Pipeline reporter",
+          department: "Sales",
+          preview: "Digest posted in #sales. 9 deals need a nudge.",
+          time: "7:05",
+          state: "done",
+        },
+        {
+          name: "Candidate sourcer",
+          department: "Hiring",
+          preview: "Slate of 20 ready. Top 5 have portfolios linked.",
+          time: "Sun",
+          state: "done",
+        },
+        {
+          name: "Signal briefer",
+          department: "Marketing",
+          preview: "Brief posted. 6 signals, a source on each.",
+          time: "Sun",
+          state: "done",
+        },
+      ] satisfies RosterItem[],
+    },
     thread: {
-      title: "Weekly pipeline review",
-      agent: "Sales agent",
-      schedule: "Every Monday at 07:00",
+      title: "Invoice reminders",
+      agent: "Invoice chaser",
+      schedule: "Every Monday at 7:00",
       you: "You",
       request:
-        "Every Monday at 7:00, pull last week's pipeline from HubSpot, flag deals with no activity in 14 days, and post the digest in #sales before the 9:00 meeting. Never email a customer.",
+        "Every Monday at 7:00, find invoices unpaid after 30 days, draft a polite reminder for each, and post the list in #finance. Send nothing until I have seen it.",
       steps: [
-        { text: "Signed in to HubSpot", at: "0:08" },
-        { text: "Pulled 212 open deals and 14 days of activity", at: "0:41" },
+        { text: "Opened the invoice list in Airtable", at: "0:09" },
         {
-          text: "Flagged 9 deals with no activity since 1 September",
-          at: "2:15",
+          text: "Found 7 invoices past 30 days, $18,420 in total",
+          at: "0:40",
         },
-        { text: "Drafted the digest: 9 deals, 3 owners", at: "5:30" },
+        { text: "Drafted 7 reminders in our tone", at: "2:10" },
+        { text: "Posted the list in #finance", at: "3:05" },
       ] satisfies Step[],
       ask: {
-        label: "Waiting on you",
-        body: "Post the digest in #sales? Unattended runs are read-only, so this waits for a person.",
-        approve: "Post it",
-        edit: "Edit first",
+        label: "Needs you",
+        body: "Send the 7 reminders? They are drafted and held. Nothing goes out until you say so.",
+        approve: "Send them",
+        edit: "Read them first",
       },
       receipt: {
-        duration: "6m 12s",
-        cost: "$0.84",
-        score: "Judge 9.1 / 10",
+        duration: "3m 40s",
+        cost: "$0.52",
+        score: "Score 9.6 / 10",
         waiting: "1 decision waiting",
       },
     },
     computer: {
       title: "Its computer",
       rows: [
-        { label: "Browser", value: "HubSpot, Deals, no activity in 14 days" },
-        { label: "Shell", value: "python flag_stale.py --days 14" },
-        { label: "Files", value: "pipeline-week-37.csv, 212 rows" },
+        { label: "Browser", value: "Airtable, Invoices, unpaid after 30 days" },
+        { label: "Drafts", value: "7 reminders, held" },
+        { label: "Files", value: "reminders-week-37.pdf" },
       ],
     },
   },
   startsFrom: {
     label: "Starts from",
     items: [
-      "A thread",
+      "You ask",
       "Slack",
       "Telegram",
       "Email",
       "A webhook",
       "A schedule",
-      "An MCP client",
+      "Another agent",
     ],
   },
+};
+
+export const TEAM = {
+  id: "team",
+  heading: {
+    title: "One team. Each agent has a job.",
+    sub: "Talk to them like coworkers, in one shared workspace. They report back with what they did.",
+  } satisfies Heading,
+  items: [
+    {
+      name: "Invoice chaser",
+      department: "Finance",
+      preview:
+        "Drafted 7 reminders for invoices past 30 days. Held for your OK.",
+      time: "7:04",
+      state: "waiting",
+    },
+    {
+      name: "Pipeline reporter",
+      department: "Sales",
+      preview: "Posted the pipeline digest in #sales. 9 deals need a nudge.",
+      time: "7:05",
+      state: "done",
+    },
+    {
+      name: "Supplier chaser",
+      department: "Operations",
+      preview: "No orders late today. Nothing to chase.",
+      time: "7:10",
+      state: "done",
+    },
+    {
+      name: "Candidate sourcer",
+      department: "Hiring",
+      preview:
+        "Slate of 20 for the product designer role. Top 5 have portfolios linked.",
+      time: "Sun 22:18",
+      state: "done",
+    },
+    {
+      name: "Signal briefer",
+      department: "Marketing",
+      preview: "This week's brief is up. Two launches, one price change.",
+      time: "Mon 8:00",
+      state: "done",
+    },
+    {
+      name: "Spend watcher",
+      department: "Finance",
+      preview: "Checked 312 card charges. Flagged 5 for a person.",
+      time: "Wed 8:04",
+      state: "done",
+    },
+  ] satisfies RosterItem[],
+  states: { done: "Done", waiting: "Needs you", running: "Working" },
+  caption: "Example agents. Yours get the names and jobs you give them.",
+};
+
+export const WEEK = {
+  id: "week",
+  heading: {
+    title: "What a week looks like.",
+    sub: "The team reports where you already talk. Most days, the only thing left for you is a yes.",
+  } satisfies Heading,
+  needsYou: "Needs you",
+  days: [
+    {
+      day: "Monday",
+      items: [
+        {
+          time: "7:04",
+          agent: "Invoice chaser",
+          text: "Drafted 7 reminders for invoices past 30 days. Held for your OK.",
+          needsYou: true,
+        },
+        {
+          time: "7:05",
+          agent: "Pipeline reporter",
+          text: "Posted the pipeline digest in #sales. 9 deals have gone quiet for 14 days.",
+        },
+      ],
+    },
+    {
+      day: "Tuesday",
+      items: [
+        {
+          time: "6:30",
+          agent: "Account researcher",
+          text: "Wrote a one-page note on each of the 12 accounts added yesterday.",
+        },
+      ],
+    },
+    {
+      day: "Wednesday",
+      items: [
+        {
+          time: "8:04",
+          agent: "Spend watcher",
+          text: "Checked 312 card charges against the policy. Flagged 5 for a person.",
+        },
+      ],
+    },
+    {
+      day: "Thursday",
+      items: [
+        {
+          time: "16:00",
+          agent: "Interview scheduler",
+          text: "Found 3 slots that work for the whole panel. Invitation drafted.",
+          needsYou: true,
+        },
+      ],
+    },
+    {
+      day: "Friday",
+      items: [
+        {
+          time: "15:00",
+          agent: "Ops reporter",
+          text: "Wrote the weekly operations report. 4 late orders, down from 9.",
+        },
+        {
+          time: "16:00",
+          agent: "Payout reconciler",
+          text: "Matched 146 of 148 payouts. Two are off by more than $5.",
+        },
+      ],
+    },
+  ] satisfies WeekDay[],
+  caption: "Example week. Times and figures are illustrations.",
 };
 
 export const USE_CASES = {
   id: "use-cases",
   heading: {
-    title: "One team of agents, across every function.",
-    sub: "Each department gets agents with names, jobs and schedules. Pick one to see a run.",
+    title: "Every part of the business gets a few.",
+    sub: "Pick a department to see its agents and one of their jobs.",
   } satisfies Heading,
   action: { label: "Start this agent", href: "/signup" } satisfies LandingLink,
   departments: [
@@ -179,15 +363,15 @@ export const USE_CASES = {
       value: "finance",
       label: "Finance",
       title: "Finance",
-      sub: "Reconcile, chase and close without the Friday scramble.",
+      sub: "Chase, reconcile and close without the Friday scramble.",
       bubbles: [
         {
           from: "you",
-          text: "@Finance agent, which invoices are past 30 days?",
+          text: "@Invoice chaser, which invoices are past 30 days?",
         },
         {
           from: "agent",
-          text: "Seven, totalling $18,420. Reminders are drafted for all of them and waiting for your approval.",
+          text: "Seven, $18,420 in total. Reminders are drafted and held. Nothing goes out until you say so.",
         },
       ],
       agents: [
@@ -202,7 +386,7 @@ export const USE_CASES = {
             steps: [
               { text: "Pulled 148 payouts and 151 ledger entries", at: "0:32" },
               { text: "Matched 146, found 2 differences over $5", at: "2:04" },
-              { text: "Drafted the reconciliation note", at: "4:10" },
+              { text: "Wrote the reconciliation note", at: "4:10" },
             ],
             receipt: { duration: "4m 50s", cost: "$0.61", score: "9.4" },
           },
@@ -214,11 +398,11 @@ export const USE_CASES = {
           run: {
             job: "Invoice reminders",
             request:
-              "Every Monday, list invoices unpaid after 30 days and draft a reminder for each. Send nothing until I have seen it.",
+              "Every Monday at 7:00, find invoices unpaid after 30 days and draft a reminder for each. Send nothing until I have seen it.",
             steps: [
-              { text: "Found 7 invoices past 30 days", at: "0:21" },
-              { text: "Drafted 7 reminders in our tone", at: "1:48" },
-              { text: "Held all 7 for approval", at: "3:40" },
+              { text: "Found 7 invoices past 30 days", at: "0:40" },
+              { text: "Drafted 7 reminders in our tone", at: "2:10" },
+              { text: "Held all 7 for your OK", at: "3:40" },
             ],
             receipt: { duration: "3m 40s", cost: "$0.52", score: "9.6" },
           },
@@ -230,14 +414,14 @@ export const USE_CASES = {
           run: {
             job: "Month-end close checklist",
             request:
-              "On the last working day of each month, prepare the close checklist with owners and what is still open.",
+              "On the last working day of each month, prepare the close checklist with an owner on each item and what is still open.",
             steps: [
               {
-                text: "Listed 23 close tasks from last month's checklist",
+                text: "Listed 23 items from last month's checklist",
                 at: "0:15",
               },
               {
-                text: "Marked 19 done, 4 open, from the shared drive",
+                text: "Marked 19 done and 4 open from the shared drive",
                 at: "1:52",
               },
               { text: "Wrote the checklist with owners", at: "3:05" },
@@ -248,15 +432,15 @@ export const USE_CASES = {
         {
           name: "Spend watcher",
           initials: "SW",
-          role: "Flags card spend outside policy",
+          role: "Flags card spend outside the policy",
           run: {
             job: "Card spend check",
             request:
-              "Every Wednesday, review last week's card spend against the policy and flag anything outside it.",
+              "Every Wednesday, check last week's card spend against the policy and flag anything outside it.",
             steps: [
-              { text: "Pulled 312 card transactions", at: "0:27" },
+              { text: "Pulled 312 card charges", at: "0:27" },
               { text: "Checked each against the spend policy", at: "2:36" },
-              { text: "Flagged 5 for a person to review", at: "3:58" },
+              { text: "Flagged 5 for a person to look at", at: "3:58" },
             ],
             receipt: { duration: "4m 12s", cost: "$0.58", score: "9.0" },
           },
@@ -269,10 +453,10 @@ export const USE_CASES = {
       title: "Sales",
       sub: "Research overnight, keep the CRM honest, report before the meeting.",
       bubbles: [
-        { from: "you", text: "Break down the deals closed in Q3 by industry." },
+        { from: "you", text: "Which deals went quiet?" },
         {
           from: "agent",
-          text: "Done. 41 deals across 6 industries, with a table in the thread. Software led at 38% of value.",
+          text: "Nine with no activity in 14 days. The digest is in #sales with an owner on each.",
         },
       ],
       agents: [
@@ -283,7 +467,7 @@ export const USE_CASES = {
           run: {
             job: "Account research",
             request:
-              "Every night, research the accounts added to the CRM that day: what they do, who leads it, and one reason to talk.",
+              "Every night, research the accounts added to HubSpot that day: what they do, who runs it, and one reason to call.",
             steps: [
               { text: "Found 12 accounts added today", at: "0:11" },
               { text: "Read each company's site and recent news", at: "6:40" },
@@ -295,15 +479,15 @@ export const USE_CASES = {
         {
           name: "CRM updater",
           initials: "CU",
-          role: "Updates the CRM after every call",
+          role: "Updates HubSpot after every call",
           run: {
             job: "Post-call CRM update",
             request:
               "After every sales call, read the notes and update the deal stage, next step and close date in HubSpot.",
             steps: [
-              { text: "Read the call notes, 3 calls today", at: "0:09" },
+              { text: "Read the notes from 3 calls today", at: "0:09" },
               { text: "Drafted 3 deal updates", at: "1:14" },
-              { text: "Held the stage changes for approval", at: "1:50" },
+              { text: "Held the changes for your OK", at: "1:50" },
             ],
             receipt: { duration: "2m 02s", cost: "$0.29", score: "9.3" },
           },
@@ -321,27 +505,24 @@ export const USE_CASES = {
                 text: "Pulled 212 open deals and 14 days of activity",
                 at: "0:41",
               },
-              {
-                text: "Flagged 9 deals with no activity since 1 September",
-                at: "2:15",
-              },
-              { text: "Drafted the digest: 9 deals, 3 owners", at: "5:30" },
+              { text: "Flagged 9 deals quiet since 1 September", at: "2:15" },
+              { text: "Posted the digest: 9 deals, 3 owners", at: "5:30" },
             ],
             receipt: { duration: "6m 12s", cost: "$0.84", score: "9.1" },
           },
         },
         {
-          name: "Comp analyst",
-          initials: "CA",
+          name: "Price watcher",
+          initials: "PW",
           role: "Keeps the competitor comparison current",
           run: {
-            job: "Comp analysis refresh",
+            job: "Price comparison refresh",
             request:
-              "Every two weeks, refresh the competitor comparison: pricing pages, plan names and anything new they announced.",
+              "Every two weeks, refresh the competitor comparison: their pricing pages, plan names and anything new they announced.",
             steps: [
               { text: "Opened 6 pricing pages in its browser", at: "1:05" },
               { text: "Found 2 plan changes since last time", at: "4:22" },
-              { text: "Updated the comparison doc", at: "8:47" },
+              { text: "Updated the comparison document", at: "8:47" },
             ],
             receipt: { duration: "9m 14s", cost: "$1.62", score: "8.7" },
           },
@@ -357,7 +538,7 @@ export const USE_CASES = {
         { from: "you", text: "Anything at risk of missing Friday's delivery?" },
         {
           from: "agent",
-          text: "Three orders. Two are waiting on a supplier confirmation, one is short on stock. Details are in the tracker.",
+          text: "Three orders. Two wait on a supplier, one is short on stock. The tracker has the details.",
         },
       ],
       agents: [
@@ -372,7 +553,7 @@ export const USE_CASES = {
             steps: [
               { text: "Found 4 orders unconfirmed after 2 days", at: "0:18" },
               { text: "Drafted 4 chase emails", at: "2:30" },
-              { text: "Held them for approval", at: "8:05" },
+              { text: "Held them for your OK", at: "8:05" },
             ],
             receipt: { duration: "8m 05s", cost: "$1.17", score: "8.8" },
           },
@@ -380,7 +561,7 @@ export const USE_CASES = {
         {
           name: "Delivery-risk flagger",
           initials: "DR",
-          role: "Flags orders at risk of missing their date",
+          role: "Flags orders that may miss their date",
           run: {
             job: "Delivery risk check",
             request:
@@ -431,7 +612,7 @@ export const USE_CASES = {
       value: "hiring",
       label: "Hiring",
       title: "Hiring",
-      sub: "Source, schedule and prepare, with a person signing every offer.",
+      sub: "Source, schedule and prepare. A person signs every offer.",
       bubbles: [
         {
           from: "you",
@@ -439,7 +620,7 @@ export const USE_CASES = {
         },
         {
           from: "agent",
-          text: "A slate of 20, ranked by the rubric you wrote. The top 5 have portfolios linked in the dashboard.",
+          text: "A slate of 20, ranked the way you asked. The top 5 have portfolios linked in the dashboard.",
         },
       ],
       agents: [
@@ -450,13 +631,10 @@ export const USE_CASES = {
           run: {
             job: "Candidate slate, product designer",
             request:
-              "For each open role, source 20 candidates a week that match the rubric and rank them in a dashboard.",
+              "For each open role, find 20 candidates a week who match what we asked for and rank them in a dashboard.",
             steps: [
-              {
-                text: "Searched for product designers matching the rubric",
-                at: "6:30",
-              },
-              { text: "Ranked 20 candidates against 6 criteria", at: "17:44" },
+              { text: "Searched for product designers who match", at: "6:30" },
+              { text: "Ranked 20 candidates against 6 points", at: "17:44" },
               { text: "Built the slate as a dashboard", at: "22:18" },
             ],
             receipt: { duration: "22m 18s", cost: "$3.96", score: "9.2" },
@@ -473,7 +651,7 @@ export const USE_CASES = {
             steps: [
               { text: "Read 4 panel calendars", at: "0:20" },
               { text: "Found 3 slots that work for everyone", at: "1:02" },
-              { text: "Drafted the invitation for approval", at: "1:40" },
+              { text: "Drafted the invitation for your OK", at: "1:40" },
             ],
             receipt: { duration: "1m 48s", cost: "$0.24", score: "9.4" },
           },
@@ -481,14 +659,14 @@ export const USE_CASES = {
         {
           name: "Offer drafter",
           initials: "OD",
-          role: "Prepares offer letters for approval",
+          role: "Prepares offer letters for a person to send",
           run: {
             job: "Offer letter draft",
             request:
               "When a hire is approved, draft the offer letter from the template and the agreed terms. A person sends it.",
             steps: [
-              { text: "Read the agreed terms in the thread", at: "0:14" },
-              { text: "Filled the offer template", at: "1:20" },
+              { text: "Read the agreed terms", at: "0:14" },
+              { text: "Filled in the offer template", at: "1:20" },
               { text: "Held the letter for a person to send", at: "1:56" },
             ],
             receipt: { duration: "2m 04s", cost: "$0.27", score: "9.7" },
@@ -501,10 +679,10 @@ export const USE_CASES = {
           run: {
             job: "Hiring playbook update",
             request:
-              "Every month, update the hiring playbook with what changed: roles, rubrics, and the steps that moved.",
+              "Every month, update the hiring playbook with what changed: roles, questions, and the steps that moved.",
             steps: [
               {
-                text: "Compared the playbook with this month's threads",
+                text: "Compared the playbook with this month's hires",
                 at: "2:14",
               },
               { text: "Found 5 steps that changed", at: "4:50" },
@@ -519,21 +697,21 @@ export const USE_CASES = {
       value: "marketing",
       label: "Marketing",
       title: "Marketing",
-      sub: "Briefs, pages and creative, built in your style and kept current.",
+      sub: "Briefs, pages and ads in your style, kept current.",
       bubbles: [
         { from: "you", text: "What moved in our market this week?" },
         {
           from: "agent",
-          text: "Two launches and one pricing change. The brief is in the thread, with sources for each point.",
+          text: "Two launches and one price change. The brief is posted in #marketing, with a source on each point.",
         },
       ],
       agents: [
         {
           name: "Signal briefer",
           initials: "SB",
-          role: "Writes the weekly market signal brief",
+          role: "Writes the weekly market brief",
           run: {
-            job: "Market signal brief",
+            job: "Market brief",
             request:
               "Every Monday at 8:00, read what our market published last week and write a one-page brief with sources.",
             steps: [
@@ -542,7 +720,7 @@ export const USE_CASES = {
                 at: "5:12",
               },
               { text: "Picked 6 signals that matter", at: "9:30" },
-              { text: "Wrote the brief as a page", at: "11:47" },
+              { text: "Posted the brief as a page", at: "11:47" },
             ],
             receipt: { duration: "11m 47s", cost: "$2.10", score: "8.9" },
           },
@@ -564,9 +742,9 @@ export const USE_CASES = {
           },
         },
         {
-          name: "Creative drafter",
-          initials: "CD",
-          role: "Drafts ad creative in the house style",
+          name: "Ad drafter",
+          initials: "AD",
+          role: "Drafts ad variants in the house style",
           run: {
             job: "Ad creative, three variants",
             request:
@@ -586,7 +764,7 @@ export const USE_CASES = {
           run: {
             job: "Weekly content plan",
             request:
-              "Every Monday morning, propose the week's content from the calendar and last week's numbers, and post it in #content.",
+              "Every Monday morning, propose the week's posts from the calendar and last week's numbers, and post the plan in #content.",
             steps: [
               { text: "Read the calendar and last week's numbers", at: "1:04" },
               { text: "Proposed 5 posts with a reason each", at: "3:48" },
@@ -601,45 +779,45 @@ export const USE_CASES = {
   bubbleSender: { you: "You", agent: "Agent" },
   runLabels: {
     request: "Request",
-    receipt: "Receipt",
-    score: "Judge",
+    receipt: "Job",
+    score: "Score",
   },
 };
 
 export const FORMATS = {
   id: "formats",
   heading: {
-    title: "Work in every format.",
-    sub: "Sites, video, decks, documents and dashboards, built and kept current as your world changes.",
+    title: "The work comes back finished.",
+    sub: "Pages, video, slides, documents and dashboards, kept current as things change.",
   } satisfies Heading,
   examplesLabel: "For example",
   items: [
     {
       id: "websites",
       name: "Websites",
-      body: "HTML that renders live, built and hosted, not pasted into a doc.",
+      body: "A page that is live and hosted, not a draft in a document.",
       examples: [
-        "Market signal briefs",
+        "Market briefs",
         "Candidate slates",
-        "Comp analyses",
+        "Price comparisons",
         "Landing pages",
       ],
     },
     {
       id: "video",
       name: "Video",
-      body: "Product demos, listing tours and ad creative, ready to post.",
+      body: "Product demos, listing tours and ads, ready to post.",
       examples: [
         "Product demos",
         "Listing tours",
-        "Animated walkthroughs",
+        "Walkthroughs",
         "Ad creative",
       ],
     },
     {
       id: "slides",
       name: "Slides",
-      body: "Decks in your house style, from first draft to final version.",
+      body: "Decks in your house style, from first draft to final.",
       examples: [
         "Pitch decks",
         "Hiring kickoffs",
@@ -650,7 +828,7 @@ export const FORMATS = {
     {
       id: "documents",
       name: "Documents",
-      body: "Documents that stay current, watched by the agent as work moves.",
+      body: "Documents an agent keeps up to date as the work moves.",
       examples: [
         "Strategy docs",
         "Research reports",
@@ -661,50 +839,52 @@ export const FORMATS = {
     {
       id: "dashboards",
       name: "Dashboards",
-      body: "Data with the context of what matters, refreshed on a schedule.",
+      body: "Numbers with the context of what matters, refreshed on a schedule.",
       examples: ["Live metrics", "Pipeline views", "Scorecards", "Trackers"],
     },
   ] satisfies Format[],
 };
 
+// The export keeps its name so receipts.tsx reads it unchanged; the visible
+// copy never says "receipt".
 export const RECEIPTS = {
-  id: "receipts",
+  id: "cost",
   heading: {
-    title: "Every run comes with a receipt.",
-    sub: "How long it took, what it cost, how a judge scored it, and what it is waiting on.",
+    title: "Every job shows what it took.",
+    sub: "How long, what it cost, how it scored, and what it is waiting on.",
   } satisfies Heading,
   columns: {
     time: "Time",
     agent: "Agent",
     job: "Job",
-    duration: "Duration",
+    duration: "Took",
     cost: "Cost",
     score: "Score",
     state: "State",
   },
-  states: { done: "Done", waiting: "Needs you", running: "Running" },
+  states: { done: "Done", waiting: "Needs you", running: "Working" },
   rows: [
     {
       time: "07:00",
-      agent: "Sales agent",
-      job: "Weekly pipeline review",
-      duration: "6m 12s",
-      cost: "$0.84",
-      score: "9.1",
-      state: "waiting",
-    },
-    {
-      time: "07:05",
-      agent: "Finance agent",
+      agent: "Invoice chaser",
       job: "Invoice reminders",
       duration: "3m 40s",
       cost: "$0.52",
       score: "9.6",
+      state: "waiting",
+    },
+    {
+      time: "07:05",
+      agent: "Pipeline reporter",
+      job: "Weekly pipeline review",
+      duration: "6m 12s",
+      cost: "$0.84",
+      score: "9.1",
       state: "done",
     },
     {
       time: "07:10",
-      agent: "Operations agent",
+      agent: "Supplier chaser",
       job: "Late supplier confirmations",
       duration: "8m 05s",
       cost: "$1.17",
@@ -713,7 +893,7 @@ export const RECEIPTS = {
     },
     {
       time: "07:30",
-      agent: "Hiring agent",
+      agent: "Candidate sourcer",
       job: "Candidate slate, product designer",
       duration: "22m 18s",
       cost: "$3.96",
@@ -722,8 +902,8 @@ export const RECEIPTS = {
     },
     {
       time: "08:00",
-      agent: "Marketing agent",
-      job: "Market signal brief",
+      agent: "Signal briefer",
+      job: "Market brief",
       duration: "11m 47s",
       cost: "$2.10",
       score: "8.9",
@@ -731,7 +911,7 @@ export const RECEIPTS = {
     },
     {
       time: "08:15",
-      agent: "Operations agent",
+      agent: "Delivery-risk flagger",
       job: "Delivery risk check",
       duration: "2m 51s",
       cost: "$0.38",
@@ -740,19 +920,19 @@ export const RECEIPTS = {
     },
   ] satisfies RunRow[],
   total: {
-    label: "Six runs",
+    label: "Six jobs",
     duration: "54m 53s",
     cost: "$8.97",
     score: "9.1 average",
   },
   notes: [
     {
-      title: "Scored by a judge",
-      body: "A separate model scores every run against rubrics you write, so quality is a number you can watch week to week.",
+      title: "Checked by a second AI",
+      body: "A separate AI scores each job against standards you write, so quality is a number you can watch week to week.",
     },
     {
-      title: "Priced per run",
-      body: "Credit pays for model tokens, browser minutes, searches and actions, so every run shows what it cost.",
+      title: "Priced per job",
+      body: "Credit pays for what the team actually does, so every job shows its cost. You can cap what one job may spend.",
     },
   ],
 };
@@ -760,43 +940,125 @@ export const RECEIPTS = {
 export const CONTROL = {
   id: "control",
   heading: {
-    title: "It asks before anything that matters.",
-    sub: "Decide what each agent may do on its own. Everything else waits for a person.",
+    title: "You call the shots.",
+    sub: "Each agent does only what you allow. Everything else waits for a yes.",
   } satisfies Heading,
   items: [
     {
-      title: "Ask first, or draw the line",
+      title: "Ask first, or let it run",
       body: "Choose per agent whether it acts or asks, and write the exceptions in plain words.",
       example: "Ask first. Hold any refund over $500.",
     },
     {
-      title: "Logins stay out of its computer",
-      body: "Connections use OAuth, and the tokens never enter the agent's sandbox.",
-      example: "HubSpot connected. Token kept outside the sandbox.",
+      title: "Your logins stay yours",
+      body: "You sign in once. The agent uses the connection and never sees your password.",
+      example: "HubSpot connected. Password never shared.",
     },
     {
-      title: "Read-only until you say so",
-      body: "Scheduled runs read what they need and change nothing until someone approves.",
-      example: "Unattended runs read. Writes wait for approval.",
+      title: "Looks but does not touch, until you say so",
+      body: "A job that runs while you are away can read your apps but change nothing until you loosen it.",
+      example: "Runs while you are away: read-only.",
     },
     {
-      title: "A budget on every run",
-      body: "Caps per agent and per run, and one shared bill for the team.",
-      example: "Cap per run $5. Used this month $41.20 of $115.",
+      title: "A cap on every job",
+      body: "Set what one job may spend. The team never runs up a bill you did not expect.",
+      example: "Cap per job $5. Used this month $41.20 of $115.",
     },
   ] satisfies ControlItem[],
+};
+
+// The product's own published customer stories, quoted as written. Figures
+// and names come from hyperagent.com/blog and appear nowhere else on the page.
+export const STORIES = {
+  id: "stories",
+  heading: {
+    title: "What teams got done.",
+    sub: "From the customer stories Hyperagent publishes. Figures are theirs, quoted as written.",
+  } satisfies Heading,
+  linkLabel: "Read the story",
+  items: [
+    {
+      figure: "10 minutes",
+      line: "“Four-hour manual tasks completed in 10 minutes.”",
+      who: "Summit Cover, a 40-person insurance brokerage",
+      href: "https://www.hyperagent.com/blog/summit-cover/",
+    },
+    {
+      figure: "7 hours a week",
+      line: "“7 hours saved weekly for one employee” and “+48% jobs approved.”",
+      who: "Appell Striping & Seal Coating, a parking-lot striping company",
+      href: "https://www.hyperagent.com/blog/customer-stories/customer-stories-appell-striping-agents-personalized-outreach/",
+    },
+    {
+      figure: "27 markets in a day",
+      line: "“800 opportunities surfaced in one day.”",
+      who: "HelloPackage, package rooms for 200 buildings",
+      href: "https://www.hyperagent.com/blog/customer-stories/hellopackage-agent-team-sales/",
+    },
+    {
+      figure: "5 hours a week",
+      line: "“An AI agent produces our weekly numbers in 2 minutes.” Saves the finance team 5 hours each week.",
+      who: "Airtable's finance team",
+      href: "https://www.hyperagent.com/blog/finance-agent/",
+    },
+  ] satisfies Story[],
 };
 
 export const PRICING = {
   id: "pricing",
   heading: {
     title: "Plans from $20 a month.",
-    sub: "Credit pays for what agents use: model tokens, browser minutes, searches and actions. Larger plans add bonus credit.",
+    sub: "Credit pays for what the team actually does. Bigger plans add bonus credit.",
   } satisfies Heading,
-  unit: V1_PRICING.unit,
-  plans: V1_PRICING.plans,
-  more: V1_PRICING.more,
-  faq: V1_PRICING.faq,
+  unit: "a month",
+  plans: [
+    { price: 20, bonus: 0, fit: "One agent on one weekly job." },
+    { price: 100, bonus: 15, fit: "A few agents across the business." },
+    { price: 500, bonus: 25, fit: "A department that runs every day." },
+    { price: 2000, bonus: 35, fit: "Several departments, every day." },
+  ] satisfies Plan[],
+  more: "Plans continue up to $10,000 a month, with a 45% bonus at the top. Plan credit resets each month.",
+  faq: {
+    id: "faq",
+    heading: "Questions",
+    items: [
+      {
+        question: "Do I need to be technical?",
+        answer:
+          "No. You write the job the way you would brief a new hire, in plain words. The agent asks when something is unclear.",
+      },
+      {
+        question: "Will it do things without asking?",
+        answer:
+          "Only where you allow it. Agents set to ask first stop before they act. A job that runs while you are away can read your apps but changes nothing until you say so.",
+      },
+      {
+        question: "Where does the work show up?",
+        answer:
+          "In Slack, Telegram or your inbox, and in one shared workspace where your whole team can see every job. Jobs can also start from a schedule or a webhook.",
+      },
+      {
+        question: "What does a week cost?",
+        answer:
+          "It depends on the jobs. The example week on this page comes to about $9 for six jobs. Every job shows its cost, and you can cap what one job may spend.",
+      },
+      {
+        question: "What if it gets something wrong?",
+        answer:
+          "You see every step it took and can stop a job at any time. Correct it once and it remembers. A second AI scores each job against standards you write, so a drop shows up early.",
+      },
+      {
+        question: "Will it work with our apps?",
+        answer:
+          "Slack, Gmail, Google Drive, HubSpot, Notion and Airtable connect in a few clicks. You sign in once. The agent never sees your password.",
+      },
+    ] satisfies Question[],
+  },
+};
+
+export const CLOSING = {
+  heading: "Hire your first agent today.",
+  fine: "Plans from $20 a month. Nothing goes out until you say so.",
 };
 
 export const FOOTER = {
@@ -804,9 +1066,11 @@ export const FOOTER = {
     {
       title: "Product",
       links: [
+        { label: "Team", href: "#team" },
+        { label: "A week", href: "#week" },
         { label: "Use cases", href: "#use-cases" },
         { label: "Formats", href: "#formats" },
-        { label: "Receipts", href: "#receipts" },
+        { label: "Cost and quality", href: "#cost" },
         { label: "Control", href: "#control" },
       ],
     },
@@ -815,6 +1079,7 @@ export const FOOTER = {
       links: [
         { label: "Pricing", href: "#pricing" },
         { label: "Questions", href: "#faq" },
+        { label: "Stories", href: "#stories" },
       ],
     },
     {
