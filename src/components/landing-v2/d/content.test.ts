@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import * as a from "../a/content";
-import { A11Y, BADGE, LINKS } from "./content";
+import { A11Y, HERO_D, LINKS } from "./content";
 
 // Variant D adds only a handful of strings to variant A's copy. They follow
 // A's rules, and every link lands on a section of the page or a route.
@@ -26,13 +26,22 @@ describe("landing v2 variant D copy", () => {
   });
 
   it("writes the new strings the way A writes its own", () => {
-    const added = [BADGE.lead, BADGE.link.label, A11Y.window];
+    const added = [HERO_D.primary, A11Y.window];
     expect(added.filter((s) => /[—·!]/.test(s))).toEqual([]);
     expect(added.filter((s) => s.split(/\s+/).length > 6)).toEqual([]);
   });
 
+  it("keeps the hero to the owner's title and a lede with no price", () => {
+    expect(HERO_D.title).toBe("Team of agents that ship real work");
+    expect(HERO_D.title).toContain(HERO_D.glyphAfter);
+    expect(HERO_D.description).not.toMatch(
+      /\$|\b(price|prices|plan|plans|cost|costs|credit|month|free)\b/i,
+    );
+    expect(HERO_D.description).not.toMatch(/real work|[—·!]/i);
+  });
+
   it("links only to a section on the page or a route", () => {
-    const hrefs = [BADGE.link.href, ...Object.values(LINKS).map((l) => l.href)];
+    const hrefs = Object.values(LINKS).map((l) => l.href);
     const broken = hrefs.filter((href) =>
       href.startsWith("#")
         ? !SECTION_IDS.includes(href.slice(1))

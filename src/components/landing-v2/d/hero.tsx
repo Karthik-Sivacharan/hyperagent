@@ -1,21 +1,20 @@
 import {
-  IconArrowRight,
   IconBrandSlack,
   IconBrandTelegram,
   IconCalendarEvent,
   IconMail,
   IconMessage,
   IconUsers,
-  IconUsersPlus,
   IconWebhook,
 } from "@tabler/icons-react";
 import Link from "next/link";
 
 import { GLYPH_SETS, MorphingAgentGlyph } from "@/components/brand/agent-glyph";
+import { Mark } from "@/components/brand/mark";
 import { Button } from "@/components/ui/button";
 
 import { HERO } from "../a/content";
-import { BADGE, LINKS } from "./content";
+import { HERO_D, LINKS } from "./content";
 import { HeroWindow } from "./hero-window";
 
 // One glyph per way a job can start, in the order A's content lists them:
@@ -30,38 +29,39 @@ const START_ICONS = [
   IconUsers,
 ];
 
-// Four agent glyphs sit after the headline's first word, so the line reads
-// "Meet, the team itself, your team of agents." The words stay A's; the
-// glyphs are decorative, so the heading's text stays its accessible name.
-// Each loops the original set from a different place (0, 2, 4 and 6 steps
-// in), so no two ever show the same shape, and each holds a little longer
-// than the one before it, so they drift apart instead of changing in step.
+// One agent glyph follows the word it stands for, so the line reads "Team
+// of agents, and here is one, that ship real work". It is decorative, so the
+// heading's text stays its accessible name. It walks four shapes from the
+// original set, every other step of the loop (a block, then a curve, and so
+// on), and rests on each for a little over two seconds: one mark changing
+// calmly, not a flicker at the edge of the reader's eye.
 //
-// Bare, without their tiles: set in ink on the paper ground they read as
-// four more letterforms of the line, where the sand tiles read as chips
-// pasted into it. Each body is sized to the cap height and dropped onto the
-// baseline (the drawing box sits a tenth of the glyph's edge inside it).
-const [FIRST_WORD, ...REST_WORDS] = HERO.title.split(" ");
-const ORIGINAL_IDS = GLYPH_SETS.original.map((shape) => shape.id);
-const HERO_GLYPHS = [
-  { offset: 0, hold: 1100 },
-  { offset: 2, hold: 1250 },
-  { offset: 4, hold: 1400 },
-  { offset: 6, hold: 1550 },
-].map(({ offset, hold }) => ({
-  hold,
-  sequence: [...ORIGINAL_IDS.slice(offset), ...ORIGINAL_IDS.slice(0, offset)],
-}));
+// Bare, without its tile: set in ink on the paper ground it reads as one
+// more letterform of the line. The body is sized to the cap height and
+// dropped onto the baseline (the drawing box sits a tenth of the glyph's
+// edge inside it). The word and the glyph share a no-wrap span, so a narrow
+// screen can break the line anywhere but between them.
+const GLYPH_SEQUENCE = [0, 2, 4, 6].map((step) => GLYPH_SETS.original[step].id);
+const GLYPH_HOLD_MS = 2200;
+const [TITLE_BEFORE, TITLE_AFTER] = splitAround(
+  HERO_D.title,
+  HERO_D.glyphAfter,
+);
 
-// Variant D's hero: everything on one centre axis. A pill that points
-// further down the page, the headline with four agent glyphs set inline, a two
-// line lede (the promise, then the price), two pill actions, and the product
+function splitAround(title: string, word: string): [string, string] {
+  const at = title.indexOf(word);
+  if (at < 0) return [title, ""];
+  return [title.slice(0, at), title.slice(at + word.length)];
+}
+
+// Variant D's hero: everything on one centre axis. The headline with its
+// glyph, a short lede, the brand's two soft-cornered actions, and the product
 // below as a desktop app window. Under the window, every way a job can start.
 // The window runs wider than the text column (up to 1360px) so the app reads
 // near its real size; the text and the row under it keep their measure.
 //
-// Spacing steps down from the window outwards: 20px inside the text block,
-// 32px to the actions, 56 to 64px to the window.
+// Spacing steps down from the window outwards: 20px from the headline to the
+// lede, 32px to the actions, 56 to 64px to the window.
 export function Hero() {
   return (
     <section
@@ -69,78 +69,52 @@ export function Hero() {
       className="overflow-x-clip px-4 pt-12 pb-16 sm:px-6 md:pt-20 md:pb-24"
     >
       <div className="mx-auto flex max-w-5xl flex-col items-center text-center">
-        <Button
-          asChild
-          variant="outline"
-          size="none"
-          className="h-9 max-w-full gap-2.5 pr-1.5 pl-3.5 font-normal"
-        >
-          <a href={BADGE.link.href}>
-            <span className="text-md font-medium text-foreground">
-              {BADGE.lead}
-            </span>
-            <span
-              aria-hidden="true"
-              className="size-1 shrink-0 rounded-full bg-tint-40"
-            />
-            <span className="text-md text-muted-foreground">
-              {BADGE.link.label}
-            </span>
-            <span
-              aria-hidden="true"
-              className="flex size-6 shrink-0 items-center justify-center rounded-full bg-tint-10 text-foreground"
-            >
-              <IconArrowRight
-                className="size-3.5 motion-safe:transition-transform motion-safe:duration-(--duration-fast) motion-safe:ease-out-quart motion-safe:group-hover/button:translate-x-0.5"
-                stroke={2.25}
-              />
-            </span>
-          </a>
-        </Button>
-
         <h1
           id="hero-heading"
-          className="mt-5 max-w-4xl text-4xl font-medium text-balance text-foreground sm:text-5xl"
+          className="max-w-4xl text-4xl font-medium text-balance text-foreground sm:text-5xl"
         >
+          {TITLE_BEFORE}
           <span className="whitespace-nowrap">
-            {FIRST_WORD}{" "}
-            <span className="inline-flex gap-[0.1em]">
-              {HERO_GLYPHS.map((glyph) => (
-                <MorphingAgentGlyph
-                  key={glyph.sequence[0]}
-                  sequence={glyph.sequence}
-                  hold={glyph.hold}
-                  pace="expressive"
-                  tile={false}
-                  size={48}
-                  className="size-[0.86em] translate-y-[0.1em]"
-                />
-              ))}
-            </span>
-          </span>{" "}
-          {REST_WORDS.join(" ")}
+            {HERO_D.glyphAfter}{" "}
+            <MorphingAgentGlyph
+              sequence={GLYPH_SEQUENCE}
+              hold={GLYPH_HOLD_MS}
+              pace="expressive"
+              tile={false}
+              size={48}
+              className="inline-block size-[0.86em] translate-y-[0.1em]"
+            />
+          </span>
+          {TITLE_AFTER}
         </h1>
 
         <p className="mt-5 max-w-content text-lg text-pretty text-muted-foreground">
-          {HERO.sub} <span className="sm:block">{HERO.fine}</span>
+          {HERO_D.description}
         </p>
 
+        {/* The brand's call to action as the signup flow draws it: the
+            tangerine, soft-cornered large button with the mark before the
+            label, and its quiet partner, the tinted row with a hairline.
+            44px tall here so both are a thumb on a phone. */}
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
           <Button
             asChild
+            variant="brand"
             size="lg"
+            shape="soft"
             className="h-11 px-6 text-base has-[>svg]:px-5"
           >
             <Link href={LINKS.start.href}>
-              <IconUsersPlus className="size-4.5" aria-hidden="true" />
-              {LINKS.start.label}
+              <Mark size={18} />
+              {HERO_D.primary}
             </Link>
           </Button>
           <Button
             asChild
-            size="lg"
             variant="tint"
-            className="h-11 px-6 text-base text-foreground"
+            size="lg"
+            shape="soft"
+            className="h-11 border border-input px-6 text-base text-foreground"
           >
             <Link href={LINKS.logIn.href}>{LINKS.logIn.label}</Link>
           </Button>

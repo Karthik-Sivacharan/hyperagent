@@ -1,22 +1,24 @@
 // Variant D reads its copy from variant A (../a/content.ts) and adds only
 // what its centred hero needs that A does not carry: the address of its own
-// route for the wordmark, and the words of the pill above the headline.
+// route for the wordmark, and its own headline, lede and first action.
 
-import { LINKS as A_LINKS, STORIES, type LandingLink } from "../a/content";
+import { LINKS as A_LINKS, type LandingLink } from "../a/content";
 
 export const LINKS = {
   ...A_LINKS,
   home: { label: A_LINKS.home.label, href: "/landing/d" },
 } satisfies Record<string, LandingLink>;
 
-// The pill over the headline. The page has no announcement to make yet, so
-// it points at the published customer stories further down: the lead is the
-// stories heading without its full stop, the link is the section's anchor.
-// Swap both for a real announcement when there is one.
-export const BADGE = {
-  lead: "What teams got done",
-  link: { label: "Read the stories", href: `#${STORIES.id}` },
-} satisfies { lead: string; link: LandingLink };
+// D's headline, lede and first action, in place of A's hero copy. The
+// title is the owner's; the glyph sits after `glyphAfter`. The lede says
+// what the team does in two short sentences and names no price or plan.
+export const HERO_D = {
+  title: "Team of agents that ship real work",
+  glyphAfter: "agents",
+  description:
+    "Set up agents that work together in the tools you already use. They follow your team's style and get the job done.",
+  primary: "Launch agents",
+};
 
 // A names the hero picture "Browser window"; D draws it as an app window
 // whose only live part is the list of agents.
