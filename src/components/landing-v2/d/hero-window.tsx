@@ -8,11 +8,11 @@ import { AgentTurn } from "@/components/signup/agent-turn";
 import type { AgentStream } from "@/components/signup/use-agent-stream";
 import { ThreadHeader } from "@/components/thread/thread-header";
 import { UserMessage } from "@/components/thread/user-message";
-import { Workspace } from "@/components/workspace/workspace";
 import type { AgentScript } from "@/lib/mock/agent-stream";
 import { cn } from "@/lib/utils";
 
 import { AgentChips } from "./agent-chips";
+import { DemoComputer } from "./computer/demo-computer";
 import { A11Y, DEMO_CHROME } from "./content";
 import { DEMO_AGENTS, type DemoAgent, type DemoAgentId } from "./demo-agents";
 import { DemoSidebar } from "./demo-sidebar";
@@ -20,7 +20,8 @@ import { DemoSidebar } from "./demo-sidebar";
 // The last screen of the signup flow, held still, with one thing left live:
 // the list of agents. Choosing one swaps the thread bar, the conversation and
 // the agent's computer to that agent's scenario (demo-agents.ts). Every part
-// of the picture is the component the flow itself renders; only the moment
+// of the picture is the component the flow itself renders, except the
+// computer's desktop, a drawn scene per agent (computer/); only the moment
 // is fixed.
 
 const SENT_AT = "2:50 PM";
@@ -216,7 +217,7 @@ export function HeroWindow() {
               <AgentPanel
                 id={PANEL_ID}
                 learning
-                computer={<Workspace {...agent.workspace} />}
+                computer={<DemoComputer agentId={agent.id} />}
               />
             </div>
           </div>
