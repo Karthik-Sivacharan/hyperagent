@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
 
+import { GLYPH_SETS } from "../../brand/agent-glyph/registry";
+
+import { AGENT_SHAPES } from "./agent-icons";
 import { DEMO_AGENTS } from "./demo-agents";
 
 // The app window's six agents: the order the sidebar lists them in, and the
@@ -76,6 +79,13 @@ describe("landing v2 variant D demo agents", () => {
       expect(a.time.trim().length).toBeGreaterThan(0);
     }
     expect(DEMO_AGENTS[0].time).toBe("now");
+  });
+
+  it("gives every agent its own shape from the original glyph set", () => {
+    const originals = new Set(GLYPH_SETS.original.map((shape) => shape.id));
+    const shapes = DEMO_AGENTS.map((a) => AGENT_SHAPES[a.id]);
+    expect(shapes.filter((id) => !originals.has(id))).toEqual([]);
+    expect(new Set(shapes).size).toBe(shapes.length);
   });
 
   it("keeps each thread bar in step with its title", () => {

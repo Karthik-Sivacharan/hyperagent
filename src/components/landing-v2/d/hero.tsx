@@ -11,7 +11,7 @@ import {
 } from "@tabler/icons-react";
 import Link from "next/link";
 
-import { Mark } from "@/components/brand/mark";
+import { GLYPH_SETS, MorphingAgentGlyph } from "@/components/brand/agent-glyph";
 import { Button } from "@/components/ui/button";
 
 import { HERO } from "../a/content";
@@ -30,12 +30,31 @@ const START_ICONS = [
   IconUsers,
 ];
 
-// The mark sits after the headline's first word, so the line reads "Meet,
-// the mark, your team of agents." The words stay A's; only the mark is new.
+// Four agent glyphs sit after the headline's first word, so the line reads
+// "Meet, the team itself, your team of agents." The words stay A's; the
+// glyphs are decorative, so the heading's text stays its accessible name.
+// Each loops the original set from a different place (0, 2, 4 and 6 steps
+// in), so no two ever show the same shape, and each holds a little longer
+// than the one before it, so they drift apart instead of changing in step.
+//
+// Bare, without their tiles: set in ink on the paper ground they read as
+// four more letterforms of the line, where the sand tiles read as chips
+// pasted into it. Each body is sized to the cap height and dropped onto the
+// baseline (the drawing box sits a tenth of the glyph's edge inside it).
 const [FIRST_WORD, ...REST_WORDS] = HERO.title.split(" ");
+const ORIGINAL_IDS = GLYPH_SETS.original.map((shape) => shape.id);
+const HERO_GLYPHS = [
+  { offset: 0, hold: 1100 },
+  { offset: 2, hold: 1250 },
+  { offset: 4, hold: 1400 },
+  { offset: 6, hold: 1550 },
+].map(({ offset, hold }) => ({
+  hold,
+  sequence: [...ORIGINAL_IDS.slice(offset), ...ORIGINAL_IDS.slice(0, offset)],
+}));
 
 // Variant D's hero: everything on one centre axis. A pill that points
-// further down the page, the headline with the brand mark set inline, a two
+// further down the page, the headline with four agent glyphs set inline, a two
 // line lede (the promise, then the price), two pill actions, and the product
 // below as a desktop app window. Under the window, every way a job can start.
 // The window runs wider than the text column (up to 1360px) so the app reads
@@ -85,7 +104,19 @@ export function Hero() {
         >
           <span className="whitespace-nowrap">
             {FIRST_WORD}{" "}
-            <Mark className="inline-block size-[0.78em] align-[-0.06em]" />
+            <span className="inline-flex gap-[0.1em]">
+              {HERO_GLYPHS.map((glyph) => (
+                <MorphingAgentGlyph
+                  key={glyph.sequence[0]}
+                  sequence={glyph.sequence}
+                  hold={glyph.hold}
+                  pace="expressive"
+                  tile={false}
+                  size={48}
+                  className="size-[0.86em] translate-y-[0.1em]"
+                />
+              ))}
+            </span>
           </span>{" "}
           {REST_WORDS.join(" ")}
         </h1>

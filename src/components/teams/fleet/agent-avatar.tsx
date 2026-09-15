@@ -170,23 +170,19 @@ export function AgentAvatar({
   size = "sm",
   showState = false,
   live = false,
-  icon,
   className,
   style,
   ...props
 }: {
-  /** Only the fields the avatar reads, so a picture of an agent outside /teams need not invent a whole fleet record. */
-  agent: Pick<FleetAgent, "id" | "name" | "role" | "hue" | "glyph" | "state">;
+  agent: FleetAgent;
   size?: keyof typeof SIZES;
   /** Adds the corner state dot. Off by default; /teams never sets it. */
   showState?: boolean;
   /** Lets a working agent's field turn slowly (motion-safe). Off by default. */
   live?: boolean;
-  /** A pictogram outside the `AgentGlyph` set, drawn instead of the glyph. Off by default; /teams never sets it. */
-  icon?: TablerIcon;
 } & Omit<React.ComponentProps<"span">, "children">) {
   const s = SIZES[size];
-  const Glyph = icon ?? AGENT_GLYPHS[agentGlyphKey(agent)];
+  const Glyph = AGENT_GLYPHS[agentGlyphKey(agent)];
   const turning = live && agent.state === "working";
   const hidden = props["aria-hidden"] === true || props["aria-hidden"] === "true";
   const label = `${agent.name}, ${agent.role}${showState ? `, ${AGENT_STATE_META[agent.state].label.toLowerCase()}` : ""}`;

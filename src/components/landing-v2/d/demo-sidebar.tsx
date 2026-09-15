@@ -101,7 +101,7 @@ export function DemoSidebar({
                       active={selected}
                       aria-current={selected ? "true" : undefined}
                       onClick={() => onSelect(agent.id)}
-                      className="items-center gap-2.5 rounded-2xl px-2 py-2 text-left outline-none [--avatar-cutout:var(--sidebar)] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
+                      className="items-center gap-2.5 rounded-2xl px-2 py-2 text-left outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
                     >
                       <DemoAgentAvatar agent={agent} />
                       <span className="flex min-w-0 flex-1 flex-col gap-0.5">
