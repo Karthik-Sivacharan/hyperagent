@@ -32,6 +32,12 @@ export const BAND = 4 * MODULE;
 export const SLOT = MODULE;
 
 /**
+ * A 3.4-module post, a little narrower than a band: the cog's teeth (33.8
+ * measured) and the dome walker's centre foot (33.2).
+ */
+export const POST = 3.4 * MODULE;
+
+/**
  * The centre band runs from module 5 to module 9. Tabs, stems and the plug
  * sit on it (notched block, plug arrow, orb, arch middle leg).
  */
@@ -44,23 +50,23 @@ export const CENTRE_BAND_END = CENTRE_BAND_START + BAND;
 
 /**
  * Radius of a full-width semicircle (diameter = the 14-module grid): the arch
- * dome, both hourglass bowls, the dome walker's head and legs, and the outer
- * edge of the notched block's horns (centred on the top and bottom edge
- * midpoints).
+ * dome, both hourglass bowls, the dome walker's legs, and the outer edge of
+ * the notched block's horns (centred on the top and bottom edge midpoints).
  */
 export const HALF = 7 * MODULE;
 
 /**
  * Radius of a 5-module round: the plug arrow's quarter-circle scoops
- * (centred on the box corners) and the orb's end caps (centred on modules
- * 5 and 9, so the flat between them hides under the stems).
+ * (centred on the box corners) and the inner edges of its curved bands, and
+ * the orb's end caps (centred on modules 5 and 9, so the flat between them
+ * hides under the stems).
  */
 export const SCOOP = 5 * MODULE;
 
 /**
- * Radius of a 3-module arc: the inner edge of the notched block's horns,
- * concentric with the `HALF` arc, which leaves a 4-module horn and a
- * 1-module slot at the top edge.
+ * Radius of a 3-module arc, concentric with a `HALF` arc so the two bound a
+ * 4-module band: the inner edge of the notched block's horns (leaving a
+ * 1-module slot at the top edge) and of the dome walker's legs.
  */
 export const INNER_ARC = 3 * MODULE;
 
@@ -156,6 +162,7 @@ export function eyePair(
 // ---------------------------------------------------------------------------
 
 export type Point = readonly [x: number, y: number];
+export type Circle = { cx: number; cy: number; r: number };
 
 /**
  * Where a round of radius `r` touches a straight edge and a circle it joins.
@@ -166,7 +173,7 @@ export type Point = readonly [x: number, y: number];
  */
 export function roundEdgeCircle(
   edge: { x: number } | { y: number },
-  circle: { cx: number; cy: number; r: number },
+  circle: Circle,
   r: number,
   { side, inside, pick }: { side: 1 | -1; inside: boolean; pick: 1 | -1 },
 ): { onEdge: Point; onCircle: Point } {
@@ -191,8 +198,6 @@ export function roundEdgeCircle(
   ];
   return { onEdge, onCircle };
 }
-
-type Circle = { cx: number; cy: number; r: number };
 
 /**
  * Where a round of radius `r` touches two circles it joins (a slot between
