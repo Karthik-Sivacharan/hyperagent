@@ -10,7 +10,6 @@ import {
 import Link from "next/link";
 
 import { GLYPH_SETS, MorphingAgentGlyph } from "@/components/brand/agent-glyph";
-import { Mark } from "@/components/brand/mark";
 import { Button } from "@/components/ui/button";
 
 import { HERO } from "../a/content";
@@ -37,9 +36,12 @@ const START_ICONS = [
 // calmly, not a flicker at the edge of the reader's eye.
 //
 // Bare, without its tile: set in ink on the paper ground it reads as one
-// more letterform of the line. The body is sized to the cap height and
-// dropped onto the baseline (the drawing box sits a tenth of the glyph's
-// edge inside it). The word and the glyph share a no-wrap span, so a narrow
+// more letterform of the line, and with no tile the SVG box IS the drawing
+// box. It is sized and placed by eye against the capitals rather than by the
+// baseline: 0.8em of box, whose body fills about 0.72em, lifted 0.12em so
+// the box centres on the cap band (measured on the page: a bare inline glyph
+// hangs 0.164em below the baseline, the cap is 0.71em, so the lift is
+// 0.8/2 - 0.519). The word and the glyph share a no-wrap span, so a narrow
 // screen can break the line anywhere but between them.
 const GLYPH_SEQUENCE = [0, 2, 4, 6].map((step) => GLYPH_SETS.original[step].id);
 const GLYPH_HOLD_MS = 2200;
@@ -82,7 +84,7 @@ export function Hero() {
               pace="expressive"
               tile={false}
               size={48}
-              className="inline-block size-[0.86em] translate-y-[0.1em]"
+              className="inline-block size-[0.8em] -translate-y-[0.12em]"
             />
           </span>
           {TITLE_AFTER}
@@ -93,21 +95,18 @@ export function Hero() {
         </p>
 
         {/* The brand's call to action as the signup flow draws it: the
-            tangerine, soft-cornered large button with the mark before the
-            label, and its quiet partner, the tinted row with a hairline.
-            44px tall here so both are a thumb on a phone. */}
+            tangerine, soft-cornered large button and its quiet partner, the
+            tinted row with a hairline. The label carries it alone, with no
+            mark: two words on a 44px button, which is a thumb on a phone. */}
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
           <Button
             asChild
             variant="brand"
             size="lg"
             shape="soft"
-            className="h-11 px-6 text-base has-[>svg]:px-5"
+            className="h-11 px-6 text-base"
           >
-            <Link href={LINKS.start.href}>
-              <Mark size={18} />
-              {HERO_D.primary}
-            </Link>
+            <Link href={LINKS.start.href}>{HERO_D.primary}</Link>
           </Button>
           <Button
             asChild
