@@ -1,6 +1,12 @@
 "use client";
 
-import { useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import {
+  useLayoutEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+} from "react";
 
 import { AgentPanel } from "@/components/agent-panel/agent-panel";
 import { Composer } from "@/components/composer/composer";
@@ -16,6 +22,8 @@ import { DemoComputer } from "./computer/demo-computer";
 import { A11Y, DEMO_CHROME } from "./content";
 import { DEMO_AGENTS, type DemoAgent, type DemoAgentId } from "./demo-agents";
 import { DemoSidebar } from "./demo-sidebar";
+import motion from "./hero-motion.module.css";
+import { useInViewOnce } from "./use-in-view-once";
 
 // The last screen of the signup flow, held still, with one thing left live:
 // the list of agents. Choosing one swaps the thread bar, the conversation and
@@ -50,15 +58,17 @@ function finished(script: AgentScript): AgentStream {
   };
 }
 
-// A switch cross-fades the new scenario in over the fast duration, once the
-// reader has chosen something (the first paint does not fade), and not at
-// all under reduced motion.
-const SWAP =
-  "motion-safe:animate-in motion-safe:fade-in motion-safe:duration-(--duration-fast) motion-safe:ease-out";
-
 // Everything inside the picture is still: no entrance inside the components
-// replays when a scenario mounts.
+// replays when a scenario mounts. The window's own entrance is the one thing
+// that moves, and it is written in hero-motion.module.css, outside Tailwind's
+// layers, so this stays true of the components' animations alone.
 const STILL = "select-none **:animate-none";
+
+// The prose lands after the last tool row; only the conversation knows how
+// many rows the turn has, so it hands the step count to the stylesheet.
+function proseStep(rows: number): CSSProperties {
+  return { "--hero-prose-step": rows + 1 } as CSSProperties;
+}
 
 // The screen is laid out at the size the flow was measured at and scaled as
 // one picture to the frame's width, so nothing inside reflows. The scale is
@@ -113,7 +123,10 @@ function Stage({
 function Conversation({ agent }: { agent: DemoAgent }) {
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden px-5 pt-6 [mask-image:linear-gradient(to_bottom,black_calc(100%-3rem),transparent)]">
-      <div className="mx-auto w-full max-w-[752px] space-y-2">
+      <div
+        className={cn("mx-auto w-full max-w-[752px] space-y-2", motion.chat)}
+        style={proseStep(agent.script.rows.length)}
+      >
         <UserMessage
           id={`landing-brief-${agent.id}`}
           text={agent.brief}
@@ -171,17 +184,23 @@ function ThreadColumn({ agent }: { agent: DemoAgent }) {
 // agent. The chips stay up to lg, where the sidebar is still small to touch.
 export function HeroWindow() {
   const [selectedId, setSelectedId] = useState<DemoAgentId>(DEMO_AGENTS[0].id);
-  const [switched, setSwitched] = useState(false);
+  // The agent the computer's wallpaper is coming from, so the new one has
+  // something to fade over instead of the empty panel.
+  const [previousId, setPreviousId] = useState<DemoAgentId | null>(null);
   const agent =
     DEMO_AGENTS.find((candidate) => candidate.id === selectedId) ??
     DEMO_AGENTS[0];
 
+  // The window is near the top of the page, so this is all but a mount, and
+  // it latches: the entrance plays once, for the reader who arrives at it.
+  const frameRef = useRef<HTMLElement>(null);
+  const seen = useInViewOnce(frameRef);
+
   const select = (id: DemoAgentId) => {
     if (id === selectedId) return;
+    setPreviousId(selectedId);
     setSelectedId(id);
-    setSwitched(true);
   };
-  const swap = switched ? SWAP : undefined;
 
   return (
     <div className="flex flex-col gap-3">
@@ -193,8 +212,13 @@ export function HeroWindow() {
       />
 
       <section
+        ref={frameRef}
         aria-label={A11Y.window}
-        className="w-full overflow-hidden rounded-3xl bg-background shadow-xl ring-1 ring-border-subtle"
+        data-hero-motion={seen ? "play" : "idle"}
+        className={cn(
+          "w-full overflow-hidden rounded-3xl bg-background shadow-xl ring-1 ring-border-subtle",
+          motion.frame,
+        )}
       >
         <p className="sr-only" aria-live="polite">
           {agent.threadTitle}
@@ -211,13 +235,18 @@ export function HeroWindow() {
               key={agent.id}
               inert
               aria-hidden="true"
-              className={cn("flex min-w-0 flex-1", STILL, swap)}
+              className={cn("flex min-w-0 flex-1", STILL)}
             >
               <ThreadColumn agent={agent} />
               <AgentPanel
                 id={PANEL_ID}
                 learning
-                computer={<DemoComputer agentId={agent.id} />}
+                computer={
+                  <DemoComputer
+                    agentId={agent.id}
+                    previousAgentId={previousId}
+                  />
+                }
               />
             </div>
           </div>
@@ -228,7 +257,7 @@ export function HeroWindow() {
             key={agent.id}
             inert
             aria-hidden="true"
-            className={cn("flex size-full bg-glass-gradient", STILL, swap)}
+            className={cn("flex size-full bg-glass-gradient", STILL)}
           >
             <ThreadColumn agent={agent} />
           </div>
