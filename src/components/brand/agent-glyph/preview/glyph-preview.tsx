@@ -62,7 +62,7 @@ export function GlyphPreview({ from, to, t, choreography, tone: initialTone }: G
 
   return (
     <div className="min-h-dvh bg-background text-foreground">
-      <div className="mx-auto flex max-w-7xl flex-col gap-12 px-8 py-12">
+      <div className="mx-auto flex max-w-7xl flex-col gap-12 px-4 py-12 sm:px-8">
         <header className="flex flex-wrap items-end justify-between gap-4">
           <div className="flex flex-col gap-2">
             <Overline>Brand · agent glyphs</Overline>
