@@ -47,10 +47,15 @@ export type Department = {
   agents: Agent[];
 };
 
+// One format, as the showcase reads it: `name` is the tab and the eyebrow,
+// `title` the claim in the panel, `body` the sentence under it, `request` the
+// one line drawn into the composer beside the work, `examples` the chips.
 export type Format = {
   id: string;
   name: string;
+  title: string;
   body: string;
+  request: string;
   examples: string[];
 };
 
@@ -787,15 +792,22 @@ export const USE_CASES = {
 export const FORMATS = {
   id: "formats",
   heading: {
-    title: "The work comes back finished.",
-    sub: "Pages, video, slides, documents and dashboards, kept current as things change.",
+    title: "Real work in every format.",
+    sub: "Apps, sites, decks, docs, video, whatever you get into next.",
   } satisfies Heading,
   examplesLabel: "For example",
+  tabsLabel: "Formats",
+  // Read after the format's name, on the panel's picture of the work.
+  assetLabel: "example work, with the request that asked for it",
+  previous: "Previous",
+  next: "Next",
   items: [
     {
       id: "websites",
       name: "Websites",
+      title: "Publish a live page",
       body: "A page that is live and hosted, not a draft in a document.",
+      request: "Build a page comparing our plans with the two we lose to.",
       examples: [
         "Market briefs",
         "Candidate slates",
@@ -806,7 +818,9 @@ export const FORMATS = {
     {
       id: "video",
       name: "Video",
+      title: "Cut a demo ready to post",
       body: "Product demos, listing tours and ads, ready to post.",
+      request: "Make a two minute demo of the new booking flow.",
       examples: [
         "Product demos",
         "Listing tours",
@@ -817,7 +831,9 @@ export const FORMATS = {
     {
       id: "slides",
       name: "Slides",
+      title: "Take a deck to final",
       body: "Decks in your house style, from first draft to final.",
+      request: "Turn last quarter's numbers into a board deck.",
       examples: [
         "Pitch decks",
         "Hiring kickoffs",
@@ -828,7 +844,9 @@ export const FORMATS = {
     {
       id: "documents",
       name: "Documents",
-      body: "Documents an agent keeps up to date as the work moves.",
+      title: "Draft and revise documents",
+      body: "A piece an agent keeps up to date as the work moves.",
+      request: "Write a research brief on the market we are moving into.",
       examples: [
         "Strategy docs",
         "Research reports",
@@ -839,7 +857,9 @@ export const FORMATS = {
     {
       id: "dashboards",
       name: "Dashboards",
+      title: "See where the numbers stand",
       body: "Numbers with the context of what matters, refreshed on a schedule.",
+      request: "Track pipeline by stage and tell me what moved this week.",
       examples: ["Live metrics", "Pipeline views", "Scorecards", "Trackers"],
     },
   ] satisfies Format[],

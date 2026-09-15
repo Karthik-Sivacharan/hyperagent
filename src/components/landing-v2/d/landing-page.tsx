@@ -1,7 +1,7 @@
 import { Closing } from "../a/closing";
 import { A11Y } from "../a/content";
 import { Control } from "../a/control";
-import { Formats } from "../a/formats";
+import { FormatShowcase } from "../a/format-showcase";
 import { Pricing } from "../a/pricing";
 import { Receipts } from "../a/receipts";
 import { Roster } from "../a/roster";
@@ -28,10 +28,10 @@ export function LandingPageD() {
       <SiteHeader />
       <main id="main" className="flex-1">
         <Hero />
+        <FormatShowcase />
         <Roster />
         <Week />
         <UseCases />
-        <Formats />
         <Receipts />
         <Control />
         <Stories />
