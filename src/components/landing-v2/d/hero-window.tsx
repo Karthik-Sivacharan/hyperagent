@@ -116,6 +116,7 @@ function Conversation({ agent }: { agent: DemoAgent }) {
         <UserMessage
           id={`landing-brief-${agent.id}`}
           text={agent.brief}
+          tone="neutral"
           sentAtLabel={SENT_AT}
         />
         <AgentTurn
