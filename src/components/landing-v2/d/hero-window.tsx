@@ -1,204 +1,206 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useLayoutEffect, useRef, useState, type ReactNode } from "react";
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { AgentPanel } from "@/components/agent-panel/agent-panel";
+import { Sidebar } from "@/components/app/sidebar";
+import { Composer } from "@/components/composer/composer";
+import { AgentTurn } from "@/components/signup/agent-turn";
+import { HANDOFF_THREAD } from "@/components/signup/app-handoff";
+import type { AgentStream } from "@/components/signup/use-agent-stream";
+import { ThreadHeader } from "@/components/thread/thread-header";
+import { UserMessage } from "@/components/thread/user-message";
+import { Workspace } from "@/components/workspace/workspace";
+import {
+  ackFor,
+  agentScriptFor,
+  type SkillsAnswer,
+} from "@/lib/mock/agent-stream";
+import { SUGGESTED_AGENTS } from "@/lib/mock/suggested-agents";
+import { PRESELECTED_SKILL_IDS } from "@/lib/mock/suggested-skills";
+import {
+  SIGNUP_WORKSPACE_ACTIVE_ID,
+  SIGNUP_WORKSPACE_ARTIFACTS,
+} from "@/lib/mock/workspace";
 import { cn } from "@/lib/utils";
 
-import { A11Y as A_A11Y, HERO } from "../a/content";
-import {
-  ReceiptLine,
-  RequestBubble,
-  StepRow,
-  WorkingRow,
-} from "../a/thread-replica";
 import { A11Y } from "./content";
 
-const { thread, roster } = HERO.window;
+// The last screen of the signup flow, held still: the app's sidebar, the
+// thread the flow became, and the agent's computer open beside it. Every
+// part is the component the flow itself renders (app-handoff.tsx and
+// chat-step.tsx compose the same ones); only the moment is fixed. The first
+// suggested agent is the one whose document the signup computer opens, the
+// skills answer is the card's own preselection, and the turn is drawn done.
 
-// The same run as variant A's hero, with the same timing: after a short
-// pause one row mounts per second (every step, then the ask, then the line
-// with time, cost and score), once. Under reduced motion every row is there
-// from the start.
-const TOTAL = thread.steps.length + 2;
-const FIRST_ROW_DELAY_MS = 600;
-const ROW_INTERVAL_MS = 1000;
+const AGENT = SUGGESTED_AGENTS[0];
+const SCRIPT = agentScriptFor(AGENT.id, AGENT.prompt);
+const ANSWER: SkillsAnswer = {
+  kind: "install",
+  ids: [...PRESELECTED_SKILL_IDS],
+};
+const ACK = ackFor(ANSWER, SCRIPT.agentName);
+const SENT_AT = "2:50 PM";
+const PANEL_ID = "landing-agent-panel";
 
-// A row that has just mounted: fade and an 8px rise at the chip duration on
-// the quart-out curve. Off under reduced motion.
-const ENTER =
-  "animate-in fade-in slide-in-from-bottom-2 fill-mode-both duration-(--duration-normal) ease-out-quart motion-reduce:animate-none";
+function noop() {}
 
-// The three window controls, as a picture: tint dots, never status hues.
-function WindowDots({ className }: { className?: string }) {
-  return (
-    <span className={cn("flex shrink-0 gap-2", className)} aria-hidden="true">
-      <span className="size-3 rounded-full bg-tint-20" />
-      <span className="size-3 rounded-full bg-tint-20" />
-      <span className="size-3 rounded-full bg-tint-20" />
-    </span>
-  );
-}
+// What use-agent-stream.ts reports once the turn has finished, written out
+// instead of played: every row done, both proses out, the question answered.
+const FINISHED: AgentStream = {
+  state: "done",
+  showReasoning: false,
+  rows: SCRIPT.rows.map((row) => ({ row, status: "done" })),
+  proseStarted: true,
+  proseActive: false,
+  questionShown: true,
+  answer: ANSWER,
+  ack: {
+    reply: ACK,
+    row: ACK.row ? { row: ACK.row, status: "done" } : null,
+    proseStarted: true,
+    proseActive: false,
+  },
+  activity: "Done",
+  onProseDone: noop,
+  onAckProseDone: noop,
+  respond: noop,
+  stop: noop,
+};
 
-// Variant A's hero picture drawn as a desktop app instead of a browser tab:
-// one rounded window with no address bar. The window controls sit at the top
-// of the sidebar, the team is a message list under them, and the open job
-// fills the main pane beside it. Below md the sidebar goes and the controls
-// move into the pane's own title row.
-//
-// The window keeps a fixed height per breakpoint, sized for the finished
-// run, so the rows mounting never move anything on the page.
-export function HeroWindow() {
-  const [shown, setShown] = useState(0);
+// The screen is laid out at the size the flow was measured at and scaled as
+// one picture to the frame's width, so nothing inside reflows. The scale is
+// read from the frame's box (a measurement, not a timer); until the first
+// read the stage stays hidden rather than flashing at full size.
+function Stage({
+  width,
+  height,
+  className,
+  children,
+}: {
+  width: number;
+  height: number;
+  className?: string;
+  children: ReactNode;
+}) {
+  const frameRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState<number | null>(null);
 
-  useEffect(() => {
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
-    let interval: number | undefined;
-    let count = 0;
-    const start = window.setTimeout(
-      () => {
-        if (reduced.matches) {
-          setShown(TOTAL);
-          return;
-        }
-        interval = window.setInterval(() => {
-          count += 1;
-          setShown(count);
-          if (count >= TOTAL) window.clearInterval(interval);
-        }, ROW_INTERVAL_MS);
-      },
-      reduced.matches ? 0 : FIRST_ROW_DELAY_MS,
-    );
-    return () => {
-      window.clearTimeout(start);
-      if (interval !== undefined) window.clearInterval(interval);
-    };
-  }, []);
-
-  const stepsShown = Math.min(shown, thread.steps.length);
-  const askShown = shown > thread.steps.length;
-  const receiptShown = shown > thread.steps.length + 1;
+  useLayoutEffect(() => {
+    const frame = frameRef.current;
+    if (!frame) return;
+    const fit = () => setScale(frame.clientWidth / width);
+    fit();
+    const observer = new ResizeObserver(fit);
+    observer.observe(frame);
+    return () => observer.disconnect();
+  }, [width]);
 
   return (
     <div
-      role="group"
-      aria-label={A11Y.window}
-      className="grid h-[42rem] w-full overflow-hidden rounded-3xl bg-background text-left shadow-xl ring-1 ring-border-subtle sm:h-[36rem] md:h-[35rem] md:grid-cols-[15rem_minmax(0,1fr)] lg:grid-cols-[17rem_minmax(0,1fr)]"
+      ref={frameRef}
+      className={cn("relative w-full overflow-hidden", className)}
+      style={{ aspectRatio: `${width} / ${height}` }}
     >
-      <aside
-        aria-label={A_A11Y.roster}
-        className="hidden min-h-0 flex-col border-r border-border-subtle bg-surface-secondary md:flex"
+      <div
+        className={cn(
+          "absolute top-0 left-0 origin-top-left",
+          scale === null && "invisible",
+        )}
+        style={{ width, height, transform: `scale(${scale ?? 1})` }}
       >
-        <div className="flex h-12 shrink-0 items-center px-4">
-          <WindowDots />
-        </div>
-        <p className="px-4 pt-1 pb-2 text-xs text-foreground-low">
-          {roster.label}
-        </p>
-        <ul role="list" className="flex flex-col gap-0.5 px-2">
-          {roster.items.map((item) => {
-            const open = item.name === thread.agent;
-            return (
-              <li
-                key={item.name}
-                className={cn(
-                  "flex items-start gap-2.5 rounded-xl px-2 py-2",
-                  open ? "bg-tint-10" : undefined,
-                )}
-              >
-                <Avatar size="sm" className="mt-0.5">
-                  <AvatarFallback>{item.name.charAt(0)}</AvatarFallback>
-                </Avatar>
-                <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-                  <span className="flex items-baseline justify-between gap-2">
-                    <span
-                      className={cn(
-                        "truncate text-sm text-foreground",
-                        open ? "font-medium" : undefined,
-                      )}
-                    >
-                      {item.name}
-                    </span>
-                    <span className="shrink-0 text-xs text-foreground-low tabular-nums">
-                      {item.time}
-                    </span>
-                  </span>
-                  <span
-                    className={cn(
-                      "line-clamp-2 text-xs",
-                      item.state === "waiting"
-                        ? "text-foreground"
-                        : "text-muted-foreground",
-                    )}
-                  >
-                    {item.preview}
-                  </span>
-                </span>
-              </li>
-            );
-          })}
-        </ul>
-      </aside>
+        {children}
+      </div>
+    </div>
+  );
+}
 
-      <div className="flex min-h-0 min-w-0 flex-col">
-        <div className="flex min-h-12 shrink-0 flex-wrap items-center gap-x-3 gap-y-2 border-b border-border-subtle px-4 py-2.5 sm:px-6">
-          <WindowDots className="mr-1 md:hidden" />
-          <p className="text-sm font-medium text-foreground">{thread.title}</p>
-          <Badge variant="secondary">{thread.schedule}</Badge>
-          {/* The sidebar already marks whose job this is; without it the
-              title row names the agent. */}
-          <span className="ml-auto flex items-center gap-2 text-xs text-foreground-low md:hidden">
-            <Avatar size="sm">
-              <AvatarFallback>{thread.agent.charAt(0)}</AvatarFallback>
-            </Avatar>
-            {thread.agent}
-          </span>
-        </div>
+// The conversation from its first message: the brief, the rows the agent
+// ran, what it said and the question it asked. What does not fit fades out
+// above the follow-up box instead of stopping on a hard edge.
+function Conversation() {
+  return (
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden px-5 pt-6 [mask-image:linear-gradient(to_bottom,black_calc(100%-3rem),transparent)]">
+      <div className="mx-auto w-full max-w-[752px] space-y-2">
+        <UserMessage
+          id="landing-brief"
+          text={AGENT.prompt}
+          sentAtLabel={SENT_AT}
+        />
+        <AgentTurn
+          script={SCRIPT}
+          stream={FINISHED}
+          sentAtLabel={SENT_AT}
+          onAnswer={noop}
+          settled
+        />
+      </div>
+    </div>
+  );
+}
 
-        <div className="flex flex-col gap-4 px-4 py-5 sm:px-6">
-          <RequestBubble who={thread.you} text={thread.request} />
+function FollowUp() {
+  return (
+    <div className="shrink-0 px-5 pt-6 pb-4">
+      <div className="mx-auto w-full max-w-[752px]">
+        <Composer
+          showAgentPicker={false}
+          showIntegrationsFooter={false}
+          placeholder="Add a follow-up…"
+        />
+      </div>
+    </div>
+  );
+}
 
-          <ol role="list" className="flex flex-col">
-            {thread.steps.slice(0, stepsShown).map((step) => (
-              <StepRow key={step.text} step={step} className={ENTER} />
-            ))}
-            {askShown ? null : <WorkingRow label={A_A11Y.working} />}
-          </ol>
-
-          {askShown ? (
-            <div
-              className={cn(
-                "flex flex-col gap-3 rounded-2xl bg-background p-4 shadow-card",
-                ENTER,
-              )}
-            >
-              <div className="flex flex-col gap-1.5">
-                <Badge variant="brand">{thread.ask.label}</Badge>
-                <p className="text-sm text-foreground">{thread.ask.body}</p>
-              </div>
-              {/* Part of the picture, not controls on the page: no focus,
-                  hidden from the accessibility tree. */}
-              <div className="flex gap-2" aria-hidden="true">
-                <Button size="sm" tabIndex={-1} type="button">
-                  {thread.ask.approve}
-                </Button>
-                <Button size="sm" variant="outline" tabIndex={-1} type="button">
-                  {thread.ask.edit}
-                </Button>
-              </div>
+// Two stills of the same moment. From md the whole app at 1456×868, as the
+// flow was measured. Below md that picture would scale to a quarter of its
+// size, so a phone gets the thread column alone at the 512px the flow holds
+// it to beside a docked panel, which scales to about 70%.
+//
+// Inert and hidden from assistive tech: it is a picture of the product, and
+// none of the controls inside it are controls on this page.
+export function HeroWindow() {
+  return (
+    <div
+      role="img"
+      aria-label={A11Y.window}
+      className="w-full overflow-hidden rounded-3xl bg-background shadow-xl ring-1 ring-border-subtle"
+    >
+      <div inert aria-hidden="true" className="select-none **:animate-none">
+        <Stage width={1456} height={868} className="hidden md:block">
+          <div className="flex size-full bg-glass-gradient">
+            <Sidebar />
+            <div className="flex min-w-0 flex-1 flex-col">
+              <ThreadHeader
+                thread={HANDOFF_THREAD}
+                panelOpen
+                onTogglePanel={noop}
+                panelId={PANEL_ID}
+              />
+              <Conversation />
+              <FollowUp />
             </div>
-          ) : null}
-
-          {receiptShown ? (
-            <ReceiptLine
-              receipt={thread.receipt}
-              extra={thread.receipt.waiting}
-              className={cn("px-1", ENTER)}
+            <AgentPanel
+              id={PANEL_ID}
+              learning
+              computer={
+                <Workspace
+                  artifacts={SIGNUP_WORKSPACE_ARTIFACTS}
+                  activeId={SIGNUP_WORKSPACE_ACTIVE_ID}
+                />
+              }
             />
-          ) : null}
-        </div>
+          </div>
+        </Stage>
+
+        <Stage width={512} height={760} className="md:hidden">
+          <div className="flex size-full flex-col bg-glass-gradient">
+            <ThreadHeader thread={HANDOFF_THREAD} />
+            <Conversation />
+            <FollowUp />
+          </div>
+        </Stage>
       </div>
     </div>
   );
