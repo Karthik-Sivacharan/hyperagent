@@ -38,6 +38,8 @@ const [FIRST_WORD, ...REST_WORDS] = HERO.title.split(" ");
 // further down the page, the headline with the brand mark set inline, a two
 // line lede (the promise, then the price), two pill actions, and the product
 // below as a desktop app window. Under the window, every way a job can start.
+// The window runs wider than the text column (up to 1360px) so the app reads
+// near its real size; the text and the row under it keep their measure.
 //
 // Spacing steps down from the window outwards: 20px inside the text block,
 // 32px to the actions, 56 to 64px to the window.
@@ -114,7 +116,7 @@ export function Hero() {
         </div>
       </div>
 
-      <div className="mx-auto mt-14 max-w-5xl md:mt-16">
+      <div className="mx-auto mt-14 max-w-[85rem] md:mt-16">
         <HeroWindow />
       </div>
 

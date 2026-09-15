@@ -18,7 +18,29 @@ export const BADGE = {
   link: { label: "Read the stories", href: `#${STORIES.id}` },
 } satisfies { lead: string; link: LandingLink };
 
-// A names the hero picture "Browser window"; D draws it as an app window.
+// A names the hero picture "Browser window"; D draws it as an app window
+// whose only live part is the list of agents.
 export const A11Y = {
-  window: "App window",
+  window: "Product demo",
+  agents: "Demo agents",
+};
+
+// The person signed in to the demo app. Fictional; the address is on the
+// domain reserved for examples.
+export const DEMO_USER = {
+  name: "Jordan Lee",
+  email: "jordan@example.com",
+  initials: "JL",
+  avatarUrl: "https://github.com/maxleiter.png",
+};
+
+// The words the demo app's own chrome shows around the agent list.
+export const DEMO_CHROME = {
+  brand: "Hyperagent",
+  actions: ["New thread", "Search", "Inbox"],
+  agents: "Agents",
+  recent: "Recent threads",
+  resources: "Resources",
+  followUp: "Add a follow-up…",
+  model: "Auto",
 };
