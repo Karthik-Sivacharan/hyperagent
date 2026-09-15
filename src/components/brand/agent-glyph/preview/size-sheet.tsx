@@ -23,7 +23,7 @@ function Specimen({ shape, tone }: { shape: GlyphShape; tone: GlyphTone }) {
   return (
     <li className="flex flex-col gap-4 rounded-xl bg-surface-secondary p-4">
       <div className="flex justify-center">
-        <AgentGlyph shape={shape} size={HERO_SIZE} tone={tone} label={shape.name} />
+        <AgentGlyph shape={shape} size={HERO_SIZE} tone={tone} />
       </div>
       <div className="flex items-end justify-between gap-2">
         {SMALL_SIZES.map((size) => (

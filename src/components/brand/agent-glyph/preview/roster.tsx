@@ -16,17 +16,21 @@ export function Roster({ tone }: { tone: GlyphTone }) {
       title="Roster"
       description="Twenty glyphs at 40 px on the quick pace, every one looping at once: the busiest a page gets. Each starts on a different shape and all of them change on the same beat."
     >
-      <ul className="grid grid-cols-5 gap-3 rounded-xl bg-surface-secondary p-6 sm:grid-cols-10" aria-label="Roster">
+      <div
+        className="grid grid-cols-5 gap-3 rounded-xl bg-surface-secondary p-6 sm:grid-cols-10"
+        role="img"
+        aria-label={`${COUNT} agent glyphs changing shape together`}
+      >
         {Array.from({ length: COUNT }, (_, index) => {
           const offset = index % shapes.length;
           const sequence = [...shapes.slice(offset), ...shapes.slice(0, offset)];
           return (
-            <li key={index} className="flex justify-center">
+            <div key={index} className="flex justify-center">
               <MorphingAgentGlyph size={40} tone={tone} sequence={sequence} />
-            </li>
+            </div>
           );
         })}
-      </ul>
+      </div>
     </Section>
   );
 }
