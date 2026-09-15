@@ -14,7 +14,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-import { frameAt, planTransition, restSnapshot, TRANSITION_MS, type Choreography } from "../choreography";
+import {
+  frameAt,
+  PACE_TIMING,
+  planTransition,
+  restSnapshot,
+  type Choreography,
+  type GlyphPace,
+} from "../choreography";
 import { GlyphStage } from "../glyph-stage";
 import { GlyphSvg } from "../glyph-svg";
 import { MorphingAgentGlyph } from "../morphing-agent-glyph";
@@ -23,11 +30,13 @@ import type { GlyphTone } from "../tones";
 import type { GlyphShape } from "../types";
 import { ProgressScrubber } from "./progress-scrubber";
 import { Section } from "./section";
-import { ChoreographyToggle } from "./stage-loop";
+import { ChoreographyToggle, PaceToggle } from "./stage-loop";
 
-/** One filmstrip frame per 40ms: a 25fps camera on the transition. */
-const FRAME_STEP_MS = 40;
-const FRAME_TIMES = Array.from({ length: TRANSITION_MS / FRAME_STEP_MS + 1 }, (_, i) => i * FRAME_STEP_MS);
+/** The filmstrip: thirteen frames across the transition, so 40ms apart at
+    the expressive pace (a 25fps camera) and about 18ms apart at the quick. */
+const FRAME_COUNT = 13;
+const frameTimes = (durationMs: number) =>
+  Array.from({ length: FRAME_COUNT }, (_, i) => Math.round((i * durationMs) / (FRAME_COUNT - 1)));
 
 function ShapePicker({
   label,
@@ -111,14 +120,19 @@ function Playground({
   const [from, setFrom] = useState(initialFrom);
   const [to, setTo] = useState(initialTo);
   const [choreography, setChoreography] = useState(initialChoreography);
+  const [pace, setPace] = useState<GlyphPace>("expressive");
+  const durationMs = PACE_TIMING[pace].durationMs;
   /** `null` while playing live; a number freezes every view on that time. */
   const [progress, setProgress] = useState<number | null>(initialProgress ?? 1);
   /** Bumped by Play: remounts the live views at `from`, then targets `to`. */
   const [run, setRun] = useState(0);
   const [armed, setArmed] = useState(true);
 
-  const plan = useMemo(() => planTransition(restSnapshot(from), to, choreography), [from, to, choreography]);
-  const frames = useMemo(() => FRAME_TIMES.map((ms) => ({ ms, frame: frameAt(plan, ms / TRANSITION_MS) })), [plan]);
+  const plan = useMemo(() => planTransition(restSnapshot(from), to, choreography, pace), [from, to, choreography, pace]);
+  const frames = useMemo(
+    () => frameTimes(plan.durationMs).map((ms) => ({ ms, frame: frameAt(plan, ms / plan.durationMs) })),
+    [plan],
+  );
 
   const play = () => {
     setProgress(null);
@@ -134,15 +148,16 @@ function Playground({
     from,
     progress: progress ?? undefined,
     choreography,
+    pace,
     blink: false,
   };
-  const ms = Math.round((progress ?? 1) * TRANSITION_MS);
-  const activeFrame = live ? -1 : Math.round(ms / FRAME_STEP_MS);
+  const ms = Math.round((progress ?? 1) * durationMs);
+  const activeFrame = live ? -1 : Math.round((progress ?? 1) * (FRAME_COUNT - 1));
 
   return (
     <Section
       title="Playground"
-      description="Pick any two shapes, then play the transition or scrub it. The filmstrip is the same transition sampled every 40ms; pick a frame to freeze on it."
+      description="Pick any two shapes, then play the transition or scrub it at either pace: expressive for the stage and hero sizes, quick for avatars in a list. The filmstrip samples the same transition; pick a frame to freeze on it."
       controls={
         <>
           <ShapePicker label="From" value={from} onChange={setFrom} />
@@ -159,6 +174,7 @@ function Playground({
           </Button>
           <ShapePicker label="To" value={to} onChange={setTo} />
           <ChoreographyToggle value={choreography} onChange={setChoreography} />
+          <PaceToggle value={pace} onChange={setPace} />
         </>
       }
     >
@@ -193,12 +209,12 @@ function Playground({
           className="flex-1"
           label="Transition time"
           value={progress ?? 1}
-          step={FRAME_STEP_MS / TRANSITION_MS / 4}
-          valueText={`${ms} of ${TRANSITION_MS} milliseconds`}
+          step={1 / (FRAME_COUNT - 1) / 4}
+          valueText={`${ms} of ${durationMs} milliseconds`}
           onChange={(value) => setProgress(value)}
         />
         <span className="w-24 text-right text-label-12-mono text-muted-foreground">
-          {live ? "live" : `${ms} / ${TRANSITION_MS}ms`}
+          {live ? "live" : `${ms} / ${durationMs}ms`}
         </span>
       </div>
 
@@ -210,7 +226,7 @@ function Playground({
               size="none"
               aria-label={`Freeze at ${at}ms`}
               aria-pressed={activeFrame === index}
-              onClick={() => setProgress(at / TRANSITION_MS)}
+              onClick={() => setProgress(index / (FRAME_COUNT - 1))}
               className="flex w-full flex-col gap-1.5 rounded-lg p-1.5 aria-pressed:bg-tint-15"
             >
               <GlyphSvg

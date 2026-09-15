@@ -1,10 +1,10 @@
 "use client";
 
 import { useReducedMotion } from "motion/react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
-import type { Choreography, GlyphFrame } from "./choreography";
-import { GlyphController } from "./glyph-controller";
+import type { Choreography, GlyphFrame, GlyphPace } from "./choreography";
+import { GlyphController, type GlyphMotionSettings } from "./glyph-controller";
 import type { GlyphShape } from "./types";
 
 export type GlyphMotionInput = {
@@ -16,6 +16,7 @@ export type GlyphMotionInput = {
   progress?: number;
   from?: GlyphShape;
   choreography: Choreography;
+  pace: GlyphPace;
   hold: number;
   blink: boolean;
   glance: boolean;
@@ -29,6 +30,11 @@ export type GlyphMotionInput = {
  * the markup and the shape to render first; after mount React never touches
  * the animated attributes again (the first render's values never change), so
  * the controller's writes are not overwritten.
+ *
+ * The controller is built and driven in layout effects, so a glyph that
+ * mounts frozen mid-transition (`progress`) paints that frame first, not a
+ * flash of its rest pose. It stops its clock while the glyph is scrolled out
+ * of view or the tab is hidden.
  */
 export function useGlyphMotion(input: GlyphMotionInput) {
   const bodyRef = useRef<SVGPathElement>(null);
@@ -62,17 +68,19 @@ export function useGlyphMotion(input: GlyphMotionInput) {
   }, [input.onSettle, input.onFrame]);
 
   const controllerRef = useRef<GlyphController | null>(null);
-  const settings = {
-    choreography: input.choreography,
-    hold: input.hold,
-    blink: input.blink,
-    glance: input.glance,
-    paused: input.paused,
+  const { choreography, pace, hold, blink, glance, paused } = input;
+  const settingsRef = useRef<GlyphMotionSettings>({
+    choreography,
+    pace,
+    hold,
+    blink,
+    glance,
+    paused,
     reducedMotion,
-  };
-  const settingsRef = useRef(settings);
+    visible: true,
+  });
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!initial) return;
     const controller = new GlyphController(
       {
@@ -92,23 +100,50 @@ export function useGlyphMotion(input: GlyphMotionInput) {
     };
   }, [initial]);
 
-  const { choreography, hold, blink, glance, paused } = input;
+  useLayoutEffect(() => {
+    settingsRef.current = { ...settingsRef.current, choreography, pace, hold, blink, glance, paused, reducedMotion };
+    controllerRef.current?.update(settingsRef.current);
+  }, [choreography, pace, hold, blink, glance, paused, reducedMotion]);
+
+  // Off screen or in a hidden tab, nobody sees the glyph: stop its clock.
+  // Written straight to the controller, never through React state.
   useEffect(() => {
-    const next = { choreography, hold, blink, glance, paused, reducedMotion };
-    settingsRef.current = next;
-    controllerRef.current?.update(next);
-  }, [choreography, hold, blink, glance, paused, reducedMotion]);
+    const svg = groupRef.current?.ownerSVGElement;
+    if (!svg) return;
+    let onScreen = true;
+    const sync = () => {
+      const visible = onScreen && document.visibilityState !== "hidden";
+      if (visible === settingsRef.current.visible) return;
+      settingsRef.current = { ...settingsRef.current, visible };
+      controllerRef.current?.update(settingsRef.current);
+    };
+    const observer =
+      typeof IntersectionObserver === "undefined"
+        ? null
+        : new IntersectionObserver((entries) => {
+            onScreen = entries[entries.length - 1]?.isIntersecting ?? true;
+            sync();
+          });
+    observer?.observe(svg);
+    document.addEventListener("visibilitychange", sync);
+    return () => {
+      observer?.disconnect();
+      document.removeEventListener("visibilitychange", sync);
+    };
+  }, []);
 
   // The sequence is compared by ids, so a parent that rebuilds the array
   // every render does not restart the loop.
   const sequenceKey = input.sequence?.map((shape) => shape.id).join("|") ?? "";
   const sequenceRef = useRef(input.sequence);
-  useEffect(() => {
+  // A layout effect, declared first, so the drive below reads this render's
+  // sequence.
+  useLayoutEffect(() => {
     sequenceRef.current = input.sequence;
   }, [input.sequence]);
 
   const { shape, from, progress } = input;
-  useEffect(() => {
+  useLayoutEffect(() => {
     const controller = controllerRef.current;
     if (!controller) return;
     if (progress !== undefined && shape) {
@@ -118,7 +153,7 @@ export function useGlyphMotion(input: GlyphMotionInput) {
     } else if (sequenceRef.current) {
       controller.play(sequenceRef.current);
     }
-  }, [shape, from, progress, sequenceKey, choreography]);
+  }, [shape, from, progress, sequenceKey, choreography, pace]);
 
   return { initial, bodyRef, groupRef, eyeRef };
 }

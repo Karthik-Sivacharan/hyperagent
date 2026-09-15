@@ -1,12 +1,17 @@
 export { AgentGlyph, type AgentGlyphProps } from "./agent-glyph";
 export {
   CHOREOGRAPHIES,
+  GLYPH_PACES,
+  PACE_TIMING,
   TRANSITION_MS,
+  defaultPace,
   frameAt,
   planTransition,
   restSnapshot,
   type Choreography,
   type GlyphFrame,
+  type GlyphPace,
+  type PaceTiming,
 } from "./choreography";
 export { GlyphStage, type GlyphStageProps } from "./glyph-stage";
 export { MorphingAgentGlyph, type MorphingAgentGlyphProps } from "./morphing-agent-glyph";

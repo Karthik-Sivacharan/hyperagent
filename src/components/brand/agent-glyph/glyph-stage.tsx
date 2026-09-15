@@ -4,7 +4,7 @@ import { useCallback, useRef, type CSSProperties } from "react";
 
 import { cn } from "@/lib/utils";
 
-import { glyphOutline, type GlyphFrame } from "./choreography";
+import { EXPRESSIVE_MIN_SIZE, glyphOutline, type GlyphFrame } from "./choreography";
 import type { BBox } from "./geometry";
 import { resolveMotionProps, type GlyphMotionProps } from "./motion-props";
 import { TONE_PALETTES, type GlyphTone } from "./tones";
@@ -68,7 +68,8 @@ export function GlyphStage({ tone = "sand", label, className, ...motionProps }: 
     });
   }, []);
 
-  const resolved = resolveMotionProps(motionProps);
+  // The stage is a hero presentation at any width: expressive unless told.
+  const resolved = resolveMotionProps(motionProps, EXPRESSIVE_MIN_SIZE);
   const { initial, bodyRef, groupRef, eyeRef } = useGlyphMotion({ ...resolved, onFrame });
 
   const style = {

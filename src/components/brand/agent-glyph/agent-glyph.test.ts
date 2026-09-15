@@ -3,10 +3,12 @@ import { describe, expect, it } from "vitest";
 import {
   BLINK_SCALE,
   blinkEyes,
-  CUT_AT_MS,
   cubicBezier,
+  defaultPace,
   entryTransform,
   frameAt,
+  GLYPH_PACES,
+  PACE_TIMING,
   planTransition,
   restSnapshot,
   snapshotOf,
@@ -16,6 +18,7 @@ import {
   alignOffset,
   boundingBox,
   buildOutline,
+  commandLetters,
   correspond,
   distanceToOutline,
   ensureClockwise,
@@ -24,6 +27,7 @@ import {
   isClockwise,
   parsePath,
   perimeter,
+  pointInPolygon,
   polygonToPath,
   resample,
   rotate,
@@ -58,8 +62,6 @@ const arch: GlyphShape = {
 };
 
 const FIXTURES = [roundedSquare, arch];
-
-const finite = (points: { x: number; y: number }[]) => points.every((p) => Number.isFinite(p.x) && Number.isFinite(p.y));
 
 describe("parsePath", () => {
   it("reads absolute M L H V A Z", () => {
@@ -196,6 +198,7 @@ describe("easing and frames", () => {
 
   it("holds the cut's entry pose after the swap, then settles", () => {
     const plan = planTransition(restSnapshot(arch), roundedSquare, "cut");
+    const CUT_AT_MS = PACE_TIMING.expressive.cutAtMs;
     const before = frameAt(plan, (CUT_AT_MS - 10) / TRANSITION_MS);
     expect(before.d).toBe(arch.body);
     const after = frameAt(plan, (CUT_AT_MS + 10) / TRANSITION_MS);
@@ -211,7 +214,44 @@ describe("easing and frames", () => {
     const snapshot = snapshotOf(plan, 0.3);
     expect(snapshot.points).toHaveLength(SAMPLE_COUNT);
     const next = planTransition(snapshot, roundedSquare, "morph");
-    expect(frameAt(next, 0).points).toEqual(snapshot.points);
+    expect(frameAt(next, 0).d).toBe(polygonToPath(snapshot.points ?? []));
+  });
+
+  it("shares one plan between every glyph making the same change from rest", () => {
+    const a = planTransition(restSnapshot(roundedSquare), arch, "morph", "quick");
+    expect(planTransition(restSnapshot(roundedSquare), arch, "morph", "quick")).toBe(a);
+    expect(planTransition(restSnapshot(roundedSquare), arch, "morph", "expressive")).not.toBe(a);
+    expect(planTransition(snapshotOf(a, 0.5), arch, "morph", "quick")).not.toBe(a);
+  });
+
+  it("lands long-travel points early, so the target is crisp well before the end", () => {
+    for (const pace of GLYPH_PACES) {
+      const plan = planTransition(restSnapshot(arch), roundedSquare, "morph", pace);
+      const target = buildOutline(roundedSquare.body).dense;
+      const mid = flattenPath(parsePath(frameAt(plan, 0.5).d));
+      const worst = Math.max(...mid.map((p) => distanceToOutline(p, target)));
+      // Half-way through the clock the outline is within half a unit of the
+      // drawing (a tenth of a pixel at 40px).
+      expect(worst, pace).toBeLessThan(0.5);
+    }
+  });
+});
+
+describe("pace", () => {
+  it("keeps quick under the product-UI ceiling and expressive on the large-move token", () => {
+    expect(PACE_TIMING.quick.durationMs).toBeLessThanOrEqual(300);
+    expect(PACE_TIMING.expressive.durationMs).toBe(TRANSITION_MS);
+    for (const pace of GLYPH_PACES) {
+      const t = PACE_TIMING[pace];
+      expect(t.cutAtMs + t.cutHoldMs + t.cutSettleMs, pace).toBeLessThan(t.durationMs);
+      expect(t.blinkEveryMs[0], pace).toBeLessThan(t.blinkEveryMs[1]);
+    }
+  });
+
+  it("defaults by size: avatars are quick, hero glyphs expressive", () => {
+    expect(defaultPace(24)).toBe("quick");
+    expect(defaultPace(40)).toBe("quick");
+    expect(defaultPace(96)).toBe("expressive");
   });
 });
 
@@ -266,16 +306,46 @@ for (const shape of ALL_GLYPHS) {
 
 describe("every ordered pair", () => {
   const shapes = [...FIXTURES, ...ALL_GLYPHS];
-  it(`tweens to ${SAMPLE_COUNT} finite points (${shapes.length * (shapes.length - 1)} pairs)`, () => {
+  const pairs = shapes.length * (shapes.length - 1);
+
+  it(`tweens to ${SAMPLE_COUNT} finite points (${pairs} pairs)`, () => {
     for (const from of shapes) {
       for (const to of shapes) {
         if (from === to) continue;
         const plan = planTransition(restSnapshot(from), to, "morph");
         for (const t of [0.1, 0.5, 0.9]) {
           const frame = frameAt(plan, t);
-          expect(frame.points, `${from.id} → ${to.id} at ${t}`).toHaveLength(SAMPLE_COUNT);
-          expect(finite(frame.points ?? []), `${from.id} → ${to.id} at ${t}`).toBe(true);
-          expect(frame.d.startsWith("M") && frame.d.endsWith("Z")).toBe(true);
+          // Count vertices by command: rounding can make two neighbours equal.
+          const vertices = commandLetters(frame.d).filter((letter) => letter !== "Z");
+          const numbers = frame.d.split(/[MLZ ]/).filter(Boolean).map(Number);
+          expect(frame.morphing).toBe(true);
+          expect(vertices, `${from.id} → ${to.id} at ${t}`).toHaveLength(SAMPLE_COUNT);
+          expect(numbers.every(Number.isFinite), `${from.id} → ${to.id} at ${t}`).toBe(true);
+        }
+      }
+    }
+  });
+
+  // The eyes trail the body, but never off it. Checked at the eye centres
+  // every 20ms, on both paces and both choreographies (a cut's body at its
+  // authored pose); the engine keeps the whole eye in.
+  it(`keeps both eyes on the body through every transition (${pairs} pairs)`, () => {
+    for (const pace of GLYPH_PACES) {
+      for (const choreography of ["morph", "cut"] as const) {
+        for (const from of ALL_GLYPHS) {
+          for (const to of ALL_GLYPHS) {
+            if (from === to) continue;
+            const plan = planTransition(restSnapshot(from), to, choreography, pace);
+            for (let ms = 10; ms < plan.durationMs; ms += 20) {
+              const frame = frameAt(plan, ms / plan.durationMs);
+              const body = flattenPath(parsePath(frame.d));
+              for (const eye of frame.eyes) {
+                const centre = { x: eye.x + eye.width / 2, y: eye.y + eye.height / 2 };
+                const where = `${pace} ${choreography} ${from.id} → ${to.id} at ${ms}ms`;
+                expect(pointInPolygon(centre, body), where).toBe(true);
+              }
+            }
+          }
         }
       }
     }

@@ -10,9 +10,10 @@ export type MorphingAgentGlyphProps = Omit<AgentGlyphProps, "shape"> & GlyphMoti
 /**
  * A glyph that changes shape. Server-renders the first shape's authored
  * drawing; on the client a `motion` clock drives the choreography and writes
- * the outline and eyes straight to the SVG. Under `prefers-reduced-motion`
- * there is no tween and no blink: each change is a short fade through the
- * tile.
+ * the outline and eyes straight to the SVG. Below 64px it defaults to the
+ * `quick` pace, the one for avatars in lists. Under `prefers-reduced-motion`
+ * there is no tween, no blink and no autoplay: a controlled change is a short
+ * fade through the tile, and a loop holds its first shape.
  */
 export function MorphingAgentGlyph({
   size = 40,
@@ -22,7 +23,7 @@ export function MorphingAgentGlyph({
   className,
   ...motionProps
 }: MorphingAgentGlyphProps) {
-  const resolved = resolveMotionProps(motionProps);
+  const resolved = resolveMotionProps(motionProps, size);
   const { initial, bodyRef, groupRef, eyeRef } = useGlyphMotion(resolved);
   if (!initial) return null;
   return (

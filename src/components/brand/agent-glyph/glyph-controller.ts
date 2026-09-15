@@ -7,14 +7,17 @@ import {
   blinkEyes,
   frameAt,
   glanceEyes,
+  PACE_TIMING,
   planTransition,
   restFrame,
   restSnapshot,
   snapshotOf,
   type Choreography,
   type GlyphFrame,
+  type GlyphPace,
   type TransitionPlan,
 } from "./choreography";
+import type { BBox } from "./geometry";
 import type { EyeRect, GlyphShape } from "./types";
 
 /**
@@ -36,22 +39,32 @@ export type GlyphElements = {
 
 export type GlyphMotionSettings = {
   choreography: Choreography;
+  pace: GlyphPace;
   /** Milliseconds at rest between autoplay transitions. */
   hold: number;
   blink: boolean;
   glance: boolean;
   paused: boolean;
   reducedMotion: boolean;
+  /** On screen and in a visible tab. Off, the clock stops and a change of
+      shape jumps straight to rest. */
+  visible: boolean;
 };
 
 /** How far a glance moves the eyes, in glyph units (0.3 module: well inside
-    the ¾-module margin every shape keeps around its eyes). */
+    the ¾-module margin every shape keeps around its eyes, and 2% of the box,
+    under the 4% a calm idle allows). */
 export const GLANCE_DX = 3;
+/** A glance that looks up rather than aside moves this far. */
+const GLANCE_DY = 2;
 /** How long a glance holds before the eyes come back. */
-const GLANCE_HOLD_MS = 560;
+const GLANCE_HOLD_MS = [480, 1000] as const;
+/** The gap between the two blinks of a double blink. */
+const DOUBLE_BLINK_GAP_MS = 150;
 
 /** Attribute values to a thousandth of a unit: finer than any screen shows. */
 const fixed = (value: number) => String(Math.round(value * 1000) / 1000);
+const between = (range: readonly [number, number]) => range[0] + Math.random() * (range[1] - range[0]);
 
 export class GlyphController {
   private shape: GlyphShape;
@@ -61,9 +74,13 @@ export class GlyphController {
   private eyeTween: AnimationPlaybackControls | null = null;
   private timers = new Set<number>();
   private sequence: readonly GlyphShape[] | null = null;
-  private settles = 0;
   private scrubKey = "";
   private scrubPlan: TransitionPlan | null = null;
+  /* What is on the SVG now, so an unchanged frame writes nothing. */
+  private drawnD: string | null = null;
+  private drawnTransform: string | null = null;
+  private drawnEyes: readonly [EyeRect, EyeRect] | null = null;
+  private drawnBox: BBox | null = null;
 
   constructor(
     private readonly els: GlyphElements,
@@ -71,6 +88,8 @@ export class GlyphController {
     private settings: GlyphMotionSettings,
   ) {
     this.shape = initial;
+    this.drawnD = initial.body;
+    this.drawnEyes = initial.eyes;
   }
 
   /* ------------------------------------------------------------ inputs */
@@ -83,7 +102,9 @@ export class GlyphController {
       before.blink !== settings.blink ||
       before.glance !== settings.glance ||
       before.hold !== settings.hold ||
-      before.reducedMotion !== settings.reducedMotion;
+      before.reducedMotion !== settings.reducedMotion ||
+      before.visible !== settings.visible ||
+      before.pace !== settings.pace;
     if (idleChanged && !this.tween && !this.scrubPlan) {
       this.clearIdle();
       this.scheduleIdle();
@@ -115,9 +136,10 @@ export class GlyphController {
   /** Frozen: draw the `from` → `to` transition at linear time `t`. */
   scrub(from: GlyphShape, to: GlyphShape, t: number) {
     this.cancel();
-    const key = `${from.id}>${to.id}:${this.settings.choreography}`;
+    const { choreography, pace } = this.settings;
+    const key = `${from.id}>${to.id}:${choreography}:${pace}`;
     if (!this.scrubPlan || key !== this.scrubKey) {
-      this.scrubPlan = planTransition(restSnapshot(from), to, this.settings.choreography);
+      this.scrubPlan = planTransition(restSnapshot(from), to, choreography, pace);
       this.scrubKey = key;
     }
     this.shape = t >= 1 ? to : from;
@@ -141,12 +163,17 @@ export class GlyphController {
     this.cancel();
     this.shape = target;
 
+    // Nobody can see it: skip the work and land.
+    if (!this.settings.visible) {
+      this.settle(target);
+      return;
+    }
     if (this.settings.reducedMotion) {
       this.crossfade(target);
       return;
     }
 
-    const plan = planTransition(from, target, this.settings.choreography);
+    const plan = planTransition(from, target, this.settings.choreography, this.settings.pace);
     this.plan = plan;
     this.progress = 0;
     this.tween = animate(0, 1, {
@@ -202,24 +229,27 @@ export class GlyphController {
   /* --------------------------------------------------------------- idle */
 
   private scheduleIdle() {
-    const { paused, reducedMotion, blink, glance, hold } = this.settings;
-    if (paused) return;
-    const lively = !reducedMotion;
+    const { paused, reducedMotion, visible, blink, glance, hold, pace } = this.settings;
+    if (paused || !visible) return;
 
     if (this.sequence && this.sequence.length > 1) {
-      // A blink on every third hold and a glance on the one after: often
-      // enough to feel alive, rare enough not to twitch.
-      const beat = this.settles++ % 3;
-      if (lively && blink && beat === 1) this.after(hold * 0.45, () => this.blink());
-      if (lively && glance && beat === 2) this.after(hold * 0.15, () => this.glance());
+      // Reduced motion shows one still pose: the loop does not advance.
+      if (reducedMotion) return;
+      // Now and then, never on a fixed beat: about every other hold blinks,
+      // somewhere in its middle; a hold without a blink may glance.
+      if (blink && Math.random() < 0.5) {
+        this.after(hold * (0.3 + Math.random() * 0.35), () => this.blink());
+      } else if (glance && Math.random() < 0.5) {
+        this.after(hold * 0.15, () => this.glance(hold * 0.45));
+      }
       this.after(hold, () => this.next());
       return;
     }
 
-    if (!lively || (!blink && !glance)) return;
+    if (reducedMotion || (!blink && !glance)) return;
     // A lone glyph idles: every few seconds it blinks, or now and then glances.
-    this.after(2600 + Math.random() * 2600, () => {
-      if (glance && (!blink || Math.random() < 0.35)) this.glance();
+    this.after(between(PACE_TIMING[pace].blinkEveryMs), () => {
+      if (glance && (!blink || Math.random() < 0.35)) this.glance(GLANCE_HOLD_MS[1]);
       else this.blink();
       this.scheduleIdle();
     });
@@ -229,24 +259,37 @@ export class GlyphController {
     if (this.tween) return;
     const eyes = this.shape.eyes;
     this.drawEyes(blinkEyes(eyes));
-    const ms = BLINK_MS[this.settles % BLINK_MS.length];
-    this.after(ms, () => this.drawEyes(eyes));
+    this.after(between(BLINK_MS), () => {
+      this.drawEyes(eyes);
+      // One blink in six is a double blink.
+      if (Math.random() < 1 / 6) {
+        this.after(DOUBLE_BLINK_GAP_MS, () => {
+          if (this.tween || this.shape.eyes !== eyes) return;
+          this.drawEyes(blinkEyes(eyes));
+          this.after(BLINK_MS[0], () => this.drawEyes(eyes));
+        });
+      }
+    });
   }
 
-  private glance() {
+  /** The eyes look aside (or, one time in four, up), hold, and come back. */
+  private glance(maxHoldMs: number) {
     if (this.tween) return;
     const eyes = this.shape.eyes;
-    const dx = (this.settles % 2 === 0 ? 1 : -1) * GLANCE_DX;
+    const up = Math.random() < 0.25;
+    const dx = up ? 0 : (Math.random() < 0.5 ? -1 : 1) * GLANCE_DX;
+    const dy = up ? -GLANCE_DY : 0;
     const move = (from: number, to: number, done?: () => void) => {
       this.eyeTween?.stop();
       this.eyeTween = animate(from, to, {
         duration: DURATION.fast,
         ease: EASE.outQuart,
-        onUpdate: (v) => this.drawEyes(glanceEyes(eyes, dx * v)),
+        onUpdate: (v) => this.drawEyes(glanceEyes(eyes, dx * v, dy * v)),
         onComplete: done,
       });
     };
-    move(0, 1, () => this.after(GLANCE_HOLD_MS, () => move(1, 0)));
+    const holdMs = Math.min(maxHoldMs, between(GLANCE_HOLD_MS));
+    move(0, 1, () => this.after(holdMs, () => move(1, 0)));
   }
 
   /* ------------------------------------------------------------ plumbing */
@@ -290,16 +333,28 @@ export class GlyphController {
   private draw(frame: GlyphFrame) {
     const body = this.els.body();
     if (body) {
-      body.setAttribute("d", frame.d);
-      if (frame.transform) body.setAttribute("transform", frame.transform);
-      else body.removeAttribute("transform");
+      if (frame.d !== this.drawnD) {
+        body.setAttribute("d", frame.d);
+        this.drawnD = frame.d;
+      }
+      if (frame.transform !== this.drawnTransform) {
+        if (frame.transform) body.setAttribute("transform", frame.transform);
+        else body.removeAttribute("transform");
+        this.drawnTransform = frame.transform;
+      }
     }
     this.drawEyes(frame.eyes);
-    this.els.onFrame?.(frame);
+    if (this.els.onFrame && !sameBox(frame.box, this.drawnBox)) {
+      this.drawnBox = frame.box;
+      this.els.onFrame(frame);
+    }
   }
 
   private drawEyes(eyes: readonly [EyeRect, EyeRect]) {
+    if (eyes === this.drawnEyes) return;
     const rects = this.els.eyes();
+    if (!rects[0] && !rects[1]) return;
+    this.drawnEyes = eyes;
     eyes.forEach((eye, index) => {
       const rect = rects[index];
       if (!rect) return;
@@ -310,4 +365,8 @@ export class GlyphController {
       rect.setAttribute("rx", fixed(eye.radius));
     });
   }
+}
+
+function sameBox(a: BBox, b: BBox | null) {
+  return b !== null && a.x === b.x && a.y === b.y && a.width === b.width && a.height === b.height;
 }

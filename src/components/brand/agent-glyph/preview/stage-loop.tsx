@@ -10,7 +10,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { cn } from "@/lib/utils";
 
 import { AgentGlyph } from "../agent-glyph";
-import type { Choreography } from "../choreography";
+import type { Choreography, GlyphPace } from "../choreography";
 import { GlyphStage } from "../glyph-stage";
 import { GLYPH_SETS } from "../registry";
 import type { GlyphTone } from "../tones";
@@ -40,6 +40,21 @@ export function ChoreographyToggle({
   );
 }
 
+export function PaceToggle({ value, onChange }: { value: GlyphPace; onChange: (value: GlyphPace) => void }) {
+  return (
+    <ToggleGroup
+      type="single"
+      spacing={0}
+      aria-label="Pace"
+      value={value}
+      onValueChange={(next) => next && onChange(next as GlyphPace)}
+    >
+      <ToggleGroupItem value="expressive">Expressive</ToggleGroupItem>
+      <ToggleGroupItem value="quick">Quick</ToggleGroupItem>
+    </ToggleGroup>
+  );
+}
+
 export function StageLoop({ tone }: { tone: GlyphTone }) {
   const [set, setSet] = useState<GlyphSet>(GLYPH_SETS.original.length > 0 ? "original" : "study");
   const [choreography, setChoreography] = useState<Choreography>("morph");
@@ -52,7 +67,7 @@ export function StageLoop({ tone }: { tone: GlyphTone }) {
   return (
     <Section
       title="Stage"
-      description="The landing presentation. The set loops with a hold on each shape, a blink every third hold, and the corner squares easing to each body's bounding box."
+      description="The landing presentation, on the expressive pace. The set loops with a hold on each shape, a blink now and then, and the corner squares easing to each body's bounding box. Under reduced motion it holds its first shape."
       controls={
         <>
           <ToggleGroup

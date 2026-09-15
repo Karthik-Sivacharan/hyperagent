@@ -10,6 +10,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import type { Choreography } from "../choreography";
 import { GLYPH_TONES, type GlyphTone } from "../tones";
 import { MorphPlayground } from "./morph-playground";
+import { Roster } from "./roster";
 import { SizeSheet } from "./size-sheet";
 import { StageLoop } from "./stage-loop";
 
@@ -92,6 +93,7 @@ export function GlyphPreview({ from, to, t, choreography, tone: initialTone }: G
 
         <StageLoop tone={tone} />
         <MorphPlayground tone={tone} from={from} to={to} t={t} choreography={choreography} />
+        <Roster tone={tone} />
         <SizeSheet tone={tone} />
       </div>
     </div>

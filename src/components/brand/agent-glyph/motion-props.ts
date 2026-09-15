@@ -1,4 +1,4 @@
-import type { Choreography } from "./choreography";
+import { defaultPace, type Choreography, type GlyphPace } from "./choreography";
 import { defaultSequence, resolveGlyph } from "./registry";
 import type { GlyphShape } from "./types";
 
@@ -22,11 +22,19 @@ export type GlyphMotionProps = {
   sequence?: readonly (GlyphShape | string)[];
   /** `morph` (a true tween, the default) or `cut` (hard cut, then settle). */
   choreography?: Choreography;
+  /**
+   * How fast and how much. `expressive` (480ms, a beat of eye lag, softened
+   * folds) is for the landing stage and hero sizes; `quick` (220ms, eyes with
+   * the body, rarer blinks) is for avatars changing state in a list. Defaults
+   * to `expressive` from 64px up and on the stage, `quick` below.
+   */
+  pace?: GlyphPace;
   /** Autoplay rest per shape, in ms. Defaults to 1100. */
   hold?: number;
   /** Blink now and then at rest. Defaults to true. */
   blink?: boolean;
-  /** Glance sideways now and then at rest. Defaults to false. */
+  /** Glance aside now and then at rest. Defaults to false; best kept for
+      glyphs of 64px and up. */
   glance?: boolean;
   /** Stop the autoplay clock (a running transition still finishes). */
   paused?: boolean;
@@ -41,8 +49,9 @@ export type GlyphMotionProps = {
   onSettle?: (shape: GlyphShape) => void;
 };
 
-/** Resolves ids and fills the defaults shared by the glyph and the stage. */
-export function resolveMotionProps(props: GlyphMotionProps) {
+/** Resolves ids and fills the defaults shared by the glyph and the stage.
+    `size` is the rendered edge in px, which picks the default pace. */
+export function resolveMotionProps(props: GlyphMotionProps, size: number) {
   const shape = props.shape === undefined ? undefined : resolveGlyph(props.shape);
   const from = props.from === undefined ? undefined : resolveGlyph(props.from);
   const sequence = shape
@@ -56,6 +65,7 @@ export function resolveMotionProps(props: GlyphMotionProps) {
     sequence,
     progress: props.progress,
     choreography: props.choreography ?? "morph",
+    pace: props.pace ?? defaultPace(size),
     hold: props.hold ?? DEFAULT_HOLD_MS,
     blink: props.blink ?? true,
     glance: props.glance ?? false,
