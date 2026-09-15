@@ -1,0 +1,59 @@
+/* Landing v2, variant B: the three entrances the page uses, on the brand's
+   motion tokens. Nothing here names a colour. The global reduced-motion
+   block in brand.css collapses every duration to ~0, and the components
+   also skip their timers under that preference, so nothing keeps running.
+
+   `scale` and `translate` are the individual transform properties (the same
+   ones Tailwind v4's utilities set), so no `transform` shorthand is fought
+   over anywhere. */
+
+/* A chat bubble arriving: grows from 86% at the corner nearest its author,
+   700ms on the brand's expo-out (the closest of our curves to the reference's
+   cubic-bezier(.19, 1, .22, 1)). */
+@keyframes lb-pop {
+  from {
+    opacity: 0;
+    scale: 0.86;
+  }
+  to {
+    opacity: 1;
+    scale: 1;
+  }
+}
+
+/* A row of the hero thread landing: fade and a 6px rise at the reveal
+   duration. */
+@keyframes lb-rise {
+  from {
+    opacity: 0;
+    translate: 0 6px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+/* A tab panel cross-fading in. */
+@keyframes lb-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.lb-pop {
+  animation: lb-pop 700ms var(--ease-out-expo) both;
+  transform-origin: bottom left;
+}
+.lb-pop-end {
+  transform-origin: bottom right;
+}
+.lb-rise {
+  animation: lb-rise var(--duration-reveal) var(--ease-out-expo) both;
+}
+.lb-fade {
+  animation: lb-fade var(--duration-normal) var(--ease-out) both;
+}
