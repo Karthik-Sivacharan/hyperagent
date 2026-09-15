@@ -33,6 +33,10 @@ export interface DemoAgent {
   label: string;
   /** The thread bar's title; `thread.title` is the same string. */
   threadTitle: string;
+  /** The sidebar row's second line: where the job stands, in a few words. */
+  preview: string;
+  /** The sidebar row's time, all six on one day ("now" for the open one). */
+  time: string;
   thread: typeof HANDOFF_THREAD;
   /** What the person asked: the UserMessage bubble above the turn. */
   brief: string;
@@ -104,6 +108,8 @@ const ENGINEERING = agent({
   id: "engineering",
   label: "Engineering",
   threadTitle: "Booking tests failing",
+  preview: "Draft fix ready. Nothing merged.",
+  time: "now",
   brief:
     "The booking tests have failed since last night. Find out what broke, explain it in plain words, and draft a fix. Do not merge anything until I have looked.",
   script: {
@@ -255,6 +261,8 @@ const MARKETING = agent({
   id: "marketing",
   label: "Marketing",
   threadTitle: "Waitlist launch plan",
+  preview: "Plan ready. Ads budget needs your OK.",
+  time: "11:40 AM",
   brief:
     "Waitlist launches on 6 October. Put together a launch plan: who it is for, what we say, which channels, and a week-by-week schedule. Use the March launch report as a guide.",
   script: {
@@ -401,6 +409,8 @@ const COPYWRITING = agent({
   id: "copywriting",
   label: "Copywriting",
   threadTitle: "Waitlist landing page",
+  preview: "Page drafted with two headlines to pick.",
+  time: "10:15 AM",
   brief:
     "Write the Waitlist landing page in our brand voice. A short headline, three benefits and one customer quote we have permission to use. Give me two headline options.",
   script: {
@@ -538,6 +548,8 @@ const SUPPORT = agent({
   id: "support",
   label: "Customer Support",
   threadTitle: "Overnight support queue",
+  preview: "17 replies drafted and held.",
+  time: "8:05 AM",
   brief:
     "Go through the tickets that came in overnight. Sort them by how urgent they are, draft replies for the ones you can answer, and hold every reply for my OK.",
   script: {
@@ -681,6 +693,8 @@ const SALES = agent({
   id: "sales",
   label: "Sales",
   threadTitle: "Harbour Street Physio research",
+  preview: "Research done. 2 intro emails held.",
+  time: "7:30 AM",
   brief:
     "Research Harbour Street Physio before we reach out. Who runs it, how they book today, and who decides on software. Then draft a short intro email to each decision maker. Send nothing.",
   script: {
@@ -830,6 +844,8 @@ const DATA = agent({
   id: "data",
   label: "Data & Analytics",
   threadTitle: "Weekly metrics report",
+  preview: "Report ready. Bookings up 6%.",
+  time: "Yesterday",
   brief:
     "Write this week's metrics report for the Monday meeting. Bookings, empty slots, new clinics and revenue against last week. Explain anything that moved more than 10%.",
   script: {

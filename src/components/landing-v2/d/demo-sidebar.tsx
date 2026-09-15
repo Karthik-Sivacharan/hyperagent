@@ -15,9 +15,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { NavItem } from "@/components/ui/nav-item";
 import { Overline } from "@/components/ui/overline";
 
-import { AGENT_ICONS } from "./agent-icons";
 import { A11Y, DEMO_CHROME, DEMO_USER } from "./content";
 import type { DemoAgent, DemoAgentId } from "./demo-agents";
+import { DemoAgentAvatar } from "./demo-agent-avatar";
 
 const ACTION_ICONS: TablerIcon[] = [IconEdit, IconSearch, IconInbox];
 
@@ -37,7 +37,8 @@ function SectionLabel({ label, open }: { label: string; open: boolean }) {
 // account. Built from the primitives the app's own sidebar uses and its
 // measurements (a 256px column on the sidebar ground, 56px header, pill
 // rows), because the app sidebar is a whole router-bound navigation and
-// this one only needs to choose an agent.
+// this one only needs to choose an agent. The agents read as a message
+// list: avatar, name and time, then where the job stands on one line.
 //
 // Only the agent rows are live. Everything around them is a picture of the
 // app and is inert and hidden from assistive tech.
@@ -93,20 +94,29 @@ export function DemoSidebar({
           <nav aria-label={A11Y.agents}>
             <ul role="list" className="space-y-0.5">
               {agents.map((agent) => {
-                const Icon = AGENT_ICONS[agent.id];
                 const selected = agent.id === selectedId;
                 return (
                   <li key={agent.id}>
                     <NavItem
                       active={selected}
-                      aria-pressed={selected}
+                      aria-current={selected ? "true" : undefined}
                       onClick={() => onSelect(agent.id)}
-                      className="outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
+                      className="items-center gap-2.5 rounded-2xl px-2 py-2 text-left outline-none [--avatar-cutout:var(--sidebar)] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
                     >
-                      <span className="flex size-5 shrink-0 items-center justify-center">
-                        <Icon className="size-4" aria-hidden="true" />
+                      <DemoAgentAvatar agent={agent} />
+                      <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                        <span className="flex items-baseline justify-between gap-2">
+                          <span className="truncate text-sm font-medium text-foreground">
+                            {agent.label}
+                          </span>
+                          <span className="shrink-0 text-xs font-normal text-foreground-low tabular-nums">
+                            {agent.time}
+                          </span>
+                        </span>
+                        <span className="truncate text-xs font-normal text-muted-foreground">
+                          {agent.preview}
+                        </span>
                       </span>
-                      <span className="truncate">{agent.label}</span>
                     </NavItem>
                   </li>
                 );

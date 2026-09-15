@@ -3,9 +3,9 @@
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-import { AGENT_ICONS } from "./agent-icons";
 import { A11Y } from "./content";
 import type { DemoAgent, DemoAgentId } from "./demo-agents";
+import { DemoAgentAvatar } from "./demo-agent-avatar";
 
 // The agent switch where the window's sidebar is too small to touch: one row
 // of chips above the window that scrolls sideways under the thumb. The pressed
@@ -31,7 +31,6 @@ export function AgentChips({
       )}
     >
       {agents.map((agent) => {
-        const Icon = AGENT_ICONS[agent.id];
         const selected = agent.id === selectedId;
         return (
           <Button
@@ -40,9 +39,9 @@ export function AgentChips({
             variant="chip"
             aria-pressed={selected}
             onClick={() => onSelect(agent.id)}
-            className="h-11 shrink-0 gap-1.5 px-4"
+            className="h-11 shrink-0 gap-2 pr-4 pl-2"
           >
-            <Icon className="size-4" aria-hidden="true" />
+            <DemoAgentAvatar agent={agent} size="xs" />
             {agent.label}
           </Button>
         );

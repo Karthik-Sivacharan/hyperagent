@@ -69,6 +69,15 @@ describe("landing v2 variant D demo agents", () => {
     expect(DEMO_AGENTS.map((a) => a.label)).toEqual(LABELS);
   });
 
+  it("gives every sidebar row a short preview and a time, the open one now", () => {
+    for (const a of DEMO_AGENTS) {
+      expect(a.preview.trim().length).toBeGreaterThan(0);
+      expect(a.preview.split(/\s+/).length).toBeLessThanOrEqual(8);
+      expect(a.time.trim().length).toBeGreaterThan(0);
+    }
+    expect(DEMO_AGENTS[0].time).toBe("now");
+  });
+
   it("keeps each thread bar in step with its title", () => {
     for (const a of DEMO_AGENTS) expect(a.thread.title).toBe(a.threadTitle);
   });
