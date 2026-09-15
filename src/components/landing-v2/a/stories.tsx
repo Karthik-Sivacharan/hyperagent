@@ -31,7 +31,7 @@ export function Stories() {
                 asChild
                 variant="ghost"
                 size="sm"
-                className="mt-auto -ml-2 self-start"
+                className="mt-auto -ml-2 h-11 self-start md:h-8"
               >
                 <a href={story.href} target="_blank" rel="noopener noreferrer">
                   {linkLabel}

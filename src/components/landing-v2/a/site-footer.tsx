@@ -35,7 +35,7 @@ export function SiteFooter() {
       <div className="mx-auto grid max-w-6xl gap-10 border-t border-border-subtle py-12 sm:grid-cols-2 lg:grid-cols-4">
         <Link
           href={LINKS.home.href}
-          className="flex items-center gap-2 self-start rounded-md text-base font-semibold text-foreground"
+          className="-my-2.5 flex items-center gap-2 self-start rounded-md py-2.5 text-base font-semibold text-foreground"
         >
           <Mark size={20} />
           {LINKS.home.label}

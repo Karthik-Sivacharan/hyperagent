@@ -3,9 +3,9 @@ import type { Metadata } from "next";
 import { LandingPageA } from "@/components/landing-v2/a/landing-page";
 
 export const metadata: Metadata = {
-  title: "Hand off the weekly work · Hyperagent",
+  title: "A team of agents for the weekly work · Hyperagent",
   description:
-    "Each recurring job gets an agent with its own computer. It works in your tools, reports in Slack, and holds anything risky until you approve it.",
+    "Hyperagent gives your business a team of agents with names and jobs. They do the recurring work, report back in Slack or email, and ask before anything that matters.",
 };
 
 // Landing v2, variant A (product first). Outside the (app) route group like
