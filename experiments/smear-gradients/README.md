@@ -14,8 +14,18 @@ experiments/smear-gradients/
   palettes.mjs         the 12 ramps + the OKLCH recipe they come from
   smear-gradient.mjs   CPU generator -> PNG (culori + sharp, both already deps)
   studio.html          live WebGL version with every parameter on a slider
-  output/              generated PNGs (git-ignored)
+  preview/             committed WebP of all 12 — look here first
+  output/              full-size PNGs (git-ignored; 16MB, regenerate on demand)
 ```
+
+**Just want to see them?** `experiments/smear-gradients/preview/` is in the repo:
+twelve 1024x768 WebP plus `contact-sheet.webp` with all of them side by side. No
+need to run anything.
+
+WebP at q92 rather than PNG because the PNGs total 16MB against a 26MB repo,
+and q92 holds ~95% of the grain amplitude at 35KB a frame. Anything lossier eats
+the grain, which is most of what makes these look like photographs of light
+rather than vector art.
 
 Run it:
 
@@ -23,6 +33,7 @@ Run it:
 node experiments/smear-gradients/palettes.mjs                 # list the 12 ramps
 node experiments/smear-gradients/smear-gradient.mjs           # render all of them
 node experiments/smear-gradients/smear-gradient.mjs --sheet   # one contact sheet
+node experiments/smear-gradients/smear-gradient.mjs --preview # refresh preview/
 node experiments/smear-gradients/smear-gradient.mjs iris 2560 1440
 open experiments/smear-gradients/studio.html                  # the live one
 ```

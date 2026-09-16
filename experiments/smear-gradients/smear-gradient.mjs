@@ -358,12 +358,49 @@ async function contactSheet(dir, tileW = 420, tileH = 315, gap = 10) {
   console.log(`\n  contact sheet: ${file}  (${names.length} presets, ${W}x${H})`);
 }
 
+/**
+ * Committed previews, so the set is visible from a plain checkout without
+ * anyone having to run node first. output/ is git-ignored because the PNGs run
+ * to 16MB; these are WebP q92, which holds ~95% of the grain amplitude at 35KB
+ * an image. Anything lossier eats the grain, which is most of the point.
+ */
+async function previews() {
+  const dir = join(HERE, 'preview');
+  await mkdir(dir, { recursive: true });
+  let total = 0;
+
+  for (const [key, p] of Object.entries(PRESETS)) {
+    const raw = render(1024, 768, p, p.seed ?? 3);
+    const buf = await sharp(raw, { raw: { width: 1024, height: 768, channels: 3 } })
+      .webp({ quality: 92 })
+      .toBuffer();
+    await sharp(buf).toFile(join(dir, `${key}.webp`));
+    total += buf.length;
+  }
+
+  const png = join(HERE, 'output', 'contact-sheet.png');
+  await sharp(png).webp({ quality: 92 }).toFile(join(dir, 'contact-sheet.webp'));
+  const { size } = await sharp(join(dir, 'contact-sheet.webp')).metadata()
+    .then(() => import('node:fs/promises').then((fs) => fs.stat(join(dir, 'contact-sheet.webp'))));
+
+  console.log(`\n  previews: ${dir}`);
+  console.log(`  ${Object.keys(PRESETS).length} frames ${(total / 1048576).toFixed(2)}MB` +
+    ` + contact sheet ${(size / 1024).toFixed(0)}KB`);
+}
+
 async function main() {
   const args = process.argv.slice(2);
   const sheet = args.includes('--sheet');
+  const preview = args.includes('--preview');
   const [name, wArg, hArg, seedArg] = args.filter((a) => !a.startsWith('--'));
   const dir = join(HERE, 'output');
   await mkdir(dir, { recursive: true });
+
+  if (preview && !name) {
+    await contactSheet(dir);
+    await previews();
+    return;
+  }
 
   if (sheet && !name) {
     await contactSheet(dir);
