@@ -24,14 +24,29 @@ import { CLOSING_D, HERO_D, LINKS } from "./content";
 // here is hard-coded. `bg-background` under the field is the dark mapping's
 // own near-black, which is what shows for the moment before the image paints.
 //
-// THE VEIL is the one thing the gradient itself cannot supply. These files are
-// built to be looked at, not written on, and every one of them runs from a
-// dark corner to a pale one — `dusk` has a navy top and a near-white pink at
-// the bottom left. Light type over that pink is unreadable, so a flat scrim of
-// the dark mapping's own background sits between the field and the words. Flat
-// rather than shaped: a ramp would put its own seam back on the card, which is
-// the thing this band just got rid of. The alpha is set by measurement, not by
-// eye — see the note on it below.
+// NOTHING SITS BETWEEN THE FIELD AND THE WORDS. There was a flat scrim over it
+// for a while, dark enough to carry light type anywhere on the card, and it
+// cost the picture exactly what it was there to protect: `dusk` at 45% under
+// black is a duller `dusk`. The card now shows the file at full strength.
+//
+// What makes that safe is WHERE the words are rather than what is over them.
+// Every one of these twelve runs dark at the top to pale at the bottom, and
+// this one has a bright cyan streak through its middle. Measured against the
+// real pixels, light type sitting centred in the card reads 3.9:1 on that
+// streak, under the 4.5 floor, while the same type held up in the navy reads
+// 8.4:1. So the copy is packed into the top of the panel and the bottom half
+// is left to be colour with nothing on it. The button is the one thing that
+// crosses into the streak, and it carries its own near-white fill.
+//
+// The phone is the exception, and it is scoped to the phone: a panel that
+// narrow is nearly square, so the crop reaches the pale half of the file no
+// matter where the copy sits, and a scrim under `md` is the only thing that
+// answers it. Above `md` there is nothing over the picture at all.
+//
+// This is the shape the band had when it was a paper card with colour rising
+// into it, and it is the same reasoning: words where the ground is quiet. What
+// changed is that the quiet part is now the top of a photograph instead of the
+// top of a sheet of paper.
 const FIELD = "/img/gradients/dusk.webp";
 
 export function ClosingD() {
@@ -45,7 +60,7 @@ export function ClosingD() {
         {/* `dark` re-maps the tokens for this subtree; see the note above.
             `isolate` keeps the field's stacking context to the panel; the
             card's radius and `overflow-hidden` do the clipping, so neither the
-            field nor the veil needs a radius of its own. */}
+            field needs a radius of its own. */}
         <div className="dark relative isolate overflow-hidden rounded-4xl bg-background md:rounded-5xl">
           <Image
             src={FIELD}
@@ -62,32 +77,39 @@ export function ClosingD() {
             // diagonal reads as a diagonal. Every one of the twelve is darkest
             // and most saturated at the top, so this holds if the band is ever
             // pointed at a different one — and it is also the crop that needs
-            // the least veil over it.
+            // the least help over it.
             className="object-cover object-top"
           />
-          {/* The veil. `bg-background` is the dark mapping's near-black, so
-              this is the same colour the panel falls back to rather than a
-              black invented here.
-
-              45% is measured, not chosen. The ground is a photograph, so the
-              only honest number is the contrast against the lightest pixel
-              actually behind a line, read off a screenshot rather than off a
-              token pair. At 45% both lines clear 5:1 against that pixel, which
-              is past the 4.5 floor the brand holds text to, and the picture is
-              still a picture. Every step heavier buys contrast nobody needs by
-              taking the colour the band exists to show. */}
+          {/* A veil on the PHONE only. On a wide panel the copy sits in the
+              navy and needs nothing over it, which is why there is no overlay
+              from `md` up. A phone panel is nearly square, so `cover` reaches
+              far enough down the 4:3 file that the pale half lands behind the
+              second line whatever the padding does — measured, that line is
+              unreadable there. Rather than darken the card everywhere for a
+              case that only happens under 768px, the scrim is scoped to it.
+              `bg-background` is the dark mapping's own near-black, so this is
+              still not a colour invented in this file. */}
           <div
             aria-hidden="true"
-            className="absolute inset-0 bg-background/45"
+            className="absolute inset-0 bg-background/40 md:hidden"
           />
 
-          {/* The copy and the action, centred, on even air top and bottom. The
-              old panel was deliberately lopsided — the words were pushed up
-              into the part of the card the colour had not reached yet — and
-              with colour everywhere there is nothing left to push away from.
-              The ladder inside is the page's: 24px from the heading to the
-              line under it, 40 from there to the button. */}
-          <div className="relative flex flex-col items-center px-6 py-24 text-center md:px-10 md:py-32">
+          {/* Deliberately lopsided: 48 over the heading against 96 under the
+              button, 64 / 192 from `md`. That is not a centred box that has
+              drifted, it is the legibility argument above — the copy is held in
+              the navy at the top of the frame and the bright half of the
+              picture runs underneath it with nothing on it. The ladder inside
+              is the page's: 24px from the heading to the line under it, 40
+              from there to the button.
+
+              The phone takes LESS bottom air, not more, and that is the same
+              argument again rather than an exception to it. `cover` shows a
+              horizontal slice of a 4:3 file, and how much of the file that
+              slice spans depends on the box's aspect: the tall phone panel
+              reaches far enough down the picture to put its pale half behind
+              the copy, while a shorter one stays in the navy. So the panel is
+              cut down there instead of being darkened. */}
+          <div className="relative flex flex-col items-center px-6 pt-12 pb-24 text-center md:px-10 md:pt-16 md:pb-48">
             <h2
               id="closing-heading"
               className="max-w-3xl text-heading-display text-balance text-foreground"
@@ -97,9 +119,9 @@ export function ClosingD() {
             {/* The foreground tier, not the muted one, and that is the
                 measurement talking. The dark mapping has exactly two text
                 tiers — near-white and a mid grey — and the mid grey is built
-                for a flat surface: over this crop it reads 2.8:1 at a 40% veil
-                and 4.45:1 even at 65%, so it never clears the floor at any
-                veil that leaves the gradient looking like the gradient. The
+                for a flat surface: on this ground it never cleared the 4.5
+                floor at any treatment that left the gradient looking like the
+                gradient. The
                 step down from the heading is carried by size instead, which
                 here is a display cut against 18px and is not a subtle
                 difference. */}
