@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { FLEET_AGENTS, FLEET_RUNS, RUN_STATUS_ORDER } from "../../../lib/mock/teams";
+import { FLEET_AGENTS, FLEET_RUNS, RUN_STATUS_ORDER, TEAM } from "../../../lib/mock/teams";
 
+import { DEMO_USER } from "./content";
 import {
   SHOWCASE_RUNS,
+  SHOWCASE_TEAM,
   SHOWCASE_WEEK,
   TEAM_VIEWS,
   TEAM_VIEWS_ID,
@@ -160,5 +162,43 @@ describe("landing v2 variant D views data", () => {
     const delegating = FLEET_RUNS.filter((run) => run.helpers?.length);
     expect(delegating.length).toBeGreaterThan(0);
     expect(delegating.filter((run) => !ids.has(run.id))).toEqual([]);
+  });
+});
+
+describe("landing v2 variant D views cast", () => {
+  // The mock signs its owner in as the person who built the repo, which is
+  // right on /teams and wrong on a page anyone can open: the office draws that
+  // name on a tag over a character's head, with a "You" badge beside it, on a
+  // stranger's screen. The swap is easy to lose in a refactor and nothing else
+  // would notice, so it is held here by name.
+  it("signs in the page's fictional person, not the repo's owner", () => {
+    const owner = TEAM.members.find((member) => member.id === "m-karthik");
+    expect(owner).toBeDefined();
+    const shown = SHOWCASE_TEAM.members.find((member) => member.id === "m-karthik");
+    expect(shown?.name).toBe(DEMO_USER.name);
+    expect(shown?.initials).toBe(DEMO_USER.initials);
+    expect(SHOWCASE_TEAM.members.map((member) => member.name)).not.toContain(owner!.name);
+  });
+
+  // Every part of the office is keyed by id: the seed that places this person,
+  // the sprite sheet that gives them hair rather than an antenna, the art
+  // pixels the tag clears their head by. Rename an id and they have nowhere to
+  // stand.
+  it("changes the words and not one id", () => {
+    expect(SHOWCASE_TEAM.members.map((member) => member.id)).toEqual(
+      TEAM.members.map((member) => member.id),
+    );
+    expect(SHOWCASE_TEAM.id).toBe(TEAM.id);
+    expect(SHOWCASE_TEAM.members).toHaveLength(TEAM.members.length);
+  });
+
+  // The rest of the mock's people were invented to begin with; this is a check
+  // that a future edit to the mock does not quietly put a real one back.
+  it("leaves the invented members alone", () => {
+    for (const member of TEAM.members) {
+      if (member.id === "m-karthik") continue;
+      const shown = SHOWCASE_TEAM.members.find((one) => one.id === member.id);
+      expect(shown).toEqual(member);
+    }
   });
 });

@@ -5,16 +5,17 @@
 // carries `toolIds`. The glyphs are React components and stay beside the
 // markup in `./team-views.tsx`.
 
-import { FLEET_RUNS } from "@/lib/mock/teams";
+import { TEAM, FLEET_RUNS } from "@/lib/mock/teams";
+
+import { DEMO_USER, TEAM_VIEWS_ID } from "./content";
 
 import type { Heading } from "../a/content";
 
-// The band's own id, which the nav in `./content.ts` names and the section
-// answers to as an anchor. It is here rather than there because `./content.ts`
-// is the module both this file and the nav can see; putting it the other way
-// round would close the import into a circle, the same reason `ROSTER_ID`
-// sits where it does.
-export const TEAM_VIEWS_ID = "views";
+// Re-exported so the band and its test can read the id from the module they
+// already read; it is DEFINED in `./content`, beside `ROSTER_ID`, because this
+// file reads that one for the demo person's name and two files cannot read
+// each other.
+export { TEAM_VIEWS_ID };
 
 /** The four views, in the order the control puts them. */
 export type TeamViewId = "board" | "list" | "org" | "office";
@@ -109,3 +110,26 @@ export const SHOWCASE_RUNS = [
 export const SHOWCASE_WEEK = FLEET_RUNS.filter((run) =>
   SHOWCASE_RUNS.includes(run.id),
 );
+
+// The team, with the one real name in it swapped out. `src/lib/mock/teams.ts`
+// signs the mock's owner in as the person who built this repo, which is right
+// on /teams, where the visitor IS the signed-in account and the office draws
+// them standing in the hall with a "You" badge beside their name. On a page
+// anyone can open it is somebody else's name on a stranger's screen, so here
+// the owner is the fictional person the rest of this page already uses
+// (`DEMO_USER`, on the domain reserved for examples). The other two were
+// always invented.
+//
+// The IDS do not change, only the words. Every part of the office is keyed by
+// id: the seed that puts this person in the hall, the sprite sheet that gives
+// them hair rather than an antenna, even the three art pixels the name tag
+// clears the top of their head by. A renamed id would be a different person
+// with nowhere to stand.
+export const SHOWCASE_TEAM = {
+  ...TEAM,
+  members: TEAM.members.map((member) =>
+    member.id === "m-karthik"
+      ? { ...member, name: DEMO_USER.name, initials: DEMO_USER.initials }
+      : member,
+  ),
+};

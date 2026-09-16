@@ -21,6 +21,7 @@ import { SceneProvider, useSceneSnapshot } from "@/components/teams/space/scene/
 import { CHROME_Z, SceneStore } from "@/components/teams/space/scene/store";
 import { useFitStage } from "@/components/teams/space/scene/use-fit-scale";
 import { useWalkKeys } from "@/components/teams/space/scene/use-walk-keys";
+import { useWander } from "@/components/teams/space/scene/use-wander";
 import {
   AWAY_DESKS,
   FloorCanvas,
@@ -64,11 +65,21 @@ import {
 // SEARCH dims the agents the query does not find (the org chart's matcher),
 // and an sr-only live line counts them.
 //
-// `walkWhenIdle` is the one prop, and it is true on /teams because there the
-// office is the page: arrow keys with nothing focused can only mean walk. A
-// page that shows the office as one band among several passes false, so the
-// window-level listener that would otherwise take the arrow keys off the
-// document never goes on (scene/use-walk-keys.ts).
+// TWO PROPS, both for the case where the office is not the page. On /teams
+// they keep their defaults and nothing here changes.
+//
+// `walkWhenIdle` is true on /teams because there the office IS the page: arrow
+// keys with nothing focused can only mean walk. A page that shows the office
+// as one band among several passes false, so the window-level listener that
+// would otherwise take the arrow keys off the document never goes on
+// (scene/use-walk-keys.ts).
+//
+// `wander` is the other half of that. With no keyboard and no pointer the
+// floor would be a still picture, so this sends characters on short walks and
+// brings them back (scene/use-wander.ts). It is off on /teams, where the
+// reader moves people themselves. It is also off under reduced motion, which
+// is decided here rather than by the caller: `walkTo` teleports when motion is
+// reduced, so a wandering office would be characters popping between tiles.
 
 function placementsFor(cast: Cast): Record<ActorId, Placement> {
   return Object.fromEntries(cast.members.map((member) => [member.id, SEED[member.id]]));
@@ -76,7 +87,13 @@ function placementsFor(cast: Cast): Record<ActorId, Placement> {
 
 const NO_COLLABORATORS: ReadonlySet<ActorId> = new Set();
 
-export function SpaceView({ walkWhenIdle = true }: { walkWhenIdle?: boolean }) {
+export function SpaceView({
+  walkWhenIdle = true,
+  wander = false,
+}: {
+  walkWhenIdle?: boolean;
+  wander?: boolean;
+}) {
   const { team, agents, allRuns, runs, query, openAgent, agentById, memberById } = useFleet();
   const cast = React.useMemo(() => buildCast(team, agents, allRuns, SEED), [team, agents, allRuns]);
   const [store] = React.useState(() => new SceneStore(placementsFor(cast), YOU, cast.restFor));
@@ -151,6 +168,10 @@ export function SpaceView({ walkWhenIdle = true }: { walkWhenIdle?: boolean }) {
   React.useEffect(() => store.nudge(), [store, meant, groups, askId]);
 
   const keys = useWalkKeys(store, mapRef, dismiss, walkWhenIdle);
+  // Stable across renders, so the wander loop is not restarted (and everyone's
+  // idea of home lost) by a re-render the scene causes anyway.
+  const everyone = React.useMemo(() => cast.members.map((member) => member.id), [cast]);
+  useWander(store, everyone, wander && !reduced);
 
   const onHover = React.useCallback((id: ActorId | null) => (id ? pointerEnter(id) : pointerLeave()), [pointerEnter, pointerLeave]);
   const onActivate = React.useCallback(

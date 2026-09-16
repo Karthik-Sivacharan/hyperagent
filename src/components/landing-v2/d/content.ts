@@ -9,7 +9,6 @@ import {
   TEAM_CARDS,
   type LandingLink,
 } from "../a/content";
-import { TEAM_VIEWS_ID } from "./team-views-content";
 
 export const LINKS = {
   ...A_LINKS,
@@ -20,6 +19,11 @@ export const LINKS = {
 // because the nav below has to name it and that module already reads this one.
 // Putting it the other way round would close the import into a circle.
 export const ROSTER_ID = "agents";
+
+// The views band's id, here for the same reason and with one more on top of
+// it: `./team-views-content` reads this module for the name of the fictional
+// person its office signs in, so the import can only run one way.
+export const TEAM_VIEWS_ID = "views";
 
 // D is a shorter page than A: the hero, the roster, the formats, the three
 // stages of one job, the team cards, the four views and the closing band. A's

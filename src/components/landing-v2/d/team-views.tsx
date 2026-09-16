@@ -19,6 +19,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { SectionHeading } from "../a/section";
 import {
+  SHOWCASE_TEAM,
   SHOWCASE_WEEK,
   TEAM_VIEWS,
   type TeamViewId,
@@ -44,17 +45,23 @@ import {
 //   - the office is draggable, and a drag that starts on a picture and ends
 //     on the page is a gesture nobody asked this band for.
 //
-// The office keeps its own life regardless: the agents at their desks go on
-// typing and reading, the bubbles come and go. That motion is the scene's,
-// it runs whether or not anyone is looking, and it is not the page moving
-// because the reader scrolled.
+// The office keeps its own life regardless, and more of it than the other
+// three: the agents at their desks go on typing and reading, the bubbles come
+// and go, and a few of them are always up and walking somewhere. That motion
+// is the scene's own. It runs whether or not anyone is looking, it answers to
+// nothing the reader did, and it is not the page moving because they
+// scrolled.
 //
-// TWO PROPS EXIST FOR THIS BAND, both defaulting to what /teams already did.
-// `SpaceView walkWhenIdle={false}` keeps the office from taking the arrow
-// keys off the document (it listens on `window` and calls preventDefault, so
-// with the office on the page the arrow keys would stop scrolling it), and
-// `OrgView controls={false}` drops the zoom pad, which would otherwise draw
-// three buttons that cannot be pressed.
+// THREE PROPS EXIST FOR THIS BAND, all defaulting to what /teams already did.
+// `SpaceView walkWhenIdle={false}` keeps the office from taking the arrow keys
+// off the document (it listens on `window` and calls preventDefault, so with
+// the office on the page the arrow keys would stop scrolling it). `OrgView
+// controls={false}` drops the zoom pad, which would otherwise draw three
+// buttons that cannot be pressed. And `SpaceView wander` is what is left of
+// the office once the keyboard and the pointer are gone: characters get up,
+// walk a few tiles and go back to their chairs, so the floor moves on its own
+// (teams/space/scene/use-wander.ts). It turns itself off under reduced
+// motion.
 //
 // LOADED WHEN ASKED FOR. The board and the list are the light two and the
 // board is what the band paints first, so both are imported outright. The
@@ -192,7 +199,7 @@ export function TeamViews() {
               rhythm rather than announcing itself as an embed. */}
           <div className="rounded-4xl bg-background p-2 shadow-card">
             <MotionConfig reducedMotion="user">
-              <FleetProvider runs={SHOWCASE_WEEK}>
+              <FleetProvider team={SHOWCASE_TEAM} runs={SHOWCASE_WEEK}>
                 {views.map((view) => (
                   <TabsContent
                     key={view.id}
@@ -207,7 +214,7 @@ export function TeamViews() {
                       {view.id === "office" ? (
                         <div className={OFFICE_WINDOW}>
                           <Stage className={cn(OFFICE_STAGE, "shrink-0")}>
-                            <SpaceView walkWhenIdle={false} />
+                            <SpaceView walkWhenIdle={false} wander />
                           </Stage>
                         </div>
                       ) : (

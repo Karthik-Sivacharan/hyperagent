@@ -9,8 +9,8 @@ import {
   LINKS,
   NAV_D,
   ROSTER_ID,
+  TEAM_VIEWS_ID,
 } from "./content";
-import { TEAM_VIEWS_ID } from "./team-views-content";
 
 // Variant D adds only a handful of strings to variant A's copy. They follow
 // A's rules, and every link lands on a section of the page or a route.
