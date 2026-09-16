@@ -1,22 +1,21 @@
 import { describe, expect, it } from "vitest";
 
 import * as a from "../a/content";
-import { A11Y, HERO_D, LINKS } from "./content";
+import { A11Y, CLOSING_D, FOOTER_D, HERO_D, LINKS, NAV_D } from "./content";
 
 // Variant D adds only a handful of strings to variant A's copy. They follow
 // A's rules, and every link lands on a section of the page or a route.
-const SECTION_IDS = [
-  a.TEAM.id,
-  a.WEEK.id,
-  a.USE_CASES.id,
-  a.FORMATS.id,
-  a.RECEIPTS.id,
-  a.CONTROL.id,
-  a.STORIES.id,
-  a.PRICING.id,
-  a.PRICING.faq.id,
-];
+//
+// D is the short page: the hero, the formats, one job from brief to delivery,
+// the team cards and the closing. These are the only ids an in-page link on D
+// may name, which is what keeps the nav and the footer off A's sections.
+const SECTION_IDS = [a.FORMATS.id, a.BRIEF_CARDS.id, a.TEAM_CARDS.id];
 const ROUTES = ["/landing/d", "/signup", "/threads/new"];
+const ALL_LINKS = [
+  ...Object.values(LINKS),
+  ...NAV_D,
+  ...FOOTER_D.groups.flatMap((group) => group.links),
+];
 
 describe("landing v2 variant D copy", () => {
   it("keeps variant A's words and labels", () => {
@@ -26,7 +25,12 @@ describe("landing v2 variant D copy", () => {
   });
 
   it("writes the new strings the way A writes its own", () => {
-    const added = [HERO_D.primary, A11Y.window];
+    const added = [
+      HERO_D.primary,
+      A11Y.window,
+      ...NAV_D.map((link) => link.label),
+      ...FOOTER_D.groups.map((group) => group.title),
+    ];
     expect(added.filter((s) => /[—·!]/.test(s))).toEqual([]);
     expect(added.filter((s) => s.split(/\s+/).length > 6)).toEqual([]);
   });
@@ -41,12 +45,25 @@ describe("landing v2 variant D copy", () => {
   });
 
   it("links only to a section on the page or a route", () => {
-    const hrefs = Object.values(LINKS).map((l) => l.href);
-    const broken = hrefs.filter((href) =>
+    const broken = ALL_LINKS.map((l) => l.href).filter((href) =>
       href.startsWith("#")
         ? !SECTION_IDS.includes(href.slice(1))
         : !ROUTES.includes(href),
     );
     expect(broken).toEqual([]);
+  });
+
+  it("closes on the refrain and never on a price", () => {
+    expect(CLOSING_D.fine).toMatch(/nothing goes out until you say so/i);
+    expect(CLOSING_D.fine).not.toMatch(
+      /\$|\b(price|prices|plan|plans|cost|costs|credit|month|free)\b/i,
+    );
+    const lines = [CLOSING_D.heading, CLOSING_D.fine];
+    expect(lines.filter((s) => /[—·!]/.test(s))).toEqual([]);
+    expect(CLOSING_D.heading.split(/\s+/).length).toBeLessThan(10);
+    const long = lines
+      .flatMap((s) => s.split(/(?<=[.?])\s+/))
+      .filter((s) => s.split(/\s+/).filter(Boolean).length > 24);
+    expect(long).toEqual([]);
   });
 });

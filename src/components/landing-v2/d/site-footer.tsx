@@ -3,8 +3,8 @@ import Link from "next/link";
 import { Mark } from "@/components/brand/mark";
 import { Overline } from "@/components/ui/overline";
 
-import { FOOTER, type LandingLink } from "../a/content";
-import { LINKS } from "./content";
+import { type LandingLink } from "../a/content";
+import { FOOTER_D, LINKS } from "./content";
 
 // A footer link: 14px on the second tier, lifting to the first on hover. On
 // a phone each row is 44px tall (a thumb); beside a pointer it drops to 28.
@@ -27,13 +27,18 @@ function FooterLink({ link }: { link: LandingLink }) {
   );
 }
 
-// Variant A's footer, with the wordmark pointing at this variant's route.
-// It continues the closing band's dark ground under one hairline: the
-// wordmark, then a caps label over each group of links.
+// Variant A's footer, with the wordmark pointing at this variant's route and
+// D's own link groups. It continues the closing band's dark ground under one
+// hairline: the wordmark, then a caps label over each group of links.
+//
+// D is the short page, so it carries two groups rather than A's three: the
+// sections that are actually on it, and the account links. The grid is a
+// three-track row from `lg` to match (wordmark, Product, Account) instead of
+// A's four, so the groups do not strand a column of air at the right.
 export function SiteFooter() {
   return (
     <footer className="dark bg-background px-4 text-foreground sm:px-6">
-      <div className="mx-auto grid max-w-6xl gap-10 border-t border-border-subtle py-12 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mx-auto grid max-w-6xl gap-10 border-t border-border-subtle py-12 sm:grid-cols-2 lg:grid-cols-3">
         <Link
           href={LINKS.home.href}
           className="-my-2.5 flex items-center gap-2 self-start rounded-md py-2.5 text-base font-semibold text-foreground"
@@ -41,7 +46,7 @@ export function SiteFooter() {
           <Mark size={20} />
           {LINKS.home.label}
         </Link>
-        {FOOTER.groups.map((group) => (
+        {FOOTER_D.groups.map((group) => (
           <nav
             key={group.title}
             aria-label={group.title}

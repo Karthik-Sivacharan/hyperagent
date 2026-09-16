@@ -232,6 +232,104 @@ export const HERO = {
   },
 };
 
+// The three stages of one assignment, one full-width card each: a two-tone
+// heading (the muted line sets it up, the ink line lands it), the sentence
+// under them, and a clip of the product doing that stage. `window` is the
+// title on the mock's bar; `label` is what a screen reader hears in place of
+// the clip, which carries nothing the heading and body do not already say.
+export type BriefCard = {
+  id: string;
+  lead: string;
+  claim: string;
+  body: string;
+  window: string;
+  label: string;
+};
+
+export const BRIEF_CARDS = {
+  id: "brief",
+  heading: {
+    title: "Brief once. They keep going.",
+    sub: "Give your team a job. They research, build, deliver, and keep the work current.",
+  } satisfies Heading,
+  items: [
+    {
+      id: "describe",
+      lead: "Say what you need.",
+      claim: "They take it from there.",
+      body: "Write the job the way you would brief a new hire. Your agents research, draft, show you the work, and revise it.",
+      window: "New job",
+      label: "The app where you pick an agent and type the job you want done.",
+    },
+    {
+      id: "build",
+      lead: "Your team gets to work.",
+      claim: "Each agent on a computer of its own.",
+      body: "A browser, files, and the apps you connect. They search, decide, and build with what you would hand a new hire.",
+      window: "Agent at work",
+      label: "An agent at work on an example job, writing a brief.",
+    },
+    {
+      id: "deliver",
+      lead: "It lands where you already talk.",
+      claim: "And it never goes stale.",
+      // The card that claims delivery carries the check on it, per the voice
+      // doc's rule 11: every claim that an agent acts alone is paired with
+      // the line the agents say themselves.
+      body: "Slack, your inbox, wherever you work. Your agents keep it up to date as your business changes. Nothing goes out until you say so.",
+      window: "Slack",
+      label: "An example report posted in Slack, where the team reads it.",
+    },
+  ] satisfies BriefCard[],
+};
+
+// The three-card band under the format showcase: one idea per card, each
+// with a cropped picture of the product surface it describes. The pictures
+// are examples, so every label says so.
+export type TeamCard = { id: string; title: string; body: string };
+
+export const TEAM_CARDS = {
+  id: "team-cards",
+  heading: {
+    title: "See your team at work.",
+    sub: "Each agent has its own computer, learns from your corrections, and reaches you where you talk.",
+  } satisfies Heading,
+  items: [
+    {
+      id: "computer",
+      title: "Its own computer, already on.",
+      body: "Every agent works on a computer of its own. It is on before you ask, so the first job starts right away.",
+    },
+    {
+      id: "open",
+      title: "Watch the work as it happens.",
+      body: "You see every step, the searches, the files, the choices it makes. Correct it once and it remembers the correction. Nothing goes out until you say so.",
+    },
+    {
+      id: "reach",
+      title: "It reaches you where you talk.",
+      body: "Mention an agent in Slack, message it on Telegram, or give it a job for Monday at 7:00. The work comes back where you asked for it.",
+    },
+  ] satisfies TeamCard[],
+  // One picture per card, in the order the cards run. The labels carry what
+  // the picture shows, since the pictures themselves are screens of the
+  // product and a reader who cannot see them still gets the point.
+  shots: [
+    {
+      id: "roster",
+      label: "Example roster of agents, each on a computer of its own.",
+    },
+    {
+      id: "run",
+      label: "Example job in progress, with every step it has taken so far.",
+    },
+    {
+      id: "thread",
+      label: "Example message from an agent, with your reply under it.",
+    },
+  ],
+};
+
 export const TEAM = {
   id: "team",
   heading: {

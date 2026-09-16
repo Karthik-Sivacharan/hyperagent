@@ -3,13 +3,16 @@ import Link from "next/link";
 import { Mark } from "@/components/brand/mark";
 import { Button } from "@/components/ui/button";
 
-import { A11Y, NAV } from "../a/content";
-import { LINKS } from "./content";
+import { A11Y } from "../a/content";
+import { LINKS, NAV_D } from "./content";
 
-// Variant A's header, with the wordmark pointed at this variant's own route:
-// the wordmark with the in-page links grouped beside it (hidden below lg), Log
-// in and the Start button at the right edge. It sticks on the paper ground at
-// 85% with the glass blur and one hairline.
+// Variant A's header, with the wordmark pointed at this variant's own route
+// and D's own nav beside it: the wordmark with the in-page links grouped next
+// to it (hidden below lg), Log in and the Start button at the right edge. It
+// sticks on the paper ground at 85% with the glass blur and one hairline.
+//
+// The links are D's, not A's: D is the short page, and A's five point at
+// sections D does not carry.
 //
 // The two actions take `shape="soft"`, the squarer corner the hero's pair
 // already uses (`rounded-sm`, 6px on the brand's 10px radius), so the header's
@@ -37,7 +40,7 @@ export function SiteHeader() {
           aria-label={A11Y.mainNav}
           className="hidden flex-1 items-center gap-1 lg:flex"
         >
-          {NAV.map((item) => (
+          {NAV_D.map((item) => (
             <Button
               key={item.href}
               asChild
