@@ -11,6 +11,7 @@ This is an experiment branch, not part of the app. Nothing here is imported by
 ```
 experiments/smear-gradients/
   README.md            this file
+  palettes.mjs         the 12 ramps + the OKLCH recipe they come from
   smear-gradient.mjs   CPU generator -> PNG (culori + sharp, both already deps)
   studio.html          live WebGL version with every parameter on a slider
   output/              generated PNGs (git-ignored)
@@ -19,9 +20,11 @@ experiments/smear-gradients/
 Run it:
 
 ```bash
-node experiments/smear-gradients/smear-gradient.mjs                 # both presets
-node experiments/smear-gradients/smear-gradient.mjs ember 2560 1440 12
-open experiments/smear-gradients/studio.html                        # the live one
+node experiments/smear-gradients/palettes.mjs                 # list the 12 ramps
+node experiments/smear-gradients/smear-gradient.mjs           # render all of them
+node experiments/smear-gradients/smear-gradient.mjs --sheet   # one contact sheet
+node experiments/smear-gradients/smear-gradient.mjs iris 2560 1440
+open experiments/smear-gradients/studio.html                  # the live one
 ```
 
 ---
@@ -132,6 +135,55 @@ middle wherever the hue crosses.
 
 Composition differs by seed — the point is that the *method* reproduces the look,
 not that a given frame is matched pixel for pixel.
+
+## The twelve ramps
+
+`dusk` and `ember` carry literal stops sampled off the reference frames. The other
+ten are generated from one OKLCH recipe in `palettes.mjs`, so the set reads as a
+family rather than as ten unrelated pictures:
+
+- **L(t)** climbs a shared range, roughly 0.26 → 0.90, dark at `t = 0`
+- **C(t)** rides one bump envelope — low at both ends, peaking in the middle.
+  Sliding the peak is what separates a sky (peaks early, bright end goes pale)
+  from a fire (peaks late, bright end stays hot)
+- **H(t)** travels 40–100° along the short arc. Hue travel is the family
+  signature, not decoration: a ramp that holds one hue and only lightens reads
+  as a plain tint
+
+Chroma is clamped into sRGB per stop, so a hue path that leaves the gamut loses
+saturation instead of clipping to a wall of primary. Cyan pays for this —
+`lagoon` and `glacier` cap near C 0.11 where the rest reach 0.15–0.18, because
+sRGB simply has no room at those hues and lightnesses.
+
+| name | story | angle | L | C max @ | hue travel |
+|---|---|---|---|---|---|
+| dusk | navy → azure → lilac → blush *(measured)* | 16.5° | 0.28→0.93 | 0.144 @ 0.30 | 257→342 (85°) |
+| ember | umber → vermilion → amber *(measured)* | 25° | 0.27→0.80 | 0.190 @ 0.80 | 23→65 (43°) |
+| moss | pine → fern → chartreuse | 19° | 0.27→0.90 | 0.154 @ 0.60 | 167→108 (60°) |
+| lagoon | deep sea → teal → aqua | 22° | 0.26→0.88 | 0.109 @ 0.60 | 217→172 (45°) |
+| iris | violet ink → indigo → periwinkle | 17° | 0.26→0.92 | 0.168 @ 0.40 | 298→251 (48°) |
+| orchid | aubergine → orchid → blush | 20° | 0.27→0.93 | 0.164 @ 0.50 | 313→358 (45°) |
+| rosewood | oxblood → rose → apricot | 24° | 0.26→0.90 | 0.176 @ 0.70 | 351→30 (39°) |
+| bronze | bitumen → bronze → straw | 23° | 0.27→0.89 | 0.150 @ 0.70 | 36→88 (52°) |
+| cypress | forest → olive → lime | 18° | 0.27→0.90 | 0.163 @ 0.70 | 148→95 (53°) |
+| glacier | midnight → steel → ice | 16° | 0.26→0.90 | 0.111 @ 0.60 | 247→197 (51°) |
+| nocturne | blue-black → violet → mauve | 21° | 0.26→0.91 | 0.158 @ 0.50 | 265→325 (60°) |
+| solstice | plum-black → red → amber | 26° | 0.26→0.89 | 0.179 @ 0.70 | 331→72 (101°) |
+
+Field settings stay in the measured band across the whole set — angle 16–26°,
+blur 20–22% of the long edge, stretch 7–9× — because holding those constant is
+most of what makes two frames look like the same treatment.
+
+## Grain
+
+Every preset carries it, at 0.0024 linear-light sigma. Rendered and measured back:
+**1.16/255** high-frequency residual at **10.9×** directional anisotropy, against
+0.95–1.08 and 8.3–13.9 in the references. It sits below one 8-bit step, so it is
+felt rather than seen — but drop it and the output measures as flat vector art.
+
+Order matters. Grain goes in *after* the gradient map and *in linear light*, then
+triangular dither on the way to 8 bits. Adding it before the map just re-reads the
+ramp at a jittered `t`, which shows up as colour noise instead of luminance grain.
 
 ## Three routes
 

@@ -13,55 +13,25 @@
  * the blur runs along `angle` too. Stretch alone gives soft blobs; blur alone
  * gives a flat smear; together they give the streaks.
  *
- * Measured parameters for the two reference images are in PRESETS below;
- * the derivation is in README.md.
+ * The twelve ramps live in palettes.mjs: two sampled off the reference frames
+ * and ten generated from one shared OKLCH recipe. The derivation is in
+ * README.md.
  *
- *   node experiments/smear-gradients/smear-gradient.mjs            (both presets)
- *   node experiments/smear-gradients/smear-gradient.mjs dusk 1600 1000 7
+ *   node experiments/smear-gradients/smear-gradient.mjs              every preset
+ *   node experiments/smear-gradients/smear-gradient.mjs iris         just one
+ *   node experiments/smear-gradients/smear-gradient.mjs iris 2560 1440 7
+ *   node experiments/smear-gradients/smear-gradient.mjs --sheet      contact sheet
  */
-import { converter, formatHex } from 'culori';
+import { converter } from 'culori';
 import sharp from 'sharp';
 import { mkdir } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { PRESETS } from './palettes.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const toOklab = converter('oklab');
 const toRgb = converter('rgb');
-
-/* ------------------------------------------------------------------ *
- * Presets. `angle` is degrees below horizontal, i.e. the streaks
- * descend to the right. Both were measured off the reference frames;
- * see README.md "What the numbers say".
- * ------------------------------------------------------------------ */
-const PRESETS = {
-  // Deep navy -> azure -> periwinkle -> lilac -> blush. Hue travels 108 deg
-  // while chroma peaks early (t=0.31) and then falls away to a near-white pink.
-  dusk: {
-    angle: 16.5,
-    stops: [
-      [0.00, '#022758'], [0.10, '#084382'], [0.20, '#0f61ab'], [0.30, '#1981cc'],
-      [0.40, '#2d99de'], [0.50, '#4fa4e5'], [0.60, '#73aaea'], [0.69, '#97b0ee'],
-      [0.80, '#babbf2'], [0.89, '#e1c3ee'], [1.00, '#fddcef'],
-    ],
-    stretch: 7.0, cellPx: 460, octaves: 4, gain: 0.52, blurFrac: 0.22,
-    linearWeight: 0.34, softclip: 0.88, grain: 0.0018, grainLen: 22,
-    drift: 0.10, driftL: 0.012,
-  },
-  // Near-black umber -> maroon -> vermilion -> orange -> amber. Hue barely
-  // moves (42 deg) and chroma peaks late (t=0.82), which is what reads as heat.
-  ember: {
-    angle: 25,
-    stops: [
-      [0.00, '#33201f'], [0.11, '#492924'], [0.20, '#5f312b'], [0.30, '#773228'],
-      [0.40, '#8d3b30'], [0.50, '#a43e30'], [0.60, '#bc422e'], [0.69, '#d3472c'],
-      [0.79, '#e7542b'], [0.89, '#f7702c'], [1.00, '#fea746'],
-    ],
-    stretch: 8.0, cellPx: 140, octaves: 5, gain: 0.55, blurFrac: 0.20,
-    linearWeight: 0.03, softclip: 0.62, grain: 0.0020, grainLen: 22,
-    drift: 0.12, driftL: 0.010, contrast: 1.15,
-  },
-};
 
 /* ---------------------------- plumbing ---------------------------- */
 
@@ -362,14 +332,47 @@ export function render(w, h, preset, seed = 1) {
   return out;
 }
 
+/** A 4-wide grid of every preset, for judging the set as a set. */
+async function contactSheet(dir, tileW = 420, tileH = 315, gap = 10) {
+  const names = Object.keys(PRESETS);
+  const cols = 4;
+  const rows = Math.ceil(names.length / cols);
+  const W = cols * tileW + (cols + 1) * gap;
+  const H = rows * tileH + (rows + 1) * gap;
+
+  const tiles = await Promise.all(names.map(async (key, i) => {
+    const p = PRESETS[key];
+    const raw = render(tileW, tileH, p, p.seed ?? 3);
+    return {
+      input: await sharp(raw, { raw: { width: tileW, height: tileH, channels: 3 } }).png().toBuffer(),
+      left: gap + (i % cols) * (tileW + gap),
+      top: gap + Math.floor(i / cols) * (tileH + gap),
+    };
+  }));
+
+  const file = join(dir, 'contact-sheet.png');
+  await sharp({ create: { width: W, height: H, channels: 3, background: '#0d0c0b' } })
+    .composite(tiles)
+    .png({ compressionLevel: 9 })
+    .toFile(file);
+  console.log(`\n  contact sheet: ${file}  (${names.length} presets, ${W}x${H})`);
+}
+
 async function main() {
-  const [name, wArg, hArg, seedArg] = process.argv.slice(2);
+  const args = process.argv.slice(2);
+  const sheet = args.includes('--sheet');
+  const [name, wArg, hArg, seedArg] = args.filter((a) => !a.startsWith('--'));
+  const dir = join(HERE, 'output');
+  await mkdir(dir, { recursive: true });
+
+  if (sheet && !name) {
+    await contactSheet(dir);
+    return;
+  }
+
   const targets = name ? [name] : Object.keys(PRESETS);
   const w = Number(wArg) || 1024;
   const h = Number(hArg) || 768;
-  const seed = Number(seedArg) || 3;
-  const dir = join(HERE, 'output');
-  await mkdir(dir, { recursive: true });
 
   for (const key of targets) {
     const preset = PRESETS[key];
@@ -378,16 +381,22 @@ async function main() {
       process.exitCode = 1;
       return;
     }
+    // Each preset carries the seed its composition was chosen on; an explicit
+    // fourth argument overrides it.
+    const seed = Number(seedArg) || preset.seed || 3;
     const started = Date.now();
     const raw = render(w, h, preset, seed);
     const file = join(dir, `${key}-${w}x${h}-s${seed}.png`);
     await sharp(raw, { raw: { width: w, height: h, channels: 3 } })
       .png({ compressionLevel: 9 })
       .toFile(file);
-    const ends = `${formatHex(preset.stops[0][1])} -> ${formatHex(preset.stops.at(-1)[1])}`;
-    console.log(`  ${key.padEnd(6)} ${w}x${h} seed ${seed}  ${preset.angle}deg  ${ends}`);
-    console.log(`         ${file}  (${Date.now() - started}ms)`);
+    const ends = `${preset.stops[0][1]} -> ${preset.stops.at(-1)[1]}`;
+    console.log(
+      `  ${key.padEnd(9)} ${String(preset.angle).padStart(4)}deg  ${ends}  ` +
+      `seed ${String(seed).padEnd(4)} ${Date.now() - started}ms  ${preset.note ?? ''}`
+    );
   }
+  if (sheet) await contactSheet(dir);
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) await main();

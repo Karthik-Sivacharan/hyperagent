@@ -160,7 +160,53 @@
     font-weight: 500;
   }
 
-  .presets { display: flex; gap: 6px; flex-wrap: wrap; }
+  /* Twelve presets will not fit a row of named buttons in a 312px rail, so each
+     one is a chip carrying its own ramp — the swatch is the label. */
+  .presets {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+  .chip {
+    display: grid;
+    gap: 3px;
+    padding: 3px;
+    border-radius: 6px;
+    border: 1px solid var(--rule);
+    background: var(--sunk);
+    cursor: pointer;
+    font: inherit;
+    text-align: left;
+  }
+  .chip .sw {
+    height: 20px;
+    border-radius: 3px;
+    border: 1px solid rgba(128, 118, 110, .28);
+  }
+  .chip .nm {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: .04em;
+    color: var(--muted);
+    padding-inline: 2px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .chip:hover { border-color: var(--faint); }
+  .chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .chip[aria-pressed="true"] {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent);
+  }
+  .chip[aria-pressed="true"] .nm { color: var(--ink); font-weight: 500; }
+  .preset-note {
+    font-size: 12.5px;
+    color: var(--muted);
+    margin: -6px 0 0;
+    min-height: 1.4em;
+  }
+
   button {
     font: inherit;
     cursor: pointer;
@@ -259,6 +305,45 @@
   }
   .lede { margin: 0 0 18px; color: var(--muted); max-width: 66ch; }
   p { max-width: 68ch; }
+
+  .gallery {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+  }
+  @media (max-width: 760px) { .gallery { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 420px) { .gallery { grid-template-columns: minmax(0, 1fr); } }
+  .tile {
+    display: grid;
+    gap: 6px;
+    padding: 0;
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    background: var(--panel);
+    overflow: hidden;
+    cursor: pointer;
+    font: inherit;
+    text-align: left;
+  }
+  .tile canvas {
+    display: block;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    max-width: 100%;
+    background: var(--sunk);
+  }
+  .tile figcaption { padding: 0 10px 10px; display: grid; gap: 1px; }
+  .tile .t-name { font-size: 13px; font-weight: 600; }
+  .tile .t-note {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: var(--faint);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .tile:hover { border-color: var(--faint); }
+  .tile:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
   .findings { overflow-x: auto; }
   table {
@@ -392,7 +477,8 @@
     <p class="standfirst">
       These are not CSS gradients. Each frame is a single scalar noise field, smeared along one
       axis and read through one colour ramp — which is why every pixel in the image lands on one
-      curve through OKLab. Drag anything below; the canvas re-renders the real algorithm on the GPU.
+      curve through OKLab. Twelve ramps share one recipe, and every one of them carries grain.
+      Drag anything below; the canvas re-renders the real algorithm on the GPU.
     </p>
     <div class="formula">
       rgb(x,&nbsp;y) = <b>ramp</b>( softclip( <b>blur</b><sub>θ</sub>( <b>fbm</b><sub>θ</sub>(x,&nbsp;y) ) + linear<sub>θ</sub>(x,&nbsp;y) ) ) + grain<sub>θ</sub>
@@ -411,10 +497,11 @@
     </div>
 
     <div class="rail">
-      <h2>Preset</h2>
+      <h2>Ramp · 12 variants</h2>
       <div class="presets" id="presets"></div>
+      <p class="preset-note" id="presetNote"></p>
 
-      <h2>Ramp · OKLab interpolated</h2>
+      <h2>Selected · OKLab interpolated</h2>
       <div class="ramp-strip" id="rampStrip"></div>
       <div class="ramp-ends"><span id="rampLo">#000000</span><span id="rampHi">#ffffff</span></div>
 
@@ -427,6 +514,17 @@
       </div>
     </div>
   </div>
+
+  <section>
+    <h3>The family</h3>
+    <p class="lede">
+      Ten generated ramps either side of the two measured ones. They hold the same
+      OKLCH recipe — one lightness range, one chroma envelope, 40–100° of hue travel —
+      and the same field settings, so hue is the only thing really changing. Click any
+      one to load it above.
+    </p>
+    <div class="gallery" id="gallery"></div>
+  </section>
 
   <section>
     <h3>What the reference frames measure</h3>
@@ -612,30 +710,76 @@
   /* ---------------- presets ---------------- */
   const PRESETS = {
     Dusk: {
-      angle: 16.5, stretch: 7.0, scale: 0.46, octaves: 4, gain: 0.52,
-      blur: 0.22, linear: 0.34, softclip: 0.88, grain: 1.8, grainLen: 22, seed: 3,
-      stops: [
-        [0.00, '#022758'], [0.10, '#084382'], [0.20, '#0f61ab'], [0.30, '#1981cc'],
-        [0.40, '#2d99de'], [0.50, '#4fa4e5'], [0.60, '#73aaea'], [0.69, '#97b0ee'],
-        [0.80, '#babbf2'], [0.89, '#e1c3ee'], [1.00, '#fddcef'],
-      ],
+      angle: 16.5, stretch: 7, octaves: 4, gain: 0.52, softclip: 0.88, grain: 3.8, grainLen: 22, seed: 3,
+      scale: 0.449, blur: 0.22, linear: 0.34,
+      note: 'navy → azure → lilac → blush (measured)',
+      stops: [[0.00, '#022758'], [0.10, '#084382'], [0.20, '#0f61ab'], [0.30, '#1981cc'], [0.40, '#2d99de'], [0.50, '#4fa4e5'], [0.60, '#73aaea'], [0.69, '#97b0ee'], [0.80, '#babbf2'], [0.89, '#e1c3ee'], [1.00, '#fddcef']],
     },
     Ember: {
-      angle: 25.0, stretch: 8.0, scale: 0.14, octaves: 5, gain: 0.55,
-      blur: 0.20, linear: 0.03, softclip: 0.72, grain: 2.0, grainLen: 22, seed: 7,
-      stops: [
-        [0.00, '#33201f'], [0.11, '#492924'], [0.20, '#5f312b'], [0.30, '#773228'],
-        [0.40, '#8d3b30'], [0.50, '#a43e30'], [0.60, '#bc422e'], [0.69, '#d3472c'],
-        [0.79, '#e7542b'], [0.89, '#f7702c'], [1.00, '#fea746'],
-      ],
+      angle: 25, stretch: 8, octaves: 5, gain: 0.55, softclip: 0.71, grain: 3.8, grainLen: 22, seed: 3,
+      scale: 0.137, blur: 0.2, linear: 0.03,
+      note: 'umber → vermilion → amber (measured)',
+      stops: [[0.00, '#33201f'], [0.11, '#492924'], [0.20, '#5f312b'], [0.30, '#773228'], [0.40, '#8d3b30'], [0.50, '#a43e30'], [0.60, '#bc422e'], [0.69, '#d3472c'], [0.79, '#e7542b'], [0.89, '#f7702c'], [1.00, '#fea746']],
     },
-    Tangerine: {
-      angle: 11.0, stretch: 9.0, scale: 0.26, octaves: 4, gain: 0.5,
-      blur: 0.26, linear: 0.18, softclip: 0.8, grain: 1.6, grainLen: 26, seed: 11,
-      stops: [
-        [0.00, '#1e1e1d'], [0.18, '#3b3a37'], [0.36, '#7a4a20'], [0.52, '#b76a1b'],
-        [0.68, '#e8891a'], [0.84, '#f7b45c'], [1.00, '#fbe3c2'],
-      ],
+    Moss: {
+      angle: 19, stretch: 7.5, octaves: 5, gain: 0.54, softclip: 0.66, grain: 3.8, grainLen: 22, seed: 21,
+      scale: 0.166, blur: 0.21, linear: 0.12,
+      note: 'pine → fern → chartreuse',
+      stops: [[0.00, '#142c23'], [0.10, '#1e3e2f'], [0.20, '#225237'], [0.30, '#286739'], [0.40, '#357b37'], [0.50, '#4c8f31'], [0.60, '#6aa130'], [0.70, '#8bb144'], [0.80, '#acc06b'], [0.90, '#c8d092'], [1.00, '#e2e2ac']],
+    },
+    Lagoon: {
+      angle: 22, stretch: 8, octaves: 5, gain: 0.54, softclip: 0.66, grain: 3.8, grainLen: 22, seed: 5,
+      scale: 0.146, blur: 0.21, linear: 0.12,
+      note: 'deep sea → teal → aqua',
+      stops: [[0.00, '#082931'], [0.10, '#013a44'], [0.20, '#004d56'], [0.30, '#006068'], [0.40, '#007479'], [0.50, '#008989'], [0.60, '#009e99'], [0.70, '#34b2a6'], [0.80, '#6fc2b3'], [0.90, '#95d2c2'], [1.00, '#b0e5d3']],
+    },
+    Iris: {
+      angle: 17, stretch: 7, octaves: 5, gain: 0.54, softclip: 0.66, grain: 3.8, grainLen: 22, seed: 33,
+      scale: 0.195, blur: 0.21, linear: 0.12,
+      note: 'violet ink → indigo → periwinkle',
+      stops: [[0.00, '#271e39'], [0.10, '#362d54'], [0.20, '#44397a'], [0.30, '#5046a5'], [0.40, '#5959c8'], [0.50, '#6171dd'], [0.60, '#6e8be8'], [0.70, '#81a4ed'], [0.80, '#99bbf1'], [0.90, '#b3d2f9'], [1.00, '#d1e7ff']],
+    },
+    Orchid: {
+      angle: 20, stretch: 7.5, octaves: 5, gain: 0.54, softclip: 0.66, grain: 3.8, grainLen: 22, seed: 9,
+      scale: 0.176, blur: 0.21, linear: 0.12,
+      note: 'aubergine → orchid → blush',
+      stops: [[0.00, '#2e2036'], [0.10, '#432d4b'], [0.20, '#5e3666'], [0.30, '#7d3d80'], [0.40, '#9d4497'], [0.50, '#b954a7'], [0.60, '#ce6cb1'], [0.70, '#dd89bb'], [0.80, '#e8a6c6'], [0.90, '#f3c3d5'], [1.00, '#ffdee8']],
+    },
+    Rosewood: {
+      angle: 24, stretch: 8.5, octaves: 5, gain: 0.54, softclip: 0.66, grain: 3.8, grainLen: 22, seed: 14,
+      scale: 0.142, blur: 0.21, linear: 0.12,
+      note: 'oxblood → rose → apricot',
+      stops: [[0.00, '#311d26'], [0.10, '#472935'], [0.20, '#623344'], [0.30, '#813b51'], [0.40, '#a2435c'], [0.50, '#c24c65'], [0.60, '#e0596e'], [0.70, '#fb6b77'], [0.80, '#ff908e'], [0.90, '#ffb3ab'], [1.00, '#ffd2ca']],
+    },
+    Bronze: {
+      angle: 23, stretch: 8, octaves: 5, gain: 0.54, softclip: 0.66, grain: 3.8, grainLen: 22, seed: 41,
+      scale: 0.156, blur: 0.21, linear: 0.12,
+      note: 'bitumen → bronze → straw',
+      stops: [[0.00, '#33211c'], [0.10, '#482f24'], [0.20, '#613c28'], [0.30, '#7b4826'], [0.40, '#95561e'], [0.50, '#ae670f'], [0.60, '#c47900'], [0.70, '#d78e03'], [0.80, '#e3a638'], [0.90, '#e8c174'], [1.00, '#f4d895']],
+    },
+    Cypress: {
+      angle: 18, stretch: 7, octaves: 5, gain: 0.54, softclip: 0.66, grain: 3.8, grainLen: 22, seed: 27,
+      scale: 0.186, blur: 0.21, linear: 0.12,
+      note: 'forest → olive → lime',
+      stops: [[0.00, '#192c1c'], [0.10, '#263d25'], [0.20, '#335028'], [0.30, '#426324'], [0.40, '#567616'], [0.50, '#6f8800'], [0.60, '#8a9900'], [0.70, '#a7aa00'], [0.80, '#c3ba3b'], [0.90, '#dacc75'], [1.00, '#f2de95']],
+    },
+    Glacier: {
+      angle: 16, stretch: 9, octaves: 5, gain: 0.54, softclip: 0.66, grain: 3.8, grainLen: 22, seed: 2,
+      scale: 0.205, blur: 0.21, linear: 0.12,
+      note: 'midnight → steel → ice',
+      stops: [[0.00, '#0b263d'], [0.10, '#093755'], [0.20, '#004a6d'], [0.30, '#005e81'], [0.40, '#007295'], [0.50, '#0087a9'], [0.60, '#189dba'], [0.70, '#59afc1'], [0.80, '#85c1ca'], [0.90, '#a9d2d6'], [1.00, '#c4e6e6']],
+    },
+    Nocturne: {
+      angle: 21, stretch: 7.5, octaves: 5, gain: 0.54, softclip: 0.66, grain: 3.8, grainLen: 22, seed: 18,
+      scale: 0.171, blur: 0.21, linear: 0.12,
+      note: 'blue-black → violet → mauve',
+      stops: [[0.00, '#17233f'], [0.10, '#273157'], [0.20, '#393e78'], [0.30, '#4f499d'], [0.40, '#6954bc'], [0.50, '#8464ce'], [0.60, '#9e79d7'], [0.70, '#b690da'], [0.80, '#caa8de'], [0.90, '#dec0e6'], [1.00, '#f3d7f4']],
+    },
+    Solstice: {
+      angle: 26, stretch: 8.5, octaves: 5, gain: 0.54, softclip: 0.66, grain: 3.8, grainLen: 22, seed: 6,
+      scale: 0.132, blur: 0.21, linear: 0.12,
+      note: 'plum-black → red → amber',
+      stops: [[0.00, '#2f1d2d'], [0.10, '#46283b'], [0.20, '#633148'], [0.30, '#833850'], [0.40, '#a53e51'], [0.50, '#c6484c'], [0.60, '#e25941'], [0.70, '#f77137'], [0.80, '#fc9450'], [0.90, '#fab679'], [1.00, '#ffd29b']],
     },
   };
 
@@ -842,6 +986,9 @@
   }
 
   /* ---------------- SVG filter route ---------------- */
+  // The filter works in the viewBox's own units, where the frame is 400 wide.
+  const SVG_W = 400;
+
   function svgFilter(table) {
     // feComponentTransfer maps the blurred noise through the ramp, one table per channel.
     const N = 24;
@@ -852,10 +999,21 @@
       }
       return vals.join(' ');
     };
-    const fx = (0.0016 / P.stretch * 8).toFixed(4);
-    const fy = (0.055 * (0.2 / Math.max(P.scale, 0.04))).toFixed(4);
-    const blurPx = Math.round(P.blur * 900);
-    return { r: chan(0), g: chan(1), b: chan(2), fx, fy, blurPx, angle: P.angle.toFixed(1) };
+    // baseFrequency takes separate x and y, and that pair IS the stretch:
+    // across-streak features span scale * SVG_W, along-streak ones `stretch`
+    // times more, and frequency is the reciprocal.
+    const across = Math.max(P.scale, 0.04) * SVG_W;
+    const fy = (1 / across).toFixed(4);
+    const fx = (1 / (across * P.stretch)).toFixed(4);
+    const blurPx = Math.max(1, Math.round(P.blur * SVG_W * 0.45));
+    // fractalNoise lands near 0.5 and a one-axis blur pulls it tighter still, so
+    // without a contrast stretch the ramp only ever gets read through its middle.
+    const slope = (2.2 + P.softclip).toFixed(2);
+    const intercept = ((1 - Number(slope)) / 2).toFixed(3);
+    return {
+      r: chan(0), g: chan(1), b: chan(2),
+      fx, fy, blurPx, slope, intercept, angle: P.angle.toFixed(1),
+    };
   }
 
   function updateSvg(table) {
@@ -866,16 +1024,29 @@
      xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
   <filter id="${id}" x="-40%" y="-40%" width="180%" height="180%"
           color-interpolation-filters="sRGB">
+    <!-- the x/y frequency pair is the anisotropic stretch -->
     <feTurbulence type="fractalNoise" baseFrequency="${f.fx} ${f.fy}"
                   numOctaves="${P.octaves}" seed="${P.seed}" result="n"/>
+    <!-- luminance into R, G AND B: the gradient map below reads colour
+         channels, so folding it into alpha instead leaves a flat fill -->
     <feColorMatrix in="n" type="matrix" result="mono"
-      values="0 0 0 0 .5  0 0 0 0 .5  0 0 0 0 .5  .34 .34 .32 0 0"/>
+      values="0.34 0.34 0.32 0 0
+              0.34 0.34 0.32 0 0
+              0.34 0.34 0.32 0 0
+              0    0    0    0 1"/>
+    <!-- one axis zero = directional blur -->
     <feGaussianBlur in="mono" stdDeviation="${f.blurPx} 0" result="smear"/>
-    <feComponentTransfer in="smear">
+    <feComponentTransfer in="smear" result="punch">
+      <feFuncR type="linear" slope="${f.slope}" intercept="${f.intercept}"/>
+      <feFuncG type="linear" slope="${f.slope}" intercept="${f.intercept}"/>
+      <feFuncB type="linear" slope="${f.slope}" intercept="${f.intercept}"/>
+    </feComponentTransfer>
+    <!-- the gradient map -->
+    <feComponentTransfer in="punch">
       <feFuncR type="table" tableValues="${f.r}"/>
       <feFuncG type="table" tableValues="${f.g}"/>
       <feFuncB type="table" tableValues="${f.b}"/>
-      <feFuncA type="discrete" tableValues="1 1"/>
+      <feFuncA type="table" tableValues="1 1"/>
     </feComponentTransfer>
   </filter>
   <g transform="rotate(${f.angle} 200 150)">
@@ -934,6 +1105,15 @@
     for (const b of $('presets').children) {
       b.setAttribute('aria-pressed', String(b.dataset.name === name));
     }
+    $('presetNote').textContent = name ? (PRESETS[name].note || '') : 'Edited — no longer a preset.';
+  }
+
+  /** A CSS gradient string for a ramp, for the chips and the strip. */
+  function cssRamp(table, every) {
+    return 'linear-gradient(90deg, ' + table
+      .filter((_, i) => i % every === 0)
+      .map((c, i, arr) => toHex(c) + ' ' + ((i / (arr.length - 1)) * 100).toFixed(1) + '%')
+      .join(', ') + ')';
   }
 
   function buildPresets() {
@@ -941,9 +1121,20 @@
     for (const name of Object.keys(PRESETS)) {
       const b = document.createElement('button');
       b.type = 'button';
-      b.textContent = name;
+      b.className = 'chip';
       b.dataset.name = name;
+      b.title = name + ' — ' + (PRESETS[name].note || '');
+      b.setAttribute('aria-label', b.title);
       b.setAttribute('aria-pressed', String(name === activePreset));
+
+      const sw = document.createElement('span');
+      sw.className = 'sw';
+      sw.style.background = cssRamp(buildRamp(PRESETS[name].stops, 64), 4);
+      const nm = document.createElement('span');
+      nm.className = 'nm';
+      nm.textContent = name;
+      b.append(sw, nm);
+
       b.addEventListener('click', () => {
         P = structuredClone(PRESETS[name]);
         setPressed(name);
@@ -957,14 +1148,85 @@
   function draw() {
     const table = uploadRamp();
     render();
-    const strip = table
-      .filter((_, i) => i % 8 === 0)
-      .map((c, i, arr) => toHex(c) + ' ' + ((i / (arr.length - 1)) * 100).toFixed(1) + '%')
-      .join(', ');
-    $('rampStrip').style.background = 'linear-gradient(90deg, ' + strip + ')';
+    $('rampStrip').style.background = cssRamp(table, 8);
     $('rampLo').textContent = toHex(table[0]);
     $('rampHi').textContent = toHex(table[table.length - 1]);
     updateSvg(table);
+  }
+
+  /**
+   * Render every preset once into its own 2-D canvas, reusing the single GL
+   * context: resize it, draw, blit, move on. Twelve live contexts would hit the
+   * browser's WebGL limit, and these never need to animate.
+   */
+  function buildGallery() {
+    const host = $('gallery');
+    const W = 384, H = 288;
+    const saveW = canvas.width, saveH = canvas.height, saveP = P;
+
+    canvas.width = W;
+    canvas.height = H;
+
+    for (const [name, preset] of Object.entries(PRESETS)) {
+      const fig = document.createElement('figure');
+      fig.className = 'tile';
+      fig.tabIndex = 0;
+      fig.setAttribute('role', 'button');
+      fig.setAttribute('aria-label', 'Load the ' + name + ' preset');
+
+      const c = document.createElement('canvas');
+      c.width = W;
+      c.height = H;
+
+      P = preset;
+      gl.viewport(0, 0, W, H);
+      uploadRamp();
+      gl.useProgram(prog);
+      gl.uniform2f(uni.uRes, W, H);
+      gl.uniform1f(uni.uAngle, P.angle);
+      gl.uniform1f(uni.uStretch, P.stretch);
+      gl.uniform1f(uni.uScale, P.scale);
+      gl.uniform1f(uni.uGain, P.gain);
+      gl.uniform1f(uni.uBlur, P.blur);
+      gl.uniform1f(uni.uLinear, P.linear);
+      gl.uniform1f(uni.uSoftclip, P.softclip);
+      gl.uniform1f(uni.uGrain, P.grain);
+      gl.uniform1f(uni.uGrainLen, P.grainLen);
+      gl.uniform1f(uni.uSeed, P.seed * 0.137);
+      gl.uniform1i(uni.uOctaves, P.octaves);
+      gl.drawArrays(gl.TRIANGLES, 0, 3);
+      c.getContext('2d').drawImage(canvas, 0, 0);
+
+      const cap = document.createElement('figcaption');
+      const nm = document.createElement('span');
+      nm.className = 't-name';
+      nm.textContent = name;
+      const nt = document.createElement('span');
+      nt.className = 't-note';
+      nt.textContent = preset.note || '';
+      cap.append(nm, nt);
+      fig.append(c, cap);
+
+      const load = () => {
+        P = structuredClone(PRESETS[name]);
+        setPressed(name);
+        syncOutputs();
+        draw();
+        document.querySelector('.stage').scrollIntoView({
+          behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+          block: 'center',
+        });
+      };
+      fig.addEventListener('click', load);
+      fig.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); load(); }
+      });
+      host.append(fig);
+    }
+
+    P = saveP;
+    canvas.width = saveW;
+    canvas.height = saveH;
   }
 
   async function copyText(text, btn) {
@@ -995,7 +1257,8 @@
       'linear', 'softclip', 'grain', 'grainLen', 'seed'];
     const body = keys.map((k) => '  ' + k + ': ' + P[k]).join(',\n');
     const stops = P.stops.map(([t, h]) => '    [' + t.toFixed(2) + ", '" + h + "']").join(',\n');
-    return 'const preset = {\n' + body + ',\n  stops: [\n' + stops + ',\n  ],\n};\n';
+    const head = P.note ? '// ' + (activePreset || 'edited') + ' — ' + P.note + '\n' : '';
+    return head + 'const preset = {\n' + body + ',\n  stops: [\n' + stops + ',\n  ],\n};\n';
   }
 
   /* ---------------- boot ---------------- */
@@ -1005,6 +1268,8 @@
     buildPresets();
     buildControls();
     syncOutputs();
+    buildGallery();
+    setPressed(activePreset);
     draw();
 
     $('shuffle').addEventListener('click', () => {
