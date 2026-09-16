@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 import {
   IconAppWindow,
@@ -18,7 +19,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { IconTile } from "@/components/ui/icon-tile";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { cn } from "@/lib/utils";
 
 import { FORMATS } from "./content";
 import { SectionHeading } from "./section";
@@ -34,24 +34,25 @@ const FORMAT_ICONS = [
   IconChartBar,
 ];
 
-// One ground per format, off the tint ladder and nothing else, so moving
-// between tabs reads as a change of material rather than a change of hue.
-// The order is deliberately not a ramp: neighbours differ most, including the
-// pair Previous and Next wrap around between (the last and the first).
-const FORMAT_GROUNDS = [
-  "bg-tint-10",
-  "bg-tint-20",
-  "bg-tint-12",
-  "bg-tint-25",
-  "bg-tint-15",
-  "bg-surface-raised",
+// One smear gradient per format, in the order content.ts lists them. The
+// files live beside the brief cards' grounds in `public/img/gradients`, are
+// 1024x768 each, and are ordered so neighbours never share a hue, including
+// the pair Previous and Next wrap around between (the last and the first).
+const FORMAT_GRADIENTS = [
+  "iris",
+  "lagoon",
+  "ember",
+  "orchid",
+  "moss",
+  "bronze",
 ];
 
 // The formats, as the product shows them: a pill row of the six, then one
 // panel that says what the format is on the left and stands in for the work
-// on the right. The picture is a tinted ground in v1, with the composer drawn
-// low in it as a picture of the request, not a control. The panel holds one
-// height across all six, so nothing under it moves when a tab changes.
+// on the right. The picture is a smear gradient with the format's glyph
+// watermarked on it, and the composer drawn low in it as a picture of the
+// request, not a control. The panel holds one height across all six, so
+// nothing under it moves when a tab changes.
 //
 // Everything in the band hangs off one left edge: the two-tone heading in the
 // hero's display cut, the pill track, the panel and the Previous / Next row
@@ -163,14 +164,32 @@ export function FormatShowcase() {
                     <div
                       role="img"
                       aria-label={`${item.name}, ${assetLabel}. ${item.request}`}
-                      className={cn(
-                        "relative h-56 overflow-hidden rounded-3xl sm:h-72 md:h-full",
-                        FORMAT_GROUNDS[index] ?? "bg-tint-10",
-                      )}
+                      className="relative h-56 overflow-hidden rounded-3xl sm:h-72 md:h-full"
                     >
+                      {/* The ground. Absolute under everything else in the
+                          well, and the well's height is set by the grid, so
+                          the picture can never move anything as it arrives.
+                          Only the open tab's panel is mounted, so this is one
+                          19KB file at a time and it loads eagerly: waiting on
+                          the lazy observer would flash the well white under a
+                          white watermark on every tab change. Decorative: the
+                          well's own `role="img"` and label carry what it
+                          means, so the file stays out of the tree. */}
+                      <Image
+                        src={`/img/gradients/${FORMAT_GRADIENTS[index] ?? FORMAT_GRADIENTS[0]}.webp`}
+                        alt=""
+                        fill
+                        unoptimized
+                        loading="eager"
+                        sizes="(min-width: 768px) 58vw, 100vw"
+                        className="object-cover"
+                      />
+                      {/* The watermark is white on colour now, not ink on a
+                          tint: at 55% it reads on every one of the six
+                          grounds without competing with the composer. */}
                       <div className="absolute inset-x-0 top-0 bottom-28 flex items-center justify-center">
                         <Icon
-                          className="size-14 text-foreground-low/35"
+                          className="size-14 text-white/55 drop-shadow-sm"
                           aria-hidden="true"
                         />
                       </div>

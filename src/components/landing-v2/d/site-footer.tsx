@@ -28,8 +28,12 @@ function FooterLink({ link }: { link: LandingLink }) {
 }
 
 // Variant A's footer, with the wordmark pointing at this variant's route and
-// D's own link groups. It continues the closing band's dark ground under one
-// hairline: the wordmark, then a caps label over each group of links.
+// D's own link groups: the wordmark, then a caps label over each group of
+// links. A's footer continues the closing band's dark ground under one
+// hairline; D no longer renders that band, so the footer's dark ground is
+// itself the page's last edge and the hairline is gone — it would land
+// exactly on the paper-to-ink change and read as a smudge on it. Restoring
+// the closing band brings the hairline back with it.
 //
 // D is the short page, so it carries two groups rather than A's three: the
 // sections that are actually on it, and the account links. The grid is a
@@ -38,7 +42,7 @@ function FooterLink({ link }: { link: LandingLink }) {
 export function SiteFooter() {
   return (
     <footer className="dark bg-background px-4 text-foreground sm:px-6">
-      <div className="mx-auto grid max-w-6xl gap-10 border-t border-border-subtle py-12 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mx-auto grid max-w-6xl gap-10 py-12 sm:grid-cols-2 lg:grid-cols-3">
         <Link
           href={LINKS.home.href}
           className="-my-2.5 flex items-center gap-2 self-start rounded-md py-2.5 text-base font-semibold text-foreground"

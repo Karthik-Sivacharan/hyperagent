@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import Image from "next/image";
 
 import { AgentGlyph } from "@/components/brand/agent-glyph";
@@ -7,14 +8,14 @@ import { cn } from "@/lib/utils";
 import { TEAM_CARDS } from "./content";
 
 // The band between the formats and the roster: a two-tone heading in the
-// page's display cut with two other people's cursors standing at the end of
-// it, then three cards that each say one thing and show a cropped piece of
-// the surface it happens on.
+// page's display cut with two other people's cursors standing on the words of
+// it, then three cards that each say one thing and show a piece of the
+// surface it happens on.
 //
 // The cards sit on the raised neutral (`bg-surface-raised`, a whisper above
-// the page's `surface-secondary`) at the page's most generous radius, and
-// every picture is cut by the card's bottom edge rather than fitted into it,
-// so the card reads as a window onto something larger.
+// the page's `surface-secondary`) at the page's most generous radius. Each
+// picture is shown whole from top to bottom and runs off the card's right
+// edge, so the card reads as a window onto something wider.
 
 // The arrow of a live cursor: tip at the top left, the tail notched out of
 // the bottom edge. Drawn once and coloured by `currentColor`.
@@ -25,22 +26,27 @@ const CURSOR_ARROW = "M1 1 L1 17 L5.2 13 L8 19 L11 17.8 L8.2 11.9 L14 11.9 Z";
 // the ink body it always pairs with, the info blue takes the paper body.
 // Blue is the brand's one other saturated hue (`--color-info`, the `blue`
 // ramp), which keeps the second cursor inside the token system.
+//
+// `at` places the cursor against the word it is anchored to (see below): both
+// stand at that word's right edge, the first pulled back into the space in
+// front of the next word, the second a hair past the final period.
 const CURSORS = [
   {
     shape: "fork",
     tone: "sand" as GlyphTone,
     arrow: "text-brand-accent",
     box: "bg-brand-accent",
-    // Just past the last word, tip on the middle of the line.
-    at: "ms-4 -translate-y-[0.75rem]",
+    // Mid-line: the tip in the gap between two words, the box under the line.
+    at: "top-1/2 left-full -translate-x-1.5",
   },
   {
     shape: "trefoil",
     tone: "ink" as GlyphTone,
     arrow: "text-info",
     box: "bg-info",
-    // Further out and a step down, so the two never sit on one another.
-    at: "ms-20 translate-y-[0.5rem]",
+    // At the end of the line, tip touching the last word's box, a step up so
+    // the two never read as one repeated mark.
+    at: "top-1/2 left-full translate-x-0.5 -translate-y-2",
   },
 ] as const;
 
@@ -48,14 +54,14 @@ const CURSORS = [
 // in the box instead of a name. Decorative: it carries nothing a reader of
 // the heading needs, so the whole thing is out of the accessibility tree.
 // Below `md` both cursors leave: two of them over a phone-width heading is
-// noise, and there is no room beside the line at that width.
+// noise, and the line has no room to be stood on at that width.
 //
-// Both are anchored to `left-full` on a box that hugs the title, so they
-// stand in the empty room after the last word however the title is set, and
-// they follow the left-aligned line instead of a centre that no longer
-// exists. The title's box is capped at `max-w-4xl` inside a `max-w-6xl`
-// container, so the furthest of the two (5rem out, about 2rem wide) can
-// never reach the page gutter, shift the layout or open a horizontal scroll.
+// Each one is absolute inside a `relative` span around a single word of the
+// title, so it tracks that word wherever the line breaks put it instead of
+// hanging off a measured offset that a re-wrap would strand. Being absolute,
+// neither can shift the heading, and the section clips its own overflow on
+// the x axis, so a cursor sitting past the last word can never open a
+// horizontal scroll on the page.
 function CollaboratorCursor({
   shape,
   tone,
@@ -67,7 +73,7 @@ function CollaboratorCursor({
     <span
       aria-hidden="true"
       className={cn(
-        "pointer-events-none absolute top-1/2 left-full hidden select-none motion-safe:animate-fade-in md:block",
+        "pointer-events-none absolute hidden select-none motion-safe:animate-fade-in md:block",
         at,
       )}
     >
@@ -90,25 +96,44 @@ function CollaboratorCursor({
   );
 }
 
-// The picture on each card: a screen of the product, pinned under the copy
-// and running off the card's right and bottom edges, so it reads as a view
-// onto something larger rather than a framed thumbnail. `role="img"` with the
-// label carries what a sighted reader gets; the file itself stays out of the
-// tree, so nothing is announced twice.
+// The intrinsic size of each shot, keyed by its file, since the three differ
+// by a few pixels. next/image reserves the exact box from these, so the card
+// is its final height from the first frame.
+const SHOT_SIZES: Record<string, { width: number; height: number }> = {
+  roster: { width: 800, height: 598 },
+  run: { width: 800, height: 608 },
+  thread: { width: 800, height: 598 },
+};
+
+// The picture on each card: a screen of the product under the copy, whole
+// from top to bottom and running off the card's right edge, so it reads as a
+// view onto something wider rather than a framed thumbnail. The image is in
+// flow and sized `h-auto`, so the card is exactly as tall as the picture it
+// holds and nothing is cut off the bottom; the card's own `overflow-hidden`
+// takes the right-hand bleed.
+//
+// The panel is the card's flexible row and packs to the bottom, so on the
+// three cards of one grid row — equal width, so equal picture height, and
+// equal height whatever the body copy runs to — the pictures line up with
+// each other and any slack from a shorter paragraph opens above them.
+//
+// `role="img"` with the label carries what a sighted reader gets; the file
+// itself stays out of the tree, so nothing is announced twice.
 function ShotPanel({ shot }: { shot: { id: string; label: string } }) {
+  const size = SHOT_SIZES[shot.id] ?? { width: 800, height: 598 };
   return (
     <div
       role="img"
       aria-label={shot.label}
-      className="relative mt-8 min-h-36 flex-1 overflow-hidden sm:min-h-40"
+      className="mt-8 flex flex-1 flex-col justify-end pb-5"
     >
       <Image
         src={`/img/team/${shot.id}.webp`}
         alt=""
-        width={800}
-        height={608}
+        width={size.width}
+        height={size.height}
         aria-hidden="true"
-        className="absolute top-0 left-5 w-[calc(100%+1rem)] max-w-none rounded-2xl shadow-card-soft"
+        className="ml-5 h-auto w-[calc(100%+1rem)] max-w-none rounded-2xl shadow-card-soft"
       />
     </div>
   );
@@ -117,33 +142,52 @@ function ShotPanel({ shot }: { shot: { id: string; label: string } }) {
 export function TeamCards() {
   const { id, heading, items } = TEAM_CARDS;
   const headingId = `${id}-heading`;
+  // The title, cut into its words so a cursor can stand on one of them. Both
+  // anchors are derived from the copy's own length — one around the middle of
+  // the line, one on the last word — so a copy edit moves the cursors with
+  // the words instead of stranding them, and content.ts stays words alone.
+  const words = heading.title.split(" ");
+  const anchors = new Map<number, (typeof CURSORS)[number]>([
+    [Math.max(Math.ceil(words.length / 2) - 1, 0), CURSORS[0]],
+    [words.length - 1, CURSORS[1]],
+  ]);
   return (
     <section
       id={id}
       aria-labelledby={headingId}
-      className="scroll-mt-16 px-4 py-20 sm:px-6 md:py-32"
+      className="scroll-mt-16 overflow-x-clip px-4 py-20 sm:px-6 md:py-32"
     >
       <div className="mx-auto max-w-6xl">
         {/* SectionHeading's own markup and classes, hand-rolled here for the
-            one thing the component cannot give: a box that hugs the title, so
-            the cursors can stand at the end of the line. `cut="display"`'s
-            classes are copied verbatim (`text-heading-display` on both lines,
-            hierarchy by colour), so this band and the format showcase share
-            one treatment; SectionHeading's default `cut` is untouched.
-            The cursors are absolute, so the heading's own text flow and
-            balance are as the component would set them. */}
+            one thing the component cannot give: a title broken into words, so
+            a cursor can stand on one of them. `cut="display"`'s classes are
+            copied verbatim (`text-heading-display` on both lines, hierarchy
+            by colour), so this band and the format showcase share one
+            treatment; SectionHeading's default `cut` is untouched. The
+            cursors are absolute, so the heading's own text flow and balance
+            are as the component would set them. */}
         <div className="flex max-w-4xl flex-col gap-1">
-          <div className="relative w-fit">
-            <h2
-              id={headingId}
-              className="text-heading-display text-balance text-foreground"
-            >
-              {heading.title}
-            </h2>
-            {CURSORS.map((cursor) => (
-              <CollaboratorCursor key={cursor.shape} {...cursor} />
-            ))}
-          </div>
+          <h2
+            id={headingId}
+            className="text-heading-display text-balance text-foreground"
+          >
+            {words.map((word, index) => {
+              const cursor = anchors.get(index);
+              // The space that follows a word travels with it, inside the
+              // same text node: a whitespace-only node of its own is dropped
+              // from the accessibility tree, and the heading — which names
+              // the whole section — would be announced as one long word.
+              const text = index < words.length - 1 ? `${word} ` : word;
+              return cursor ? (
+                <span key={`${index}-${word}`} className="relative">
+                  {text}
+                  <CollaboratorCursor {...cursor} />
+                </span>
+              ) : (
+                <Fragment key={`${index}-${word}`}>{text}</Fragment>
+              );
+            })}
+          </h2>
           <p className="text-heading-display text-pretty text-muted-foreground">
             {heading.sub}
           </p>
