@@ -52,3 +52,7 @@ next-env.d.ts
 
 # Implementation plans kept off GitHub (local only)
 /docs/plans/local/
+
+# Generated gradient PNGs from the smear-gradients experiment (regenerate with
+# `node experiments/smear-gradients/smear-gradient.mjs`)
+/experiments/smear-gradients/output/

@@ -1,0 +1,1300 @@
+<title>Smear Gradient Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<style>
+  :root {
+    --ground: #f6f3f0;
+    --panel: #ffffff;
+    --sunk: #efeae5;
+    --rule: #e0d8d1;
+    --ink: #1a1613;
+    --muted: #6d645c;
+    --faint: #968b82;
+    --accent: #c2451f;
+    --accent-ink: #ffffff;
+    --shadow: 0 1px 2px rgba(26, 22, 19, .06), 0 8px 24px -12px rgba(26, 22, 19, .18);
+
+    --sans: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    --step: 8px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #12100f;
+      --panel: #1c1917;
+      --sunk: #151312;
+      --rule: #2e2a27;
+      --ink: #ede8e3;
+      --muted: #9a918a;
+      --faint: #6f665f;
+      --accent: #e7542b;
+      --accent-ink: #1a1613;
+      --shadow: 0 1px 2px rgba(0, 0, 0, .5), 0 12px 32px -16px rgba(0, 0, 0, .8);
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #12100f;
+    --panel: #1c1917;
+    --sunk: #151312;
+    --rule: #2e2a27;
+    --ink: #ede8e3;
+    --muted: #9a918a;
+    --faint: #6f665f;
+    --accent: #e7542b;
+    --accent-ink: #1a1613;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .5), 0 12px 32px -16px rgba(0, 0, 0, .8);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding-inline: 16px;
+    padding-block: 40px 72px;
+  }
+
+  /* ---------- masthead ---------- */
+  .mast { display: flex; flex-direction: column; gap: 10px; margin-bottom: 28px; }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--faint);
+  }
+  h1 {
+    margin: 0;
+    font-size: clamp(30px, 5.2vw, 46px);
+    font-weight: 700;
+    letter-spacing: -.03em;
+    line-height: 1.04;
+    text-wrap: balance;
+  }
+  .standfirst {
+    margin: 0;
+    max-width: 62ch;
+    color: var(--muted);
+    font-size: 16px;
+  }
+  .formula {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--ink);
+    background: var(--sunk);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    padding: 10px 12px;
+    overflow-x: auto;
+    white-space: nowrap;
+    margin-top: 4px;
+  }
+  .formula b { color: var(--accent); font-weight: 600; }
+
+  /* ---------- studio ---------- */
+  .studio {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 312px;
+    gap: 20px;
+    align-items: start;
+    margin-bottom: 48px;
+  }
+  @media (max-width: 860px) { .studio { grid-template-columns: minmax(0, 1fr); } }
+
+  .stage {
+    position: relative;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #100e0d;
+    box-shadow: var(--shadow);
+    aspect-ratio: 4 / 3;
+    max-width: 100%;
+  }
+  #gl { display: block; width: 100%; height: 100%; }
+  .stage-readout {
+    position: absolute;
+    left: 10px;
+    bottom: 10px;
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .02em;
+  }
+  .stage-readout span {
+    background: rgba(12, 10, 9, .62);
+    color: #f4efea;
+    border: 1px solid rgba(255, 255, 255, .13);
+    border-radius: 4px;
+    padding: 2px 7px;
+    backdrop-filter: blur(8px);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .rail {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    background: var(--panel);
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    padding: 16px;
+  }
+  .rail h2 {
+    margin: 0;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--faint);
+    font-weight: 500;
+  }
+
+  /* Twelve presets will not fit a row of named buttons in a 312px rail, so each
+     one is a chip carrying its own ramp — the swatch is the label. */
+  .presets {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+  .chip {
+    display: grid;
+    gap: 3px;
+    padding: 3px;
+    border-radius: 6px;
+    border: 1px solid var(--rule);
+    background: var(--sunk);
+    cursor: pointer;
+    font: inherit;
+    text-align: left;
+  }
+  .chip .sw {
+    height: 20px;
+    border-radius: 3px;
+    border: 1px solid rgba(128, 118, 110, .28);
+  }
+  .chip .nm {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: .04em;
+    color: var(--muted);
+    padding-inline: 2px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .chip:hover { border-color: var(--faint); }
+  .chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .chip[aria-pressed="true"] {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent);
+  }
+  .chip[aria-pressed="true"] .nm { color: var(--ink); font-weight: 500; }
+  .preset-note {
+    font-size: 12.5px;
+    color: var(--muted);
+    margin: -6px 0 0;
+    min-height: 1.4em;
+  }
+
+  button {
+    font: inherit;
+    cursor: pointer;
+    border-radius: 6px;
+    border: 1px solid var(--rule);
+    background: var(--sunk);
+    color: var(--ink);
+    padding: 6px 11px;
+    font-size: 13px;
+    transition: border-color .12s, background .12s;
+  }
+  button:hover { border-color: var(--faint); }
+  button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  button[aria-pressed="true"] {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--accent-ink);
+    font-weight: 500;
+  }
+
+  .ramp-strip {
+    height: 26px;
+    border-radius: 5px;
+    border: 1px solid var(--rule);
+    background: var(--sunk);
+  }
+  .ramp-ends {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: var(--faint);
+    margin-top: -8px;
+  }
+
+  .ctrl { display: grid; gap: 4px; }
+  .ctrl-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8px;
+  }
+  .ctrl label { font-size: 13px; color: var(--muted); }
+  .ctrl output {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+  input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 18px;
+    background: transparent;
+    margin: 0;
+  }
+  input[type="range"]::-webkit-slider-runnable-track {
+    height: 3px;
+    border-radius: 2px;
+    background: var(--rule);
+  }
+  input[type="range"]::-moz-range-track {
+    height: 3px;
+    border-radius: 2px;
+    background: var(--rule);
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 13px;
+    height: 13px;
+    margin-top: -5px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: none;
+  }
+  input[type="range"]::-moz-range-thumb {
+    width: 13px;
+    height: 13px;
+    border: none;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+  input[type="range"]:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+
+  .rail-actions { display: flex; gap: 6px; }
+  .rail-actions button { flex: 1; }
+
+  /* ---------- sections ---------- */
+  section { margin-bottom: 44px; }
+  h3 {
+    margin: 0 0 4px;
+    font-size: 21px;
+    letter-spacing: -.02em;
+    font-weight: 600;
+  }
+  .lede { margin: 0 0 18px; color: var(--muted); max-width: 66ch; }
+  p { max-width: 68ch; }
+
+  .gallery {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+  }
+  @media (max-width: 760px) { .gallery { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 420px) { .gallery { grid-template-columns: minmax(0, 1fr); } }
+  .tile {
+    display: grid;
+    gap: 6px;
+    padding: 0;
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    background: var(--panel);
+    overflow: hidden;
+    cursor: pointer;
+    font: inherit;
+    text-align: left;
+  }
+  .tile canvas {
+    display: block;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    max-width: 100%;
+    background: var(--sunk);
+  }
+  .tile figcaption { padding: 0 10px 10px; display: grid; gap: 1px; }
+  .tile .t-name { font-size: 13px; font-weight: 600; }
+  .tile .t-note {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: var(--faint);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .tile:hover { border-color: var(--faint); }
+  .tile:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .findings { overflow-x: auto; }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    min-width: 640px;
+    font-size: 13.5px;
+  }
+  th, td {
+    text-align: right;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--rule);
+    font-variant-numeric: tabular-nums;
+  }
+  th:first-child, td:first-child { text-align: left; }
+  thead th {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--faint);
+    font-weight: 500;
+    border-bottom-color: var(--ink);
+  }
+  tbody td { font-family: var(--mono); color: var(--ink); }
+  tbody td:first-child { font-family: var(--sans); color: var(--muted); }
+  tbody tr:last-child td { border-bottom: none; }
+  .note { color: var(--faint); font-size: 12.5px; margin-top: 8px; }
+
+  .routes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+  @media (max-width: 800px) { .routes { grid-template-columns: minmax(0, 1fr); } }
+  .route {
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    padding: 16px;
+    background: var(--panel);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .route h4 { margin: 0; font-size: 15px; font-weight: 600; }
+  .route .tag {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .route p { margin: 0; font-size: 13.5px; color: var(--muted); }
+
+  pre {
+    margin: 0;
+    background: var(--sunk);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 14px;
+    overflow-x: auto;
+    font-family: var(--mono);
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--ink);
+  }
+  .code-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+  .code-head h4 { margin: 0; font-size: 14px; font-weight: 600; }
+
+  .svg-demo {
+    display: grid;
+    grid-template-columns: 300px minmax(0, 1fr);
+    gap: 18px;
+    align-items: start;
+  }
+  @media (max-width: 720px) { .svg-demo { grid-template-columns: minmax(0, 1fr); } }
+  #svgStage {
+    width: 100%;
+    max-width: 100%;
+    aspect-ratio: 4 / 3;
+    border-radius: 8px;
+    border: 1px solid var(--rule);
+    overflow: hidden;
+    background: var(--sunk);
+  }
+
+  .ledger { display: grid; gap: 2px; }
+  .ledger-row {
+    display: grid;
+    grid-template-columns: 148px minmax(0, 1fr);
+    gap: 14px;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--rule);
+  }
+  .ledger-row:last-child { border-bottom: none; }
+  .ledger-row dt {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--faint);
+    margin: 0;
+  }
+  .ledger-row dd { margin: 0; font-size: 14px; }
+  @media (max-width: 560px) { .ledger-row { grid-template-columns: minmax(0, 1fr); gap: 2px; } }
+
+  footer {
+    border-top: 1px solid var(--rule);
+    padding-top: 18px;
+    color: var(--faint);
+    font-size: 13px;
+  }
+  .fail {
+    padding: 14px;
+    border: 1px solid var(--accent);
+    border-radius: 8px;
+    color: var(--ink);
+    font-size: 14px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; animation: none !important; }
+  }
+</style>
+
+<div class="wrap">
+  <header class="mast">
+    <div class="eyebrow">Reverse-engineered from two reference frames</div>
+    <h1>Smear Gradient Studio</h1>
+    <p class="standfirst">
+      These are not CSS gradients. Each frame is a single scalar noise field, smeared along one
+      axis and read through one colour ramp — which is why every pixel in the image lands on one
+      curve through OKLab. Twelve ramps share one recipe, and every one of them carries grain.
+      Drag anything below; the canvas re-renders the real algorithm on the GPU.
+    </p>
+    <div class="formula">
+      rgb(x,&nbsp;y) = <b>ramp</b>( softclip( <b>blur</b><sub>θ</sub>( <b>fbm</b><sub>θ</sub>(x,&nbsp;y) ) + linear<sub>θ</sub>(x,&nbsp;y) ) ) + grain<sub>θ</sub>
+    </div>
+  </header>
+
+  <div class="studio">
+    <div class="stage">
+      <canvas id="gl"></canvas>
+      <div class="stage-readout">
+        <span id="roAngle">θ 25.0°</span>
+        <span id="roBlur">blur 20%</span>
+        <span id="roSeed">seed 3</span>
+        <span id="roTime">— ms</span>
+      </div>
+    </div>
+
+    <div class="rail">
+      <h2>Ramp · 12 variants</h2>
+      <div class="presets" id="presets"></div>
+      <p class="preset-note" id="presetNote"></p>
+
+      <h2>Selected · OKLab interpolated</h2>
+      <div class="ramp-strip" id="rampStrip"></div>
+      <div class="ramp-ends"><span id="rampLo">#000000</span><span id="rampHi">#ffffff</span></div>
+
+      <h2>Field</h2>
+      <div id="controls"></div>
+
+      <div class="rail-actions">
+        <button type="button" id="shuffle">New seed</button>
+        <button type="button" id="copy">Copy config</button>
+      </div>
+    </div>
+  </div>
+
+  <section>
+    <h3>The family</h3>
+    <p class="lede">
+      Ten generated ramps either side of the two measured ones. They hold the same
+      OKLCH recipe — one lightness range, one chroma envelope, 40–100° of hue travel —
+      and the same field settings, so hue is the only thing really changing. Click any
+      one to load it above.
+    </p>
+    <div class="gallery" id="gallery"></div>
+  </section>
+
+  <section>
+    <h3>What the reference frames measure</h3>
+    <p class="lede">
+      Both images were analysed the same way: a windowed FFT for the streak axis, banded
+      autocorrelation for the blur length, and principal components in sRGB to test whether the
+      colour really is one ramp. It is.
+    </p>
+    <div class="findings">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Measurement</th>
+            <th scope="col">Blue / pink</th>
+            <th scope="col">Orange</th>
+            <th scope="col">What it tells you</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Streak axis</td><td>16.5°</td><td>25.0°</td><td>Degrees below horizontal, descending right</td></tr>
+          <tr><td>Grain anisotropy</td><td>8.3×</td><td>13.9×</td><td>Fine noise is smeared, not painted</td></tr>
+          <tr><td>Anisotropy at 12&nbsp;px</td><td>3.6×</td><td>4.5×</td><td>Falls with scale → fixed-length blur</td></tr>
+          <tr><td>Blur length</td><td>≈180&nbsp;px</td><td>≈157&nbsp;px</td><td>On a 1024&nbsp;px frame: 15–18% of width</td></tr>
+          <tr><td>PC1 of colour</td><td>88.6%</td><td>89.8%</td><td>One ramp, not a mesh of many colours</td></tr>
+          <tr><td>Residual off the ramp</td><td>9.1/255</td><td>10.9/255</td><td>Confirms the 1-D curve</td></tr>
+          <tr><td>OKLCH lightness</td><td>0.281 → 0.927</td><td>0.268 → 0.798</td><td>The orange never reaches a true white</td></tr>
+          <tr><td>OKLCH chroma peak</td><td>0.145 @ t=0.31</td><td>0.194 @ t=0.82</td><td>Early peak reads as sky, late peak as heat</td></tr>
+          <tr><td>OKLCH hue span</td><td>108° (258→343)</td><td>42° (23→65)</td><td>Blue→lilac→blush vs. umber→amber</td></tr>
+          <tr><td>Grain amplitude</td><td>0.95/255</td><td>1.08/255</td><td>Below one 8-bit step — felt, not seen</td></tr>
+          <tr><td>Linear-gradient fit</td><td>33.7%</td><td>2.8%</td><td>The orange is almost pure noise</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">
+      A caution worth repeating: an FFT angle taken from bin indices is wrong on a non-square image.
+      On these 1024×768 frames that error reads +7°. Convert bins to cycles-per-pixel
+      (f<sub>x</sub>=Δx/W, f<sub>y</sub>=Δy/H) before taking the angle, or calibrate against
+      synthetic noise blurred at a known angle — which is how the +7° was caught.
+    </p>
+  </section>
+
+  <section>
+    <h3>The five pieces</h3>
+    <dl class="ledger">
+      <div class="ledger-row">
+        <dt>Anisotropic fBm</dt>
+        <dd>Value noise sampled on a domain rotated to θ and 5–8× coarser along the streak axis than across it. Stretch alone gives soft blobs.</dd>
+      </div>
+      <div class="ledger-row">
+        <dt>Directional blur</dt>
+        <dd>A box average along θ, 15–20% of the frame's long edge. Blur alone gives a flat smear; stretch and blur together give streaks.</dd>
+      </div>
+      <div class="ledger-row">
+        <dt>Linear bias</dt>
+        <dd>A plain ramp across the streak axis, mixed in. The blue frame leans on it (34%); the orange barely uses it (3%).</dd>
+      </div>
+      <div class="ledger-row">
+        <dt>The ramp</dt>
+        <dd>One curve through OKLab, sampled continuously. Interpolating in sRGB instead puts a grey sag through the middle of any hue-crossing ramp.</dd>
+      </div>
+      <div class="ledger-row">
+        <dt>Smeared grain</dt>
+        <dd>White noise box-averaged along the same θ, added in linear light at ~1/255, then triangular dither. This is what separates the look from vector art.</dd>
+      </div>
+    </dl>
+  </section>
+
+  <section>
+    <h3>Three ways to ship it</h3>
+    <p class="lede">Same formula, three budgets.</p>
+    <div class="routes">
+      <div class="route">
+        <div class="tag">Runtime · GPU</div>
+        <h4>Fragment shader</h4>
+        <p>
+          What this page runs. The blur is N taps along θ, which costs
+          octaves × taps noise evaluations per pixel. Render on parameter change,
+          not in an animation loop, and it is free at rest.
+        </p>
+      </div>
+      <div class="route">
+        <div class="tag">Build time · CPU</div>
+        <h4>Node → PNG</h4>
+        <p>
+          Shear, box-blur, unshear gets an exact line integral in one pass per row.
+          The shear must move <em>columns</em> vertically — a row shear cancels itself
+          and silently leaves you a horizontal blur.
+        </p>
+      </div>
+      <div class="route">
+        <div class="tag">Zero JS · CSS</div>
+        <h4>SVG filter</h4>
+        <p>
+          <code>feTurbulence</code> with an anisotropic <code>baseFrequency</code>, a one-axis
+          <code>feGaussianBlur</code>, and <code>feComponentTransfer</code> as the gradient map.
+          Coarser, but it is a background-image with no script at all.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h3>The zero-JS route, running</h3>
+    <p class="lede">
+      This box is an SVG filter chain — no canvas, no script driving it. It tracks the preset above.
+    </p>
+    <div class="svg-demo">
+      <div id="svgStage"></div>
+      <div>
+        <div class="code-head">
+          <h4>The filter for the current preset</h4>
+          <button type="button" id="copySvg">Copy</button>
+        </div>
+        <pre id="svgCode">—</pre>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    Angles are degrees below horizontal. Lightness and chroma are OKLCH.
+    Blur lengths are quoted against a 1024&nbsp;px frame.
+  </footer>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ---------------- OKLab ---------------- */
+  const srgbToLinear = (c) => (c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4));
+  const linearToSrgb = (c) => {
+    const v = Math.min(1, Math.max(0, c));
+    return v <= 0.0031308 ? v * 12.92 : 1.055 * Math.pow(v, 1 / 2.4) - 0.055;
+  };
+  function hexToRgb(hex) {
+    const h = hex.replace('#', '');
+    return [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16) / 255);
+  }
+  function rgbToOklab(rgb) {
+    const [r, g, b] = rgb.map(srgbToLinear);
+    const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b);
+    const m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b);
+    const s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b);
+    return [
+      0.2104542553 * l + 0.7936177850 * m - 0.0040720468 * s,
+      1.9779984951 * l - 2.4285922050 * m + 0.4505937099 * s,
+      0.0259040371 * l + 0.7827717662 * m - 0.8086757660 * s,
+    ];
+  }
+  function oklabToRgb(lab) {
+    const [L, A, B] = lab;
+    const l = Math.pow(L + 0.3963377774 * A + 0.2158037573 * B, 3);
+    const m = Math.pow(L - 0.1055613458 * A - 0.0638541728 * B, 3);
+    const s = Math.pow(L - 0.0894841775 * A - 1.2914855480 * B, 3);
+    return [
+      linearToSrgb(+4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s),
+      linearToSrgb(-1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s),
+      linearToSrgb(-0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s),
+    ];
+  }
+  const toHex = (rgb) =>
+    '#' + rgb.map((c) => Math.round(Math.min(1, Math.max(0, c)) * 255).toString(16).padStart(2, '0')).join('');
+
+  /** Resolve stops to an N-entry table, interpolated in OKLab. */
+  function buildRamp(stops, n) {
+    const labs = stops.map(([t, hex]) => ({ t, lab: rgbToOklab(hexToRgb(hex)) }));
+    const out = [];
+    for (let i = 0; i < n; i++) {
+      const t = i / (n - 1);
+      let k = 0;
+      while (k < labs.length - 2 && labs[k + 1].t < t) k++;
+      const p = labs[k], q = labs[k + 1];
+      const f = q.t === p.t ? 0 : (t - p.t) / (q.t - p.t);
+      out.push(oklabToRgb([
+        p.lab[0] + (q.lab[0] - p.lab[0]) * f,
+        p.lab[1] + (q.lab[1] - p.lab[1]) * f,
+        p.lab[2] + (q.lab[2] - p.lab[2]) * f,
+      ]));
+    }
+    return out;
+  }
+
+  /* ---------------- presets ---------------- */
+  const PRESETS = {
+    Dusk: {
+      angle: 16.5, stretch: 7, octaves: 4, gain: 0.52, softclip: 0.88, grain: 3.8, grainLen: 22, seed: 3,
+      scale: 0.449, blur: 0.22, linear: 0.34,
+      note: 'navy → azure → lilac → blush (measured)',
+      stops: [[0.00, '#022758'], [0.10, '#084382'], [0.20, '#0f61ab'], [0.30, '#1981cc'], [0.40, '#2d99de'], [0.50, '#4fa4e5'], [0.60, '#73aaea'], [0.69, '#97b0ee'], [0.80, '#babbf2'], [0.89, '#e1c3ee'], [1.00, '#fddcef']],
+    },
+    Ember: {
+      angle: 25, stretch: 8, octaves: 5, gain: 0.55, softclip: 0.71, grain: 3.8, grainLen: 22, seed: 3,
+      scale: 0.137, blur: 0.2, linear: 0.03,
+      note: 'umber → vermilion → amber (measured)',
+      stops: [[0.00, '#33201f'], [0.11, '#492924'], [0.20, '#5f312b'], [0.30, '#773228'], [0.40, '#8d3b30'], [0.50, '#a43e30'], [0.60, '#bc422e'], [0.69, '#d3472c'], [0.79, '#e7542b'], [0.89, '#f7702c'], [1.00, '#fea746']],
+    },
+    Moss: {
+      angle: 19, stretch: 7.5, octaves: 5, gain: 0.54, softclip: 0.66, grain: 3.8, grainLen: 22, seed: 21,
+      scale: 0.166, blur: 0.21, linear: 0.12,
+      note: 'pine → fern → chartreuse',
+      stops: [[0.00, '#142c23'], [0.10, '#1e3e2f'], [0.20, '#225237'], [0.30, '#286739'], [0.40, '#357b37'], [0.50, '#4c8f31'], [0.60, '#6aa130'], [0.70, '#8bb144'], [0.80, '#acc06b'], [0.90, '#c8d092'], [1.00, '#e2e2ac']],
+    },
+    Lagoon: {
+      angle: 22, stretch: 8, octaves: 5, gain: 0.54, softclip: 0.66, grain: 3.8, grainLen: 22, seed: 5,
+      scale: 0.146, blur: 0.21, linear: 0.12,
+      note: 'deep sea → teal → aqua',
+      stops: [[0.00, '#082931'], [0.10, '#013a44'], [0.20, '#004d56'], [0.30, '#006068'], [0.40, '#007479'], [0.50, '#008989'], [0.60, '#009e99'], [0.70, '#34b2a6'], [0.80, '#6fc2b3'], [0.90, '#95d2c2'], [1.00, '#b0e5d3']],
+    },
+    Iris: {
+      angle: 17, stretch: 7, octaves: 5, gain: 0.54, softclip: 0.66, grain: 3.8, grainLen: 22, seed: 33,
+      scale: 0.195, blur: 0.21, linear: 0.12,
+      note: 'violet ink → indigo → periwinkle',
+      stops: [[0.00, '#271e39'], [0.10, '#362d54'], [0.20, '#44397a'], [0.30, '#5046a5'], [0.40, '#5959c8'], [0.50, '#6171dd'], [0.60, '#6e8be8'], [0.70, '#81a4ed'], [0.80, '#99bbf1'], [0.90, '#b3d2f9'], [1.00, '#d1e7ff']],
+    },
+    Orchid: {
+      angle: 20, stretch: 7.5, octaves: 5, gain: 0.54, softclip: 0.66, grain: 3.8, grainLen: 22, seed: 9,
+      scale: 0.176, blur: 0.21, linear: 0.12,
+      note: 'aubergine → orchid → blush',
+      stops: [[0.00, '#2e2036'], [0.10, '#432d4b'], [0.20, '#5e3666'], [0.30, '#7d3d80'], [0.40, '#9d4497'], [0.50, '#b954a7'], [0.60, '#ce6cb1'], [0.70, '#dd89bb'], [0.80, '#e8a6c6'], [0.90, '#f3c3d5'], [1.00, '#ffdee8']],
+    },
+    Rosewood: {
+      angle: 24, stretch: 8.5, octaves: 5, gain: 0.54, softclip: 0.66, grain: 3.8, grainLen: 22, seed: 14,
+      scale: 0.142, blur: 0.21, linear: 0.12,
+      note: 'oxblood → rose → apricot',
+      stops: [[0.00, '#311d26'], [0.10, '#472935'], [0.20, '#623344'], [0.30, '#813b51'], [0.40, '#a2435c'], [0.50, '#c24c65'], [0.60, '#e0596e'], [0.70, '#fb6b77'], [0.80, '#ff908e'], [0.90, '#ffb3ab'], [1.00, '#ffd2ca']],
+    },
+    Bronze: {
+      angle: 23, stretch: 8, octaves: 5, gain: 0.54, softclip: 0.66, grain: 3.8, grainLen: 22, seed: 41,
+      scale: 0.156, blur: 0.21, linear: 0.12,
+      note: 'bitumen → bronze → straw',
+      stops: [[0.00, '#33211c'], [0.10, '#482f24'], [0.20, '#613c28'], [0.30, '#7b4826'], [0.40, '#95561e'], [0.50, '#ae670f'], [0.60, '#c47900'], [0.70, '#d78e03'], [0.80, '#e3a638'], [0.90, '#e8c174'], [1.00, '#f4d895']],
+    },
+    Cypress: {
+      angle: 18, stretch: 7, octaves: 5, gain: 0.54, softclip: 0.66, grain: 3.8, grainLen: 22, seed: 27,
+      scale: 0.186, blur: 0.21, linear: 0.12,
+      note: 'forest → olive → lime',
+      stops: [[0.00, '#192c1c'], [0.10, '#263d25'], [0.20, '#335028'], [0.30, '#426324'], [0.40, '#567616'], [0.50, '#6f8800'], [0.60, '#8a9900'], [0.70, '#a7aa00'], [0.80, '#c3ba3b'], [0.90, '#dacc75'], [1.00, '#f2de95']],
+    },
+    Glacier: {
+      angle: 16, stretch: 9, octaves: 5, gain: 0.54, softclip: 0.66, grain: 3.8, grainLen: 22, seed: 2,
+      scale: 0.205, blur: 0.21, linear: 0.12,
+      note: 'midnight → steel → ice',
+      stops: [[0.00, '#0b263d'], [0.10, '#093755'], [0.20, '#004a6d'], [0.30, '#005e81'], [0.40, '#007295'], [0.50, '#0087a9'], [0.60, '#189dba'], [0.70, '#59afc1'], [0.80, '#85c1ca'], [0.90, '#a9d2d6'], [1.00, '#c4e6e6']],
+    },
+    Nocturne: {
+      angle: 21, stretch: 7.5, octaves: 5, gain: 0.54, softclip: 0.66, grain: 3.8, grainLen: 22, seed: 18,
+      scale: 0.171, blur: 0.21, linear: 0.12,
+      note: 'blue-black → violet → mauve',
+      stops: [[0.00, '#17233f'], [0.10, '#273157'], [0.20, '#393e78'], [0.30, '#4f499d'], [0.40, '#6954bc'], [0.50, '#8464ce'], [0.60, '#9e79d7'], [0.70, '#b690da'], [0.80, '#caa8de'], [0.90, '#dec0e6'], [1.00, '#f3d7f4']],
+    },
+    Solstice: {
+      angle: 26, stretch: 8.5, octaves: 5, gain: 0.54, softclip: 0.66, grain: 3.8, grainLen: 22, seed: 6,
+      scale: 0.132, blur: 0.21, linear: 0.12,
+      note: 'plum-black → red → amber',
+      stops: [[0.00, '#2f1d2d'], [0.10, '#46283b'], [0.20, '#633148'], [0.30, '#833850'], [0.40, '#a53e51'], [0.50, '#c6484c'], [0.60, '#e25941'], [0.70, '#f77137'], [0.80, '#fc9450'], [0.90, '#fab679'], [1.00, '#ffd29b']],
+    },
+  };
+
+  const CONTROLS = [
+    { key: 'angle', label: 'Angle', min: -60, max: 60, step: 0.5, unit: '°' },
+    { key: 'blur', label: 'Blur length', min: 0, max: 0.6, step: 0.005, fmt: (v) => (v * 100).toFixed(1) + '% of edge' },
+    { key: 'stretch', label: 'Stretch', min: 1, max: 16, step: 0.25, fmt: (v) => v.toFixed(2) + '×' },
+    { key: 'scale', label: 'Band frequency', min: 0.04, max: 1.2, step: 0.01, fmt: (v) => v.toFixed(2) },
+    { key: 'octaves', label: 'Octaves', min: 1, max: 6, step: 1, fmt: (v) => String(v) },
+    { key: 'gain', label: 'Octave gain', min: 0.2, max: 0.8, step: 0.01, fmt: (v) => v.toFixed(2) },
+    { key: 'linear', label: 'Linear bias', min: 0, max: 1, step: 0.01, fmt: (v) => (v * 100).toFixed(0) + '%' },
+    { key: 'softclip', label: 'Contrast', min: 0.2, max: 2.0, step: 0.02, fmt: (v) => v.toFixed(2) },
+    { key: 'grain', label: 'Grain', min: 0, max: 6, step: 0.1, fmt: (v) => v.toFixed(1) + '/255' },
+    { key: 'grainLen', label: 'Grain smear', min: 1, max: 60, step: 1, fmt: (v) => v.toFixed(0) + ' px' },
+  ];
+
+  let P = structuredClone(PRESETS.Ember);
+  let activePreset = 'Ember';
+
+  /* ---------------- WebGL ---------------- */
+  const canvas = document.getElementById('gl');
+  const gl = canvas.getContext('webgl2', { antialias: false, preserveDrawingBuffer: true });
+
+  const VERT = `#version 300 es
+  in vec2 aPos;
+  void main() { gl_Position = vec4(aPos, 0.0, 1.0); }`;
+
+  const FRAG = `#version 300 es
+  precision highp float;
+  out vec4 outColor;
+
+  uniform vec2  uRes;
+  uniform float uAngle, uStretch, uScale, uGain, uBlur;
+  uniform float uLinear, uSoftclip, uGrain, uGrainLen, uSeed;
+  uniform int   uOctaves;
+  uniform sampler2D uRamp;
+
+  float hash(vec2 p) {
+    p = fract(p * vec2(123.34, 456.21) + uSeed);
+    p += dot(p, p + 45.32);
+    return fract(p.x * p.y);
+  }
+  float vnoise(vec2 p) {
+    vec2 i = floor(p), f = fract(p);
+    vec2 u = f * f * f * (f * (f * 6.0 - 15.0) + 10.0);
+    float a = hash(i), b = hash(i + vec2(1.0, 0.0));
+    float c = hash(i + vec2(0.0, 1.0)), d = hash(i + vec2(1.0, 1.0));
+    return mix(mix(a, b, u.x), mix(c, d, u.x), u.y) * 2.0 - 1.0;
+  }
+  // p is (along, across) in streak space. Along is divided by uStretch so the
+  // lattice is that many times coarser in the direction of the smear.
+  float fbm(vec2 p) {
+    float total = 0.0, amp = 1.0, norm = 0.0, f = 1.0;
+    for (int o = 0; o < 6; o++) {
+      if (o >= uOctaves) break;
+      total += amp * vnoise(vec2(p.x * f / uStretch, p.y * f) + float(o) * 19.7);
+      norm += amp; amp *= uGain; f *= 2.0;
+    }
+    return total / max(norm, 1e-6);
+  }
+
+  const int TAPS = 21;
+  const int GTAPS = 13;
+
+  void main() {
+    float a = radians(uAngle);
+    vec2 dir = vec2(cos(a), sin(a));
+    vec2 px = vec2(gl_FragCoord.x, uRes.y - gl_FragCoord.y);
+    float edge = max(uRes.x, uRes.y);
+
+    // rotate into streak space, normalised so band frequency is resolution-free
+    float u = dot(px, dir) / edge;
+    float v = dot(px, vec2(-dir.y, dir.x)) / edge;
+    vec2 q = vec2(u, v) / uScale;
+
+    // directional blur = box average of the field along the streak axis
+    float field = 0.0;
+    float span = uBlur / uScale;
+    for (int k = 0; k < TAPS; k++) {
+      float t = (float(k) / float(TAPS - 1) - 0.5) * span;
+      field += fbm(q + vec2(t, 0.0));
+    }
+    field /= float(TAPS);
+
+    // 3.2 puts the blurred fBm at roughly unit spread. Averaging TAPS samples
+    // of an already-smooth field shrinks its variance a long way, so without
+    // the gain the ramp only ever gets read through its middle and the darkest
+    // and lightest stops never appear.
+    float t = mix(field * 3.2, v * 5.4, uLinear);
+    t = 0.5 + 0.5 * tanh(t * uSoftclip * 1.6);
+
+    vec3 col = texture(uRamp, vec2(clamp(t, 0.0, 1.0), 0.5)).rgb;
+
+    // grain: white noise box-averaged along the same axis, added in linear light
+    if (uGrain > 0.0) {
+      float g = 0.0;
+      for (int k = 0; k < GTAPS; k++) {
+        vec2 o = dir * ((float(k) / float(GTAPS - 1) - 0.5) * uGrainLen);
+        g += hash(floor(px + o) + 7.31);
+      }
+      g = g / float(GTAPS) - 0.5;
+      vec3 lin = pow(col, vec3(2.2)) + g * (uGrain / 255.0) * 2.0;
+      col = pow(max(lin, 0.0), vec3(1.0 / 2.2));
+    }
+
+    // triangular dither, or the shallow ramps band at 8 bits
+    float d = (hash(px + 3.7) - hash(px + 91.3)) / 255.0;
+    outColor = vec4(clamp(col + d, 0.0, 1.0), 1.0);
+  }`;
+
+  function compile(type, src) {
+    const sh = gl.createShader(type);
+    gl.shaderSource(sh, src);
+    gl.compileShader(sh);
+    if (!gl.getShaderParameter(sh, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(sh));
+    return sh;
+  }
+
+  let prog, uni, rampTex;
+  function initGL() {
+    prog = gl.createProgram();
+    gl.attachShader(prog, compile(gl.VERTEX_SHADER, VERT));
+    gl.attachShader(prog, compile(gl.FRAGMENT_SHADER, FRAG));
+    gl.linkProgram(prog);
+    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog));
+    gl.useProgram(prog);
+
+    const buf = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+    const loc = gl.getAttribLocation(prog, 'aPos');
+    gl.enableVertexAttribArray(loc);
+    gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+
+    uni = {};
+    for (const n of ['uRes', 'uAngle', 'uStretch', 'uScale', 'uGain', 'uBlur',
+      'uLinear', 'uSoftclip', 'uGrain', 'uGrainLen', 'uSeed', 'uOctaves', 'uRamp']) {
+      uni[n] = gl.getUniformLocation(prog, n);
+    }
+
+    rampTex = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, rampTex);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.uniform1i(uni.uRamp, 0);
+  }
+
+  const RAMP_N = 512;
+  function uploadRamp() {
+    const table = buildRamp(P.stops, RAMP_N);
+    const data = new Uint8Array(RAMP_N * 4);
+    table.forEach((c, i) => {
+      data[i * 4] = Math.round(c[0] * 255);
+      data[i * 4 + 1] = Math.round(c[1] * 255);
+      data[i * 4 + 2] = Math.round(c[2] * 255);
+      data[i * 4 + 3] = 255;
+    });
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, rampTex);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, RAMP_N, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, data);
+    return table;
+  }
+
+  function resize() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const w = Math.min(Math.round(canvas.clientWidth * dpr), 1800);
+    const h = Math.round(w * 3 / 4);
+    if (canvas.width !== w || canvas.height !== h) {
+      canvas.width = w;
+      canvas.height = h;
+    }
+  }
+
+  const $ = (id) => document.getElementById(id);
+
+  function render() {
+    resize();
+    gl.viewport(0, 0, canvas.width, canvas.height);
+    gl.useProgram(prog);
+    gl.uniform2f(uni.uRes, canvas.width, canvas.height);
+    gl.uniform1f(uni.uAngle, P.angle);
+    gl.uniform1f(uni.uStretch, P.stretch);
+    gl.uniform1f(uni.uScale, P.scale);
+    gl.uniform1f(uni.uGain, P.gain);
+    gl.uniform1f(uni.uBlur, P.blur);
+    gl.uniform1f(uni.uLinear, P.linear);
+    gl.uniform1f(uni.uSoftclip, P.softclip);
+    gl.uniform1f(uni.uGrain, P.grain);
+    gl.uniform1f(uni.uGrainLen, P.grainLen);
+    gl.uniform1f(uni.uSeed, P.seed * 0.137);
+    gl.uniform1i(uni.uOctaves, P.octaves);
+
+    const t0 = performance.now();
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+    gl.finish();
+    const ms = performance.now() - t0;
+
+    $('roAngle').textContent = 'θ ' + P.angle.toFixed(1) + '°';
+    $('roBlur').textContent = 'blur ' + (P.blur * 100).toFixed(0) + '%';
+    $('roSeed').textContent = 'seed ' + P.seed;
+    $('roTime').textContent = ms.toFixed(0) + ' ms · ' + canvas.width + '×' + canvas.height;
+  }
+
+  /* ---------------- SVG filter route ---------------- */
+  // The filter works in the viewBox's own units, where the frame is 400 wide.
+  const SVG_W = 400;
+
+  function svgFilter(table) {
+    // feComponentTransfer maps the blurred noise through the ramp, one table per channel.
+    const N = 24;
+    const chan = (i) => {
+      const vals = [];
+      for (let k = 0; k < N; k++) {
+        vals.push(table[Math.round((k / (N - 1)) * (RAMP_N - 1))][i].toFixed(3));
+      }
+      return vals.join(' ');
+    };
+    // baseFrequency takes separate x and y, and that pair IS the stretch:
+    // across-streak features span scale * SVG_W, along-streak ones `stretch`
+    // times more, and frequency is the reciprocal.
+    const across = Math.max(P.scale, 0.04) * SVG_W;
+    const fy = (1 / across).toFixed(4);
+    const fx = (1 / (across * P.stretch)).toFixed(4);
+    const blurPx = Math.max(1, Math.round(P.blur * SVG_W * 0.45));
+    // fractalNoise lands near 0.5 and a one-axis blur pulls it tighter still, so
+    // without a contrast stretch the ramp only ever gets read through its middle.
+    const slope = (2.2 + P.softclip).toFixed(2);
+    const intercept = ((1 - Number(slope)) / 2).toFixed(3);
+    return {
+      r: chan(0), g: chan(1), b: chan(2),
+      fx, fy, blurPx, slope, intercept, angle: P.angle.toFixed(1),
+    };
+  }
+
+  function updateSvg(table) {
+    const f = svgFilter(table);
+    const id = 'smear';
+    const markup =
+`<svg viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice"
+     xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+  <filter id="${id}" x="-40%" y="-40%" width="180%" height="180%"
+          color-interpolation-filters="sRGB">
+    <!-- the x/y frequency pair is the anisotropic stretch -->
+    <feTurbulence type="fractalNoise" baseFrequency="${f.fx} ${f.fy}"
+                  numOctaves="${P.octaves}" seed="${P.seed}" result="n"/>
+    <!-- luminance into R, G AND B: the gradient map below reads colour
+         channels, so folding it into alpha instead leaves a flat fill -->
+    <feColorMatrix in="n" type="matrix" result="mono"
+      values="0.34 0.34 0.32 0 0
+              0.34 0.34 0.32 0 0
+              0.34 0.34 0.32 0 0
+              0    0    0    0 1"/>
+    <!-- one axis zero = directional blur -->
+    <feGaussianBlur in="mono" stdDeviation="${f.blurPx} 0" result="smear"/>
+    <feComponentTransfer in="smear" result="punch">
+      <feFuncR type="linear" slope="${f.slope}" intercept="${f.intercept}"/>
+      <feFuncG type="linear" slope="${f.slope}" intercept="${f.intercept}"/>
+      <feFuncB type="linear" slope="${f.slope}" intercept="${f.intercept}"/>
+    </feComponentTransfer>
+    <!-- the gradient map -->
+    <feComponentTransfer in="punch">
+      <feFuncR type="table" tableValues="${f.r}"/>
+      <feFuncG type="table" tableValues="${f.g}"/>
+      <feFuncB type="table" tableValues="${f.b}"/>
+      <feFuncA type="table" tableValues="1 1"/>
+    </feComponentTransfer>
+  </filter>
+  <g transform="rotate(${f.angle} 200 150)">
+    <rect x="-220" y="-190" width="840" height="680" filter="url(#${id})"/>
+  </g>
+</svg>`;
+    $('svgStage').innerHTML = markup;
+    $('svgCode').textContent = markup.replace(
+      /tableValues="([^"]{40,})"/g,
+      (m, v) => 'tableValues="' + v.split(' ').slice(0, 6).join(' ') + ' …"'
+    );
+    $('svgCode').dataset.full = markup;
+  }
+
+  /* ---------------- UI ---------------- */
+  function buildControls() {
+    const host = $('controls');
+    host.textContent = '';
+    for (const c of CONTROLS) {
+      const wrap = document.createElement('div');
+      wrap.className = 'ctrl';
+      const top = document.createElement('div');
+      top.className = 'ctrl-top';
+      const label = document.createElement('label');
+      label.setAttribute('for', 'c-' + c.key);
+      label.textContent = c.label;
+      const out = document.createElement('output');
+      out.id = 'o-' + c.key;
+      top.append(label, out);
+      const input = document.createElement('input');
+      input.type = 'range';
+      input.id = 'c-' + c.key;
+      input.min = c.min; input.max = c.max; input.step = c.step;
+      input.addEventListener('input', () => {
+        P[c.key] = parseFloat(input.value);
+        setPressed(null);
+        syncOutputs();
+        draw();
+      });
+      wrap.append(top, input);
+      host.append(wrap);
+    }
+  }
+
+  function syncOutputs() {
+    for (const c of CONTROLS) {
+      const input = $('c-' + c.key);
+      const out = $('o-' + c.key);
+      if (input) input.value = P[c.key];
+      if (out) out.textContent = c.fmt ? c.fmt(P[c.key]) : P[c.key].toFixed(1) + (c.unit || '');
+    }
+  }
+
+  function setPressed(name) {
+    activePreset = name;
+    for (const b of $('presets').children) {
+      b.setAttribute('aria-pressed', String(b.dataset.name === name));
+    }
+    $('presetNote').textContent = name ? (PRESETS[name].note || '') : 'Edited — no longer a preset.';
+  }
+
+  /** A CSS gradient string for a ramp, for the chips and the strip. */
+  function cssRamp(table, every) {
+    return 'linear-gradient(90deg, ' + table
+      .filter((_, i) => i % every === 0)
+      .map((c, i, arr) => toHex(c) + ' ' + ((i / (arr.length - 1)) * 100).toFixed(1) + '%')
+      .join(', ') + ')';
+  }
+
+  function buildPresets() {
+    const host = $('presets');
+    for (const name of Object.keys(PRESETS)) {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'chip';
+      b.dataset.name = name;
+      b.title = name + ' — ' + (PRESETS[name].note || '');
+      b.setAttribute('aria-label', b.title);
+      b.setAttribute('aria-pressed', String(name === activePreset));
+
+      const sw = document.createElement('span');
+      sw.className = 'sw';
+      sw.style.background = cssRamp(buildRamp(PRESETS[name].stops, 64), 4);
+      const nm = document.createElement('span');
+      nm.className = 'nm';
+      nm.textContent = name;
+      b.append(sw, nm);
+
+      b.addEventListener('click', () => {
+        P = structuredClone(PRESETS[name]);
+        setPressed(name);
+        syncOutputs();
+        draw();
+      });
+      host.append(b);
+    }
+  }
+
+  function draw() {
+    const table = uploadRamp();
+    render();
+    $('rampStrip').style.background = cssRamp(table, 8);
+    $('rampLo').textContent = toHex(table[0]);
+    $('rampHi').textContent = toHex(table[table.length - 1]);
+    updateSvg(table);
+  }
+
+  /**
+   * Render every preset once into its own 2-D canvas, reusing the single GL
+   * context: resize it, draw, blit, move on. Twelve live contexts would hit the
+   * browser's WebGL limit, and these never need to animate.
+   */
+  function buildGallery() {
+    const host = $('gallery');
+    const W = 384, H = 288;
+    const saveW = canvas.width, saveH = canvas.height, saveP = P;
+
+    canvas.width = W;
+    canvas.height = H;
+
+    for (const [name, preset] of Object.entries(PRESETS)) {
+      const fig = document.createElement('figure');
+      fig.className = 'tile';
+      fig.tabIndex = 0;
+      fig.setAttribute('role', 'button');
+      fig.setAttribute('aria-label', 'Load the ' + name + ' preset');
+
+      const c = document.createElement('canvas');
+      c.width = W;
+      c.height = H;
+
+      P = preset;
+      gl.viewport(0, 0, W, H);
+      uploadRamp();
+      gl.useProgram(prog);
+      gl.uniform2f(uni.uRes, W, H);
+      gl.uniform1f(uni.uAngle, P.angle);
+      gl.uniform1f(uni.uStretch, P.stretch);
+      gl.uniform1f(uni.uScale, P.scale);
+      gl.uniform1f(uni.uGain, P.gain);
+      gl.uniform1f(uni.uBlur, P.blur);
+      gl.uniform1f(uni.uLinear, P.linear);
+      gl.uniform1f(uni.uSoftclip, P.softclip);
+      gl.uniform1f(uni.uGrain, P.grain);
+      gl.uniform1f(uni.uGrainLen, P.grainLen);
+      gl.uniform1f(uni.uSeed, P.seed * 0.137);
+      gl.uniform1i(uni.uOctaves, P.octaves);
+      gl.drawArrays(gl.TRIANGLES, 0, 3);
+      c.getContext('2d').drawImage(canvas, 0, 0);
+
+      const cap = document.createElement('figcaption');
+      const nm = document.createElement('span');
+      nm.className = 't-name';
+      nm.textContent = name;
+      const nt = document.createElement('span');
+      nt.className = 't-note';
+      nt.textContent = preset.note || '';
+      cap.append(nm, nt);
+      fig.append(c, cap);
+
+      const load = () => {
+        P = structuredClone(PRESETS[name]);
+        setPressed(name);
+        syncOutputs();
+        draw();
+        document.querySelector('.stage').scrollIntoView({
+          behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+          block: 'center',
+        });
+      };
+      fig.addEventListener('click', load);
+      fig.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); load(); }
+      });
+      host.append(fig);
+    }
+
+    P = saveP;
+    canvas.width = saveW;
+    canvas.height = saveH;
+  }
+
+  async function copyText(text, btn) {
+    const done = (ok) => {
+      const was = btn.textContent;
+      btn.textContent = ok ? 'Copied' : 'Select it manually';
+      setTimeout(() => { btn.textContent = was; }, 1600);
+    };
+    try {
+      await navigator.clipboard.writeText(text);
+      done(true);
+    } catch (e) {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.append(ta);
+      ta.select();
+      let ok = false;
+      try { ok = document.execCommand('copy'); } catch (e2) { ok = false; }
+      ta.remove();
+      done(ok);
+    }
+  }
+
+  function configText() {
+    const keys = ['angle', 'stretch', 'scale', 'octaves', 'gain', 'blur',
+      'linear', 'softclip', 'grain', 'grainLen', 'seed'];
+    const body = keys.map((k) => '  ' + k + ': ' + P[k]).join(',\n');
+    const stops = P.stops.map(([t, h]) => '    [' + t.toFixed(2) + ", '" + h + "']").join(',\n');
+    const head = P.note ? '// ' + (activePreset || 'edited') + ' — ' + P.note + '\n' : '';
+    return head + 'const preset = {\n' + body + ',\n  stops: [\n' + stops + ',\n  ],\n};\n';
+  }
+
+  /* ---------------- boot ---------------- */
+  try {
+    if (!gl) throw new Error('This browser did not give us a WebGL2 context.');
+    initGL();
+    buildPresets();
+    buildControls();
+    syncOutputs();
+    buildGallery();
+    setPressed(activePreset);
+    draw();
+
+    $('shuffle').addEventListener('click', () => {
+      P.seed = Math.floor(Math.random() * 9999) + 1;
+      setPressed(null);
+      draw();
+    });
+    $('copy').addEventListener('click', (e) => copyText(configText(), e.currentTarget));
+    $('copySvg').addEventListener('click', (e) =>
+      copyText($('svgCode').dataset.full || $('svgCode').textContent, e.currentTarget));
+
+    let raf = 0;
+    window.addEventListener('resize', () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(render);
+    });
+  } catch (err) {
+    const stage = document.querySelector('.stage');
+    stage.style.aspectRatio = 'auto';
+    stage.innerHTML = '';
+    const p = document.createElement('div');
+    p.className = 'fail';
+    p.textContent = 'The live canvas needs WebGL2: ' + err.message +
+      ' Everything measured below still applies — the Node and SVG routes do not need a GPU.';
+    stage.append(p);
+  }
+})();
+</script>
