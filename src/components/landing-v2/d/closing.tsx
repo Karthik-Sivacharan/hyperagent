@@ -24,29 +24,73 @@ import { CLOSING_D, HERO_D, LINKS } from "./content";
 // here is hard-coded. `bg-background` under the field is the dark mapping's
 // own near-black, which is what shows for the moment before the image paints.
 //
-// NOTHING SITS BETWEEN THE FIELD AND THE WORDS. There was a flat scrim over it
-// for a while, dark enough to carry light type anywhere on the card, and it
-// cost the picture exactly what it was there to protect: `dusk` at 45% under
-// black is a duller `dusk`. The card now shows the file at full strength.
+// THE BOTTOM HALF OF THE FIELD CARRIES NOTHING. There was a flat scrim over
+// the whole card for a while, dark enough to hold light type anywhere on it,
+// and it cost the picture exactly what it was there to protect: `dusk` at 45%
+// under black is a duller `dusk`. What is over the card now is graded, and it
+// is gone by the bottom edge (see THE VEIL below).
 //
-// What makes that safe is WHERE the words are rather than what is over them.
-// Every one of these twelve runs dark at the top to pale at the bottom, and
-// this one has a bright cyan streak through its middle. Measured against the
-// real pixels, light type sitting centred in the card reads 3.9:1 on that
-// streak, under the 4.5 floor, while the same type held up in the navy reads
-// 8.4:1. So the copy is packed into the top of the panel and the bottom half
-// is left to be colour with nothing on it. The button is the one thing that
-// crosses into the streak, and it carries its own near-white fill.
+// What makes that safe is WHERE the words are rather than what is over them,
+// and the card is sized so that "centred" and "where the ground is quiet" are
+// the same place. Every one of these twelve files runs dark at the top to pale
+// at the bottom, and this one has a bright cyan streak through its middle.
+// `cover` on a wide box shows a horizontal slice of a 4:3 file anchored at the
+// top, so how far down the picture the slice reaches is decided by how TALL
+// the panel is. That makes the padding a legibility control, not a taste one.
 //
-// The phone is the exception, and it is scoped to the phone: a panel that
-// narrow is nearly square, so the crop reaches the pale half of the file no
-// matter where the copy sits, and a scrim under `md` is the only thing that
-// answers it. Above `md` there is nothing over the picture at all.
+// Measured on the rendered pixels at 1456, copy centred in the panel:
 //
-// This is the shape the band had when it was a paper card with colour rising
-// into it, and it is the same reasoning: words where the ground is quiet. What
-// changed is that the quiet part is now the top of a photograph instead of the
-// top of a sheet of paper.
+//   panel 319px (64px of air)   heading 9.60   line 6.99
+//   panel 351px (80)            heading 9.06   line 5.22
+//   panel 367px (88)            heading 8.95   line 4.51   at the floor
+//   panel 383px (96)            heading 8.73   line 3.90   FAILS
+//   panel 447px (128)           heading 6.15   line 2.62   FAILS
+//
+// So 80px, and the card is 351px tall. Past about 88 the second line is off
+// the navy and onto the streak and no amount of centring saves it. The two
+// files this band could otherwise have used were measured at the taller sizes
+// too, in case one of them was dark through its middle: `cypress` reads 2.20
+// and `solstice` 2.21 on that line at 447px, both worse than `dusk`. There is
+// no gradient in the set that carries centred type on a card that tall.
+//
+// The button is the one thing that reaches past the navy, and it carries its
+// own near-white fill.
+//
+// THE VEIL IS SIZED BY THE CROP, AND THE CROP IS SIZED BY THE WIDTH. How far
+// down the file `cover` reaches is set by the panel's ASPECT, and the panel is
+// a fixed height inside a width that stops growing at 1152. At 1200 and up it
+// shows the top 41% of the picture; at 1024, 49%; at 768, 65%; and on a phone
+// the box is taller than it is wide, so `cover` scales by height and shows all
+// of it. Centred copy therefore lands on a different part of the picture at
+// every width. Measured on the rendered pixels with nothing over it:
+//
+//   1200+  heading 9.06   line 5.02   clears the floor on its own
+//   1024   heading 7.70   line 3.01   FAILS
+//    768   heading 3.86   line 1.86   FAILS
+//    390   heading 3.60   line 2.80   FAILS, and failed before this change too
+//
+// That last row is worth saying out loud: the phone carried a flat 40% veil
+// and was under the floor with it, on the live page, with the copy at the top
+// of the card. This fixes it rather than preserving it.
+//
+// So there are three bands, and the veil is a GRADIENT in each: full strength
+// past the copy, then out to nothing at the bottom edge, where the picture is
+// at its palest and has nothing on it to protect.
+//
+//   1200 and up   none                heading 9.06   line 5.02
+//   md to 1199    55%, out from 60%   heading 8.30   line 5.41  (at 768, the
+//                                     worst of the band; 12.05 / 9.52 at 1199)
+//   under md      70%, out from 70%   heading 6.71   line 6.22  (at 390)
+//
+// 1200 is not a round number chosen for looks: it is the width at which the
+// page's `max-w-6xl` stops the panel growing, so it is the first width where
+// the crop stops deepening and the picture can be shown as drawn.
+//
+// This is not the flat scrim the band used to carry and that an earlier pass
+// took off. That one was 45% over the WHOLE card and the objection to it
+// stands: it dulled the half of the picture the band exists to show. These
+// leave that half alone, and above 1200 there is nothing over the card at
+// all.
 const FIELD = "/img/gradients/dusk.webp";
 
 export function ClosingD() {
@@ -80,36 +124,28 @@ export function ClosingD() {
             // the least help over it.
             className="object-cover object-top"
           />
-          {/* A veil on the PHONE only. On a wide panel the copy sits in the
-              navy and needs nothing over it, which is why there is no overlay
-              from `md` up. A phone panel is nearly square, so `cover` reaches
-              far enough down the 4:3 file that the pale half lands behind the
-              second line whatever the padding does — measured, that line is
-              unreadable there. Rather than darken the card everywhere for a
-              case that only happens under 768px, the scrim is scoped to it.
+          {/* The graded veil; the measurements are in the note above. Full
+              strength past the copy, then out to nothing at the bottom edge,
+              so the palest part of the file is carrying no scrim at all.
+              Heavier on a phone, and holding its strength further down, since
+              the crop there shows the whole picture rather than its top third
+              and the copy sits lower in the file because of it. Gone entirely
+              from 1200, where the panel stops growing and the card carries
+              centred type on the bare field.
               `bg-background` is the dark mapping's own near-black, so this is
               still not a colour invented in this file. */}
           <div
             aria-hidden="true"
-            className="absolute inset-0 bg-background/40 md:hidden"
+            className="absolute inset-0 bg-linear-to-b from-background/70 via-background/70 via-70% to-transparent md:from-background/55 md:via-background/55 md:via-60% min-[1200px]:hidden"
           />
 
-          {/* Deliberately lopsided: 48 over the heading against 96 under the
-              button, 64 / 192 from `md`. That is not a centred box that has
-              drifted, it is the legibility argument above — the copy is held in
-              the navy at the top of the frame and the bright half of the
-              picture runs underneath it with nothing on it. The ladder inside
-              is the page's: 24px from the heading to the line under it, 40
-              from there to the button.
-
-              The phone takes LESS bottom air, not more, and that is the same
-              argument again rather than an exception to it. `cover` shows a
-              horizontal slice of a 4:3 file, and how much of the file that
-              slice spans depends on the box's aspect: the tall phone panel
-              reaches far enough down the picture to put its pale half behind
-              the copy, while a shorter one stays in the navy. So the panel is
-              cut down there instead of being darkened. */}
-          <div className="relative flex flex-col items-center px-6 pt-12 pb-24 text-center md:px-10 md:pt-16 md:pb-48">
+          {/* Centred, and the air is what sets the card's height: there is no
+              height on the panel, so 80px over and under the copy IS a 351px
+              card. See the measurements above for why it is 80 and not 128 —
+              the number is doing legibility work, not spacing work. The ladder
+              inside is the page's: 24px from the heading to the line under it,
+              40 from there to the button. */}
+          <div className="relative flex flex-col items-center px-6 py-16 text-center md:px-10 md:py-20">
             <h2
               id="closing-heading"
               className="max-w-3xl text-heading-display text-balance text-foreground"
