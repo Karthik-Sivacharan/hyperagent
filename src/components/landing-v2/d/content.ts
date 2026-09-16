@@ -45,11 +45,30 @@ export const NAV_D: LandingLink[] = [
   { label: "Your team", href: `#${TEAM_CARDS.id}` },
 ];
 
+// D's footer. The two groups are the page's own sections and the two account
+// actions; `line` and `top` are what the footer needs to end the page rather
+// than merely stop.
+//
+// `line` is the promise in one sentence, which is the one thing the footer can
+// say that the bands above have not: every section names a part of the job,
+// and nobody has stated the whole of it since the hero. It is the sign-off, so
+// it is the plain version — what the team does and where the work lands — and
+// it deliberately does not repeat the refrain the closing band ends on two
+// hundred pixels above it.
+//
+// The copyright line is NOT here. It is `©`, a year and the wordmark, and the
+// year is read from the clock where the footer is built: a year written into
+// this file is a line that quietly goes wrong every January.
 export const FOOTER_D = {
   groups: [
     { title: "Product", links: NAV_D },
     { title: "Account", links: [LINKS.logIn, LINKS.start] },
   ] satisfies { title: string; links: LandingLink[] }[],
+  line: "A team of agents that does your weekly work and reports back where you already talk.",
+  // The page's own `<main>` landmark, which the skip link at the top already
+  // names. It is the top of the content rather than the top of the document,
+  // which is what a reader at the end of a long page is asking for.
+  top: { label: "Back to top", href: "#main" } satisfies LandingLink,
 };
 
 // D's closing band. A's fine print sells the plan ladder; D never names a

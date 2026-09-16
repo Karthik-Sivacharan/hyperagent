@@ -28,11 +28,16 @@ const SECTION_IDS = [
   a.BRIEF_CARDS.id,
   a.TEAM_CARDS.id,
 ];
+// `main` is the page's own landmark rather than one of its bands: the skip
+// link at the top of the document names it, and so does the footer's way
+// back up. It is on the page, so a link to it is not a dead anchor.
+const PAGE_IDS = [...SECTION_IDS, "main"];
 const ROUTES = ["/landing/d", "/signup", "/threads/new"];
 const ALL_LINKS = [
   ...Object.values(LINKS),
   ...NAV_D,
   ...FOOTER_D.groups.flatMap((group) => group.links),
+  FOOTER_D.top,
 ];
 
 describe("landing v2 variant D copy", () => {
@@ -48,9 +53,26 @@ describe("landing v2 variant D copy", () => {
       A11Y.window,
       ...NAV_D.map((link) => link.label),
       ...FOOTER_D.groups.map((group) => group.title),
+      FOOTER_D.top.label,
     ];
     expect(added.filter((s) => /[—·!]/.test(s))).toEqual([]);
     expect(added.filter((s) => s.split(/\s+/).length > 6)).toEqual([]);
+  });
+
+  // The footer's sign-off is a sentence, not a label, so it answers to the
+  // sentence rules instead: A's banned words, one idea under 25 words, and no
+  // price, which is the line D holds everywhere else on the page.
+  it("signs off in one plain sentence with no price in it", () => {
+    expect(FOOTER_D.line).not.toMatch(/[—·!]/);
+    expect(FOOTER_D.line).not.toMatch(
+      /\$|\b(price|prices|plan|plans|cost|costs|credit|month|free)\b/i,
+    );
+    expect(
+      FOOTER_D.line.split(/\s+/).filter(Boolean).length,
+    ).toBeLessThanOrEqual(24);
+    expect(FOOTER_D.line).not.toMatch(
+      /\b(leverage|seamless|seamlessly|ai-powered|powerful|ship|shipping|supercharge|unlock|revolutioni[sz]e|effortless|effortlessly|fleet|bots?|chatbots?|sandbox|receipts?|tokens?|llm|models?|prompts?|workflows?|orchestrat\w*|autonomous|mcp|rubrics?|judge|threads?|triggers?|invocations?|sessions?)\b/i,
+    );
   });
 
   it("keeps the hero to the owner's title and a lede with no price", () => {
@@ -74,7 +96,7 @@ describe("landing v2 variant D copy", () => {
   it("links only to a section on the page or a route", () => {
     const broken = ALL_LINKS.map((l) => l.href).filter((href) =>
       href.startsWith("#")
-        ? !SECTION_IDS.includes(href.slice(1))
+        ? !PAGE_IDS.includes(href.slice(1))
         : !ROUTES.includes(href),
     );
     expect(broken).toEqual([]);
