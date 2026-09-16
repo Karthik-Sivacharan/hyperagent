@@ -10,14 +10,15 @@ import {
   NAV_D,
   ROSTER_ID,
 } from "./content";
+import { TEAM_VIEWS_ID } from "./team-views-content";
 
 // Variant D adds only a handful of strings to variant A's copy. They follow
 // A's rules, and every link lands on a section of the page or a route.
 //
 // D is the short page: the hero, the roster, the formats, one job from brief
-// to delivery, the team cards and the closing. These are the only ids an
-// in-page link on D may name, which is what keeps the nav and the footer off
-// A's sections.
+// to delivery, the team cards, the four views and the closing. These are the
+// only ids an in-page link on D may name, which is what keeps the nav and the
+// footer off A's sections.
 //
 // The roster's id comes from `./content` and not from `./roster-content`, for
 // the same reason the nav reads it there: that module imports this one, and
@@ -27,6 +28,7 @@ const SECTION_IDS = [
   a.FORMATS.id,
   a.BRIEF_CARDS.id,
   a.TEAM_CARDS.id,
+  TEAM_VIEWS_ID,
 ];
 // `main` is the page's own landmark rather than one of its bands: the skip
 // link at the top of the document names it, and so does the footer's way

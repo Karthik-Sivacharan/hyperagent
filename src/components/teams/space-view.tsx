@@ -63,6 +63,12 @@ import {
 //
 // SEARCH dims the agents the query does not find (the org chart's matcher),
 // and an sr-only live line counts them.
+//
+// `walkWhenIdle` is the one prop, and it is true on /teams because there the
+// office is the page: arrow keys with nothing focused can only mean walk. A
+// page that shows the office as one band among several passes false, so the
+// window-level listener that would otherwise take the arrow keys off the
+// document never goes on (scene/use-walk-keys.ts).
 
 function placementsFor(cast: Cast): Record<ActorId, Placement> {
   return Object.fromEntries(cast.members.map((member) => [member.id, SEED[member.id]]));
@@ -70,7 +76,7 @@ function placementsFor(cast: Cast): Record<ActorId, Placement> {
 
 const NO_COLLABORATORS: ReadonlySet<ActorId> = new Set();
 
-export function SpaceView() {
+export function SpaceView({ walkWhenIdle = true }: { walkWhenIdle?: boolean }) {
   const { team, agents, allRuns, runs, query, openAgent, agentById, memberById } = useFleet();
   const cast = React.useMemo(() => buildCast(team, agents, allRuns, SEED), [team, agents, allRuns]);
   const [store] = React.useState(() => new SceneStore(placementsFor(cast), YOU, cast.restFor));
@@ -144,7 +150,7 @@ export function SpaceView() {
   // which keeps clear of them, looks again.
   React.useEffect(() => store.nudge(), [store, meant, groups, askId]);
 
-  const keys = useWalkKeys(store, mapRef, dismiss);
+  const keys = useWalkKeys(store, mapRef, dismiss, walkWhenIdle);
 
   const onHover = React.useCallback((id: ActorId | null) => (id ? pointerEnter(id) : pointerLeave()), [pointerEnter, pointerLeave]);
   const onActivate = React.useCallback(

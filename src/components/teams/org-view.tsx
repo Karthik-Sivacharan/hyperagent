@@ -76,17 +76,20 @@ const NODE_WRAPPER = "transition-opacity duration-(--duration-normal) ease-out";
 const EDGE_WRAPPER = "transition-opacity duration-(--duration-normal)";
 const DIMMED = "opacity-40";
 
-export function OrgView() {
+// `controls` is the one prop. The zoom pad belongs to a chart the reader can
+// pan; a page that shows the chart as a picture turns it off rather than draw
+// three buttons that do nothing.
+export function OrgView({ controls = true }: { controls?: boolean }) {
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <FlowProvider>
-        <OrgCanvas />
+        <OrgCanvas controls={controls} />
       </FlowProvider>
     </div>
   );
 }
 
-function OrgCanvas() {
+function OrgCanvas({ controls }: { controls: boolean }) {
   const { team, agents, allRuns, runs, query, openAgent } = useFleet();
 
   const initialNodes = React.useMemo(() => buildOrgNodes(team, agents, allRuns), [team, agents, allRuns]);
@@ -178,7 +181,9 @@ function OrgCanvas() {
           >
             {/* In the page's 24px gutter, so its right edge lines up with the
                 view switch above it. */}
-            <FlowControls position="top-right" orientation="horizontal" fitViewOptions={ORG_FIT} className="mr-6" />
+            {controls ? (
+              <FlowControls position="top-right" orientation="horizontal" fitViewOptions={ORG_FIT} className="mr-6" />
+            ) : null}
           </FlowCanvas>
         </NodeTipProvider>
       </OrgEntranceProvider>

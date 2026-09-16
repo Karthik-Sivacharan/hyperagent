@@ -9,6 +9,7 @@ import {
   TEAM_CARDS,
   type LandingLink,
 } from "../a/content";
+import { TEAM_VIEWS_ID } from "./team-views-content";
 
 export const LINKS = {
   ...A_LINKS,
@@ -21,7 +22,7 @@ export const LINKS = {
 export const ROSTER_ID = "agents";
 
 // D is a shorter page than A: the hero, the roster, the formats, the three
-// stages of one job, the team cards and the closing band. A's NAV and FOOTER
+// stages of one job, the team cards, the four views and the closing band. A's NAV and FOOTER
 // point at the sections D does not carry, so D keeps its own, in the order the
 // page reads.
 //
@@ -35,14 +36,18 @@ export const ROSTER_ID = "agents";
 // already go where it goes; a nav link to it would be a third copy of the same
 // destination dressed as navigation.
 //
-// Four is also the ceiling the header can carry. The row is the wordmark, the
+// Five is the ceiling the header can carry. The row is the wordmark, the
 // links and two actions on one 64px line, and it only draws the links from
-// `lg`; a fifth would start crowding the actions at 1024.
+// `lg`; measured at 1024 the five links and the two actions leave about
+// 200px of slack, and a sixth would start eating it. That is why the fifth
+// is one word: `Views` is the shortest true name for the band, and a longer
+// one would have spent the margin the row has left.
 export const NAV_D: LandingLink[] = [
   { label: "Agents", href: `#${ROSTER_ID}` },
   { label: "Formats", href: `#${FORMATS.id}` },
   { label: "How it works", href: `#${BRIEF_CARDS.id}` },
   { label: "Your team", href: `#${TEAM_CARDS.id}` },
+  { label: "Views", href: `#${TEAM_VIEWS_ID}` },
 ];
 
 // D's footer. The two groups are the page's own sections and the two account

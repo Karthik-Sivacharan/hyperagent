@@ -5,16 +5,18 @@ import { TeamCards } from "../a/team-cards";
 import { AgentRoster } from "./agent-roster";
 import { ClosingD } from "./closing";
 import { Hero } from "./hero";
+import { TeamViews } from "./team-views";
 import { SiteFooter } from "./site-footer";
 import { SiteHeader } from "./site-header";
 
-// Landing v2, variant D: the short page. A centred hero, then four bands —
-// the roster, which says who is on the team, and then three that show the
+// Landing v2, variant D: the short page. A centred hero, then five bands —
+// the roster, which says who is on the team, and then four that show the
 // work rather than describe it (the formats, one job from brief to delivery,
-// the team at work) — and then the footer, which carries the page's two
-// actions out of the dark ground. The sections A carries below those (its own
-// roster, a week, the use cases, the cost table, the control tiles, the
-// stories and pricing) are not on D; /landing/a is where they still live.
+// the team at work, and the four views the team is run from) — and then the
+// footer, which carries the page's two actions out of the dark ground. The
+// sections A carries below those (its own roster, a week, the use cases, the
+// cost table, the control tiles, the stories and pricing) are not on D;
+// /landing/a is where they still live.
 //
 // D owns the hero, the roster and the shell (header and footer, for its own
 // home link and its own nav); the three bands after the roster are A's
@@ -24,8 +26,16 @@ import { SiteHeader } from "./site-header";
 //
 // The roster goes second because of what the hero leaves open. The hero names
 // a team and shows the app; the reader's next question is who is on it, and
-// the bands below each answer a different one. `NAV_D` names all four, so the
+// the bands below each answer a different one. `NAV_D` names all five, so the
 // header is an index of the page rather than of the page as it once was.
+//
+// The views band goes last of the five, and it is the one that hands the page
+// back to the reader. Everything above it is the team doing the work; it is
+// the only band about the reader's own side of the arrangement, which is the
+// last thing left to answer before the page asks for the sign-up under it. It
+// is also the only band that draws the app itself rather than a picture of
+// it, so it belongs next to the closing rather than in the middle of the
+// argument (`./team-views.tsx` says how that is kept safe on a page).
 //
 // The page ends on the closing band (`./closing`), which is where its one
 // action is asked for below the hero. It was a full-bleed dark band and is
@@ -61,6 +71,7 @@ export function LandingPageD() {
         <FormatShowcase />
         <BriefCards />
         <TeamCards />
+        <TeamViews />
         <ClosingD />
       </main>
       <SiteFooter />

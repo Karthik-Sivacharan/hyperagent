@@ -11,6 +11,13 @@ import type { SceneStore } from "@/components/teams/space/scene/store";
 // nothing focused at all (the page just loaded, or the reader clicked the
 // empty ground), the keys walk too, since there is nothing else they could
 // mean. Letting go, or focus leaving the map, stops at the next tile.
+//
+// `walkWhenIdle` is that second half, and it is only true when the office IS
+// the page. It listens on `window` and calls preventDefault, so on a page
+// where the office is one band among several the arrow keys would stop
+// scrolling the document the moment this view mounted. Off, the returned
+// `onKeyDown` still walks, and it fires only with focus inside the map, so
+// nothing is taken from a reader who has not asked for it.
 
 const KEY_DIR: Record<string, Facing> = {
   ArrowUp: "up",
@@ -32,13 +39,19 @@ function typingInto(target: EventTarget | null): boolean {
   return target instanceof HTMLElement && (target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName));
 }
 
-export function useWalkKeys(store: SceneStore, mapRef: React.RefObject<HTMLElement | null>, onEscape: () => void) {
+export function useWalkKeys(
+  store: SceneStore,
+  mapRef: React.RefObject<HTMLElement | null>,
+  onEscape: () => void,
+  walkWhenIdle = true,
+) {
   const escapeRef = React.useRef(onEscape);
   React.useEffect(() => {
     escapeRef.current = onEscape;
   });
 
   React.useEffect(() => {
+    if (!walkWhenIdle) return;
     const idle = () => document.activeElement === null || document.activeElement === document.body;
     const down = (event: KeyboardEvent) => {
       if (!idle() || event.defaultPrevented) return;
@@ -60,7 +73,7 @@ export function useWalkKeys(store: SceneStore, mapRef: React.RefObject<HTMLEleme
       window.removeEventListener("keyup", up);
       window.removeEventListener("blur", stop);
     };
-  }, [store]);
+  }, [store, walkWhenIdle]);
 
   return React.useMemo(
     () => ({
