@@ -1,0 +1,79 @@
+/* The closing band's colour field.
+
+   The twelve smear gradients are uniformly saturated corner to corner, which
+   is right behind a screenshot and wrong behind a headline. The band needs
+   the opposite shape: clean paper where the words are, colour rising to meet
+   the button. That shape is made here rather than found in the file, so the
+   band can use the gradients the rest of the page uses instead of a
+   one-off asset drawn to fit.
+
+   One ellipse of mask does the whole job. It is anchored below the panel's
+   bottom edge and is wider than it is tall, so the field is solid across the
+   bottom, thins through the middle, and is gone by the top and by the two
+   upper corners — the same falloff on all three edges, which a top-to-bottom
+   ramp cannot give (it would leave the corners at full colour).
+
+   Both radii are larger than the panel and the falloff runs past its far end
+   (`transparent 102%`), which is the difference between a wash and a shape.
+   A tighter ellipse draws its own arc across the panel, and the arc lands
+   straight through the headline: the eye reads the edge of a circle rather
+   than light. Flattening the curve and never letting the ramp finish inside
+   the box leaves a gradient with no edge in it anywhere.
+
+   The numbers, against the panel's own width and height: a quarter strength
+   behind the heading at 0.32H, two fifths behind the line under it at 0.45H,
+   about half behind the button, and solid across the bottom eighth. The two
+   lines of copy live in the top half on purpose — the field there is a tint
+   over the panel's own paper, not a colour, so the muted tier still reads. */
+.field {
+  -webkit-mask-image: radial-gradient(
+    90% 105% at 50% 120%,
+    black 26%,
+    transparent 102%
+  );
+  mask-image: radial-gradient(90% 105% at 50% 120%, black 26%, transparent 102%);
+}
+
+/* The smear itself, softened into light.
+
+   These gradients are built to sit behind a screenshot at full detail, where
+   the diagonal streaks are the point. Behind a headline they are not: at full
+   resolution the band reads as a photograph of motion, the streaks compete
+   with the type, and the one thing the panel is for — a glow the button
+   stands in — is the thing it does not do. A 24px blur keeps the colour and
+   the direction of the smear and drops the detail, which is what makes it a
+   ground instead of a picture. The 8% of scale is so the blur has material to
+   sample past the panel's edges and cannot feather in from them. */
+.smear {
+  filter: blur(24px);
+  transform: scale(1.08);
+}
+
+/* The scrim that keeps the copy readable.
+
+   The field is a photograph, so what sits behind a given word depends on
+   where that smear happens to be light or dark. The panel's own ground is
+   laid back over the field behind the copy and released below it, so the two
+   lines always resolve against the panel's own paper and the muted tier keeps
+   the contrast the token system already checks for it.
+
+   It is measured from the BOTTOM of the copy in pixels, not as a share of the
+   panel, and its box is the copy's box rather than the panel's. A share of
+   the panel cannot survive a re-wrap: at 390px the second line drops into the
+   colour and takes the muted tier to 3.5:1 against a 4.5 floor, which is what
+   this shape is here to prevent. Anchored to the copy, the ramp starts where
+   the last line ends however many lines there are.
+
+   64px is the fade, and it is also how far the layer hangs below the last
+   line, so the ground is solid to the final baseline and back to nothing by
+   the 40px mark where the button starts. The button keeps its own colour to
+   stand in.
+
+   `currentColor` is the panel's own background, handed in by the element, so
+   one rule serves both mappings with no `dark:` variant. It is a separate
+   layer from the mask because the two have different jobs: the mask decides
+   where colour exists at all and has to stay soft into the bottom corners,
+   while this only has to hold the copy's own box down. */
+.scrim {
+  background-image: linear-gradient(to top, transparent 0, currentColor 64px);
+}

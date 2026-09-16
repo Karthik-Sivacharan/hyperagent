@@ -1,23 +1,42 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useRef, type RefObject } from "react";
-
-import { cn } from "@/lib/utils";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type RefObject,
+} from "react";
 
 import { Reveal } from "../reveal";
 import { BRIEF_CARDS } from "./content";
 import { SectionHeading } from "./section";
 
 // The band that walks one assignment through its three stages: describe,
-// build, deliver. Three full-width cards stacked down the page, the sides
-// alternating, so the eye zigzags instead of reading three identical rows.
+// build, deliver.
 //
-// The text side opens on a two-tone heading broken by hand into a muted line
-// and an ink one, with a sentence under it at a 580px measure. The media side
-// is an app window floating on the card's gradient: a hairline, a quiet title
-// bar, and the clip below it. No drop shadow anywhere; the window is held by
-// its hairline and the colour behind it.
+// The shape is an index beside a stack. On a wide screen the three stage
+// names stand in a column that stays with the reader while the panels beside
+// them scroll past, and the name of whichever panel is crossing the middle of
+// the screen goes from the muted tier to ink. Nothing is hijacked and nothing
+// moves on its own: the rail is `position: sticky` and the only thing the
+// page listens for is which panel is in the middle, which is the reader's own
+// scroll position read back to them. Clicking a name scrolls to its panel and
+// puts the keyboard there, and with no JavaScript the same markup is three
+// in-page links that jump.
+//
+// Below `lg` the rail would be a second column on a phone, so it goes, and
+// each panel carries its own stage name again in the muted tier above its
+// claim — the two-tone heading this band has always had. The name is only
+// hidden from the eye at `lg` (`sr-only`), never from the tree, so the
+// heading a screen reader announces is the same sentence at every width.
+//
+// Each panel is a neutral card with a colour field filling it from the copy
+// column's edge to its own three: the picture of the work floats on the
+// field and runs off the card's right edge, so the panel reads as a window
+// onto something wider. The field is one of the band's three gradients, which
+// are too contrasty to set type on, so no word of the panel ever sits on one.
 
 // Everything about a card that is not copy. Keyed by the card's id so the
 // copy in content.ts stays words alone.
@@ -41,6 +60,53 @@ const MEDIA: Record<
     gradient: "/img/brief/gradient-3.webp",
   },
 };
+
+// The panels' element ids, derived once: the rail links to them, the observer
+// watches them, and a click focuses one.
+const PANEL_IDS = BRIEF_CARDS.items.map(
+  (card) => `${BRIEF_CARDS.id}-${card.id}`,
+);
+
+/**
+ * The id of the panel crossing the middle of the screen.
+ *
+ * A tenth of the viewport, centred, is the whole observed root: a panel is
+ * "the one being read" while it covers the middle, and the panels are taller
+ * than the gaps between them, so something is always in that band. When
+ * nothing is — the moment a gap passes through it — the last answer stands
+ * rather than the rail blanking, which is why the state is only ever written
+ * with a panel that is actually there.
+ *
+ * Nothing runs on scroll: the observer fires on the crossings alone.
+ */
+function useStageInTheMiddle(ids: readonly string[]): string {
+  const [active, setActive] = useState(ids[0]);
+
+  useEffect(() => {
+    if (typeof IntersectionObserver !== "function") return;
+    const panels = ids
+      .map((id) => document.getElementById(id))
+      .filter((node): node is HTMLElement => node !== null);
+    if (panels.length === 0) return;
+
+    const inTheMiddle = new Set<string>();
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) inTheMiddle.add(entry.target.id);
+          else inTheMiddle.delete(entry.target.id);
+        }
+        const first = ids.find((id) => inTheMiddle.has(id));
+        if (first) setActive(first);
+      },
+      { rootMargin: "-45% 0px -45% 0px" },
+    );
+    for (const panel of panels) observer.observe(panel);
+    return () => observer.disconnect();
+  }, [ids]);
+
+  return active;
+}
 
 /**
  * Plays the clip only while its card is on screen, and never at all when the
@@ -92,6 +158,66 @@ function useClipInView(ref: RefObject<HTMLVideoElement | null>) {
       video.pause();
     };
   }, [ref]);
+}
+
+// One name in the index. A real in-page link, so it works before the page is
+// interactive and lands in the reader's history the way a link should; the
+// handler only takes over to make the jump a scroll and to hand the keyboard
+// to the panel it arrives at.
+//
+// `aria-current="step"` is the state: these are stages of one job, which is
+// the word ARIA has for it, and it is what colours the name and draws the
+// tick. The tick grows from a third of its width rather than appearing, so
+// nothing on the row ever changes size and the name beside it cannot move;
+// the property named in the transition is `scale`, never `transform`, since
+// that is what Tailwind compiles `scale-x-*` to.
+//
+// 44px of row on a phone — the rail is not shown there, but the size is what
+// keeps the link a thumb's target wherever a narrow window puts it.
+function StageLink({
+  id,
+  label,
+  active,
+}: {
+  id: string;
+  label: string;
+  active: boolean;
+}) {
+  const onClick = useCallback(
+    (event: React.MouseEvent<HTMLAnchorElement>) => {
+      const panel = document.getElementById(id);
+      // No panel, or a reader who has asked for less motion: the browser's
+      // own jump is both the correct answer and the one they asked for.
+      if (
+        !panel ||
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches
+      )
+        return;
+      event.preventDefault();
+      panel.scrollIntoView({ behavior: "smooth", block: "start" });
+      // The panel is a -1 tab stop, so this moves the keyboard to what the
+      // reader just asked for without stealing the scroll back or painting a
+      // focus ring on a block nobody tabbed to.
+      panel.focus({ preventScroll: true });
+      history.replaceState(null, "", `#${id}`);
+    },
+    [id],
+  );
+
+  return (
+    <a
+      href={`#${id}`}
+      onClick={onClick}
+      aria-current={active ? "step" : undefined}
+      className="group flex min-h-11 items-center gap-4 text-lg text-muted-foreground transition-colors duration-(--duration-fast) ease-out-quart hover:text-foreground aria-[current=step]:text-foreground xl:text-xl"
+    >
+      <span
+        aria-hidden="true"
+        className="h-px w-6 shrink-0 origin-left scale-x-50 bg-border-loud transition-[scale,background-color] duration-(--duration-normal) ease-out-quart group-aria-[current=step]:scale-x-100 group-aria-[current=step]:bg-foreground"
+      />
+      <span className="text-balance">{label}</span>
+    </a>
+  );
 }
 
 // The window the clip plays inside. `role="img"` with the card's label is
@@ -151,43 +277,69 @@ function AppWindow({
   );
 }
 
-function BriefCard({
-  card,
-  flipped,
-}: {
-  card: (typeof BRIEF_CARDS.items)[number];
-  flipped: boolean;
-}) {
+function BriefPanel({ card }: { card: (typeof BRIEF_CARDS.items)[number] }) {
   const media = MEDIA[card.id];
-  // 40px between the copy and the picture when the card is stacked, 64 when
-  // it is two columns: the same step the team cards put between a card's copy
-  // and its shot, so "text, then the thing it describes" measures the same
-  // wherever it happens on the page.
+  // The picture takes two thirds of the panel at `lg` and three quarters once
+  // there is room for it, which is where the copy column stops gaining
+  // anything from the width and the work starts to.
   return (
-    <div className="grid items-center gap-10 md:grid-cols-2 md:gap-16">
-      <div className={cn("flex flex-col gap-3", flipped && "md:order-last")}>
+    <div className="grid gap-12 p-6 md:gap-14 md:p-8 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-10 lg:p-10 xl:grid-cols-[minmax(0,4fr)_minmax(0,8fr)]">
+      <div className="flex flex-col">
         <h3 className="text-xl font-medium text-balance md:text-2xl">
-          <span className="block text-muted-foreground">{card.lead}</span>
+          {/* The stage name. The rail says it at `lg`, so there it is read
+              out and not drawn; at every width below, it is the muted first
+              line of the heading it has always been.
+
+              The space that follows it travels inside its own text node: a
+              whitespace-only node is dropped from the accessibility tree, and
+              the two lines of the heading would be announced as one word with
+              no gap ("what you need.They take it"). It collapses to nothing
+              on a line of its own, and the line is hidden at `lg` anyway. */}
+          <span className="block text-muted-foreground lg:sr-only">
+            {`${card.lead} `}
+          </span>
           <span className="block text-foreground">{card.claim}</span>
         </h3>
-        <p className="max-w-[580px] text-base text-pretty text-muted-foreground">
+        {/* The sentence sits under the claim on a phone and drops to the foot
+            of the column beside the picture, which is the air the panel is
+            built around: a claim at the top, a line at the bottom, and the
+            work itself filling everything to the right of them. */}
+        <p className="mt-4 max-w-[46ch] text-base text-pretty text-muted-foreground lg:mt-auto lg:pt-10">
           {card.body}
         </p>
       </div>
 
-      {/* The gradient is absolute and the window is in flow, so the panel is
-          exactly as tall as the window plus its padding and the picture can
-          never move anything as it arrives. */}
-      <div className="relative overflow-hidden rounded-4xl">
-        <Image
-          src={media.gradient}
-          alt=""
-          fill
-          unoptimized
-          sizes="(min-width: 768px) 50vw, 100vw"
-          className="object-cover"
-        />
-        <div className="relative p-6 md:p-10">
+      {/* The colour field and the picture on it. The field is inset by exactly
+          the panel's own padding, so it meets the card's top, bottom and right
+          edges and, at `lg`, the copy column's edge across the grid's gap; one
+          trio of negative insets covers all three widths because the padding
+          and the gap are the same step at each. It is absolute and the window
+          is in flow, so the panel is exactly as tall as the window plus its
+          room and the picture can never move anything as it arrives. */}
+      <div className="relative">
+        <div
+          aria-hidden="true"
+          className="absolute -inset-6 overflow-hidden md:-inset-8 lg:-inset-10"
+        >
+          <Image
+            src={media.gradient}
+            alt=""
+            fill
+            unoptimized
+            sizes="(min-width: 1024px) 60vw, 100vw"
+            className="object-cover"
+          />
+          {/* The seam. The field's own edge against the card is a hard line
+              across the panel on a phone and down it beside the copy at `lg`,
+              so the card's colour is laid back over the first 64 or 96px of
+              it and the two grounds meet in a dissolve instead of a cut. */}
+          <div className="absolute inset-x-0 top-0 h-16 bg-linear-to-b from-surface-raised to-transparent lg:inset-y-0 lg:right-auto lg:h-auto lg:w-24 lg:bg-linear-to-r" />
+        </div>
+        {/* The bleed is to the right alone. Every one of the three clips keeps
+            its point in the lower half of the frame, so nothing is ever cut
+            off the bottom; the right tenth of each is the room beside the
+            product, which is what the card's edge takes. */}
+        <div className="relative lg:-me-24">
           <AppWindow
             title={card.window}
             label={card.label}
@@ -201,8 +353,10 @@ function BriefCard({
 }
 
 export function BriefCards() {
-  const { id, heading, items } = BRIEF_CARDS;
+  const { id, heading, items, stagesLabel } = BRIEF_CARDS;
   const headingId = `${id}-heading`;
+  const active = useStageInTheMiddle(PANEL_IDS);
+
   return (
     <section
       id={id}
@@ -223,17 +377,49 @@ export function BriefCards() {
           />
         </Reveal>
 
-        {/* One step for all three, not a 0/1/2 ladder: the cards are a screen
-            apart down the page, so the scroll already sequences them and a
-            growing delay would only read as lag on the last one. The single
-            step is what keeps a card that enters alongside the heading from
-            arriving with it. */}
-        <div className="mt-16 flex flex-col gap-16 md:mt-20 md:gap-24">
-          {items.map((card, index) => (
-            <Reveal key={card.id} step={1}>
-              <BriefCard card={card} flipped={index % 2 === 1} />
-            </Reveal>
-          ))}
+        <div className="mt-16 grid gap-6 md:mt-20 lg:grid-cols-[minmax(0,3fr)_minmax(0,9fr)] lg:gap-16">
+          {/* The index. The column is a grid item, so it is as tall as the
+              stack beside it and the rail can stay with the reader the whole
+              way down; `top-28` parks it clear of the sticky header, the step
+              the page's other sticky column already takes. */}
+          <Reveal className="hidden lg:block">
+            <nav aria-label={stagesLabel} className="sticky top-28">
+              <ol role="list" className="flex flex-col gap-5">
+                {items.map((card, index) => (
+                  <li key={card.id}>
+                    <StageLink
+                      id={PANEL_IDS[index]}
+                      label={card.lead}
+                      active={active === PANEL_IDS[index]}
+                    />
+                  </li>
+                ))}
+              </ol>
+            </nav>
+          </Reveal>
+
+          {/* The stack. One reveal step for all three, not a 0/1/2 ladder:
+              the panels are most of a screen apart, so the scroll already
+              sequences them and a growing delay would only read as lag on the
+              last one. `scroll-mt` lands a panel under the header on the same
+              line the rail's first name sits on. */}
+          <ol role="list" className="flex flex-col gap-4 md:gap-6">
+            {items.map((card, index) => (
+              <li
+                key={card.id}
+                id={PANEL_IDS[index]}
+                tabIndex={-1}
+                className="scroll-mt-28 focus:outline-none"
+              >
+                <Reveal
+                  step={1}
+                  className="overflow-hidden rounded-4xl bg-surface-raised md:rounded-5xl lg:min-h-96"
+                >
+                  <BriefPanel card={card} />
+                </Reveal>
+              </li>
+            ))}
+          </ol>
         </div>
       </div>
     </section>

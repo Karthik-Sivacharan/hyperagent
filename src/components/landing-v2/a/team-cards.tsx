@@ -106,6 +106,19 @@ const SHOT_SIZES: Record<string, { width: number; height: number }> = {
   thread: { width: 800, height: 598 },
 };
 
+// The colour field behind each shot, keyed by the shot it sits under. These
+// are the band's own three of the twelve smear gradients: none of them is on
+// the format showcase's six, so no two bands of the page ever show the same
+// file. They run cool to warm across the row (a blue-teal, a violet, a rose),
+// which reads as three cards rather than one repeated, and every one of them
+// is dark and saturated enough to throw the product's light screenshots
+// forward off it.
+const SHOT_FIELDS: Record<string, string> = {
+  roster: "/img/gradients/glacier.webp",
+  run: "/img/gradients/nocturne.webp",
+  thread: "/img/gradients/rosewood.webp",
+};
+
 // The picture on each card: a screen of the product under the copy, whole
 // from top to bottom and running off the card's right edge, so it reads as a
 // view onto something wider rather than a framed thumbnail. The image is in
@@ -126,22 +139,60 @@ const SHOT_SIZES: Record<string, { width: number; height: number }> = {
 //
 // `role="img"` with the label carries what a sighted reader gets; the file
 // itself stays out of the tree, so nothing is announced twice.
+//
+// The colour field is the card's ground under the picture, in the idiom the
+// brief cards use above: the gradient bleeds to the card's left, right and
+// bottom edges and dissolves into the card's own neutral on the way up, so
+// the shot floats on colour and not one word of the copy ever sits on one.
+// These gradients are far too contrasty to set type on, which is what the
+// dissolve is for, not taste.
+//
+// The field is anchored to the PICTURE, not to the panel: the panel starts
+// wherever the copy above it ends, which is a different line on each of the
+// three cards, while the pictures are packed to the bottom of equal-height
+// cards and so start on one line across the row. Hanging the field 40px above
+// the picture puts all three colour edges on that line too, and 40px is the
+// gap the panel already opens between the copy and the shot, so the field
+// fills exactly that gap and nothing about the card's metrics moves.
 function ShotPanel({ shot }: { shot: { id: string; label: string } }) {
   const size = SHOT_SIZES[shot.id] ?? { width: 800, height: 598 };
+  const field = SHOT_FIELDS[shot.id];
   return (
     <div
       role="img"
       aria-label={shot.label}
-      className="mt-10 flex flex-1 flex-col justify-end pb-6 md:pb-10"
+      className="mt-10 flex flex-1 flex-col justify-end"
     >
-      <Image
-        src={`/img/team/${shot.id}.webp`}
-        alt=""
-        width={size.width}
-        height={size.height}
-        aria-hidden="true"
-        className="ms-6 h-auto w-[calc(100%+1rem)] max-w-none rounded-2xl shadow-card-soft md:ms-10"
-      />
+      <div className="relative pb-6 md:pb-10">
+        <div
+          aria-hidden="true"
+          className="absolute inset-x-0 -top-10 bottom-0 overflow-hidden"
+        >
+          <Image
+            src={field}
+            alt=""
+            fill
+            unoptimized
+            sizes="(min-width: 768px) 34vw, 100vw"
+            className="object-cover"
+          />
+          {/* The seam. The field's top edge against the card is a hard line
+              across the card, so the card's own colour is laid back over the
+              first 80px of it and the two grounds meet in a dissolve rather
+              than a cut. It runs past the picture's top edge on purpose: the
+              picture covers the lower half of the ramp, so what shows in the
+              40px gap is only its quiet first half. */}
+          <div className="absolute inset-x-0 top-0 h-20 bg-linear-to-b from-surface-raised to-transparent" />
+        </div>
+        <Image
+          src={`/img/team/${shot.id}.webp`}
+          alt=""
+          width={size.width}
+          height={size.height}
+          aria-hidden="true"
+          className="relative ms-6 h-auto w-[calc(100%+1rem)] max-w-none rounded-2xl shadow-card-soft md:ms-10"
+        />
+      </div>
     </div>
   );
 }

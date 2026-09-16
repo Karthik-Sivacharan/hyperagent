@@ -1,0 +1,223 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1490 970" fill="none" role="img" aria-label="Top-down office floor plan">
+  <title>Office floor plan</title>
+  <style>
+    .fp-wall   { fill: #ffffff; stroke: #1e1e1d; stroke-width: 1.4; }
+    .fp-line   { fill: none;    stroke: #1e1e1d; stroke-width: 1.2; stroke-linecap: round; stroke-linejoin: round; }
+    .fp-solid  { fill: #ffffff; stroke: #1e1e1d; stroke-width: 1.2; stroke-linejoin: round; }
+    .fp-tint   { fill: #e8e8e2; stroke: #1e1e1d; stroke-width: 1.2; }
+    .fp-floor  { fill: transparent; }
+    .fp-thin   { fill: none;    stroke: #1e1e1d; stroke-width: 0.9; stroke-linecap: round; }
+
+    /* Optional room highlight. Works on hover when the SVG is inline or in an
+       as an object; in React, set data-active on a .fp-room group instead. */
+    .fp-room * { transition: fill .2s cubic-bezier(.4,0,.2,1), stroke .2s cubic-bezier(.4,0,.2,1); }
+    .fp-room:hover .fp-floor,     .fp-room[data-active] .fp-floor { fill: #f55d0014; }
+    .fp-room:hover .fp-solid,     .fp-room[data-active] .fp-solid,
+    .fp-room:hover .fp-line,      .fp-room[data-active] .fp-line,
+    .fp-room:hover .fp-thin,      .fp-room[data-active] .fp-thin  { stroke: #f55d00; }
+    .fp-room:hover .fp-tint,      .fp-room[data-active] .fp-tint  { fill: #f55d0026; stroke: #f55d00; }
+    @media (prefers-reduced-motion: reduce) { .fp-room * { transition: none; } }
+  </style>
+
+  <!-- ============ shell ============ -->
+  <rect class="fp-wall" x="40" y="26" width="1410" height="914" rx="56"/>
+  <rect class="fp-wall" x="58" y="44" width="1374" height="772" rx="40"/>
+
+  <!-- ============ room floors (hover targets) ============ -->
+  <g class="fp-room" data-room="boardroom">
+    <rect class="fp-floor" x="58" y="44" width="550" height="246"/>
+    <!-- plant -->
+    <path class="fp-line" d="M88 154h44l-7-42H95z"/>
+    <path class="fp-line" d="M110 112c-8-18-8-34-3-46M110 112c8-16 17-24 29-27M110 112c-11-11-22-15-33-14M110 112c5-16 4-30-1-40"/>
+    <!-- table -->
+    <rect class="fp-solid" x="152" y="150" width="320" height="72" rx="10"/>
+    <!-- chairs, top row -->
+    <rect class="fp-solid" x="178" y="108" width="52" height="38" rx="7"/>
+    <rect class="fp-solid" x="248" y="108" width="52" height="38" rx="7"/>
+    <rect class="fp-solid" x="318" y="108" width="52" height="38" rx="7"/>
+    <rect class="fp-solid" x="388" y="108" width="52" height="38" rx="7"/>
+    <!-- chairs, bottom row -->
+    <rect class="fp-solid" x="178" y="226" width="52" height="38" rx="7"/>
+    <rect class="fp-solid" x="248" y="226" width="52" height="38" rx="7"/>
+    <rect class="fp-solid" x="318" y="226" width="52" height="38" rx="7"/>
+    <rect class="fp-solid" x="388" y="226" width="52" height="38" rx="7"/>
+    <!-- table legs -->
+    <path class="fp-thin" d="M168 222v30M456 222v30M168 150v-30M456 150v-30"/>
+  </g>
+
+  <g class="fp-room" data-room="library">
+    <rect class="fp-floor" x="58" y="300" width="468" height="280"/>
+    <!-- bookshelf -->
+    <rect class="fp-solid" x="72" y="312" width="90" height="142"/>
+    <path class="fp-line" d="M72 360h90M72 408h90"/>
+    <path class="fp-thin" d="M80 318v38M88 320v36M96 318v38M104 322v34M112 318v38M126 320v36M134 318v38M142 321v35M80 366v38M88 368v36M102 366v38M110 369v35M118 366v38M132 368v36M140 366v38M80 414v38M94 416v36M102 414v38M110 417v35M124 414v38M132 416v36M140 414v38"/>
+    <rect class="fp-tint" x="116" y="366" width="12" height="38"/>
+    <!-- desk -->
+    <rect class="fp-solid" x="180" y="398" width="176" height="48" rx="3"/>
+    <path class="fp-thin" d="M192 446v26M344 446v26"/>
+    <!-- dot table -->
+    <rect class="fp-solid" x="262" y="366" width="80" height="62" rx="2"/>
+    <g fill="#1e1e1d">
+      <circle cx="278" cy="382" r="3"/><circle cx="298" cy="382" r="3"/><circle cx="318" cy="382" r="3"/>
+      <circle cx="278" cy="398" r="3"/><circle cx="298" cy="398" r="3"/><circle cx="318" cy="398" r="3"/>
+      <circle cx="278" cy="414" r="3"/><circle cx="298" cy="414" r="3"/><circle cx="318" cy="414" r="3"/>
+    </g>
+    <!-- chairs -->
+    <rect class="fp-solid" x="196" y="462" width="48" height="46" rx="8"/>
+    <rect class="fp-solid" x="268" y="462" width="48" height="46" rx="8"/>
+    <path class="fp-thin" d="M204 508v22M236 508v22M276 508v22M308 508v22"/>
+  </g>
+
+  <g class="fp-room" data-room="focus-office">
+    <rect class="fp-floor" x="58" y="590" width="368" height="226"/>
+    <!-- desk + monitor -->
+    <rect class="fp-solid" x="148" y="640" width="128" height="58" rx="3"/>
+    <rect class="fp-solid" x="176" y="652" width="62" height="30" rx="2"/>
+    <path class="fp-thin" d="M158 698v30M266 698v30"/>
+    <!-- chair -->
+    <rect class="fp-solid" x="236" y="712" width="48" height="46" rx="8"/>
+    <path class="fp-thin" d="M244 758v20M276 758v20"/>
+    <!-- side stool -->
+    <rect class="fp-solid" x="196" y="716" width="34" height="34" rx="4"/>
+    <!-- framed picture on the wall -->
+    <rect class="fp-solid" x="318" y="604" width="38" height="40" rx="2"/>
+    <circle cx="330" cy="618" r="3" fill="#1e1e1d"/>
+    <path class="fp-thin" d="M340 634v-12M340 622l-6-6M340 622l6-6"/>
+  </g>
+
+  <g class="fp-room" data-room="desk-bank">
+    <rect class="fp-floor" x="608" y="44" width="372" height="246"/>
+    <!-- cubicle bank: desks back to back with dividers -->
+    <rect class="fp-solid" x="694" y="118" width="252" height="48" rx="3"/>
+    <rect class="fp-solid" x="694" y="194" width="252" height="48" rx="3"/>
+    <rect class="fp-solid" x="700" y="166" width="240" height="28" rx="2"/>
+    <path class="fp-line" d="M760 118v124M820 118v124M880 118v124"/>
+    <path class="fp-thin" d="M704 242v24M936 242v24M704 118v-10M936 118v-10"/>
+    <!-- chairs -->
+    <rect class="fp-solid" x="718" y="76" width="44" height="34" rx="7"/>
+    <rect class="fp-solid" x="838" y="76" width="44" height="34" rx="7"/>
+    <rect class="fp-solid" x="718" y="250" width="44" height="34" rx="7"/>
+    <rect class="fp-solid" x="838" y="250" width="44" height="34" rx="7"/>
+  </g>
+
+  <g class="fp-room" data-room="manager-office">
+    <rect class="fp-floor" x="608" y="300" width="372" height="280"/>
+    <!-- desk -->
+    <rect class="fp-solid" x="756" y="380" width="148" height="56" rx="3"/>
+    <path class="fp-thin" d="M766 436v28M894 436v28"/>
+    <!-- chair -->
+    <rect class="fp-solid" x="800" y="332" width="56" height="42" rx="8"/>
+    <!-- plant -->
+    <path class="fp-line" d="M916 390h44l-6 40h-32z"/>
+    <path class="fp-line" d="M938 390c-4-16-2-30 6-40M938 390c10-10 22-14 34-12M938 390c-12-6-22-6-30-2"/>
+    <!-- sofa -->
+    <rect class="fp-solid" x="764" y="500" width="200" height="64" rx="22"/>
+    <path class="fp-line" d="M790 512h148a14 14 0 0 1 14 14v38h-176v-38a14 14 0 0 1 14-14z"/>
+    <path class="fp-thin" d="M864 512v52"/>
+  </g>
+
+  <g class="fp-room" data-room="lounge">
+    <rect class="fp-floor" x="608" y="590" width="372" height="226"/>
+    <rect class="fp-solid" x="684" y="638" width="250" height="132" rx="34"/>
+    <rect class="fp-solid" x="710" y="662" width="198" height="84" rx="22"/>
+    <rect class="fp-solid" x="784" y="622" width="52" height="38" rx="3"/>
+  </g>
+
+  <g class="fp-room" data-room="open-desks">
+    <rect class="fp-floor" x="1112" y="44" width="320" height="246"/>
+    <rect class="fp-solid" x="1174" y="118" width="86" height="66" rx="4"/>
+    <rect class="fp-solid" x="1276" y="118" width="86" height="66" rx="4"/>
+    <rect class="fp-tint" x="1174" y="196" width="86" height="66" rx="4"/>
+    <rect class="fp-tint" x="1276" y="196" width="86" height="66" rx="4"/>
+    <path class="fp-line" d="M1268 110v160"/>
+    <path class="fp-thin" d="M1184 184v22M1250 184v22M1286 184v22M1352 184v22"/>
+    <!-- chairs -->
+    <rect class="fp-solid" x="1194" y="76" width="46" height="34" rx="7"/>
+    <rect class="fp-solid" x="1296" y="76" width="46" height="34" rx="7"/>
+    <rect class="fp-solid" x="1194" y="268" width="46" height="34" rx="7"/>
+    <rect class="fp-solid" x="1296" y="268" width="46" height="34" rx="7"/>
+  </g>
+
+  <g class="fp-room" data-room="analytics">
+    <rect class="fp-floor" x="1112" y="300" width="320" height="280"/>
+    <!-- wall board with a chart -->
+    <rect class="fp-solid" x="1148" y="322" width="120" height="58" rx="2"/>
+    <g class="fp-thin">
+      <path d="M1160 368v-14M1172 368v-22M1184 368v-30M1196 368v-20M1208 368v-34"/>
+      <path d="M1220 368l14-16 10 8 12-22"/>
+      <path d="M1256 338v10h-10"/>
+    </g>
+    <!-- pinned sheets -->
+    <rect class="fp-solid" x="1282" y="326" width="28" height="34" rx="2"/>
+    <rect class="fp-solid" x="1318" y="326" width="28" height="34" rx="2"/>
+    <rect class="fp-solid" x="1354" y="326" width="28" height="34" rx="2"/>
+    <path class="fp-thin" d="M1288 336h16M1288 344h12M1324 336h16M1324 344h12M1360 336h16M1360 344h12"/>
+    <!-- desk + chair -->
+    <rect class="fp-solid" x="1276" y="396" width="118" height="54" rx="3"/>
+    <path class="fp-thin" d="M1286 450v26M1384 450v26"/>
+    <rect class="fp-solid" x="1304" y="462" width="52" height="46" rx="8"/>
+    <!-- filing cabinet against the corridor wall -->
+    <rect class="fp-solid" x="1126" y="420" width="34" height="86" rx="2"/>
+    <path class="fp-thin" d="M1126 448h34M1126 476h34"/>
+  </g>
+
+  <g class="fp-room" data-room="screens">
+    <rect class="fp-floor" x="1112" y="590" width="320" height="226"/>
+    <rect class="fp-tint" x="1148" y="612" width="104" height="50" rx="2"/>
+    <rect class="fp-tint" x="1318" y="612" width="104" height="50" rx="2"/>
+    <path class="fp-thin" d="M1168 660l24-46M1186 660l24-46M1338 660l24-46M1356 660l24-46"/>
+    <rect class="fp-solid" x="1186" y="668" width="54" height="58" rx="8"/>
+    <rect class="fp-solid" x="1340" y="668" width="54" height="58" rx="8"/>
+    <rect class="fp-solid" x="1148" y="734" width="274" height="14" rx="3"/>
+  </g>
+
+  <!-- ============ interior walls ============ -->
+  <g class="fp-wall">
+    <!-- verticals -->
+    <rect x="602" y="44" width="12" height="246"/>
+    <rect x="974" y="44" width="12" height="246"/>
+    <rect x="1106" y="44" width="12" height="246"/>
+    <rect x="520" y="300" width="12" height="150"/>
+    <rect x="520" y="494" width="12" height="86"/>
+    <rect x="602" y="300" width="12" height="122"/>
+    <rect x="602" y="466" width="12" height="114"/>
+    <rect x="974" y="300" width="12" height="280"/>
+    <rect x="1106" y="300" width="12" height="122"/>
+    <rect x="1106" y="466" width="12" height="114"/>
+    <rect x="1106" y="592" width="12" height="96"/>
+    <rect x="1106" y="740" width="12" height="76"/>
+    <rect x="420" y="592" width="12" height="108"/>
+    <rect x="420" y="752" width="12" height="64"/>
+    <!-- horizontals -->
+    <rect x="58" y="290" width="374" height="12"/>
+    <rect x="482" y="290" width="132" height="12"/>
+    <rect x="602" y="290" width="246" height="12"/>
+    <rect x="896" y="290" width="90" height="12"/>
+    <rect x="1106" y="290" width="188" height="12"/>
+    <rect x="1342" y="290" width="90" height="12"/>
+    <rect x="58" y="580" width="304" height="12"/>
+    <rect x="410" y="580" width="122" height="12"/>
+    <rect x="602" y="580" width="168" height="12"/>
+    <rect x="826" y="580" width="160" height="12"/>
+    <rect x="1106" y="580" width="168" height="12"/>
+    <rect x="1330" y="580" width="102" height="12"/>
+    <!-- corridor counter under the lounge wall -->
+    <rect x="602" y="592" width="384" height="26" rx="2"/>
+  </g>
+
+  <!-- ============ windows in the outer wall ============ -->
+  <g class="fp-tint">
+    <rect x="132" y="30" width="58" height="14"/>
+    <rect x="250" y="30" width="204" height="14"/>
+    <rect x="736" y="30" width="140" height="14"/>
+    <rect x="1024" y="30" width="62" height="14"/>
+    <rect x="1186" y="30" width="196" height="14"/>
+  </g>
+
+  <!-- ============ entrance band ============ -->
+  <g>
+    <rect class="fp-tint" x="150" y="862" width="196" height="24"/>
+    <rect class="fp-tint" x="1150" y="862" width="196" height="24"/>
+    <rect class="fp-wall" x="782" y="848" width="82" height="82"/>
+  </g>
+</svg>

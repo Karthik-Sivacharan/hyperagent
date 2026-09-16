@@ -1,0 +1,208 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1490 970" fill="none" role="img" aria-label="Top-down law office floor plan">
+  <title>Law office floor plan</title>
+  <style>
+    .fp-wall   { fill: #ffffff; stroke: #1e1e1d; stroke-width: 1.4; }
+    .fp-line   { fill: none;    stroke: #1e1e1d; stroke-width: 1.2; stroke-linecap: round; stroke-linejoin: round; }
+    .fp-solid  { fill: #ffffff; stroke: #1e1e1d; stroke-width: 1.2; stroke-linejoin: round; }
+    .fp-tint   { fill: #e8e8e2; stroke: #1e1e1d; stroke-width: 1.2; }
+    .fp-floor  { fill: transparent; }
+    .fp-thin   { fill: none;    stroke: #1e1e1d; stroke-width: 0.9; stroke-linecap: round; }
+
+    /* Optional room highlight. Works on hover when the SVG is inline or embedded
+       as an object; in React, set data-active on a .fp-room group instead. */
+    .fp-room * { transition: fill .2s cubic-bezier(.4,0,.2,1), stroke .2s cubic-bezier(.4,0,.2,1); }
+    .fp-room:hover .fp-floor,     .fp-room[data-active] .fp-floor { fill: #f55d0014; }
+    .fp-room:hover .fp-solid,     .fp-room[data-active] .fp-solid,
+    .fp-room:hover .fp-line,      .fp-room[data-active] .fp-line,
+    .fp-room:hover .fp-thin,      .fp-room[data-active] .fp-thin  { stroke: #f55d00; }
+    .fp-room:hover .fp-tint,      .fp-room[data-active] .fp-tint  { fill: #f55d0026; stroke: #f55d00; }
+    @media (prefers-reduced-motion: reduce) { .fp-room * { transition: none; } }
+  </style>
+
+  <!-- ============ shell ============ -->
+  <rect class="fp-wall" x="40" y="26" width="1410" height="914" rx="56"/>
+  <rect class="fp-wall" x="58" y="44" width="1374" height="772" rx="40"/>
+
+  <!-- ============ room floors (hover targets) ============ -->
+  <g class="fp-room" data-room="law-library">
+    <rect class="fp-floor" x="58" y="44" width="542" height="296"/>
+    <!-- shelving along the window wall -->
+    <rect class="fp-solid" x="180" y="60" width="240" height="30"/>
+    <path class="fp-thin" d="M192 62v26M205 62v26M218 62v26M231 62v26M244 62v26M257 62v26M270 62v26M283 62v26M296 62v26M309 62v26M322 62v26M335 62v26M348 62v26M361 62v26M374 62v26M387 62v26M400 62v26"/>
+    <rect class="fp-tint" x="272" y="62" width="9" height="26"/>
+    <!-- shelving along the side wall -->
+    <rect class="fp-solid" x="72" y="140" width="46" height="160"/>
+    <path class="fp-thin" d="M76 150h38M76 162h38M76 174h38M76 186h38M76 198h38M76 210h38M76 222h38M76 234h38M76 246h38M76 258h38M76 270h38M76 282h38M76 294h38"/>
+    <rect class="fp-tint" x="76" y="216" width="38" height="10"/>
+    <!-- long reading table -->
+    <rect class="fp-solid" x="190" y="170" width="270" height="78" rx="6"/>
+    <path class="fp-thin" d="M204 248v20M446 248v20"/>
+    <rect class="fp-solid" x="230" y="126" width="54" height="38" rx="7"/>
+    <rect class="fp-solid" x="305" y="126" width="54" height="38" rx="7"/>
+    <rect class="fp-solid" x="380" y="126" width="54" height="38" rx="7"/>
+    <rect class="fp-solid" x="230" y="254" width="54" height="38" rx="7"/>
+    <rect class="fp-solid" x="305" y="254" width="54" height="38" rx="7"/>
+    <rect class="fp-solid" x="380" y="254" width="54" height="38" rx="7"/>
+    <!-- map / atlas cabinet -->
+    <rect class="fp-solid" x="505" y="150" width="64" height="120" rx="2"/>
+    <path class="fp-thin" d="M505 174h64M505 198h64M505 222h64M505 246h64"/>
+  </g>
+
+  <g class="fp-room" data-room="deposition">
+    <rect class="fp-floor" x="612" y="44" width="466" height="296"/>
+    <ellipse class="fp-solid" cx="845" cy="192" rx="160" ry="62"/>
+    <ellipse class="fp-thin" cx="845" cy="192" rx="146" ry="49"/>
+    <!-- chairs all around -->
+    <rect class="fp-solid" x="718" y="86" width="54" height="38" rx="7"/>
+    <rect class="fp-solid" x="790" y="86" width="54" height="38" rx="7"/>
+    <rect class="fp-solid" x="862" y="86" width="54" height="38" rx="7"/>
+    <rect class="fp-solid" x="934" y="86" width="54" height="38" rx="7"/>
+    <rect class="fp-solid" x="718" y="258" width="54" height="38" rx="7"/>
+    <rect class="fp-solid" x="790" y="258" width="54" height="38" rx="7"/>
+    <rect class="fp-solid" x="862" y="258" width="54" height="38" rx="7"/>
+    <rect class="fp-solid" x="934" y="258" width="54" height="38" rx="7"/>
+    <rect class="fp-solid" x="636" y="165" width="38" height="54" rx="7"/>
+    <rect class="fp-solid" x="1016" y="165" width="38" height="54" rx="7"/>
+    <!-- credenza -->
+    <rect class="fp-solid" x="624" y="298" width="86" height="30" rx="2"/>
+    <path class="fp-thin" d="M624 313h86"/>
+  </g>
+
+  <g class="fp-room" data-room="records-vault">
+    <rect class="fp-floor" x="58" y="352" width="322" height="248"/>
+    <rect class="fp-solid" x="80" y="372" width="270" height="38"/>
+    <rect class="fp-solid" x="80" y="428" width="270" height="38"/>
+    <rect class="fp-solid" x="80" y="484" width="270" height="38"/>
+    <rect class="fp-solid" x="80" y="540" width="270" height="38"/>
+    <path class="fp-thin" d="M147 372v38M214 372v38M281 372v38M147 428v38M214 428v38M281 428v38M147 484v38M214 484v38M281 484v38M147 540v38M214 540v38M281 540v38"/>
+    <rect class="fp-tint" x="147" y="428" width="67" height="38"/>
+  </g>
+
+  <g class="fp-room" data-room="paralegal-bay">
+    <rect class="fp-floor" x="392" y="352" width="686" height="248"/>
+    <rect class="fp-solid" x="470" y="400" width="520" height="48" rx="3"/>
+    <rect class="fp-solid" x="476" y="448" width="508" height="22" rx="2"/>
+    <rect class="fp-solid" x="470" y="470" width="520" height="48" rx="3"/>
+    <path class="fp-line" d="M600 400v118M730 400v118M860 400v118"/>
+    <path class="fp-thin" d="M480 518v22M980 518v22"/>
+    <rect class="fp-solid" x="500" y="360" width="44" height="34" rx="7"/>
+    <rect class="fp-solid" x="630" y="360" width="44" height="34" rx="7"/>
+    <rect class="fp-solid" x="760" y="360" width="44" height="34" rx="7"/>
+    <rect class="fp-solid" x="890" y="360" width="44" height="34" rx="7"/>
+    <rect class="fp-solid" x="500" y="524" width="44" height="34" rx="7"/>
+    <rect class="fp-solid" x="630" y="524" width="44" height="34" rx="7"/>
+    <rect class="fp-solid" x="760" y="524" width="44" height="34" rx="7"/>
+    <rect class="fp-solid" x="890" y="524" width="44" height="34" rx="7"/>
+    <!-- shared printer -->
+    <rect class="fp-solid" x="406" y="466" width="48" height="60" rx="3"/>
+    <rect class="fp-tint" x="414" y="474" width="32" height="12"/>
+    <path class="fp-thin" d="M406 498h48"/>
+  </g>
+
+  <g class="fp-room" data-room="waiting">
+    <rect class="fp-floor" x="58" y="612" width="542" height="204"/>
+    <rect class="fp-solid" x="110" y="648" width="64" height="56" rx="14"/>
+    <rect class="fp-line" x="120" y="656" width="44" height="40" rx="8"/>
+    <rect class="fp-solid" x="110" y="724" width="64" height="56" rx="14"/>
+    <rect class="fp-line" x="120" y="732" width="44" height="40" rx="8"/>
+    <rect class="fp-solid" x="330" y="648" width="64" height="56" rx="14"/>
+    <rect class="fp-line" x="340" y="656" width="44" height="40" rx="8"/>
+    <rect class="fp-solid" x="330" y="724" width="64" height="56" rx="14"/>
+    <rect class="fp-line" x="340" y="732" width="44" height="40" rx="8"/>
+    <rect class="fp-solid" x="212" y="682" width="96" height="64" rx="8"/>
+    <path class="fp-thin" d="M224 700h72M224 714h50"/>
+    <!-- plant -->
+    <path class="fp-line" d="M478 790h44l-7-42h-30z"/>
+    <path class="fp-line" d="M500 748c-8-18-8-34-3-46M500 748c8-16 17-24 29-27M500 748c-11-11-22-15-33-14"/>
+  </g>
+
+  <g class="fp-room" data-room="reception">
+    <rect class="fp-floor" x="612" y="612" width="466" height="204"/>
+    <rect class="fp-tint" x="640" y="612" width="90" height="24"/>
+    <rect class="fp-solid" x="676" y="684" width="262" height="52" rx="6"/>
+    <rect class="fp-solid" x="676" y="736" width="52" height="62" rx="6"/>
+    <rect class="fp-solid" x="770" y="640" width="52" height="42" rx="8"/>
+    <!-- bench -->
+    <rect class="fp-solid" x="996" y="680" width="60" height="112" rx="12"/>
+    <rect class="fp-line" x="1004" y="688" width="44" height="96" rx="8"/>
+  </g>
+
+  <g class="fp-room" data-room="partner-office-1">
+    <rect class="fp-floor" x="1160" y="44" width="272" height="256"/>
+    <rect class="fp-solid" x="1172" y="70" width="34" height="124"/>
+    <path class="fp-thin" d="M1176 80h26M1176 92h26M1176 104h26M1176 116h26M1176 128h26M1176 140h26M1176 152h26M1176 164h26M1176 176h26M1176 188h26"/>
+    <rect class="fp-tint" x="1176" y="128" width="26" height="10"/>
+    <rect class="fp-solid" x="1230" y="150" width="150" height="54" rx="3"/>
+    <path class="fp-thin" d="M1240 204v24M1370 204v24"/>
+    <rect class="fp-solid" x="1278" y="98" width="54" height="44" rx="8"/>
+    <rect class="fp-solid" x="1232" y="222" width="50" height="44" rx="8"/>
+    <rect class="fp-solid" x="1320" y="222" width="50" height="44" rx="8"/>
+  </g>
+
+  <g class="fp-room" data-room="partner-office-2">
+    <rect class="fp-floor" x="1160" y="312" width="272" height="256"/>
+    <rect class="fp-solid" x="1390" y="338" width="34" height="124"/>
+    <path class="fp-thin" d="M1394 348h26M1394 360h26M1394 372h26M1394 384h26M1394 396h26M1394 408h26M1394 420h26M1394 432h26M1394 444h26M1394 456h26"/>
+    <rect class="fp-tint" x="1394" y="396" width="26" height="10"/>
+    <rect class="fp-solid" x="1206" y="418" width="150" height="54" rx="3"/>
+    <path class="fp-thin" d="M1216 472v24M1346 472v24"/>
+    <rect class="fp-solid" x="1254" y="366" width="54" height="44" rx="8"/>
+    <rect class="fp-solid" x="1208" y="490" width="50" height="44" rx="8"/>
+    <rect class="fp-solid" x="1296" y="490" width="50" height="44" rx="8"/>
+  </g>
+
+  <g class="fp-room" data-room="copy-print">
+    <rect class="fp-floor" x="1160" y="580" width="272" height="236"/>
+    <rect class="fp-solid" x="1190" y="616" width="96" height="72" rx="4"/>
+    <rect class="fp-tint" x="1202" y="626" width="54" height="18"/>
+    <path class="fp-thin" d="M1190 664h96"/>
+    <rect class="fp-solid" x="1312" y="616" width="104" height="36"/>
+    <path class="fp-thin" d="M1338 616v36M1364 616v36M1390 616v36"/>
+    <rect class="fp-solid" x="1312" y="664" width="104" height="36"/>
+    <path class="fp-thin" d="M1338 664v36M1364 664v36M1390 664v36"/>
+    <rect class="fp-solid" x="1190" y="724" width="226" height="44" rx="2"/>
+    <path class="fp-thin" d="M1246 724v44M1302 724v44M1358 724v44"/>
+  </g>
+
+  <!-- ============ interior walls ============ -->
+  <g class="fp-wall">
+    <!-- verticals -->
+    <rect x="600" y="44" width="12" height="146"/>
+    <rect x="600" y="250" width="12" height="90"/>
+    <rect x="380" y="352" width="12" height="98"/>
+    <rect x="380" y="510" width="12" height="90"/>
+    <rect x="600" y="612" width="12" height="88"/>
+    <rect x="600" y="760" width="12" height="56"/>
+    <rect x="1078" y="44" width="12" height="106"/>
+    <rect x="1078" y="210" width="12" height="210"/>
+    <rect x="1078" y="480" width="12" height="200"/>
+    <rect x="1078" y="740" width="12" height="76"/>
+    <rect x="1148" y="44" width="12" height="116"/>
+    <rect x="1148" y="220" width="12" height="200"/>
+    <rect x="1148" y="480" width="12" height="200"/>
+    <rect x="1148" y="740" width="12" height="76"/>
+    <!-- horizontals -->
+    <rect x="58" y="340" width="422" height="12"/>
+    <rect x="540" y="340" width="538" height="12"/>
+    <rect x="58" y="600" width="642" height="12"/>
+    <rect x="760" y="600" width="318" height="12"/>
+    <rect x="1160" y="300" width="272" height="12"/>
+    <rect x="1160" y="568" width="272" height="12"/>
+  </g>
+
+  <!-- ============ windows in the outer wall ============ -->
+  <g class="fp-tint">
+    <rect x="150" y="30" width="170" height="14"/>
+    <rect x="346" y="30" width="110" height="14"/>
+    <rect x="700" y="30" width="200" height="14"/>
+    <rect x="940" y="30" width="90" height="14"/>
+    <rect x="1220" y="30" width="170" height="14"/>
+  </g>
+
+  <!-- ============ entrance band ============ -->
+  <g>
+    <rect class="fp-tint" x="150" y="862" width="196" height="24"/>
+    <rect class="fp-tint" x="1150" y="862" width="196" height="24"/>
+    <rect class="fp-wall" x="782" y="848" width="82" height="82"/>
+  </g>
+</svg>

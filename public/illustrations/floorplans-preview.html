@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Floor plans — preview</title>
+<style>
+  :root { color-scheme: light; }
+  body { margin: 0; background: #f9f9f8; color: #1e1e1d;
+         font: 14px/1.5 ui-sans-serif, system-ui, -apple-system, sans-serif;
+         display: flex; flex-direction: column; align-items: center; gap: 20px; padding: 32px 16px 64px; }
+  header { display: flex; align-items: baseline; justify-content: space-between;
+           gap: 24px; width: min(1400px, 100%); flex-wrap: wrap; }
+  h1 { font-size: 20px; font-weight: 500; margin: 0; }
+  .tabs { display: flex; flex-wrap: wrap; gap: 4px; padding: 4px; border: 1px solid #e3e3df; border-radius: 24px; background: #fff; }
+  .tabs button { font: inherit; padding: 6px 16px; border: 0; border-radius: 999px;
+                 background: transparent; color: #6b6b66; cursor: pointer; }
+  .tabs button[aria-selected="true"] { background: #1e1e1d; color: #fff; }
+  .plan { width: min(1400px, 100%); aspect-ratio: 1490 / 970; border: 0; display: block; }
+  .plan[hidden] { display: none; }
+  p { max-width: min(1400px, 100%); margin: 0; color: #6b6b66; }
+  code { background: #efefec; padding: 1px 5px; border-radius: 4px; }
+</style>
+</head>
+<body>
+  <header>
+    <h1>Floor plans</h1>
+    <div class="tabs" role="tablist">
+      <button role="tab" aria-selected="true"  data-plan="finance">Finance</button>
+      <button role="tab" aria-selected="false" data-plan="healthcare">Healthcare</button>
+      <button role="tab" aria-selected="false" data-plan="government">Government</button>
+      <button role="tab" aria-selected="false" data-plan="support">Support</button>
+      <button role="tab" aria-selected="false" data-plan="sales">Sales</button>
+      <button role="tab" aria-selected="false" data-plan="engineering">Engineering</button>
+      <button role="tab" aria-selected="false" data-plan="legal">Legal</button>
+      <button role="tab" aria-selected="false" data-plan="logistics">Logistics</button>
+      <button role="tab" aria-selected="false" data-plan="retail">Retail</button>
+    </div>
+  </header>
+
+  <object class="plan" id="finance"     type="image/svg+xml" data="floorplan-finance.svg"></object>
+  <object class="plan" id="healthcare"  type="image/svg+xml" data="floorplan-healthcare.svg" hidden></object>
+  <object class="plan" id="government"  type="image/svg+xml" data="floorplan-government.svg" hidden></object>
+  <object class="plan" id="support"     type="image/svg+xml" data="floorplan-support.svg" hidden></object>
+  <object class="plan" id="sales"       type="image/svg+xml" data="floorplan-sales.svg" hidden></object>
+  <object class="plan" id="engineering" type="image/svg+xml" data="floorplan-engineering.svg" hidden></object>
+  <object class="plan" id="legal"       type="image/svg+xml" data="floorplan-legal.svg" hidden></object>
+  <object class="plan" id="logistics"   type="image/svg+xml" data="floorplan-logistics.svg" hidden></object>
+  <object class="plan" id="retail"      type="image/svg+xml" data="floorplan-retail.svg" hidden></object>
+
+  <p>Hover a room to highlight it. The highlight rules live in each SVG's own <code>&lt;style&gt;</code> block and also respond to <code>data-active</code> on a <code>.fp-room</code> group.</p>
+
+<script>
+  const tabs = document.querySelectorAll('.tabs button');
+  tabs.forEach(tab => tab.addEventListener('click', () => {
+    tabs.forEach(t => t.setAttribute('aria-selected', String(t === tab)));
+    document.querySelectorAll('.plan').forEach(p => { p.hidden = p.id !== tab.dataset.plan; });
+  }));
+</script>
+</body>
+</html>

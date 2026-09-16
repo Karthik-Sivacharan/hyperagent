@@ -252,6 +252,8 @@ export const BRIEF_CARDS = {
     title: "Brief once. They keep going.",
     sub: "Give your team a job. They research, build, deliver, and keep the work current.",
   } satisfies Heading,
+  // Names the index beside the three stages, which is a landmark of its own.
+  stagesLabel: "The three stages",
   items: [
     {
       id: "describe",

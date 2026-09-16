@@ -1,0 +1,263 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1490 970" fill="none" role="img" aria-label="Top-down warehouse and dispatch floor plan">
+  <title>Warehouse floor plan</title>
+  <style>
+    .fp-wall   { fill: #ffffff; stroke: #1e1e1d; stroke-width: 1.4; }
+    .fp-line   { fill: none;    stroke: #1e1e1d; stroke-width: 1.2; stroke-linecap: round; stroke-linejoin: round; }
+    .fp-solid  { fill: #ffffff; stroke: #1e1e1d; stroke-width: 1.2; stroke-linejoin: round; }
+    .fp-tint   { fill: #e8e8e2; stroke: #1e1e1d; stroke-width: 1.2; }
+    .fp-floor  { fill: transparent; }
+    .fp-thin   { fill: none;    stroke: #1e1e1d; stroke-width: 0.9; stroke-linecap: round; }
+
+    /* Optional room highlight. Works on hover when the SVG is inline or embedded
+       as an object; in React, set data-active on a .fp-room group instead. */
+    .fp-room * { transition: fill .2s cubic-bezier(.4,0,.2,1), stroke .2s cubic-bezier(.4,0,.2,1); }
+    .fp-room:hover .fp-floor,     .fp-room[data-active] .fp-floor { fill: #f55d0014; }
+    .fp-room:hover .fp-solid,     .fp-room[data-active] .fp-solid,
+    .fp-room:hover .fp-line,      .fp-room[data-active] .fp-line,
+    .fp-room:hover .fp-thin,      .fp-room[data-active] .fp-thin  { stroke: #f55d00; }
+    .fp-room:hover .fp-tint,      .fp-room[data-active] .fp-tint  { fill: #f55d0026; stroke: #f55d00; }
+    @media (prefers-reduced-motion: reduce) { .fp-room * { transition: none; } }
+  </style>
+
+  <!-- ============ shell ============ -->
+  <rect class="fp-wall" x="40" y="26" width="1410" height="914" rx="56"/>
+  <rect class="fp-wall" x="58" y="44" width="1374" height="772" rx="40"/>
+
+  <!-- ============ zones ============ -->
+  <g class="fp-room" data-room="inbound-docks">
+    <rect class="fp-floor" x="58" y="44" width="198" height="382"/>
+    <!-- dock doors in the outer wall -->
+    <rect class="fp-tint" x="44" y="88" width="14" height="78"/>
+    <rect class="fp-tint" x="44" y="196" width="14" height="78"/>
+    <rect class="fp-tint" x="44" y="304" width="14" height="78"/>
+    <!-- leveller plates -->
+    <rect class="fp-solid" x="60" y="96" width="26" height="62"/>
+    <rect class="fp-solid" x="60" y="204" width="26" height="62"/>
+    <rect class="fp-solid" x="60" y="312" width="26" height="62"/>
+    <!-- apron edge -->
+    <path class="fp-thin" stroke-dasharray="11 9" d="M104 76v312"/>
+    <!-- inbound pallets -->
+    <rect class="fp-solid" x="150" y="92" width="62" height="48" rx="2"/>
+    <path class="fp-thin" d="M150 108h62M150 124h62"/>
+    <rect class="fp-solid" x="150" y="166" width="62" height="48" rx="2"/>
+    <path class="fp-thin" d="M150 182h62M150 198h62"/>
+    <rect class="fp-solid" x="150" y="270" width="62" height="48" rx="2"/>
+    <path class="fp-thin" d="M150 286h62M150 302h62"/>
+    <rect class="fp-solid" x="150" y="344" width="62" height="48" rx="2"/>
+    <path class="fp-thin" d="M150 360h62M150 376h62"/>
+  </g>
+
+  <g class="fp-room" data-room="outbound-docks">
+    <rect class="fp-floor" x="58" y="438" width="198" height="378"/>
+    <rect class="fp-tint" x="44" y="470" width="14" height="78"/>
+    <rect class="fp-tint" x="44" y="578" width="14" height="78"/>
+    <rect class="fp-tint" x="44" y="686" width="14" height="78"/>
+    <rect class="fp-solid" x="60" y="478" width="26" height="62"/>
+    <rect class="fp-solid" x="60" y="586" width="26" height="62"/>
+    <rect class="fp-solid" x="60" y="694" width="26" height="62"/>
+    <path class="fp-thin" stroke-dasharray="11 9" d="M104 458v312"/>
+    <!-- outbound pallets, wrapped -->
+    <rect class="fp-solid" x="150" y="472" width="62" height="48" rx="2"/>
+    <path class="fp-thin" d="M150 488h62M158 472v48M196 472v48"/>
+    <rect class="fp-solid" x="150" y="546" width="62" height="48" rx="2"/>
+    <path class="fp-thin" d="M150 562h62M158 546v48M196 546v48"/>
+    <rect class="fp-solid" x="150" y="650" width="62" height="48" rx="2"/>
+    <path class="fp-thin" d="M150 666h62M158 650v48M196 650v48"/>
+    <rect class="fp-solid" x="150" y="724" width="62" height="48" rx="2"/>
+    <path class="fp-thin" d="M150 740h62M158 724v48M196 724v48"/>
+  </g>
+
+  <g class="fp-room" data-room="racking">
+    <rect class="fp-floor" x="262" y="44" width="598" height="526"/>
+    <!-- racking run 1 -->
+    <rect class="fp-solid" x="286" y="90" width="550" height="36"/>
+    <path class="fp-thin" d="M286 108h550M354 90v36M423 90v36M492 90v36M561 90v36M630 90v36M699 90v36M768 90v36"/>
+    <!-- racking run 2 -->
+    <rect class="fp-solid" x="286" y="186" width="550" height="36"/>
+    <path class="fp-thin" d="M286 204h550M354 186v36M423 186v36M492 186v36M561 186v36M630 186v36M699 186v36M768 186v36"/>
+    <!-- racking run 3 -->
+    <rect class="fp-solid" x="286" y="282" width="550" height="36"/>
+    <path class="fp-thin" d="M286 300h550M354 282v36M423 282v36M492 282v36M561 282v36M630 282v36M699 282v36M768 282v36"/>
+    <!-- racking run 4 -->
+    <rect class="fp-solid" x="286" y="378" width="550" height="36"/>
+    <path class="fp-thin" d="M286 396h550M354 378v36M423 378v36M492 378v36M561 378v36M630 378v36M699 378v36M768 378v36"/>
+    <!-- racking run 5 -->
+    <rect class="fp-solid" x="286" y="474" width="550" height="36"/>
+    <path class="fp-thin" d="M286 492h550M354 474v36M423 474v36M492 474v36M561 474v36M630 474v36M699 474v36M768 474v36"/>
+    <!-- a few pallets left in the aisles -->
+    <rect class="fp-solid" x="620" y="140" width="56" height="36" rx="2"/>
+    <path class="fp-thin" d="M620 152h56M620 164h56"/>
+    <rect class="fp-solid" x="370" y="236" width="56" height="36" rx="2"/>
+    <path class="fp-thin" d="M370 248h56M370 260h56"/>
+    <rect class="fp-solid" x="700" y="428" width="56" height="36" rx="2"/>
+    <path class="fp-thin" d="M700 440h56M700 452h56"/>
+  </g>
+
+  <g class="fp-room" data-room="packing">
+    <rect class="fp-floor" x="872" y="44" width="266" height="256"/>
+    <!-- box stacks on the wall side -->
+    <rect class="fp-solid" x="900" y="74" width="30" height="30"/>
+    <rect class="fp-solid" x="936" y="74" width="30" height="30"/>
+    <rect class="fp-solid" x="972" y="74" width="30" height="30"/>
+    <path class="fp-thin" d="M915 74v30M951 74v30M987 74v30"/>
+    <!-- packing benches -->
+    <rect class="fp-solid" x="896" y="122" width="212" height="46" rx="3"/>
+    <path class="fp-thin" d="M906 168v22M1098 168v22"/>
+    <rect class="fp-solid" x="896" y="196" width="212" height="46" rx="3"/>
+    <path class="fp-thin" d="M906 242v22M1098 242v22"/>
+    <!-- conveyor with rollers -->
+    <rect class="fp-solid" x="896" y="264" width="212" height="24" rx="2"/>
+    <path class="fp-thin" d="M914 264v24M932 264v24M950 264v24M968 264v24M986 264v24M1004 264v24M1022 264v24M1040 264v24M1058 264v24M1076 264v24M1094 264v24"/>
+  </g>
+
+  <g class="fp-room" data-room="qc-station">
+    <rect class="fp-floor" x="872" y="312" width="266" height="258"/>
+    <!-- scales -->
+    <rect class="fp-solid" x="900" y="336" width="58" height="40" rx="3"/>
+    <circle class="fp-thin" cx="929" cy="356" r="13"/>
+    <!-- sample cartons -->
+    <rect class="fp-solid" x="988" y="340" width="40" height="34"/>
+    <rect class="fp-solid" x="1036" y="340" width="40" height="34"/>
+    <path class="fp-thin" d="M1008 340v34M1056 340v34"/>
+    <!-- inspection bench -->
+    <rect class="fp-solid" x="896" y="404" width="204" height="50" rx="3"/>
+    <path class="fp-thin" d="M906 454v24M1090 454v24"/>
+    <!-- checklist board -->
+    <rect class="fp-solid" x="896" y="492" width="48" height="60" rx="2"/>
+    <path class="fp-thin" d="M904 508h32M904 520h32M904 532h24"/>
+    <!-- reject bin -->
+    <rect class="fp-solid" x="1032" y="486" width="70" height="66" rx="6"/>
+    <rect class="fp-thin" x="1042" y="496" width="50" height="46" rx="4"/>
+  </g>
+
+  <g class="fp-room" data-room="dispatch-office">
+    <rect class="fp-floor" x="1152" y="44" width="280" height="296"/>
+    <!-- desks with screens -->
+    <rect class="fp-tint" x="1198" y="80" width="62" height="22" rx="2"/>
+    <rect class="fp-solid" x="1180" y="104" width="130" height="52" rx="3"/>
+    <path class="fp-thin" d="M1190 156v24M1300 156v24"/>
+    <rect class="fp-solid" x="1334" y="110" width="48" height="40" rx="8"/>
+    <rect class="fp-tint" x="1198" y="188" width="62" height="22" rx="2"/>
+    <rect class="fp-solid" x="1180" y="212" width="130" height="52" rx="3"/>
+    <path class="fp-thin" d="M1190 264v24M1300 264v24"/>
+    <rect class="fp-solid" x="1334" y="218" width="48" height="40" rx="8"/>
+    <!-- dispatch board -->
+    <rect class="fp-solid" x="1300" y="292" width="120" height="40" rx="2"/>
+    <path class="fp-thin" d="M1300 312h120M1330 292v40M1360 292v40M1390 292v40"/>
+    <!-- cabinet -->
+    <rect class="fp-solid" x="1172" y="292" width="100" height="38" rx="2"/>
+    <path class="fp-thin" d="M1222 292v38"/>
+  </g>
+
+  <g class="fp-room" data-room="staff-room">
+    <rect class="fp-floor" x="1152" y="352" width="280" height="228"/>
+    <!-- lockers -->
+    <rect class="fp-solid" x="1186" y="368" width="180" height="36"/>
+    <path class="fp-thin" d="M1222 368v36M1258 368v36M1294 368v36M1330 368v36"/>
+    <!-- kitchenette counter -->
+    <rect class="fp-solid" x="1168" y="428" width="48" height="112" rx="2"/>
+    <circle class="fp-thin" cx="1192" cy="458" r="11"/>
+    <path class="fp-thin" d="M1168 496h48"/>
+    <!-- table and chairs -->
+    <rect class="fp-solid" x="1244" y="450" width="132" height="70" rx="10"/>
+    <rect class="fp-solid" x="1258" y="412" width="46" height="32" rx="7"/>
+    <rect class="fp-solid" x="1318" y="412" width="46" height="32" rx="7"/>
+    <rect class="fp-solid" x="1258" y="526" width="46" height="32" rx="7"/>
+    <rect class="fp-solid" x="1318" y="526" width="46" height="32" rx="7"/>
+  </g>
+
+  <g class="fp-room" data-room="charging-bay">
+    <rect class="fp-floor" x="1152" y="592" width="280" height="224"/>
+    <!-- chargers on the outer wall -->
+    <rect class="fp-solid" x="1376" y="624" width="42" height="44" rx="2"/>
+    <circle class="fp-thin" cx="1397" cy="646" r="9"/>
+    <rect class="fp-solid" x="1376" y="686" width="42" height="44" rx="2"/>
+    <circle class="fp-thin" cx="1397" cy="708" r="9"/>
+    <rect class="fp-solid" x="1376" y="748" width="42" height="44" rx="2"/>
+    <circle class="fp-thin" cx="1397" cy="770" r="9"/>
+    <!-- marked forklift bays -->
+    <rect class="fp-thin" stroke-dasharray="10 8" x="1180" y="620" width="166" height="52" rx="3"/>
+    <rect class="fp-thin" stroke-dasharray="10 8" x="1180" y="682" width="166" height="52" rx="3"/>
+    <rect class="fp-thin" stroke-dasharray="10 8" x="1180" y="744" width="166" height="52" rx="3"/>
+    <path class="fp-thin" d="M1346 646h30M1346 708h30M1346 770h30"/>
+  </g>
+
+  <g class="fp-room" data-room="returns-sorting">
+    <rect class="fp-floor" x="262" y="582" width="438" height="234"/>
+    <!-- return chute -->
+    <rect class="fp-solid" x="528" y="602" width="146" height="28" rx="2"/>
+    <path class="fp-thin" d="M546 602v28M564 602v28M582 602v28M600 602v28M618 602v28M636 602v28M654 602v28"/>
+    <!-- loose cartons -->
+    <rect class="fp-solid" x="296" y="598" width="34" height="34"/>
+    <rect class="fp-solid" x="336" y="598" width="34" height="34"/>
+    <path class="fp-thin" d="M313 598v34M353 598v34"/>
+    <!-- sorting table -->
+    <rect class="fp-solid" x="296" y="660" width="220" height="56" rx="3"/>
+    <path class="fp-thin" d="M306 716v22M506 716v22"/>
+    <!-- sorting bins -->
+    <rect class="fp-solid" x="296" y="742" width="62" height="58" rx="4"/>
+    <rect class="fp-solid" x="368" y="742" width="62" height="58" rx="4"/>
+    <rect class="fp-solid" x="440" y="742" width="62" height="58" rx="4"/>
+    <rect class="fp-solid" x="512" y="742" width="62" height="58" rx="4"/>
+    <rect class="fp-tint" x="584" y="742" width="62" height="58" rx="4"/>
+    <path class="fp-thin" d="M296 760h62M368 760h62M440 760h62M512 760h62M584 760h62"/>
+  </g>
+
+  <g class="fp-room" data-room="staging">
+    <rect class="fp-floor" x="712" y="582" width="426" height="234"/>
+    <!-- staged pallets -->
+    <rect class="fp-solid" x="736" y="618" width="76" height="56" rx="2"/>
+    <path class="fp-thin" d="M736 636h76M736 656h76"/>
+    <rect class="fp-solid" x="846" y="618" width="76" height="56" rx="2"/>
+    <path class="fp-thin" d="M846 636h76M846 656h76"/>
+    <rect class="fp-solid" x="956" y="618" width="76" height="56" rx="2"/>
+    <path class="fp-thin" d="M956 636h76M956 656h76"/>
+    <rect class="fp-solid" x="736" y="710" width="76" height="56" rx="2"/>
+    <path class="fp-thin" d="M736 728h76M736 748h76"/>
+    <rect class="fp-solid" x="846" y="710" width="76" height="56" rx="2"/>
+    <path class="fp-thin" d="M846 728h76M846 748h76"/>
+    <rect class="fp-tint" x="956" y="710" width="76" height="56" rx="2"/>
+    <path class="fp-thin" d="M956 728h76M956 748h76"/>
+    <!-- stretch wrapper -->
+    <circle class="fp-solid" cx="1080" cy="626" r="30"/>
+    <circle class="fp-thin" cx="1080" cy="626" r="16"/>
+    <!-- label station -->
+    <rect class="fp-solid" x="1048" y="702" width="72" height="52" rx="3"/>
+    <path class="fp-thin" d="M1060 718h48M1060 730h34"/>
+  </g>
+
+  <!-- ============ floor markings between open zones ============ -->
+  <g class="fp-thin" stroke-dasharray="12 10">
+    <path d="M256 70v730"/>
+    <path d="M70 432h182"/>
+    <path d="M866 70v490"/>
+    <path d="M880 306h250"/>
+    <path d="M266 576h866"/>
+    <path d="M706 592v216"/>
+  </g>
+
+  <!-- ============ interior walls ============ -->
+  <g class="fp-wall">
+    <rect x="1140" y="44" width="12" height="106"/>
+    <rect x="1140" y="210" width="12" height="230"/>
+    <rect x="1140" y="500" width="12" height="180"/>
+    <rect x="1140" y="740" width="12" height="76"/>
+    <rect x="1140" y="340" width="292" height="12"/>
+    <rect x="1140" y="580" width="292" height="12"/>
+  </g>
+
+  <!-- ============ windows in the outer wall ============ -->
+  <g class="fp-tint">
+    <rect x="300" y="30" width="196" height="14"/>
+    <rect x="540" y="30" width="160" height="14"/>
+    <rect x="896" y="30" width="140" height="14"/>
+    <rect x="1186" y="30" width="196" height="14"/>
+  </g>
+
+  <!-- ============ entrance band ============ -->
+  <g>
+    <rect class="fp-tint" x="150" y="862" width="196" height="24"/>
+    <rect class="fp-tint" x="1150" y="862" width="196" height="24"/>
+    <rect class="fp-wall" x="782" y="848" width="82" height="82"/>
+  </g>
+</svg>
