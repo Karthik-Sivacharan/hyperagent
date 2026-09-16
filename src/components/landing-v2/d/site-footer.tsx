@@ -41,10 +41,15 @@ function FooterLink({ link }: { link: LandingLink }) {
 // sections that are actually on it, and the account links. The grid is a
 // three-track row from `lg` to match (wordmark, Product, Account) instead of
 // A's four, so the groups do not strand a column of air at the right.
+//
+// The inset is the page's heading-to-content step (64 / 80px), one below the
+// band step the four sections above take, because the change of ground to ink
+// is already the separator here and a band's worth of padding on top of it
+// would read as a hole rather than as an ending.
 export function SiteFooter() {
   return (
     <footer className="dark bg-background px-4 text-foreground sm:px-6">
-      <div className="mx-auto grid max-w-6xl gap-10 py-12 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mx-auto grid max-w-6xl gap-10 py-16 sm:grid-cols-2 md:py-20 lg:grid-cols-3">
         <Link
           href={LINKS.home.href}
           className="-my-2.5 flex items-center gap-2 self-start rounded-md py-2.5 text-base font-semibold text-foreground"

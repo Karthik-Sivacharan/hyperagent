@@ -81,7 +81,7 @@ export function FormatShowcase() {
     <section
       id={id}
       aria-labelledby={headingId}
-      className="scroll-mt-16 px-4 py-20 sm:px-6 md:py-32"
+      className="scroll-mt-16 px-4 py-24 sm:px-6 md:py-40"
     >
       <div className="mx-auto flex max-w-6xl flex-col">
         <SectionHeading
@@ -94,7 +94,7 @@ export function FormatShowcase() {
         <Tabs
           value={value}
           onValueChange={setValue}
-          className="mt-12 w-full gap-6 md:mt-16 md:gap-8"
+          className="mt-16 w-full gap-6 md:mt-20 md:gap-8"
         >
           {/* The track scrolls rather than wraps on a phone: `w-max` keeps the
               row at its natural width, so it starts at the left edge and runs
@@ -135,9 +135,17 @@ export function FormatShowcase() {
                         The title opens the column: the format's name is
                         already lit in the tab above and read out on the
                         picture beside it, so an eyebrow repeating it would be
-                        the third time in one glance. */}
-                    <div className="flex min-h-72 min-w-0 flex-col justify-center gap-5 px-4 py-6 md:min-h-0 md:px-8 md:py-0">
-                      <div className="flex flex-col gap-2">
+                        the third time in one glance.
+
+                        Padding reads with the tray, not against it: the
+                        panel's own 8px frame plus 16 here is the page's 24px
+                        phone card inset, plus 32 from `md` is its 40px
+                        desktop one, so the copy starts on the same line as
+                        the copy in the brief and team cards. The column is
+                        centred in the panel's fixed height from `md`, so it
+                        has no vertical padding of its own to keep. */}
+                    <div className="flex min-h-72 min-w-0 flex-col justify-center gap-10 px-4 py-6 md:min-h-0 md:px-8 md:py-0">
+                      <div className="flex flex-col gap-3">
                         <h3 className="text-2xl font-medium text-balance text-foreground md:text-3xl">
                           {item.title}
                         </h3>

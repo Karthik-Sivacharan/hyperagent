@@ -112,6 +112,12 @@ const SHOT_SIZES: Record<string, { width: number; height: number }> = {
 // holds and nothing is cut off the bottom; the card's own `overflow-hidden`
 // takes the right-hand bleed.
 //
+// Its left edge and its bottom edge are the card's own padding (24px, 40 from
+// `md`), so the picture starts on the same line as the heading above it and
+// leaves the same margin under it as the copy has over it. The 40px above the
+// picture is the page's copy-to-media step, the one the brief cards take
+// between their two halves.
+//
 // The panel is the card's flexible row and packs to the bottom, so on the
 // three cards of one grid row — equal width, so equal picture height, and
 // equal height whatever the body copy runs to — the pictures line up with
@@ -125,7 +131,7 @@ function ShotPanel({ shot }: { shot: { id: string; label: string } }) {
     <div
       role="img"
       aria-label={shot.label}
-      className="mt-8 flex flex-1 flex-col justify-end pb-5"
+      className="mt-10 flex flex-1 flex-col justify-end pb-6 md:pb-10"
     >
       <Image
         src={`/img/team/${shot.id}.webp`}
@@ -133,7 +139,7 @@ function ShotPanel({ shot }: { shot: { id: string; label: string } }) {
         width={size.width}
         height={size.height}
         aria-hidden="true"
-        className="ml-5 h-auto w-[calc(100%+1rem)] max-w-none rounded-2xl shadow-card-soft"
+        className="ms-6 h-auto w-[calc(100%+1rem)] max-w-none rounded-2xl shadow-card-soft md:ms-10"
       />
     </div>
   );
@@ -155,7 +161,7 @@ export function TeamCards() {
     <section
       id={id}
       aria-labelledby={headingId}
-      className="scroll-mt-16 overflow-x-clip px-4 py-20 sm:px-6 md:py-32"
+      className="scroll-mt-16 overflow-x-clip px-4 py-24 sm:px-6 md:py-40"
     >
       <div className="mx-auto max-w-6xl">
         {/* SectionHeading's own markup and classes, hand-rolled here for the
@@ -193,7 +199,7 @@ export function TeamCards() {
           </p>
         </div>
 
-        <div className="mt-12 grid gap-4 md:mt-16 md:grid-cols-3 md:gap-6">
+        <div className="mt-16 grid gap-4 md:mt-20 md:grid-cols-3 md:gap-6">
           {items.map((item, index) => {
             const shot = TEAM_CARDS.shots[index];
             return (
@@ -201,7 +207,7 @@ export function TeamCards() {
                 key={item.id}
                 className="flex flex-col overflow-hidden rounded-4xl bg-surface-raised md:rounded-5xl"
               >
-                <div className="flex flex-col gap-2 px-6 pt-8 md:px-7 md:pt-10">
+                <div className="flex flex-col gap-3 px-6 pt-6 md:px-10 md:pt-10">
                   <h3 className="text-xl text-balance text-foreground">
                     {item.title}
                   </h3>

@@ -158,14 +158,18 @@ function BriefCard({
   flipped: boolean;
 }) {
   const media = MEDIA[card.id];
+  // 40px between the copy and the picture when the card is stacked, 64 when
+  // it is two columns: the same step the team cards put between a card's copy
+  // and its shot, so "text, then the thing it describes" measures the same
+  // wherever it happens on the page.
   return (
-    <div className="grid items-center gap-8 md:grid-cols-2 md:gap-12 lg:gap-16">
-      <div className={cn("flex flex-col", flipped && "md:order-last")}>
+    <div className="grid items-center gap-10 md:grid-cols-2 md:gap-16">
+      <div className={cn("flex flex-col gap-3", flipped && "md:order-last")}>
         <h3 className="text-xl font-medium text-balance md:text-2xl">
           <span className="block text-muted-foreground">{card.lead}</span>
           <span className="block text-foreground">{card.claim}</span>
         </h3>
-        <p className="mt-4 max-w-[580px] text-base text-pretty text-muted-foreground">
+        <p className="max-w-[580px] text-base text-pretty text-muted-foreground">
           {card.body}
         </p>
       </div>
@@ -182,7 +186,7 @@ function BriefCard({
           sizes="(min-width: 768px) 50vw, 100vw"
           className="object-cover"
         />
-        <div className="relative p-5 sm:p-8 md:p-7 lg:p-10">
+        <div className="relative p-6 md:p-10">
           <AppWindow
             title={card.window}
             label={card.label}
@@ -202,7 +206,7 @@ export function BriefCards() {
     <section
       id={id}
       aria-labelledby={headingId}
-      className="scroll-mt-16 px-4 py-20 sm:px-6 md:py-32"
+      className="scroll-mt-16 px-4 py-24 sm:px-6 md:py-40"
     >
       <div className="mx-auto max-w-6xl">
         {/* One heading treatment across the page: the display cut, flush on
@@ -216,7 +220,7 @@ export function BriefCards() {
           className="max-w-4xl"
         />
 
-        <div className="mt-12 flex flex-col gap-16 md:mt-16 md:gap-24">
+        <div className="mt-16 flex flex-col gap-16 md:mt-20 md:gap-24">
           {items.map((card, index) => (
             <BriefCard key={card.id} card={card} flipped={index % 2 === 1} />
           ))}

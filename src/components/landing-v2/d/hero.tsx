@@ -56,14 +56,18 @@ function splitAround(title: string, word: string): [string, string] {
 // (`text-heading-display`: fluid 40 → 48px at the heading weight), so the
 // page opens on one statement rather than a large-ish line.
 //
-// Spacing steps down from the window outwards: 24px from the headline to the
-// lede, 40px to the actions, 64 to 80px to the window, and the band's own
-// padding matches the sections below it.
+// Spacing steps down from the window outwards, on the page's one ladder:
+// 24px from the headline to the lede, 40px to the actions, then 64 / 80px to
+// the window, which is the same step every section below takes from its
+// heading to the thing it introduces. The band's own padding is the band step
+// (96 / 160px), the same as the three sections and measured the same on both
+// edges — the header above it is a hairline on the same paper, not a change
+// of ground, so the hero does not get a shorter top than its neighbours.
 export function Hero() {
   return (
     <section
       aria-labelledby="hero-heading"
-      className="overflow-x-clip px-4 pt-16 pb-20 sm:px-6 md:pt-24 md:pb-32"
+      className="overflow-x-clip px-4 py-24 sm:px-6 md:py-40"
     >
       <div className="mx-auto flex max-w-5xl flex-col items-center text-center">
         <h1
