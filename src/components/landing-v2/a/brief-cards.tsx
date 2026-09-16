@@ -9,7 +9,6 @@ import {
   type RefObject,
 } from "react";
 
-import { Reveal } from "../reveal";
 import { BRIEF_CARDS } from "./content";
 import { SectionHeading } from "./section";
 
@@ -368,21 +367,19 @@ export function BriefCards() {
             the container's left edge, with the sub under it at the same size
             in the muted tier. `cut` is passed here rather than changed in
             SectionHeading, whose default stays `section` for variant A. */}
-        <Reveal>
-          <SectionHeading
-            id={headingId}
-            heading={heading}
-            cut="display"
-            className="max-w-4xl"
-          />
-        </Reveal>
+        <SectionHeading
+          id={headingId}
+          heading={heading}
+          cut="display"
+          className="max-w-4xl"
+        />
 
         <div className="mt-16 grid gap-6 md:mt-20 lg:grid-cols-[minmax(0,3fr)_minmax(0,9fr)] lg:gap-16">
           {/* The index. The column is a grid item, so it is as tall as the
               stack beside it and the rail can stay with the reader the whole
               way down; `top-28` parks it clear of the sticky header, the step
               the page's other sticky column already takes. */}
-          <Reveal className="hidden lg:block">
+          <div className="hidden lg:block">
             <nav aria-label={stagesLabel} className="sticky top-28">
               <ol role="list" className="flex flex-col gap-5">
                 {items.map((card, index) => (
@@ -396,9 +393,9 @@ export function BriefCards() {
                 ))}
               </ol>
             </nav>
-          </Reveal>
+          </div>
 
-          {/* The stack. One reveal step for all three, not a 0/1/2 ladder:
+          {/* The stack. The three arrive together, not on a 0/1/2 ladder:
               the panels are most of a screen apart, so the scroll already
               sequences them and a growing delay would only read as lag on the
               last one. `scroll-mt` lands a panel under the header on the same
@@ -411,12 +408,9 @@ export function BriefCards() {
                 tabIndex={-1}
                 className="scroll-mt-28 focus:outline-none"
               >
-                <Reveal
-                  step={1}
-                  className="overflow-hidden rounded-4xl bg-surface-raised md:rounded-5xl lg:min-h-96"
-                >
+                <div className="overflow-hidden rounded-4xl bg-surface-raised md:rounded-5xl lg:min-h-96">
                   <BriefPanel card={card} />
-                </Reveal>
+                </div>
               </li>
             ))}
           </ol>

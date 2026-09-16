@@ -24,27 +24,30 @@ import { SiteHeader } from "./site-header";
 //
 // The roster goes second because of what the hero leaves open. The hero names
 // a team and shows the app; the reader's next question is who is on it, and
-// the bands below each answer a different one. `NAV_D` is untouched: it names
-// the three bands that were on the page when it was written, and adding a
-// fourth link is a separate call about the header's density.
+// the bands below each answer a different one. `NAV_D` names all four, so the
+// header is an index of the page rather than of the page as it once was.
 //
 // The page ends on the closing band (`./closing`), which is where its one
 // action is asked for below the hero. It was a full-bleed dark band and is
 // now a panel on a masked smear gradient, so the page finishes on the same
 // paper it opened on and the footer under it needs no change of ground.
+//
+// NOTHING ON THIS PAGE ANIMATES ON SCROLL. The bands used to fade and rise as
+// the reader reached them, through a `Reveal` wrapper that held each one on
+// the first frame of an animation until an observer said it had arrived. That
+// is out, on the marketing rule that a page should not move because the reader
+// scrolled: the motion is not something they asked for, it arrives while they
+// are trying to read, and it costs the page a class of bug it should never
+// have carried — a block held back by an observer is a block that can be left
+// invisible, which is exactly what an in-page anchor used to do to every band
+// it jumped over.
+//
+// What is left is motion a reader can account for: the hero window drawing
+// itself once on arrival, and the two cursors on the team band, which move
+// because the sentence they sit on is about work happening.
 export function LandingPageD() {
   return (
     <div className="flex min-h-svh flex-col bg-surface-secondary text-foreground">
-      {/* The scroll entrances (../reveal) hold each band on the first frame of
-          its animation until an observer reports it. With no JavaScript
-          nothing ever reports one, so this hands every band its animation
-          already running: the entrances play once, on load, and the page is
-          whole rather than a column of held-back blocks. Under reduced motion
-          there is no animation to hand out — the module's rules live in a
-          `no-preference` query — so the rule is inert there. */}
-      <noscript>
-        <style>{"[data-reveal]{--reveal-play:running}"}</style>
-      </noscript>
       <a
         href="#main"
         className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-(--z-toast) focus:rounded-full focus:bg-background focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:shadow-md"

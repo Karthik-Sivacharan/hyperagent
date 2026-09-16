@@ -193,11 +193,26 @@ export function HeroWindow() {
 
   // The window is near the top of the page, so this is all but a mount, and
   // it latches: the entrance plays once, for the reader who arrives at it.
+  //
+  // Once per VISIT, not once per load. The key is the whole of that — the hook
+  // records it in `sessionStorage` on the frame the entrance starts, and a
+  // reader who comes back to the page inside the same visit gets the window
+  // finished instead of drawing itself at them again.
   const frameRef = useRef<HTMLElement>(null);
-  const seen = useInViewOnce(frameRef);
+  const intro = useInViewOnce(frameRef, undefined, "hero-intro-seen");
+
+  // The entrance does double duty: it is the picture arriving, and it is also
+  // what every agent switch rides in on, because switching re-keys the content
+  // and a fresh element starts at the first frame again. So "skip" has to mean
+  // "skip the INTRO", not "no animation in this window" — an agent switch is
+  // something the reader asked for, and that is the kind of motion a page
+  // should keep. The first switch turns the animation back on and it stays on.
+  const [switched, setSwitched] = useState(false);
+  const motionState = switched ? "play" : intro;
 
   const select = (id: DemoAgentId) => {
     if (id === selectedId) return;
+    setSwitched(true);
     setPreviousId(selectedId);
     setSelectedId(id);
   };
@@ -214,7 +229,7 @@ export function HeroWindow() {
       <section
         ref={frameRef}
         aria-label={A11Y.window}
-        data-hero-motion={seen ? "play" : "idle"}
+        data-hero-motion={motionState}
         className={cn(
           "w-full overflow-hidden rounded-3xl bg-background shadow-xl ring-1 ring-border-subtle",
           motion.frame,

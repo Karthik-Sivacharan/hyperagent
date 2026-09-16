@@ -32,16 +32,18 @@
    moves, which is exactly this (docs/brand/design.md §8); the entrances on the
    same page use the out curves, because those are things arriving.
 
-   WHEN IT RUNS. `--reveal-play` is the custom property ../reveal.module.css
-   sets to `running` on a band that has arrived. Custom properties inherit, and
-   these cursors live inside the heading's own `Reveal`, so the drift is paused
-   until the reader reaches the band and starts on the same frame the heading
-   does. Nothing moves in a band that has not been seen.
+   WHEN IT RUNS. Always, once the stylesheet applies. It used to be held until
+   the band's scroll entrance played, through the custom property that entrance
+   set; the entrances are gone (see d/landing-page.tsx) and nothing replaced the
+   gate, because the thing that would replace it is an observer watching the
+   scroll, which is the machinery that came out. Two composited elements moving
+   `translate` cost nothing measurable when they are off screen, and a page that
+   has to watch the reader to decide whether to move is the pattern being
+   avoided here, not an optimisation of it.
 
    Under reduced motion every rule here is inert — they are all inside the
-   `no-preference` query, and `--reveal-play` is never set there either — so
-   the cursors are simply two marks sitting on the words, which is what they
-   were before this file. Below `md` the component does not draw them at all. */
+   `no-preference` query — so the cursors are simply two marks sitting on the
+   words. Below `md` the component does not draw them at all. */
 
 @media (prefers-reduced-motion: no-preference) {
   .drift {
@@ -49,7 +51,6 @@
     animation-duration: var(--drift-cycle, 9s);
     animation-timing-function: var(--ease-in-out);
     animation-iteration-count: infinite;
-    animation-play-state: var(--reveal-play, paused);
   }
 
   .driftA {

@@ -7,48 +7,54 @@
    band can use the gradients the rest of the page uses instead of a
    one-off asset drawn to fit.
 
-   One ellipse of mask does the whole job. It is anchored below the panel's
-   bottom edge and is wider than it is tall, so the field is solid across the
-   bottom, thins through the middle, and is gone by the top and by the two
-   upper corners — the same falloff on all three edges, which a top-to-bottom
-   ramp cannot give (it would leave the corners at full colour).
+   One ellipse of mask does the whole job. It is anchored just below the
+   panel's bottom edge and is wider than it is tall, so the field is solid
+   across the bottom AND into the two bottom corners, thins through the middle,
+   and is gone by the top — the same falloff on all three upper edges, which a
+   top-to-bottom ramp cannot give (it would leave the corners at full colour).
 
-   Both radii are larger than the panel and the falloff runs past its far end
-   (`transparent 102%`), which is the difference between a wash and a shape.
-   A tighter ellipse draws its own arc across the panel, and the arc lands
-   straight through the headline: the eye reads the edge of a circle rather
-   than light. Flattening the curve and never letting the ramp finish inside
-   the box leaves a gradient with no edge in it anywhere.
+   The ellipse is wider than the panel (130%) and the plateau runs to half its
+   radius, which is what keeps the bottom corners at full strength: a narrower
+   one darkens the centre and lets both corners fall away, and the eye reads
+   the resulting arc as a shape drawn on the panel rather than as light.
+   Nothing about the ramp finishes inside the top edge, so there is no edge to
+   find up there either.
 
-   The numbers, against the panel's own width and height: a quarter strength
-   behind the heading at 0.32H, two fifths behind the line under it at 0.45H,
-   about half behind the button, and solid across the bottom eighth. The two
-   lines of copy live in the top half on purpose — the field there is a tint
-   over the panel's own paper, not a colour, so the muted tier still reads. */
+   The numbers, against the panel's own height: gone by the heading, a tint
+   behind the line under it, better than half behind the button, and full
+   colour across the bottom third. The two lines of copy live in the top half
+   on purpose — and the scrim below still holds the paper under them, because
+   a tint is not a guarantee and the muted tier has a 4.5 floor to clear. */
 .field {
   -webkit-mask-image: radial-gradient(
-    90% 105% at 50% 120%,
-    black 26%,
-    transparent 102%
+    130% 115% at 50% 112%,
+    black 50%,
+    transparent 100%
   );
-  mask-image: radial-gradient(90% 105% at 50% 120%, black 26%, transparent 102%);
+  mask-image: radial-gradient(
+    130% 115% at 50% 112%,
+    black 50%,
+    transparent 100%
+  );
 }
 
-/* The smear itself, softened into light.
+/* The smear itself, shown as it was made.
 
-   These gradients are built to sit behind a screenshot at full detail, where
-   the diagonal streaks are the point. Behind a headline they are not: at full
-   resolution the band reads as a photograph of motion, the streaks compete
-   with the type, and the one thing the panel is for — a glow the button
-   stands in — is the thing it does not do. A 24px blur keeps the colour and
-   the direction of the smear and drops the detail, which is what makes it a
-   ground instead of a picture. The 8% of scale is so the blur has material to
-   sample past the panel's edges and cannot feather in from them. */
-.smear {
-  filter: blur(24px);
-  transform: scale(1.08);
-}
+   It used to be blurred 24px and scaled 8% to give the blur material to
+   sample. The reasoning was that the diagonal streaks compete with the type —
+   but the mask above is what answers that, by taking the colour away from
+   where the type is, and a 24px blur on top of it does not soften the picture
+   so much as replace it. What reached the page was a pale wash that shared a
+   filename with `dusk` and nothing else: no navy at the top of the frame, no
+   cyan, none of the direction the whole set is built around. The band was the
+   only place on the page showing one of these files in a form the reader
+   could not recognise; the format showcase and the team cards both show them
+   flat, and they read as the artwork they are.
 
+   So: no filter. The file is the ground, at the resolution it was drawn, and
+   the mask decides where it exists. The scale went with the blur — it existed
+   to feed it, and without it, it was only cropping 8% off a picture whose
+   whole subject is a diagonal running corner to corner. */
 /* The scrim that keeps the copy readable.
 
    The field is a photograph, so what sits behind a given word depends on

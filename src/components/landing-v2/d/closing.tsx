@@ -4,7 +4,6 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-import { Reveal } from "../reveal";
 import styles from "./closing.module.css";
 import { CLOSING_D, HERO_D, LINKS } from "./content";
 
@@ -44,12 +43,12 @@ export function ClosingD() {
       className="scroll-mt-16 px-4 py-24 sm:px-6 md:py-40"
     >
       <div className="mx-auto max-w-6xl">
-        {/* The panel IS the Reveal, as every card on the page is, so the band
+        {/* The panel is one box, as every card on the page is, so the band
             arrives in one movement rather than as a frame with its contents
             landing inside it. `isolate` keeps the field's stacking context to
             the panel; the card's radius and `overflow-hidden` do the clipping,
             so the field needs no radius of its own. */}
-        <Reveal className="relative isolate overflow-hidden rounded-4xl bg-background md:rounded-5xl">
+        <div className="relative isolate overflow-hidden rounded-4xl bg-background md:rounded-5xl">
           <div
             aria-hidden="true"
             className={cn("absolute inset-0", styles.field)}
@@ -60,7 +59,16 @@ export function ClosingD() {
               fill
               unoptimized
               sizes="(min-width: 1200px) 1152px, 100vw"
-              className={cn("object-cover", styles.smear)}
+              // `object-top`, not the default centre. The panel is a wide
+              // short box and the file is 4:3, so `cover` shows a horizontal
+              // slice of it and the slice is a real choice: centred, it lands
+              // on the pale middle of the picture and the band reads as a
+              // generic pastel wash. Anchored to the top, the slice carries
+              // the navy and the cyan the top third of these files is built
+              // around, and the diagonal reads as a diagonal. Every one of the
+              // twelve is darkest and most saturated at the top, so this holds
+              // if the band is ever pointed at a different one.
+              className="object-cover object-top"
             />
           </div>
 
@@ -130,7 +138,7 @@ export function ClosingD() {
               <Link href={LINKS.start.href}>{HERO_D.primary}</Link>
             </Button>
           </div>
-        </Reveal>
+        </div>
       </div>
     </section>
   );

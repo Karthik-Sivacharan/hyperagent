@@ -4,7 +4,6 @@ import { Mark } from "@/components/brand/mark";
 import { Overline } from "@/components/ui/overline";
 
 import { type LandingLink } from "../a/content";
-import { Reveal } from "../reveal";
 import { FOOTER_D, LINKS } from "./content";
 
 // A footer link: 14px on the second tier, lifting to the first on hover. On
@@ -53,11 +52,11 @@ export function SiteFooter() {
       {/* The page's last arrival, on the same recipe as the three bands above
           so the ending is not the one thing that pops in. The three columns
           cross the fold together, so they take the row stagger the team cards
-          take; the reveal sits on the columns rather than on the grid around
+          take; the columns are the grid's own children rather than one box around
           them, so the 16px of rise stays inside the grid's own 64px of bottom
           padding and the document's scroll height never moves. */}
       <div className="mx-auto grid max-w-6xl gap-10 py-16 sm:grid-cols-2 md:py-20 lg:grid-cols-3">
-        <Reveal className="self-start">
+        <div className="self-start">
           <Link
             href={LINKS.home.href}
             className="-my-2.5 flex items-center gap-2 rounded-md py-2.5 text-base font-semibold text-foreground"
@@ -65,9 +64,9 @@ export function SiteFooter() {
             <Mark size={20} />
             {LINKS.home.label}
           </Link>
-        </Reveal>
-        {FOOTER_D.groups.map((group, index) => (
-          <Reveal key={group.title} step={index + 1}>
+        </div>
+        {FOOTER_D.groups.map((group) => (
+          <div key={group.title}>
             <nav aria-label={group.title} className="flex flex-col gap-2">
               <Overline asChild>
                 <p>{group.title}</p>
@@ -80,7 +79,7 @@ export function SiteFooter() {
                 ))}
               </ul>
             </nav>
-          </Reveal>
+          </div>
         ))}
       </div>
     </footer>

@@ -53,6 +53,10 @@ next-env.d.ts
 # Implementation plans kept off GitHub (local only)
 /docs/plans/local/
 
+# Floor plan illustration working folder: research notes, renders, reference
+# assets. The SVGs themselves live in /public/illustrations/ and are committed.
+/docs/illustration-office/
+
 # Generated gradient PNGs from the smear-gradients experiment (regenerate with
 # `node experiments/smear-gradients/smear-gradient.mjs`)
 /experiments/smear-gradients/output/

@@ -10,7 +10,6 @@ import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 
-import { Reveal } from "../reveal";
 import { SectionHeading } from "../a/section";
 import { ROSTER, type RosterAgent } from "./roster-content";
 
@@ -52,66 +51,62 @@ export function AgentRoster() {
       className="scroll-mt-16 px-4 py-24 sm:px-6 md:py-40"
     >
       <div className="mx-auto flex max-w-6xl flex-col">
-        {/* Three beats as the reader arrives, the same ones the format
-            showcase takes: the heading, then the formats or the roster, then
-            the line of controls under it. */}
-        <Reveal>
-          <SectionHeading
-            id={headingId}
-            heading={heading}
-            cut="display"
-            className="max-w-4xl"
-          />
-        </Reveal>
+        {/* The heading, the roster, then the line of controls under it — the
+            same three parts the format showcase lays out, in the same order.
+            Neither band animates them in any more. */}
+        <SectionHeading
+          id={headingId}
+          heading={heading}
+          cut="display"
+          className="max-w-4xl"
+        />
 
-        <Reveal step={1}>
-          <Tabs
-            value={value}
-            onValueChange={setValue}
-            className="mt-16 w-full gap-6 md:mt-20 md:gap-8"
-          >
-            {/* The track scrolls rather than wraps on a phone: `w-max` keeps
-                the row at its natural width so it runs past the gutter into
-                the scroller instead of squeezing. 52px of track below `sm`,
-                not 48, because the list's own `p-1` comes off the pill inside
-                it and a thumb wants 44. Both numbers are the format
-                showcase's; two tab rows on one page measure the same. */}
-            <div className="-mx-4 overflow-x-auto px-4 [scrollbar-width:none] sm:mx-0 sm:px-0">
-              <TabsList
-                aria-label={tabsLabel}
-                className="w-max group-data-horizontal/tabs:h-13 sm:group-data-horizontal/tabs:h-9"
-              >
-                {categories.map((category) => (
-                  <TabsTrigger
-                    key={category.id}
-                    value={category.id}
-                    className="px-4"
-                  >
-                    {category.name}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-            </div>
-
-            {categories.map((category) => (
-              <TabsContent
-                key={category.id}
-                value={category.id}
-                className="motion-safe:animate-fade-in"
-              >
-                <ul
-                  role="list"
-                  aria-label={category.listLabel}
-                  className="grid gap-4 sm:grid-cols-2 md:gap-5 xl:grid-cols-4"
+        <Tabs
+          value={value}
+          onValueChange={setValue}
+          className="mt-16 w-full gap-6 md:mt-20 md:gap-8"
+        >
+          {/* The track scrolls rather than wraps on a phone: `w-max` keeps
+              the row at its natural width so it runs past the gutter into
+              the scroller instead of squeezing. 52px of track below `sm`,
+              not 48, because the list's own `p-1` comes off the pill inside
+              it and a thumb wants 44. Both numbers are the format
+              showcase's; two tab rows on one page measure the same. */}
+          <div className="-mx-4 overflow-x-auto px-4 [scrollbar-width:none] sm:mx-0 sm:px-0">
+            <TabsList
+              aria-label={tabsLabel}
+              className="w-max group-data-horizontal/tabs:h-13 sm:group-data-horizontal/tabs:h-9"
+            >
+              {categories.map((category) => (
+                <TabsTrigger
+                  key={category.id}
+                  value={category.id}
+                  className="px-4"
                 >
-                  {category.agents.map((agent) => (
-                    <AgentTile key={agent.id} agent={agent} />
-                  ))}
-                </ul>
-              </TabsContent>
-            ))}
-          </Tabs>
-        </Reveal>
+                  {category.name}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </div>
+
+          {categories.map((category) => (
+            <TabsContent
+              key={category.id}
+              value={category.id}
+              className="motion-safe:animate-fade-in"
+            >
+              <ul
+                role="list"
+                aria-label={category.listLabel}
+                className="grid gap-4 sm:grid-cols-2 md:gap-5 xl:grid-cols-4"
+              >
+                {category.agents.map((agent) => (
+                  <AgentTile key={agent.id} agent={agent} />
+                ))}
+              </ul>
+            </TabsContent>
+          ))}
+        </Tabs>
 
         {/* The band's one action, on the same left edge as everything above
             it. There is no caption beside it: the roster carries the word
@@ -120,19 +115,14 @@ export function AgentRoster() {
             `lg` draws an outline button at 40px, which is a pointer's button
             and a thumb's near miss, so below `sm` it takes the 44px the pills
             above it take. */}
-        <Reveal step={2} className="mt-6 flex w-full md:mt-8">
-          <Button
-            asChild
-            variant="outline"
-            size="lg"
-            className="h-11 sm:h-10"
-          >
+        <div className="mt-6 flex w-full md:mt-8">
+          <Button asChild variant="outline" size="lg" className="h-11 sm:h-10">
             <Link href={action.href}>
               {action.label}
               <IconArrowRight aria-hidden="true" />
             </Link>
           </Button>
-        </Reveal>
+        </div>
       </div>
     </section>
   );

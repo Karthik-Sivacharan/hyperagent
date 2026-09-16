@@ -25,6 +25,16 @@
     --hero-play: running;
   }
 
+  /* Seen already this visit. `--hero-name` inherits, so one property on the
+     frame takes the animation off every item inside it at once, and what is
+     left is the finished picture with no first frame to hold. This is a
+     THIRD state rather than "play on mount": an entrance that runs the
+     instant the page appears is not a shorter entrance, it is the same one
+     in the reader's way. */
+  .frame[data-hero-motion="skip"] {
+    --hero-name: none;
+  }
+
   .chat,
   .desktop {
     /* A hint of direction, not a slide; 6 stage pixels, which the frame's
@@ -46,7 +56,16 @@
   .chat [data-agent-turn] > div:not([data-role]) > *,
   .chat [data-agent-turn] > [data-role="assistant"],
   .desktop > :nth-child(n + 2) {
-    animation: hero-rise var(--duration-slow) var(--ease-out-expo) both;
+    /* Longhands, not the `animation` shorthand. `--hero-name` resolves to
+       `none` on a skip, and `none` is a legal value for BOTH the name and the
+       fill-mode, so `animation: none <time> <easing> both` binds the `none` to
+       fill-mode and leaves `both` to be read as the keyframes name. It happens
+       to animate nothing either way, which is what makes it the kind of bug
+       that survives a test; written out, each value can only mean one thing. */
+    animation-name: var(--hero-name, hero-rise);
+    animation-duration: var(--duration-slow);
+    animation-timing-function: var(--ease-out-expo);
+    animation-fill-mode: both;
     animation-delay: min(
       calc(var(--hero-step, 0) * var(--hero-stagger)),
       var(--hero-cap)
@@ -108,7 +127,10 @@
      the one it replaces, which is held underneath at full strength so the
      panel never shows through the pair. */
   .wallpaper {
-    animation: hero-fade var(--duration-normal) var(--ease-out) both;
+    animation-name: var(--hero-name, hero-fade);
+    animation-duration: var(--duration-normal);
+    animation-timing-function: var(--ease-out);
+    animation-fill-mode: both;
     animation-play-state: var(--hero-play, paused);
   }
 }
