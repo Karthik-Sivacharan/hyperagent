@@ -102,8 +102,7 @@ const VIEW_ICONS: Record<TeamViewId, TablerIcon> = {
 // window goes to the top right corner instead, which is Outbound: three
 // characters at their desks, one of them waiting on a person.
 const OFFICE_STAGE = "h-[704px] w-[1152px]";
-const OFFICE_WINDOW =
-  "absolute inset-0 flex items-start justify-end md:items-center md:justify-center";
+const OFFICE_ALIGN = "items-start justify-end md:items-center md:justify-center";
 
 // The height every view shares. It is fixed so the page under the panel does
 // not move when a tab changes, which is the same promise the format
@@ -137,16 +136,35 @@ const FADE_BOTTOM =
 const FADE_RIGHT =
   "absolute inset-y-0 right-0 w-12 bg-linear-to-l from-background to-transparent";
 
-// The org chart fits itself to the panel instead of scrolling, so it needs no
-// fade until the panel is narrower than the smallest the chart will draw
-// itself. React Flow will not go below 0.3, and the 1088px tree at 0.3 plus
-// its 48px fit padding wants 423px; the panel is the viewport less the 16px
-// section gutters and the tray's 8px, so that is a 471px screen. Under it the
-// chart runs past both edges and cuts the outermost card of each branch in
-// half, which is what a 320px phone gets. Hence the odd breakpoint: it is the
-// width, and the fades are drawn at no other.
-const FADE_SIDES =
-  "absolute inset-y-0 w-8 from-background to-transparent min-[471px]:hidden";
+// THE TWO FIXED STAGES. The org chart and the office are both a drawing at a
+// size of its own, and both used to be handed the panel and told to cope. That
+// works for neither, for opposite reasons, and the answer is the same for
+// both: give each one the box it was drawn for and let the panel be a WINDOW
+// onto it, with the edges faded so what the window cuts reads as continuing
+// rather than as broken.
+//
+// The chart is the one that was wrong and looked fine. React Flow fits the
+// 1088px tree to whatever it is given and will not shrink past 0.3, so on a
+// 342px phone panel it drew the whole chart at 0.3: 3.9px role labels, and
+// 76% of the panel left white around a 105px island. It was a picture of an
+// org chart in the sense that a photograph of a page of text is a picture of
+// a book. At 1136 it draws at 0.89 to 0.96 instead, which is 12px type, and
+// the phone sees the top of the tree at a size it can read.
+//
+// 1136 is the panel's own widest, so this changes nothing from 1200 up, where
+// the panel already was 1136: same chart, same zoom, no crop. Everything
+// narrower now crops instead of shrinking.
+const ORG_STAGE = "h-full w-[1136px]";
+
+// The fades those two windows carry, on both edges, at every width. The office
+// needed them for a plainer reason than the chart: a room's nameplate or a
+// character's name tag that lands on the edge is cut mid-word, and now that
+// the floor wanders (`teams/space/scene/use-wander.ts`) the tags move, so
+// there is no arrangement of the crop that keeps them clear.
+// 48px where something is actually cut, 32 from `xl`, where the panel is its
+// full 1136 and the 1040px tree sits inside it with 48px of margin each side:
+// there the fade lands entirely on empty ground and the chart is untouched.
+const FADE_SIDE = "absolute inset-y-0 w-12 from-background to-transparent xl:w-8";
 
 export function TeamViews() {
   const { id, heading, tabsLabel, views } = TEAM_VIEWS;
@@ -211,40 +229,45 @@ export function TeamViews() {
                       aria-label={view.alt}
                       className={cn("relative overflow-hidden rounded-3xl", PANEL)}
                     >
-                      {view.id === "office" ? (
-                        <div className={OFFICE_WINDOW}>
-                          <Stage className={cn(OFFICE_STAGE, "shrink-0")}>
-                            <SpaceView walkWhenIdle={false} wander />
-                          </Stage>
-                        </div>
-                      ) : (
+                      {view.id === "board" || view.id === "list" ? (
+                        // Fluid: these two size themselves to the panel and
+                        // run off its foot, and the board off its right too.
                         <>
                           <Stage className="absolute inset-0">
-                            {view.id === "board" ? (
-                              <BoardView />
-                            ) : view.id === "list" ? (
-                              <ListView />
-                            ) : (
-                              <OrgView controls={false} />
-                            )}
+                            {view.id === "board" ? <BoardView /> : <ListView />}
                           </Stage>
-                          {view.id === "org" ? (
-                            <>
-                              <div
-                                className={cn(FADE_SIDES, "left-0 bg-linear-to-r")}
-                              />
-                              <div
-                                className={cn(FADE_SIDES, "right-0 bg-linear-to-l")}
-                              />
-                            </>
-                          ) : (
-                            <>
-                              <div className={FADE_BOTTOM} />
-                              {view.id === "board" ? (
-                                <div className={FADE_RIGHT} />
-                              ) : null}
-                            </>
-                          )}
+                          <div className={FADE_BOTTOM} />
+                          {view.id === "board" ? (
+                            <div className={FADE_RIGHT} />
+                          ) : null}
+                        </>
+                      ) : (
+                        // Fixed: a drawing at its own size, seen through the
+                        // panel, faded where the window cuts it.
+                        <>
+                          <div
+                            className={cn(
+                              "absolute inset-0 flex",
+                              view.id === "office"
+                                ? OFFICE_ALIGN
+                                : "items-center justify-center",
+                            )}
+                          >
+                            <Stage
+                              className={cn(
+                                view.id === "office" ? OFFICE_STAGE : ORG_STAGE,
+                                "shrink-0",
+                              )}
+                            >
+                              {view.id === "office" ? (
+                                <SpaceView walkWhenIdle={false} wander />
+                              ) : (
+                                <OrgView controls={false} />
+                              )}
+                            </Stage>
+                          </div>
+                          <div className={cn(FADE_SIDE, "left-0 bg-linear-to-r")} />
+                          <div className={cn(FADE_SIDE, "right-0 bg-linear-to-l")} />
                         </>
                       )}
                     </div>
