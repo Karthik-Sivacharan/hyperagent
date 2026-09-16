@@ -15,10 +15,31 @@ export const LINKS = {
   home: { label: A_LINKS.home.label, href: "/landing/d" },
 } satisfies Record<string, LandingLink>;
 
-// D is a shorter page than A: the hero, the formats, the three stages of one
-// job, the team cards and the closing band. A's NAV and FOOTER point at the
-// sections D does not carry, so D keeps its own, in the order the page reads.
+// The roster band's own id, defined here rather than in `./roster-content`
+// because the nav below has to name it and that module already reads this one.
+// Putting it the other way round would close the import into a circle.
+export const ROSTER_ID = "agents";
+
+// D is a shorter page than A: the hero, the roster, the formats, the three
+// stages of one job, the team cards and the closing band. A's NAV and FOOTER
+// point at the sections D does not carry, so D keeps its own, in the order the
+// page reads.
+//
+// Every band the page has is named here, which is the point of the list: a
+// reader who opens the nav should see the shape of the whole page, and a link
+// missing from it is a section they have no way to reach. The roster was the
+// one gap — it was added to the page after this list was written.
+//
+// The closing band is deliberately NOT on it. It is the page's last call to
+// action rather than a section of argument, and the two buttons in the header
+// already go where it goes; a nav link to it would be a third copy of the same
+// destination dressed as navigation.
+//
+// Four is also the ceiling the header can carry. The row is the wordmark, the
+// links and two actions on one 64px line, and it only draws the links from
+// `lg`; a fifth would start crowding the actions at 1024.
 export const NAV_D: LandingLink[] = [
+  { label: "Agents", href: `#${ROSTER_ID}` },
   { label: "Formats", href: `#${FORMATS.id}` },
   { label: "How it works", href: `#${BRIEF_CARDS.id}` },
   { label: "Your team", href: `#${TEAM_CARDS.id}` },

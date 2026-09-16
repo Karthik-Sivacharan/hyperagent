@@ -40,7 +40,7 @@
 // and no tab leans on one mark: a function's eight cards should show the shape
 // of the department's week, which is several apps, not one.
 
-import { LINKS } from "./content";
+import { LINKS, ROSTER_ID } from "./content";
 
 export type RosterAgent = {
   id: string;
@@ -61,7 +61,7 @@ export type RosterCategory = {
 };
 
 export const ROSTER = {
-  id: "agents",
+  id: ROSTER_ID,
   heading: {
     title: "Agents for every function",
     sub: "and every recurring job.",
@@ -77,13 +77,15 @@ export const ROSTER = {
         {
           id: "campaign-reporter",
           name: "Campaign reporter",
-          description: "Turns last week's ad numbers into a note the team reads.",
+          description:
+            "Turns last week's ad numbers into a note the team reads.",
           toolIds: ["google-analytics", "meta-ads", "google-sheets", "slack"],
         },
         {
           id: "content-briefer",
           name: "Content briefer",
-          description: "Researches the topic and writes the brief for each post.",
+          description:
+            "Researches the topic and writes the brief for each post.",
           toolIds: ["notion", "google-docs", "google-drive"],
         },
         {
@@ -211,7 +213,8 @@ export const ROSTER = {
         {
           id: "role-writer",
           name: "Role writer",
-          description: "Writes the job post from the notes of your kickoff call.",
+          description:
+            "Writes the job post from the notes of your kickoff call.",
           toolIds: ["granola", "google-docs", "notion"],
         },
         {
@@ -278,7 +281,8 @@ export const ROSTER = {
         {
           id: "budget-checker",
           name: "Budget checker",
-          description: "Checks each team against its budget and flags the gaps.",
+          description:
+            "Checks each team against its budget and flags the gaps.",
           toolIds: ["google-sheets", "airtable", "slack"],
         },
         {
@@ -309,13 +313,15 @@ export const ROSTER = {
         {
           id: "ticket-sorter",
           name: "Ticket sorter",
-          description: "Sorts the week's support email into themes, worst first.",
+          description:
+            "Sorts the week's support email into themes, worst first.",
           toolIds: ["gmail", "notion", "google-sheets", "slack"],
         },
         {
           id: "note-taker",
           name: "Note taker",
-          description: "Turns every meeting into notes and a list of next steps.",
+          description:
+            "Turns every meeting into notes and a list of next steps.",
           toolIds: ["granola", "google-meet", "notion", "slack"],
         },
         {

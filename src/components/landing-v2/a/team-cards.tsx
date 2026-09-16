@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 
 import { Reveal } from "../reveal";
 import { TEAM_CARDS } from "./content";
+import styles from "./team-cursors.module.css";
 
 // The band between the formats and the roster: a two-tone heading in the
 // page's display cut with two other people's cursors standing on the words of
@@ -39,6 +40,7 @@ const CURSORS = [
     box: "bg-brand-accent",
     // Mid-line: the tip in the gap between two words, the box under the line.
     at: "top-1/2 left-full -translate-x-1.5",
+    drift: styles.driftA,
   },
   {
     shape: "trefoil",
@@ -48,6 +50,7 @@ const CURSORS = [
     // At the end of the line, tip touching the last word's box, a step up so
     // the two never read as one repeated mark.
     at: "top-1/2 left-full translate-x-0.5 -translate-y-2",
+    drift: styles.driftB,
   },
 ] as const;
 
@@ -62,13 +65,22 @@ const CURSORS = [
 // hanging off a measured offset that a re-wrap would strand. Being absolute,
 // neither can shift the heading, and the section clips its own overflow on
 // the x axis, so a cursor sitting past the last word can never open a
-// horizontal scroll on the page.
+// horizontal scroll on the page — including the few pixels the drift below
+// takes it out past the last word's right edge.
+//
+// TWO SPANS, not one, and they divide the work: the outer one is WHERE the
+// cursor lives, which is `at` against its word, and the inner one is the
+// drifting it does there (./team-cursors.module.css). Keeping the anchor and
+// the movement on separate elements means neither has to know what the other
+// sets, and the drift is a pointer moving near its word rather than a second
+// offset applied to the first.
 function CollaboratorCursor({
   shape,
   tone,
   arrow,
   box,
   at,
+  drift,
 }: (typeof CURSORS)[number]) {
   return (
     <span
@@ -78,20 +90,25 @@ function CollaboratorCursor({
         at,
       )}
     >
-      <svg
-        viewBox="0 0 16 20"
-        fill="currentColor"
-        className={cn("h-5 w-4 drop-shadow-sm", arrow)}
-      >
-        <path d={CURSOR_ARROW} />
-      </svg>
-      <span
-        className={cn(
-          "absolute top-4 left-3 flex items-center justify-center rounded-lg p-1 shadow-sm",
-          box,
-        )}
-      >
-        <AgentGlyph shape={shape} tone={tone} tile={false} size={16} />
+      {/* `relative` so the box below still measures from the arrow rather
+          than from the anchor, which leaves the pair's geometry exactly as it
+          was and lets the two of them travel together. */}
+      <span className={cn("relative block", styles.drift, drift)}>
+        <svg
+          viewBox="0 0 16 20"
+          fill="currentColor"
+          className={cn("h-5 w-4 drop-shadow-sm", arrow)}
+        >
+          <path d={CURSOR_ARROW} />
+        </svg>
+        <span
+          className={cn(
+            "absolute top-4 left-3 flex items-center justify-center rounded-lg p-1 shadow-sm",
+            box,
+          )}
+        >
+          <AgentGlyph shape={shape} tone={tone} tile={false} size={16} />
+        </span>
       </span>
     </span>
   );

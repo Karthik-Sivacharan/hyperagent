@@ -1,15 +1,33 @@
 import { describe, expect, it } from "vitest";
 
 import * as a from "../a/content";
-import { A11Y, CLOSING_D, FOOTER_D, HERO_D, LINKS, NAV_D } from "./content";
+import {
+  A11Y,
+  CLOSING_D,
+  FOOTER_D,
+  HERO_D,
+  LINKS,
+  NAV_D,
+  ROSTER_ID,
+} from "./content";
 
 // Variant D adds only a handful of strings to variant A's copy. They follow
 // A's rules, and every link lands on a section of the page or a route.
 //
-// D is the short page: the hero, the formats, one job from brief to delivery,
-// the team cards and the closing. These are the only ids an in-page link on D
-// may name, which is what keeps the nav and the footer off A's sections.
-const SECTION_IDS = [a.FORMATS.id, a.BRIEF_CARDS.id, a.TEAM_CARDS.id];
+// D is the short page: the hero, the roster, the formats, one job from brief
+// to delivery, the team cards and the closing. These are the only ids an
+// in-page link on D may name, which is what keeps the nav and the footer off
+// A's sections.
+//
+// The roster's id comes from `./content` and not from `./roster-content`, for
+// the same reason the nav reads it there: that module imports this one, and
+// the id has to be somewhere both the band and the link can see.
+const SECTION_IDS = [
+  ROSTER_ID,
+  a.FORMATS.id,
+  a.BRIEF_CARDS.id,
+  a.TEAM_CARDS.id,
+];
 const ROUTES = ["/landing/d", "/signup", "/threads/new"];
 const ALL_LINKS = [
   ...Object.values(LINKS),
@@ -42,6 +60,15 @@ describe("landing v2 variant D copy", () => {
       /\$|\b(price|prices|plan|plans|cost|costs|credit|month|free)\b/i,
     );
     expect(HERO_D.description).not.toMatch(/real work|[—·!]/i);
+  });
+
+  // The nav is the page's own index: a band with no link in it is a section
+  // the reader has no way to reach from the top of the page. The closing band
+  // is the one exclusion, and it is deliberate — see the note on NAV_D.
+  it("names every band of the page in the nav", () => {
+    expect(NAV_D.map((link) => link.href)).toEqual(
+      SECTION_IDS.map((id) => `#${id}`),
+    );
   });
 
   it("links only to a section on the page or a route", () => {

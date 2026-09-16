@@ -1,0 +1,119 @@
+/* The two collaborator cursors on the band's heading, moving.
+
+   They are the one ornament on the page that is making a CLAIM: the band says
+   "See your team at work", and two other people's pointers resting on the
+   words are the picture of it. Resting is the problem — a live cursor that
+   never moves is a sticker of a cursor, and the sentence it is illustrating is
+   about work happening. So each one drifts between a few points near the word
+   it is anchored to, the way a pointer does when somebody is reading rather
+   than aiming: a short move, then a rest much longer than the move.
+
+   HOW IT IS BUILT. The drift is a separate element inside the anchored one.
+   The outer span carries the position (Tailwind's `left-full`, the small
+   nudges in `CURSORS[].at`) and the inner one carries the movement, so the two
+   can never fight over the same property — a re-anchor in the component and a
+   new path here stay independent edits.
+
+   The moved property is `translate`, not `transform`, for the same reason: the
+   arrow and its box are laid out with `transform`-free geometry and the
+   shorthand would flatten anything else the element is given. Only `translate`
+   and `opacity` ever change, so this composites and never reflows the heading
+   it sits on.
+
+   THE PATHS are hand-set rather than generated: two stops out and back, no
+   stop shared between the two cursors, and different cycle lengths (9s and
+   11s) so they never fall into step. A common multiple of 9 and 11 is 99
+   seconds, which is far longer than anyone looks at one band, so the pair
+   never visibly repeats a formation.
+
+   The stops are small — under 20px, inside the word's own neighbourhood — so a
+   cursor reads as hovering over the same word rather than touring the heading.
+   `--ease-in-out` is the brand's curve for something already on screen that
+   moves, which is exactly this (docs/brand/design.md §8); the entrances on the
+   same page use the out curves, because those are things arriving.
+
+   WHEN IT RUNS. `--reveal-play` is the custom property ../reveal.module.css
+   sets to `running` on a band that has arrived. Custom properties inherit, and
+   these cursors live inside the heading's own `Reveal`, so the drift is paused
+   until the reader reaches the band and starts on the same frame the heading
+   does. Nothing moves in a band that has not been seen.
+
+   Under reduced motion every rule here is inert — they are all inside the
+   `no-preference` query, and `--reveal-play` is never set there either — so
+   the cursors are simply two marks sitting on the words, which is what they
+   were before this file. Below `md` the component does not draw them at all. */
+
+@media (prefers-reduced-motion: no-preference) {
+  .drift {
+    display: block;
+    animation-duration: var(--drift-cycle, 9s);
+    animation-timing-function: var(--ease-in-out);
+    animation-iteration-count: infinite;
+    animation-play-state: var(--reveal-play, paused);
+  }
+
+  .driftA {
+    animation-name: cursor-drift-a;
+  }
+
+  .driftB {
+    animation-name: cursor-drift-b;
+    --drift-cycle: 11s;
+  }
+}
+
+/* Out to the right, back across and down, home. The long holds are the point:
+   22%, 24%, 22% and 14% of the cycle at rest against 6% moving.
+
+   This one travels mostly sideways. It is anchored mid-heading, so the rest of
+   its path is over TYPE, and the vertical is kept to 6px — enough to read as a
+   drift, not enough to carry the glyph box up into the x-height of the word it
+   is passing. The second stop goes down instead, into the gap under the line,
+   where there is nothing to cover. Cursor B is anchored past the final period
+   with open paper around it, which is why it can afford the larger vertical
+   below. */
+@keyframes cursor-drift-a {
+  0%,
+  22% {
+    translate: 0 0;
+  }
+
+  28%,
+  52% {
+    translate: 19px -6px;
+  }
+
+  58%,
+  80% {
+    translate: 6px 10px;
+  }
+
+  86%,
+  100% {
+    translate: 0 0;
+  }
+}
+
+/* The mirror of it, so the two read as two people: this one goes down and
+   left first, and rests on a different beat. */
+@keyframes cursor-drift-b {
+  0%,
+  18% {
+    translate: 0 0;
+  }
+
+  25%,
+  48% {
+    translate: -13px 12px;
+  }
+
+  55%,
+  76% {
+    translate: 9px 5px;
+  }
+
+  83%,
+  100% {
+    translate: 0 0;
+  }
+}
