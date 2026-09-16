@@ -2,37 +2,36 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 
-import styles from "./closing.module.css";
 import { CLOSING_D, HERO_D, LINKS } from "./content";
 
 // The last thing on the page: one panel, the page's two closing lines, and
 // the one action they are asking for.
 //
-// It is the page's third use of a smear gradient and the only one with words
-// on it, so it is the only one that has to be shaped. `closing.module.css`
-// masks the field into an ellipse anchored under the panel's bottom edge:
-// solid across the bottom where the button is, thinning up through the
-// middle, gone by the top corners where the heading is. Nothing about the
-// gradient file changes — the shape is the mask's, so this band uses the same
-// artwork the format showcase and the cards use.
+// THE PANEL IS THE GRADIENT. Not a white card with colour rising into the
+// bottom of it — the whole card is one of the twelve smears, edge to edge, and
+// the words sit on top of it in light type. The split version read as two
+// things stacked, a paper card and a colour band, with a seam across the
+// middle where one became the other; this reads as one object.
 //
-// `dusk` is the field: the coolest of the twelve and the only one that is
-// already light where it is going to be used, which is what makes it the one
-// to put words on. It is also the page's one cool close against a hero, a
-// format band and three cards that all run warm.
+// It gets there through `dark`, not through a colour written into this file.
+// The class re-maps the brand's semantic tokens for this subtree alone
+// (src/design/brand/brand.css): `--foreground` becomes the near-white,
+// `--muted-foreground` the light grey that is checked against it, and
+// `--primary` the near-white pill with dark type that the dark mapping uses
+// for its buttons. So the heading, the line under it and the button all keep
+// the same token names they had when the panel was paper, and not one colour
+// here is hard-coded. `bg-background` under the field is the dark mapping's
+// own near-black, which is what shows for the moment before the image paints.
 //
-// The button stays the ink default rather than the hero's tangerine. On a
-// field this saturated a tangerine button sinks into its own hue, and the
-// inversion is the bookend rather than an inconsistency: the hero puts a
-// coloured button on paper, the page closes with a plain one on colour, same
-// label, same size, same soft corner. In the dark mapping `--primary` is the
-// near-white, so the same button arrives as a light pill and holds its
-// contrast without a `dark:` variant anywhere in this file.
-//
-// None of the twelve gradients is used twice on the page: the format
-// showcase has six, the team cards three, and this is the tenth.
+// THE VEIL is the one thing the gradient itself cannot supply. These files are
+// built to be looked at, not written on, and every one of them runs from a
+// dark corner to a pale one — `dusk` has a navy top and a near-white pink at
+// the bottom left. Light type over that pink is unreadable, so a flat scrim of
+// the dark mapping's own background sits between the field and the words. Flat
+// rather than shaped: a ramp would put its own seam back on the card, which is
+// the thing this band just got rid of. The alpha is set by measurement, not by
+// eye — see the note on it below.
 const FIELD = "/img/gradients/dusk.webp";
 
 export function ClosingD() {
@@ -43,86 +42,70 @@ export function ClosingD() {
       className="scroll-mt-16 px-4 py-24 sm:px-6 md:py-40"
     >
       <div className="mx-auto max-w-6xl">
-        {/* The panel is one box, as every card on the page is, so the band
-            arrives in one movement rather than as a frame with its contents
-            landing inside it. `isolate` keeps the field's stacking context to
-            the panel; the card's radius and `overflow-hidden` do the clipping,
-            so the field needs no radius of its own. */}
-        <div className="relative isolate overflow-hidden rounded-4xl bg-background md:rounded-5xl">
+        {/* `dark` re-maps the tokens for this subtree; see the note above.
+            `isolate` keeps the field's stacking context to the panel; the
+            card's radius and `overflow-hidden` do the clipping, so neither the
+            field nor the veil needs a radius of its own. */}
+        <div className="dark relative isolate overflow-hidden rounded-4xl bg-background md:rounded-5xl">
+          <Image
+            src={FIELD}
+            alt=""
+            fill
+            unoptimized
+            sizes="(min-width: 1200px) 1152px, 100vw"
+            // `object-top`, not the default centre. The panel is a wide short
+            // box and the file is 4:3, so `cover` shows a horizontal slice of
+            // it and the slice is a real choice: centred, it lands on the pale
+            // middle of the picture and the band reads as a generic pastel
+            // wash. Anchored to the top, the slice carries the navy and the
+            // cyan the top third of these files is built around, and the
+            // diagonal reads as a diagonal. Every one of the twelve is darkest
+            // and most saturated at the top, so this holds if the band is ever
+            // pointed at a different one — and it is also the crop that needs
+            // the least veil over it.
+            className="object-cover object-top"
+          />
+          {/* The veil. `bg-background` is the dark mapping's near-black, so
+              this is the same colour the panel falls back to rather than a
+              black invented here.
+
+              45% is measured, not chosen. The ground is a photograph, so the
+              only honest number is the contrast against the lightest pixel
+              actually behind a line, read off a screenshot rather than off a
+              token pair. At 45% both lines clear 5:1 against that pixel, which
+              is past the 4.5 floor the brand holds text to, and the picture is
+              still a picture. Every step heavier buys contrast nobody needs by
+              taking the colour the band exists to show. */}
           <div
             aria-hidden="true"
-            className={cn("absolute inset-0", styles.field)}
-          >
-            <Image
-              src={FIELD}
-              alt=""
-              fill
-              unoptimized
-              sizes="(min-width: 1200px) 1152px, 100vw"
-              // `object-top`, not the default centre. The panel is a wide
-              // short box and the file is 4:3, so `cover` shows a horizontal
-              // slice of it and the slice is a real choice: centred, it lands
-              // on the pale middle of the picture and the band reads as a
-              // generic pastel wash. Anchored to the top, the slice carries
-              // the navy and the cyan the top third of these files is built
-              // around, and the diagonal reads as a diagonal. Every one of the
-              // twelve is darkest and most saturated at the top, so this holds
-              // if the band is ever pointed at a different one.
-              className="object-cover object-top"
-            />
-          </div>
+            className="absolute inset-0 bg-background/45"
+          />
 
-          {/* Everything the reader gets, held in the panel's upper half where
-              the field is still a tint. The ladder is the page's: 24px from
-              the heading to the line under it, 40 from there to the button.
-              The air above and below is deliberately not equal — 64 / 80 over
-              the heading against 128 / 176 under the button — because the
-              panel is not a centred box. The colour builds downward, so the
-              words sit high where the ground is nearly paper and the bottom
-              third is left to be colour with nothing on it, which is what
-              gives the button something to stand in front of. */}
-          <div className="relative flex flex-col items-center px-6 pt-16 pb-32 text-center md:px-10 md:pt-20 md:pb-44">
-            {/* The copy and the scrim that holds it legible, in one box.
-                The scrim is stretched out of that box to the panel's own top
-                and side edges (the negative insets are this column's padding,
-                each matching its breakpoint) and 64px past the last line,
-                which is the length of its own fade. So the ground is solid
-                behind every line of copy however many lines there are, and
-                the colour is back by the time the eye reaches the button.
-
-                The copy and the button each carry `relative`. The scrim is
-                absolutely positioned, so it paints in the positioned layer,
-                which is above every in-flow sibling: without it the layer
-                washes over the button it is meant to stop short of and takes
-                the label from 16:1 to 3.6:1. Positioned, and later in the
-                document, they sit above it.
-
-                `text-background` is not type: it hands the layer the panel's
-                own background as `currentColor`, which is the colour the
-                module's gradient is drawn in. */}
-            {/* `w-full` is load-bearing: this is a shrink-to-fit flex item,
-                so without it the box is the width of the longest line and the
-                scrim's negative insets reach 24px past THAT, drawing a plain
-                white rectangle across the field. Full width, they reach the
-                panel's own edges and the layer has no side edges to see. */}
-            <div className="relative flex w-full flex-col items-center">
-              <div
-                aria-hidden="true"
-                className={cn(
-                  "pointer-events-none absolute -inset-x-6 -top-16 -bottom-16 text-background md:-inset-x-10 md:-top-20",
-                  styles.scrim,
-                )}
-              />
-              <h2
-                id="closing-heading"
-                className="relative max-w-3xl text-heading-display text-balance text-foreground"
-              >
-                {CLOSING_D.heading}
-              </h2>
-              <p className="relative mt-6 max-w-content text-lg text-pretty text-muted-foreground">
-                {CLOSING_D.fine}
-              </p>
-            </div>
+          {/* The copy and the action, centred, on even air top and bottom. The
+              old panel was deliberately lopsided — the words were pushed up
+              into the part of the card the colour had not reached yet — and
+              with colour everywhere there is nothing left to push away from.
+              The ladder inside is the page's: 24px from the heading to the
+              line under it, 40 from there to the button. */}
+          <div className="relative flex flex-col items-center px-6 py-24 text-center md:px-10 md:py-32">
+            <h2
+              id="closing-heading"
+              className="max-w-3xl text-heading-display text-balance text-foreground"
+            >
+              {CLOSING_D.heading}
+            </h2>
+            {/* The foreground tier, not the muted one, and that is the
+                measurement talking. The dark mapping has exactly two text
+                tiers — near-white and a mid grey — and the mid grey is built
+                for a flat surface: over this crop it reads 2.8:1 at a 40% veil
+                and 4.45:1 even at 65%, so it never clears the floor at any
+                veil that leaves the gradient looking like the gradient. The
+                step down from the heading is carried by size instead, which
+                here is a display cut against 18px and is not a subtle
+                difference. */}
+            <p className="mt-6 max-w-content text-lg text-pretty text-foreground">
+              {CLOSING_D.fine}
+            </p>
             {/* One action, the hero's primary, at the hero's size and shape:
                 44px of button, which is a thumb on a phone, and a label that
                 names a verb and an object with no mark beside it. Log in is
@@ -133,7 +116,7 @@ export function ClosingD() {
               asChild
               size="lg"
               shape="soft"
-              className="relative mt-10 h-11 px-6 text-base"
+              className="mt-10 h-11 px-6 text-base"
             >
               <Link href={LINKS.start.href}>{HERO_D.primary}</Link>
             </Button>
