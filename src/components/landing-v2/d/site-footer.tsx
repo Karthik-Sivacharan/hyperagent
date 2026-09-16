@@ -8,8 +8,10 @@ import { FOOTER_D, LINKS } from "./content";
 
 // A footer link: 14px on the second tier, lifting to the first on hover. On
 // a phone each row is 44px tall (a thumb); beside a pointer it drops to 28.
+// The box is only as wide as its label, and the shortest of them ("Log in")
+// sets 39px, so `min-w-11` holds the other side of the thumb too.
 const LINK_CLASS =
-  "inline-block py-3 text-sm text-muted-foreground transition-colors duration-(--duration-fast) ease-out-quart hover:text-foreground md:py-1";
+  "inline-block min-w-11 py-3 text-sm text-muted-foreground transition-colors duration-(--duration-fast) ease-out-quart hover:text-foreground md:py-1";
 
 // In-page links are plain anchors; routes go through next/link.
 function FooterLink({ link }: { link: LandingLink }) {

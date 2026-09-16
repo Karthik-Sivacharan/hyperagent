@@ -25,6 +25,15 @@ import { LINKS, NAV_D } from "./content";
 // not the brand tangerine: the orange belongs to the hero, where the glyph in
 // the headline and the call to action under it spend it together. A third
 // orange in the chrome above them would make all three ordinary.
+//
+// Below `sm` the row carries the wordmark and Start alone. With both actions
+// the row is 340px of content that cannot break — 117px of wordmark, the
+// 24px gap, and two buttons that never wrap — against the 288px a 320px
+// screen leaves between its gutters, so Start ran off the right edge and the
+// page's own `overflow-x: clip` swallowed it without a scrollbar to show for
+// it. Log in is the one that goes: it is the secondary of the two, and the
+// hero repeats it a screen below and the footer again at the end. What is
+// left measures 268px, inside the gutter on the narrowest phone.
 export function SiteHeader() {
   return (
     <header className="sticky top-0 z-(--z-sticky) border-b border-border-subtle bg-surface-secondary/85 px-4 backdrop-blur-glass sm:px-6">
@@ -58,7 +67,7 @@ export function SiteHeader() {
             variant="ghost"
             size="sm"
             shape="soft"
-            className="h-11 md:h-8"
+            className="h-11 min-w-11 max-sm:hidden md:h-8"
           >
             <Link href={LINKS.logIn.href}>{LINKS.logIn.label}</Link>
           </Button>

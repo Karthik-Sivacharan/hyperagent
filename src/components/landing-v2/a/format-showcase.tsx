@@ -98,11 +98,16 @@ export function FormatShowcase() {
         >
           {/* The track scrolls rather than wraps on a phone: `w-max` keeps the
               row at its natural width, so it starts at the left edge and runs
-              past the gutter into the scroller instead of squeezing. */}
+              past the gutter into the scroller instead of squeezing.
+
+              52px of track below `sm`, not 48: the list's own `p-1` is taken
+              off the pill inside it, so a 48px track draws a 40px pill and a
+              thumb wants 44. This is the track height the other variants'
+              tab rows already take. */}
           <div className="-mx-4 overflow-x-auto px-4 [scrollbar-width:none] sm:mx-0 sm:px-0">
             <TabsList
               aria-label={tabsLabel}
-              className="w-max group-data-horizontal/tabs:h-12 sm:group-data-horizontal/tabs:h-9"
+              className="w-max group-data-horizontal/tabs:h-13 sm:group-data-horizontal/tabs:h-9"
             >
               {items.map((item) => (
                 <TabsTrigger key={item.id} value={item.id} className="px-4">
@@ -202,12 +207,25 @@ export function FormatShowcase() {
           </div>
         </Tabs>
 
+        {/* `lg` draws these at 40px, which is a pointer's button and a
+            thumb's near miss, so below `sm` they take the 44px the pills
+            above them take. */}
         <div className="mt-6 flex w-full items-center justify-between md:mt-8">
-          <Button variant="outline" size="lg" onClick={() => step(-1)}>
+          <Button
+            variant="outline"
+            size="lg"
+            className="h-11 sm:h-10"
+            onClick={() => step(-1)}
+          >
             <IconArrowLeft aria-hidden="true" />
             {previous}
           </Button>
-          <Button variant="outline" size="lg" onClick={() => step(1)}>
+          <Button
+            variant="outline"
+            size="lg"
+            className="h-11 sm:h-10"
+            onClick={() => step(1)}
+          >
             {next}
             <IconArrowRight aria-hidden="true" />
           </Button>
