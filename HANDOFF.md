@@ -6,8 +6,10 @@ icons and for the component system sweep, on 2026-09-09 for the composer
 Tools panel merge and the heading-cut decision, and rewritten on
 2026-09-10 when the signup / hyper-personalized onboarding work merged, and
 extended the same day for the streaming agent turn (`feat/agent-stream`),
-and on 2026-09-11 when the `/teams` fleet views merged (`28f8359`).
-**Everything described here is on `main`, and `main` is pushed.** Read
+and on 2026-09-11 when the `/teams` fleet views merged (`28f8359`), and on
+2026-09-15 when landing v2 variant D merged (`b1579be`).
+**Everything described here is on `main`. `main` is NOT pushed: the landing
+v2 merge and the agent glyphs before it are local only.** Read
 this first in a new session, then `README.md`, `docs/components.md`,
 `docs/brand/reskin-conventions.md`, `docs/brand/icons.md` and
 `docs/clone-conventions.md`.
@@ -42,6 +44,7 @@ roster of twenty 40px glyphs, and every shape at 240 to 16px with its
 contract issues listed.
 
 **Commits.**
+
 - `55cc3a5` the shape contract (`types.ts`, empty sets).
 - `2c52b9d` the morph engine, the three components, tones, registry,
   contract checks, tests and the `/design/glyphs` page.
@@ -54,6 +57,7 @@ contract issues listed.
 - The docs commit that adds this section, the guide and the map row.
 
 **Open follow-ups.**
+
 - The landing page is not wired up. Its roster (24px), team section
   (40px), use-case tabs (40px) and closing band (64 to 96px) keep their
   current avatars; §1 of the guide says what goes where.
@@ -71,6 +75,91 @@ contract issues listed.
   `AgentAvatar` comment on `feat/landing-v2` says "never a face".
 - No test stops product code from rendering a study shape
   (`getGlyph("cog")` resolves); for now that is a review rule.
+
+## /landing/d: the page that is actually the pitch (2026-09-15, feat/landing-v2)
+
+**Merged to `main` as `b1579be`, not pushed.** Worktree
+`.claude/worktrees/landing-v2` is still on disk and still serving :3004.
+
+**What it is.** `/landing/d` was one of four variants; it is now the only one
+being worked. Five things on it, top to bottom: the hero (its own, in `d/`),
+a format showcase, three brief cards, three team cards, the footer. Nothing
+else. The seven sections it used to carry (roster, week, use cases,
+receipts, control, stories, pricing) and the closing band are still rendered
+by `/landing/a`, untouched, which is the reference copy. `a/format-showcase.tsx`,
+`a/brief-cards.tsx` and `a/team-cards.tsx` live in `a/` but are **D-only** —
+only `d/landing-page.tsx` imports them. `a/section.tsx` and `a/closing.tsx`
+are A's; changing them moves A.
+
+**The sections.**
+
+- **Format showcase** (`a/format-showcase.tsx`). Six pill tabs — apps,
+  websites, video, slides, documents, dashboards — over a two-column panel.
+  Left: title, body, up to five chips (the cap is on the type and in a test).
+  Right: a smear gradient from `public/img/gradients/`, the format's glyph as
+  a white watermark, and a drawn composer whose request line types itself out
+  (`a/use-typewriter.ts`, 24ms a character, capped at 840ms). The panel holds
+  one height across all six tabs; that is load-bearing and measured.
+- **Brief cards** (`a/brief-cards.tsx`). Three full-width cards, alternating
+  sides, each a video in an app-window mock floating on a gradient. Clips are
+  in `public/video/brief/`, re-encoded to 1440px/30fps and silent, ~3.8MB for
+  the three. They play only while on screen and never under reduced motion,
+  where the poster in `public/img/brief/` is all anyone gets.
+- **Team cards** (`a/team-cards.tsx`). Three cards on the product's own
+  screenshots (`public/img/team/`), each bleeding off the card's right edge
+  and shown in full vertically. Two decorative cursors carry agent glyphs and
+  anchor to a word's own inline span in the heading, so a re-wrap carries them.
+  Each word keeps its own trailing space: Chrome drops whitespace-only text
+  nodes and the accessible name read "Seeyourteamatwork." without it.
+
+**Motion.** `landing-v2/reveal.tsx` + `reveal.module.css`: one recipe, a fade
+and a 16px rise over 400ms on expo-out, latched to an IntersectionObserver so
+a band arrives once. Used on 14 blocks. Four ways out of a held frame — the
+rules sit inside a no-preference query, a `<noscript>` rule starts every
+animation without JS, the observer arms on the next frame if it never fires,
+and it accepts a block already above the fold. No hover was added anywhere:
+the system already covers every control, and a lift on a card that is not a
+link promises a click that is not there.
+
+**Spacing.** One ladder: 4 for a title and its sub, 8 for adjacent pills, 12
+under a card heading, 24/40 inside a card, 64/80 from a heading to what it
+introduces, 96/160 between bands. Each step at least twice the one below.
+
+**The sticky-header fix, which is app-wide.** Base styles had
+`overflow-x: hidden` on `html` and `body`. `html`'s propagates to the
+viewport so `body`'s stays on its own box, and hidden on one axis computes
+the other to `auto` — which made `body` a scroll container, so every
+`position: sticky` resolved against a box that never scrolls and every
+sticky header on the site rode up with the page. Now `overflow-x: clip`,
+which clips the same overflow without the scroll container. **The cost: an
+overflow bug can no longer be caught with `documentElement.scrollWidth`.**
+It hid a broken 320px header for a whole session. Check `body.scrollWidth`
+and walk the DOM instead.
+
+**Copy.** All of it is a rewrite, not a transcription: the live site's
+wording for these sections uses `ship`, `fleet` and `powerful`, which
+`docs/brand/voice-and-copy.md` §5.3 bans and `a/content.test.ts` fails the
+build on. The refrain appears exactly three times on D's rendered page, as
+§5.1 asks. **The copy test walks `content.ts` exports, not a rendered page,
+so it cannot catch a per-variant shortfall** — count by hand after removing
+a section.
+
+**Known, deliberate, and worth a decision.**
+
+1. The three team screenshots are the live site's own. They carry the
+   **"42 agents"** figure that voice-and-copy §6 forbids, **agent names that
+   contradict the page's copy** (Creative Director, Podcast Producer against
+   Invoice chaser, Pipeline reporter), and a **named person with a photo** in
+   the Slack shot. The second is the one a reader notices.
+2. **768px is the tightest layout on the page.** `md:` turns on multi-column
+   there, giving team cards a ~19-character measure. Moving those grids to
+   `lg:` fixes it and is a redesign.
+3. The **closing band is removed from D** but `d/closing.tsx` and `CLOSING_D`
+   are on disk. The page has no call to action below the hero.
+4. The hero headline sits 225px below the top at 1456, from taking full band
+   padding both edges. `md:pt-32` recovers 32px.
+5. **Nothing has been seen on a real iOS device.** The responsive pass was
+   Chromium device emulation over CDP.
 
 ## /landing: the marketing page, v1 (2026-09-14, feat/landing)
 
@@ -109,6 +198,7 @@ A prototype: no
 backend, and nothing persists.
 
 **Decisions.**
+
 - No game engine. Floors, rugs and walls bake once into a `<canvas>`, as
   such products do; furniture and characters are DOM sprites y-sorted by
   `z-index` in the map's one stacking context; tags, bubbles and cards are
@@ -154,6 +244,7 @@ the sheet), hung clear of every tag and bubble. Click or Enter opens the
 sheet; a search dims the agents it misses.
 
 **Rough edges.**
+
 - Nothing persists: positions reset on reload. Nothing moves on its own
   either: agent states and runs do not walk anyone anywhere.
 - Other characters do not block a walk, and the keyboard moves only you
@@ -197,6 +288,7 @@ State dot, turning orb and presence ring are opt-in
 sheets and the names stayed in the session scratchpad, not the repo.
 
 **Rough edges.**
+
 - `layout.ts` stacks a lead only when all its reports are leaves; a deeper
   team goes back to rows, so the zoom-1 fit holds for this mock's shape.
 - Leftovers: `spokenMinutes` twice, three `SPOKEN_STATE` maps that disagree
@@ -227,6 +319,7 @@ node measurement, edge paths and node focus; only `ui/flow.tsx` imports it
 reflow (the Done lane opening), timed from `lib/motion.ts`.
 
 **Rough edges.**
+
 - No run page and no drag and drop. A run card or row opens its agent's
   sheet; Review, Invite, New agent, Open agent and Pause are inert.
 - React Flow's attribution is hidden (`proOptions.hideAttribution`): MIT
@@ -456,8 +549,8 @@ node scripts/dev/contact-sheet.mjs out/light out/sheet-light.png "main"
   `@theme inline` block (the shadcn contract, the Hyperagent extras, the
   radius offsets that coincide with the brand scale at `--radius: 10px`, the
   site's `animate-*` names), the "PHASE 2 BRIDGE" (an `@theme inline
-  reference` block naming every brand-only token, `--color-tint-10:
-  var(--tint-10)` and so on, so `bg-tint-10`, `text-foreground-low`,
+reference` block naming every brand-only token, `--color-tint-10:
+var(--tint-10)` and so on, so `bg-tint-10`, `text-foreground-low`,
   `font-strong`, `rounded-5xl`, `shadow-card`, `gap-group`,
   `ease-out-quart` exist app-wide without re-emitting anything on `:root`),
   a small `:root` block that maps the Hyperagent-only names the site
@@ -640,6 +733,7 @@ including the sign-in screen that needs 502px, and the column stops being
 viewport-centred because it is centring against a content box taller than the
 viewport. That is exactly what the skill card did (see below), and it is the
 first thing to check when this page starts scrolling.
+
 - The budget is the viewport height minus `<main>`'s 96px of `py-12`: about
   806px of cell at 902, about 772 at 868. The cell measures **674px** today.
 - Two gates worth re-running by hand after any layout change here, at 1512×902
@@ -663,15 +757,16 @@ first thing to check when this page starts scrolling.
   costs them nothing and holds every seat on a fixed axis.
 
 **Motion decisions, all measured rather than guessed.**
+
 - The mark keeps ONE rendered size (64) its whole life and reaches 44 by
   scaling. Re-rendering the SVG smaller re-rasterises its filters mid-flight.
   `material-mark.tsx` gates those filters at 40px (`MATERIAL_MIN_PX`).
 - `material-mark.tsx` gained `spin="auto"`: the hover turn (600ms) on an
   infinite loop with the pause written INTO the keyframes, because
   `iterations: Infinity` honours a `delay` only once. Cycle 968ms = 600ms turn
-  + 368ms hold. In that mode it takes no cursor and no hover handlers.
-  Leaving auto used to snap the rotation to 0; cleanup now carries the
-  remaining sweep to 360°.
+  - 368ms hold. In that mode it takes no cursor and no hover handlers.
+    Leaving auto used to snap the rotation to 0; cleanup now carries the
+    remaining sweep to 360°.
 - Travel uses `--ease-in-out`, NOT `--duration-slide`'s usual quint-out
   partner. Measured mid-flight, quint-out had the mark 94% of the way there at
   t=210ms while the column behind it was still half-opaque — a flick then a
@@ -708,6 +803,7 @@ on 2026-09-09. **The finding that shaped everything: a running turn has NO
 spinner anywhere.** A tool call is one 28px row — a 12px mark, a 12/16 label
 at weight 500, a middot, a truncated parameter — and running vs complete is
 the same row with the label shimmering or not. The words never go past tense.
+
 - **The four cards are on screen from the first frame as skeletons** and
   resolve as the pass runs, so the loading state is the end state half-drawn.
   Content and skeleton share one grid cell, so a card is its loaded height
@@ -874,6 +970,7 @@ real app does when the panel opens, and `ResizeObserver` re-parks the mark
 without animating, which is what it was written for.
 
 **Reuse worth knowing.**
+
 - `src/components/thread/` and `src/components/composer/` carry NO app-shell
   context. `Composer` mounts verbatim outside `(app)`; that is how the fourth
   screen gets a chat window without a sidebar.
@@ -909,6 +1006,7 @@ without animating, which is what it was written for.
   file is kept if the small sizes ever want it back.
 
 **Known gaps, in the order worth fixing.**
+
 - ~~**There is no streaming assistant turn.**~~ **Closed 2026-09-10 by
   `feat/agent-stream`; see "The agent streams" below.**
 - **The composer's `+` menu and settings pill still hold config the panel
@@ -950,7 +1048,10 @@ without animating, which is what it was written for.
 `scale` and `rotate` properties:
 
 ```css
-.translate-x-full { --tw-translate-x: 100%; translate: var(--tw-translate-x) var(--tw-translate-y); }
+.translate-x-full {
+  --tw-translate-x: 100%;
+  translate: var(--tw-translate-x) var(--tw-translate-y);
+}
 ```
 
 So an arbitrary list like `transition-[transform,box-shadow]` sitting next to a
@@ -974,6 +1075,7 @@ tailwind-merge. If you override a transition list on a component you did not
 write, carry its properties through.
 
 What this was hiding, all of it documented intent that had never once run:
+
 - **The signup panel's slide** (`app-handoff.tsx`). It had exactly TWO positions
   in its whole life. This is the bug behind the reported ghost — see below.
 - **The signin screen's leave cascade** (`signup-screen.tsx`). `delay-*` only
@@ -1059,6 +1161,7 @@ already this repo's idiom (`composer.tsx`, `memories-page.tsx`,
 `threads-page.tsx`, `settings/integrations-page.tsx`).
 
 **Two bugs found on the way, both worth remembering.**
+
 - **The panel toggle was dead for two reasons, not one.** It had no `onClick`,
   and the thread bar sits inside a `pointer-events-none` layer that (unlike the
   sidebar and panel wrappers) never re-armed them, so `elementFromPoint` over
@@ -1081,6 +1184,7 @@ quietly measure the pre-handoff page. Add `--sidebar-collapsed`,
 `--panel-closed`, `--theme=light`.
 
 Two traps it encodes, both of which cost real time:
+
 - `globals.css` sets `overflow-x: hidden` on `html` and `body`, forcing their
   used `overflow-y` to `auto`, so a body scroll can exist while
   `documentElement` reports none. Check all three scrollers and dispatch a real
@@ -1134,6 +1238,7 @@ natively with the sentence it heads, which means whatever scrolls must contain
 the whole stage. Scrolling is not a transform, so "never transform the stage
 or an ancestor" still holds. The page (html, body, window) still never
 scrolls; `probe:signup` checks all three at every width under a real wheel.
+
 - `<main>`'s transition list is now `transition-[padding-left,padding-right]`.
   The shorthand would have animated the frozen top down from `py-12`'s 48px:
   the handoff only ever moved those two sides.
@@ -1176,12 +1281,14 @@ the agent works, marks the running row Interrupted (the product's canceled
 state: the row at 60%, an italic suffix) and ends the turn. After the first
 send the composer's arrow is inert, as on every cloned route: a follow-up box
 that pretended to send would be the one lie this flow has not told.
+
 - Reduced motion collapses every transition and FLIP, and the SEQUENCE keeps
   its timing, as the research pass already argues: it is information, not
   motion. Text still arrives in chunks; that is content arriving.
 
 **The components, reusable and free of signup context** (the thread view
 could adopt them as they are):
+
 - `thread/shimmer.ts`: `SHIMMER` and `sweepStyle` moved out of
   research-signals.tsx, with `cycleMs` / `spreadPerChar` options whose defaults
   keep the research pass identical.
@@ -1203,6 +1310,7 @@ could adopt them as they are):
 - `/design/agent-stream` shows every block in every state at 752 and 512.
 
 **Three bugs found on the way.**
+
 - The question card's rows escaped their box at columns of 440 and under: a
   hyphenated skill name reports its longest SEGMENT as its min-content, and a
   truncating reason reports its whole string there. Now the reason gives way
@@ -1245,6 +1353,7 @@ the dock sits 16px up at all 14 widths. The 17
 cloned routes are byte-identical to `main` at 1456×868 in both themes.
 
 **Known gaps.**
+
 - The agent panel is static and always describes Design system drift, so
   picking any other card leaves the panel's header and connectors wrong. True
   before this branch; more visible now that the stream names the agent.
@@ -1296,6 +1405,7 @@ centred items sit half that difference over, and the first card snaps 3px in
 (it is `snap-center`), which is what the site does at 678 too.
 
 **Skin decisions (keep the layout, change the skin).**
+
 - The wallpaper is artwork: its palette is data, its renderer is on the
   token lint's allow-list. Base, three blurred colour fields, a vignette, a
   highlight and grain, byte for byte the site's numbers.
@@ -1347,6 +1457,7 @@ on a new first tab, **Computer**, showing the artifact workspace.
 Configuration and Usage are the second and third tabs.
 
 **Two opt-in props, nothing else moves.**
+
 - `Sidebar.defaultCollapsed` seeds the reader's own `userCollapsed`. It is a
   starting state, not `forceCollapsed`'s lock: the rail's expand toggle works,
   and the fit test's rail still applies on top. The rail reports 64 through
@@ -1448,35 +1559,35 @@ git-ignored file (docs/research, other worktrees) left the machine.
 
 ## Repo map
 
-| Path | What |
-|---|---|
-| `src/app/globals.css` | Tailwind theme wiring, the phase-2 bridge, the `:root` remap of Hyperagent-only names onto brand tokens, base layer, site utilities, keyframes; no palette |
-| `src/app/globals.test.ts` | vitest: globals.css owns no colour, every bridge entry has a target in brand.css |
-| `src/app/layout.tsx` | Geist and Geist Mono on `<html>`, `<body className="antialiased">`, the next-themes and tooltip providers |
-| `src/app/(app)/` | One route per sidebar page inside the app shell |
-| `src/app/signup/`, `src/components/signup/` | The five-beat onboarding flow, outside `(app)` so it gets the root layout and none of the shell; `signup-screen.tsx` holds the step machine, the shared grid cell and the mark's FLIP |
-| `src/components/app/` | Sidebar (menus, ⌘K palette, rail, drag-resize), app frame, account menu with the theme switch, brand marks |
-| `src/components/composer/` | Composer and its four menus |
-| `src/components/patterns/` | Composites of primitives used by two or more pages: `PageHeading`, `SearchInput`, `EmptyState`, `ShowArchivedSwitch` |
-| `src/components/<page>/` | Page components: layout, data wiring and composition of `ui/` and `patterns/`; never a raw control |
-| `src/components/ui/` | 29 shadcn primitives in the brand skin (pills, tints, hairlines, glass), phase-1 API, plus `flow` (React Flow); the only place `radix-ui`, `cmdk` and `@xyflow/react` are imported; every one carries a `data-slot` |
-| `src/components/icons.test.ts` | vitest: no lucide import under `src/`, Tabler in the dependencies, every imported icon name exists |
-| `src/components/components.test.ts` | vitest: the component rules and the `data-slot` lock (`docs/components.md` §1) |
-| `src/lib/mock/` | All data (static) |
-| `src/lib/utils.ts`, `utils.test.ts` | The brand's `cn()` and its tests |
-| `src/design/brand/` | `brand.css` (the app's token sheet), `brand.test.ts`, the Geist loaders, `README.md` with the wiring and the phase-2 mapping table |
-| `src/app/design/brand/` | Swatch page at `/design/brand` with its own local light/dark toggle |
-| `src/app/design/` | The comparison pages: `/design/tools` (three composer Tools panels), `/design/skill-suggestions` (three ways to offer skills, none wired), `/design/agent-panel` (the config panel, not yet consolidated), `/design/agent-stream` (every streaming-turn block in every state), `/design/workspace` (the artifact workspace beside the thread view, not wired), `/design/logo` (the logo-motion studies the signup mark came from), `/design/flow` (the flow primitives on a sample org) |
-| `src/components/workspace/` | The artifact workspace: wallpaper, glass toolbar, artifact cards, dock; static, Carousel layout only; mounts in any positioned box or through `ThreadView`'s `workspace` prop |
-| `src/components/teams/` | `/teams`: the fleet views (Board, List, Org chart) and the agent sheet over one mock team, every view reading `useFleet()`; `?state=empty` keeps the cloned empty state |
-| `src/lib/motion.ts` | The brand motion tokens as numbers for `motion/react`, copied from brand.css (change both) |
-| `docs/brand/` | `design.md` (the brand language), `reskin-conventions.md` (the phase-2 contract), `icons.md` (Tabler only, the lucide-to-Tabler names), the style audit |
-| `docs/components.md` | The component system: tiers, rules, the component map with live evidence, how to add a component, the live UI the clone lacks |
-| `docs/plans/` | Implementation plans, one file per sweep, the boxes ticked as the work landed |
-| `docs/clone-conventions.md`, `docs/reference/` | The phase-1 contract and the captured ground truth (`pages/` per route, `overlays/` per menu, dialog, popover and populated state) |
-| `scripts/brand/` | `gen-ramps.mjs`, `check-contrast.mjs`, `lint-tokens.mjs` |
-| `scripts/dev/` | `screenshot-pages.mjs`, `contact-sheet.mjs` (headless Chrome over the DevTools protocol, no dependencies) |
-| `vitest.config.mts` | node environment, `src/**/*.test.ts` |
+| Path                                           | What                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| ---------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/app/globals.css`                          | Tailwind theme wiring, the phase-2 bridge, the `:root` remap of Hyperagent-only names onto brand tokens, base layer, site utilities, keyframes; no palette                                                                                                                                                                                                                                                                                                                              |
+| `src/app/globals.test.ts`                      | vitest: globals.css owns no colour, every bridge entry has a target in brand.css                                                                                                                                                                                                                                                                                                                                                                                                        |
+| `src/app/layout.tsx`                           | Geist and Geist Mono on `<html>`, `<body className="antialiased">`, the next-themes and tooltip providers                                                                                                                                                                                                                                                                                                                                                                               |
+| `src/app/(app)/`                               | One route per sidebar page inside the app shell                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| `src/app/signup/`, `src/components/signup/`    | The five-beat onboarding flow, outside `(app)` so it gets the root layout and none of the shell; `signup-screen.tsx` holds the step machine, the shared grid cell and the mark's FLIP                                                                                                                                                                                                                                                                                                   |
+| `src/components/app/`                          | Sidebar (menus, ⌘K palette, rail, drag-resize), app frame, account menu with the theme switch, brand marks                                                                                                                                                                                                                                                                                                                                                                              |
+| `src/components/composer/`                     | Composer and its four menus                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| `src/components/patterns/`                     | Composites of primitives used by two or more pages: `PageHeading`, `SearchInput`, `EmptyState`, `ShowArchivedSwitch`                                                                                                                                                                                                                                                                                                                                                                    |
+| `src/components/<page>/`                       | Page components: layout, data wiring and composition of `ui/` and `patterns/`; never a raw control                                                                                                                                                                                                                                                                                                                                                                                      |
+| `src/components/ui/`                           | 29 shadcn primitives in the brand skin (pills, tints, hairlines, glass), phase-1 API, plus `flow` (React Flow); the only place `radix-ui`, `cmdk` and `@xyflow/react` are imported; every one carries a `data-slot`                                                                                                                                                                                                                                                                     |
+| `src/components/icons.test.ts`                 | vitest: no lucide import under `src/`, Tabler in the dependencies, every imported icon name exists                                                                                                                                                                                                                                                                                                                                                                                      |
+| `src/components/components.test.ts`            | vitest: the component rules and the `data-slot` lock (`docs/components.md` §1)                                                                                                                                                                                                                                                                                                                                                                                                          |
+| `src/lib/mock/`                                | All data (static)                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `src/lib/utils.ts`, `utils.test.ts`            | The brand's `cn()` and its tests                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| `src/design/brand/`                            | `brand.css` (the app's token sheet), `brand.test.ts`, the Geist loaders, `README.md` with the wiring and the phase-2 mapping table                                                                                                                                                                                                                                                                                                                                                      |
+| `src/app/design/brand/`                        | Swatch page at `/design/brand` with its own local light/dark toggle                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `src/app/design/`                              | The comparison pages: `/design/tools` (three composer Tools panels), `/design/skill-suggestions` (three ways to offer skills, none wired), `/design/agent-panel` (the config panel, not yet consolidated), `/design/agent-stream` (every streaming-turn block in every state), `/design/workspace` (the artifact workspace beside the thread view, not wired), `/design/logo` (the logo-motion studies the signup mark came from), `/design/flow` (the flow primitives on a sample org) |
+| `src/components/workspace/`                    | The artifact workspace: wallpaper, glass toolbar, artifact cards, dock; static, Carousel layout only; mounts in any positioned box or through `ThreadView`'s `workspace` prop                                                                                                                                                                                                                                                                                                           |
+| `src/components/teams/`                        | `/teams`: the fleet views (Board, List, Org chart) and the agent sheet over one mock team, every view reading `useFleet()`; `?state=empty` keeps the cloned empty state                                                                                                                                                                                                                                                                                                                 |
+| `src/lib/motion.ts`                            | The brand motion tokens as numbers for `motion/react`, copied from brand.css (change both)                                                                                                                                                                                                                                                                                                                                                                                              |
+| `docs/brand/`                                  | `design.md` (the brand language), `reskin-conventions.md` (the phase-2 contract), `icons.md` (Tabler only, the lucide-to-Tabler names), the style audit                                                                                                                                                                                                                                                                                                                                 |
+| `docs/components.md`                           | The component system: tiers, rules, the component map with live evidence, how to add a component, the live UI the clone lacks                                                                                                                                                                                                                                                                                                                                                           |
+| `docs/plans/`                                  | Implementation plans, one file per sweep, the boxes ticked as the work landed                                                                                                                                                                                                                                                                                                                                                                                                           |
+| `docs/clone-conventions.md`, `docs/reference/` | The phase-1 contract and the captured ground truth (`pages/` per route, `overlays/` per menu, dialog, popover and populated state)                                                                                                                                                                                                                                                                                                                                                      |
+| `scripts/brand/`                               | `gen-ramps.mjs`, `check-contrast.mjs`, `lint-tokens.mjs`                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| `scripts/dev/`                                 | `screenshot-pages.mjs`, `contact-sheet.mjs` (headless Chrome over the DevTools protocol, no dependencies)                                                                                                                                                                                                                                                                                                                                                                               |
+| `vitest.config.mts`                            | node environment, `src/**/*.test.ts`                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 
 ## Decided 2026-09-07: no display face; Geist on Vercel's Geist roles
 
@@ -1552,7 +1663,7 @@ second set for a glyph Tabler lacks. The convention is `docs/brand/icons.md`;
   dumps still show the site's `lucide-<name>` classes and stay the ground
   truth for which icon a page uses.
 - **What did not change.** `components.json` keeps `"iconLibrary":
-  "lucide"` because shadcn's CLI supports only lucide, radix, hugeicons and
+"lucide"` because shadcn's CLI supports only lucide, radix, hugeicons and
   phosphor; anything `shadcn add` emits therefore imports `lucide-react` and
   must be converted before it is committed. Next 16 has
   `@tabler/icons-react` in its default `optimizePackageImports`, so no
@@ -1639,32 +1750,42 @@ removed afterwards.
 
 ## Prompt to start the next session
 
-Everything is on `main` and pushed (`9f80335` plus this handoff), and
-production at https://hyperagent-onboard.vercel.app is built from it. Merged
-branches still on origin: `feat/workspace-panel`, `feat/computer-tab`,
-`fix/panel-spacing`, `feat/learning-tab`. Local worktrees left by other
-sessions: `agent-stream` and `workspace-panel` (both merged, safe to remove;
-`workspace-panel` may still be serving a preview on :3004) and the unrelated
-`onboarding-exact`.
+Everything is on `main` (`b1579be`) and **`main` is not pushed** — the
+landing v2 merge and the agent glyphs before it are local only. Production at
+https://hyperagent-onboard.vercel.app is still built from the older pushed
+`main`, so it does not show any of this. Worktree
+`.claude/worktrees/landing-v2` is still on disk with a dev server on :3004;
+other stale worktrees: `agent-stream`, `workspace-panel`, `landing`,
+`landing-v2-computer`, `onboarding-exact`, `hint-check`.
 
-The next session is ORIENTATION ONLY: read, then report. Paste this:
+The next session is ORIENTATION ONLY: read, then report, then wait. Paste this:
 
 > Read-only orientation of ~/Projects/hyperagent. Do not run tests, builds,
-> probes or a dev server, and do not edit, commit or push anything.
+> probes or a dev server, and do not edit, commit, push or merge anything.
+> Do not start work: report and wait for my instructions.
 >
-> Read AGENTS.md, then HANDOFF.md: "Where things stand" (the last bullet is
-> the current state), "The signup flow", "The agent streams", "The computer
-> in the signup handoff", "The Learning tab, and where the demo is hosted"
-> and "Known gaps and follow-ups". Skim docs/components.md and
-> src/components/agent-panel/.
+> Read AGENTS.md, then in HANDOFF.md read "/landing/d: the page that is
+> actually the pitch" first, then "Where things stand" and "Known gaps and
+> follow-ups". Then read docs/brand/voice-and-copy.md (it governs every word
+> on a marketing page and a test enforces it) and skim docs/components.md.
+> Look at src/components/landing-v2/d/landing-page.tsx and the three sections
+> it imports from ../a/.
 >
 > In short: a Next.js 16 + Tailwind v4 + shadcn clone of the hyperagent.com
-> dashboard, re-skinned in the brand design language, plus an invented
-> `/signup` onboarding demo. After send the app shell arrives around the
-> conversation while the agent streams its answer; the right panel has
-> Computer, Configuration, Learning and Usage tabs. All data is static mock,
-> nothing authenticates. Live at https://hyperagent-onboard.vercel.app; a
-> push to `main` redeploys it.
+> dashboard re-skinned in the brand design language, plus an invented
+> /signup demo. The current work is the marketing page: /landing/d is five
+> bands (hero, format showcase, brief cards, team cards, footer) and is the
+> one being designed; /landing/a keeps every section D dropped and is the
+> reference. All data is static mock, nothing authenticates.
 >
-> Reply with a short summary of what you understood (what the demo shows,
-> where each piece lives, what is still open) and wait for instructions.
+> Four things to know before touching it: copy is a rewrite governed by
+> voice-and-copy.md and a copy test, never a transcription of the live site;
+> the three sections in a/ whose names start with format-, brief- and team-
+> are D-only despite living in a/; globals.css uses overflow-x: clip, so
+> documentElement.scrollWidth can never reveal an overflow bug here; and the
+> gates are npx tsc --noEmit, npm run lint, npm test, npm run
+> brand:lint-tokens, all of which pass on main right now.
+>
+> Reply with a short summary of what you understood — what /landing/d is,
+> where each section lives, what is still open from the handoff's five-item
+> list — and wait for instructions.
