@@ -9,12 +9,23 @@ import { GLYPH_BOX, MODULE } from "./types";
  *
  * - `sand`: the default. Paper tile, ink body.
  * - `ink`: the inverse. Ink tile, paper body.
- * - `tangerine`: the accent. Brand-orange tile, ink body. One per view, the
- *   same budget as the brand's orange button.
+ * - `tangerine`: the accent as a tile. Brand-orange tile, ink body. One per
+ *   view, the same budget as the brand's orange button.
+ * - `accent`: the accent as the mark. Paper tile, brand-orange body. The tone
+ *   for a bare glyph (`tile={false}`) set in a line of type, where the three
+ *   tile tones all leave it reading as one more ink letterform. The body takes
+ *   `--color-tangerine-500`, the brand's graphics orange (the same step
+ *   `--brand-accent` reads, and the same one `tangerine` puts in its tile), so
+ *   a view spends the one orange budget on either this or `tangerine`.
  */
-export type GlyphTone = "sand" | "ink" | "tangerine";
+export type GlyphTone = "sand" | "ink" | "tangerine" | "accent";
 
-export const GLYPH_TONES: readonly GlyphTone[] = ["sand", "ink", "tangerine"];
+export const GLYPH_TONES: readonly GlyphTone[] = [
+  "sand",
+  "ink",
+  "tangerine",
+  "accent",
+];
 
 export type TonePalette = {
   /** Tile fill, and the eye colour. */
@@ -40,6 +51,13 @@ export const TONE_PALETTES: Readonly<Record<GlyphTone, TonePalette>> = {
     tile: "var(--color-tangerine-500)",
     body: "var(--color-neutral-950)",
     dot: "var(--color-tangerine-400)",
+  },
+  // The field stays sand, so the eyes still read as holes punched to the paper
+  // and the stage's dot grid stays quiet; only the figure takes the colour.
+  accent: {
+    tile: "var(--color-neutral-100)",
+    body: "var(--color-tangerine-500)",
+    dot: "var(--color-neutral-300)",
   },
 };
 

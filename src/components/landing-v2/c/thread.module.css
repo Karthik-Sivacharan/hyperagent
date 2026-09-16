@@ -1,0 +1,85 @@
+/* The hero's scripted thread, timed in CSS so no JavaScript timer runs.
+   Every entry carries `--at`, the moment it appears; `both` keeps it at the
+   first keyframe until then, and that frame is `display: none`, so an entry
+   still to come takes no space and the ones already shown sit at the bottom
+   of the thread the way a live one would (a browser without discrete
+   display animation shows the same thread, laid out from the start).
+   Durations and easings are the brand's: the frame mounts on the 500ms expo
+   entrance, a bubble pops in on the 300ms product ceiling with the site's
+   one spring curve (the closest brand easing to a short overshoot). Under
+   reduced motion every animation is removed, so the finished thread shows
+   at once: the base styles are the final state. */
+
+.frame {
+  animation: mount var(--duration-entrance) var(--ease-out-expo) both;
+}
+
+.entry {
+  animation: pop var(--duration-slow) var(--motion-ease-spring) both;
+  animation-delay: var(--at);
+}
+
+/* The "Working" status: visible from its entry, gone at `--at`. */
+.leave {
+  opacity: 0;
+  visibility: hidden;
+  animation: leave var(--duration-normal) var(--ease-out) both;
+  animation-delay: var(--at);
+}
+
+/* The use-case stage: the incoming thread fades in when a tab changes. */
+.swap {
+  animation: swap var(--duration-normal) var(--ease-out) both;
+}
+
+@keyframes mount {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes pop {
+  from {
+    display: none;
+    opacity: 0;
+    transform: translateY(8px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes leave {
+  from {
+    opacity: 1;
+    visibility: visible;
+  }
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+@keyframes swap {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .frame,
+  .entry,
+  .leave,
+  .swap {
+    animation: none;
+  }
+}

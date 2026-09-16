@@ -1,5 +1,6 @@
 import { IconSparkles } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 // A user turn: right-aligned bubble, then the "N knowledge hints · date" meta
 // line. Markup from docs/reference/pages/thread-detail.html. Phase 2 sets the
@@ -14,6 +15,7 @@ export function UserMessage({
   text,
   knowledgeHints,
   sentAtLabel,
+  tone = "brand",
 }: {
   id: string;
   text: string;
@@ -25,12 +27,26 @@ export function UserMessage({
    */
   knowledgeHints?: number;
   sentAtLabel: string;
+  /**
+   * The bubble's fill. `brand` is the product's tangerine user surface and
+   * the default, so every route renders as before. `neutral` puts the text on
+   * the assistant bubble's sand fill, for a picture of the app (the landing
+   * page's demo window) that keeps its one accent for the page's own action.
+   */
+  tone?: "brand" | "neutral";
 }) {
   return (
     <div className="mt-8 mb-5">
       <div className="group relative flex min-w-0 gap-3 flex-row-reverse" data-role="user" data-message-id={id}>
         <div className="flex min-w-0 flex-col gap-1 max-w-[85%] items-end">
-          <div className="w-full max-w-full overflow-hidden break-words rounded-2xl bg-chat-bubble-user px-4 py-3 text-chat-bubble-user-foreground transition-[color,background-color] duration-(--duration-normal) ease-out">
+          <div
+            className={cn(
+              "w-full max-w-full overflow-hidden break-words rounded-2xl px-4 py-3 transition-[color,background-color] duration-(--duration-normal) ease-out",
+              tone === "neutral"
+                ? "bg-chat-bubble-assistant text-chat-bubble-assistant-foreground"
+                : "bg-chat-bubble-user text-chat-bubble-user-foreground",
+            )}
+          >
             <div className="space-y-2">
               <div className="break-words text-sm">
                 <div className="whitespace-normal">

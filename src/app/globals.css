@@ -324,7 +324,11 @@
     font-family: var(--font-body);
     overscroll-behavior-x: none;
     min-height: 100dvh;
-    overflow-x: hidden;
+    /* `clip`, never `hidden`: `hidden` on one axis computes the other to
+       `auto`, which turns body into a scroll container. `position: sticky`
+       then resolves against body, which never scrolls, so every sticky
+       header rides up with the page instead of sticking. */
+    overflow-x: clip;
   }
   html {
     overscroll-behavior: none;

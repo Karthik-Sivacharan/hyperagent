@@ -1,0 +1,136 @@
+/* The demo window's entrance, in CSS so no JavaScript timer runs.
+
+   Two moments use it. The first time the window is seen, the frame turns
+   `data-hero-motion` to "play"; from then on it stays played, so scrolling
+   back past the hero shows the picture already settled. Every agent switch
+   re-keys the content, and a fresh element starts its animation at the first
+   frame again, so a reader clicking down the list interrupts the entrance
+   instead of queueing another one: nothing is ever left half drawn.
+
+   Until the window has been seen, each item is paused on its first frame
+   through --hero-play. A custom property inherits, so one attribute on the
+   frame holds back the chat and the computer alike, however deep in the
+   picture they sit.
+
+   The brand's own reveal (docs/brand/design.md §8): fade plus a short rise
+   over --duration-slow on --ease-out-expo, one item every half of
+   --duration-stagger, the delay capped so the whole picture is settled
+   inside 600ms. Only opacity and transform move, so nothing reflows inside
+   the scaled stage and no scrollbar answers. Under reduced motion none of
+   this exists: the rules live in a `no-preference` query and the finished
+   picture is simply there. */
+
+@media (prefers-reduced-motion: no-preference) {
+  .frame[data-hero-motion="play"] {
+    --hero-play: running;
+  }
+
+  .chat,
+  .desktop {
+    /* A hint of direction, not a slide; 6 stage pixels, which the frame's
+       own scale takes down to about 5 on screen. */
+    --hero-rise: 6px;
+    --hero-stagger: calc(var(--duration-stagger) / 2);
+    --hero-cap: calc(var(--duration-stagger) * 4);
+  }
+
+  /* The chat: the request bubble, then each tool row of the turn, then the
+     prose it ends on. The rows are the turn's one stack of plain blocks and
+     the prose is the assistant block, the two markers signup/agent-turn.tsx
+     and thread/streaming-message.tsx already print. The thread header and
+     the composer sit outside .chat: they change without moving.
+
+     The computer: the back window, the front window, the dock. Its first
+     child is the wallpaper pair, which crossfades instead. */
+  .chat > :first-child,
+  .chat [data-agent-turn] > div:not([data-role]) > *,
+  .chat [data-agent-turn] > [data-role="assistant"],
+  .desktop > :nth-child(n + 2) {
+    animation: hero-rise var(--duration-slow) var(--ease-out-expo) both;
+    animation-delay: min(
+      calc(var(--hero-step, 0) * var(--hero-stagger)),
+      var(--hero-cap)
+    );
+    animation-play-state: var(--hero-play, paused);
+  }
+
+  .chat > :first-child {
+    --hero-step: 0;
+  }
+
+  .chat [data-agent-turn] > div:not([data-role]) > *:nth-child(1) {
+    --hero-step: 1;
+  }
+
+  .chat [data-agent-turn] > div:not([data-role]) > *:nth-child(2) {
+    --hero-step: 2;
+  }
+
+  .chat [data-agent-turn] > div:not([data-role]) > *:nth-child(3) {
+    --hero-step: 3;
+  }
+
+  .chat [data-agent-turn] > div:not([data-role]) > *:nth-child(4) {
+    --hero-step: 4;
+  }
+
+  .chat [data-agent-turn] > div:not([data-role]) > *:nth-child(5) {
+    --hero-step: 5;
+  }
+
+  /* A longer turn than the demo writes keeps the last step; the cap has it
+     covered either way. */
+  .chat [data-agent-turn] > div:not([data-role]) > *:nth-child(n + 6) {
+    --hero-step: 6;
+  }
+
+  /* After the last row: the conversation passes the count, since only it
+     knows how many rows the turn has. */
+  .chat [data-agent-turn] > [data-role="assistant"] {
+    --hero-step: var(--hero-prose-step, 5);
+  }
+
+  /* The computer follows the chat by one step, so the reader's eye is given
+     the answer first and the desk behind it a moment later. */
+  .desktop > :nth-child(2) {
+    --hero-step: 1;
+  }
+
+  .desktop > :nth-child(3) {
+    --hero-step: 2;
+  }
+
+  .desktop > :nth-child(4) {
+    --hero-step: 3;
+  }
+
+  /* The desktop's ground does not stagger: the arriving wallpaper fades over
+     the one it replaces, which is held underneath at full strength so the
+     panel never shows through the pair. */
+  .wallpaper {
+    animation: hero-fade var(--duration-normal) var(--ease-out) both;
+    animation-play-state: var(--hero-play, paused);
+  }
+}
+
+@keyframes hero-rise {
+  from {
+    opacity: 0;
+    transform: translate3d(0, var(--hero-rise), 0);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes hero-fade {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}

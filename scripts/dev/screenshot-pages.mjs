@@ -6,6 +6,9 @@
 //   node scripts/dev/screenshot-pages.mjs <outDir> [baseUrl]   (default http://localhost:3000)
 //   ONLY=home,thread node scripts/dev/screenshot-pages.mjs <outDir>
 //   CHROME=/path/to/chrome … to point at another Chromium build
+//   WIDTH=390 HEIGHT=844 …  to change the viewport (default 1456x868)
+//   FULL=1 …                 to capture the whole page at DPR 1 instead of the first screen at DPR 2
+//   REDUCED_MOTION=1 …       to emulate prefers-reduced-motion, so pulses and loops hold still
 import { spawn } from "node:child_process";
 import { writeFileSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
@@ -36,6 +39,7 @@ const ROUTES = [
   ["settings/profile", "settings-profile"],
   ["import/openclaw", "import-openclaw"],
   ["design/brand", "design-brand"],
+  ["landing", "landing"],
 ];
 const only = process.env.ONLY ? process.env.ONLY.split(",") : null;
 
@@ -108,7 +112,22 @@ const evaluate = async (expression, awaitPromise = false) =>
 
 await send("Page.enable");
 await send("Runtime.enable");
-await send("Emulation.setDeviceMetricsOverride", { width: 1456, height: 868, deviceScaleFactor: 2, mobile: false });
+const WIDTH = Number(process.env.WIDTH ?? 1456);
+const HEIGHT = Number(process.env.HEIGHT ?? 868);
+const FULL = process.env.FULL === "1";
+await send("Emulation.setDeviceMetricsOverride", { width: WIDTH, height: HEIGHT, deviceScaleFactor: FULL ? 1 : 2, mobile: false });
+if (process.env.REDUCED_MOTION === "1") {
+  await send("Emulation.setEmulatedMedia", { features: [{ name: "prefers-reduced-motion", value: "reduce" }] });
+}
+const capture = async () => {
+  if (!FULL) return send("Page.captureScreenshot", { format: "png" });
+  const { cssContentSize } = await send("Page.getLayoutMetrics");
+  return send("Page.captureScreenshot", {
+    format: "png",
+    captureBeyondViewport: true,
+    clip: { x: 0, y: 0, width: WIDTH, height: Math.ceil(cssContentSize.height), scale: 1 },
+  });
+};
 
 for (const [route, name] of ROUTES) {
   if (only && !only.includes(name)) continue;
@@ -122,7 +141,7 @@ for (const [route, name] of ROUTES) {
   for (const theme of ["light", "dark"]) {
     await evaluate(`document.documentElement.classList.toggle('dark', ${theme === "dark"}); true`);
     await sleep(350);
-    const { data } = await send("Page.captureScreenshot", { format: "png" });
+    const { data } = await capture();
     writeFileSync(join(outDir, theme, `${name}.png`), Buffer.from(data, "base64"));
   }
   console.log(`${name} ${Date.now() - t0}ms`);

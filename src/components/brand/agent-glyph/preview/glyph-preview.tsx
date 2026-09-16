@@ -24,7 +24,12 @@ export type GlyphPreviewProps = {
   tone?: GlyphTone;
 };
 
-const TONE_LABEL: Record<GlyphTone, string> = { sand: "Sand", ink: "Ink", tangerine: "Tangerine" };
+const TONE_LABEL: Record<GlyphTone, string> = {
+  sand: "Sand",
+  ink: "Ink",
+  tangerine: "Tangerine",
+  accent: "Accent",
+};
 
 const subscribeNever = () => () => {};
 
@@ -57,7 +62,13 @@ function ThemeSwitch() {
   );
 }
 
-export function GlyphPreview({ from, to, t, choreography, tone: initialTone }: GlyphPreviewProps) {
+export function GlyphPreview({
+  from,
+  to,
+  t,
+  choreography,
+  tone: initialTone,
+}: GlyphPreviewProps) {
   const [tone, setTone] = useState<GlyphTone>(initialTone ?? "sand");
 
   return (
@@ -68,9 +79,10 @@ export function GlyphPreview({ from, to, t, choreography, tone: initialTone }: G
             <Overline>Brand · agent glyphs</Overline>
             <h1 className="font-heading text-2xl">Agent glyphs</h1>
             <p className="max-w-content text-sm text-muted-foreground">
-              Solid silhouettes with two eyes, one per agent. Every glyph morphs into every other: the
-              stage loops a set, the playground scrubs any pair frame by frame, and the sheet checks each
-              drawing from favicon to hero size against the shape contract.
+              Solid silhouettes with two eyes, one per agent. Every glyph morphs
+              into every other: the stage loops a set, the playground scrubs any
+              pair frame by frame, and the sheet checks each drawing from
+              favicon to hero size against the shape contract.
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
@@ -92,7 +104,13 @@ export function GlyphPreview({ from, to, t, choreography, tone: initialTone }: G
         </header>
 
         <StageLoop tone={tone} />
-        <MorphPlayground tone={tone} from={from} to={to} t={t} choreography={choreography} />
+        <MorphPlayground
+          tone={tone}
+          from={from}
+          to={to}
+          t={t}
+          choreography={choreography}
+        />
         <Roster tone={tone} />
         <SizeSheet tone={tone} />
       </div>

@@ -72,8 +72,9 @@ const THREAD_BAR_PX = 48;
 // The thread this conversation becomes. Titled from the flow rather than from
 // the mock list, because the one thing the reader has actually done by now is
 // pick an agent, and a bar that opened saying "Welcome to Hyperagent" would be
-// the app forgetting the last ninety seconds.
-const HANDOFF_THREAD: Thread = {
+// the app forgetting the last ninety seconds. Exported so a still picture of
+// the finished flow (the landing page's app window) wears the same bar.
+export const HANDOFF_THREAD: Thread = {
   id: "signup-handoff",
   title: "Setting up your first agent",
   summary: "",

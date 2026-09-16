@@ -121,6 +121,7 @@ export function AgentTurn({
   stream,
   sentAtLabel,
   onAnswer,
+  settled = false,
   className,
 }: {
   script: AgentScript;
@@ -129,17 +130,25 @@ export function AgentTurn({
   sentAtLabel: string;
   /** The question card was answered: send it, then hand focus back. */
   onAnswer: (answer: SkillsAnswer) => void;
+  /**
+   * Draw every word of the prose at once instead of streaming it: a still
+   * picture of a finished turn (the landing page's app window). Opt-in, so
+   * the signup flow streams exactly as before.
+   */
+  settled?: boolean;
   className?: string;
 }) {
-  const revealed = useTextStream(streamLength(script.prose), {
-    active: stream.proseActive,
+  const streamed = useTextStream(streamLength(script.prose), {
+    active: stream.proseActive && !settled,
     onDone: stream.onProseDone,
   });
+  const revealed = settled ? streamLength(script.prose) : streamed;
   const ackProse = stream.ack?.reply.prose ?? [];
-  const ackRevealed = useTextStream(streamLength(ackProse), {
-    active: stream.ack?.proseActive ?? false,
+  const ackStreamed = useTextStream(streamLength(ackProse), {
+    active: (stream.ack?.proseActive ?? false) && !settled,
     onDone: stream.onAckProseDone,
   });
+  const ackRevealed = settled ? streamLength(ackProse) : ackStreamed;
 
   const interruptedRow =
     stream.rows.some((r) => r.status === "interrupted") || stream.ack?.row?.status === "interrupted";
