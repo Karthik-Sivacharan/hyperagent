@@ -1,0 +1,55 @@
+/* The page's one scroll entrance: a block fades up as the reader reaches it,
+   once, and then stays put.
+
+   Written the way the hero window's entrance is written (d/hero-motion.module.css)
+   and for the same reason: the animation is CSS, so no JavaScript timer runs
+   and nothing re-renders per frame. A block is held on its first frame through
+   `--reveal-play`; the component turns `data-reveal` to "play" the first time
+   an IntersectionObserver reports the block, and it stays played, so scrolling
+   back up the page shows the band already settled.
+
+   The recipe is the brand's own reveal (docs/brand/design.md §8), one size up
+   from the hero's because these are whole bands rather than the rows inside a
+   picture, and larger things move slower: fade plus --translate-enter (16px)
+   of rise over --duration-reveal (400ms) on --ease-out-expo, siblings that
+   arrive together offset by --duration-stagger (80ms) each, capped at three
+   steps so no block ever waits more than 240ms. Only opacity and transform
+   move, so nothing reflows and no band can shift the page under the reader.
+
+   Two ways out of the held-back first frame, so a block can never be left
+   invisible:
+
+     - Reduced motion. Every rule below lives in a `no-preference` query, so
+       when the reader has asked for less motion there is no animation and no
+       first frame to hold: the finished page is simply there.
+
+     - No JavaScript. Nothing then arms a block, so d/landing-page.tsx carries
+       one `<noscript>` rule that hands every block its animation already
+       running. The entrances play once, on load, and the page is whole. */
+
+@media (prefers-reduced-motion: no-preference) {
+  .reveal {
+    animation: reveal-rise var(--duration-reveal) var(--ease-out-expo) both;
+    animation-delay: min(
+      calc(var(--reveal-step, 0) * var(--duration-stagger)),
+      calc(var(--duration-stagger) * 3)
+    );
+    animation-play-state: var(--reveal-play, paused);
+  }
+
+  .reveal[data-reveal="play"] {
+    --reveal-play: running;
+  }
+}
+
+@keyframes reveal-rise {
+  from {
+    opacity: 0;
+    transform: translate3d(0, var(--translate-enter), 0);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}

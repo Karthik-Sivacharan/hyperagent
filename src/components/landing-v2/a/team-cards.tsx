@@ -5,6 +5,7 @@ import { AgentGlyph } from "@/components/brand/agent-glyph";
 import type { GlyphTone } from "@/components/brand/agent-glyph";
 import { cn } from "@/lib/utils";
 
+import { Reveal } from "../reveal";
 import { TEAM_CARDS } from "./content";
 
 // The band between the formats and the roster: a two-tone heading in the
@@ -172,7 +173,7 @@ export function TeamCards() {
             treatment; SectionHeading's default `cut` is untouched. The
             cursors are absolute, so the heading's own text flow and balance
             are as the component would set them. */}
-        <div className="flex max-w-4xl flex-col gap-1">
+        <Reveal className="flex max-w-4xl flex-col gap-1">
           <h2
             id={headingId}
             className="text-heading-display text-balance text-foreground"
@@ -197,14 +198,20 @@ export function TeamCards() {
           <p className="text-heading-display text-pretty text-muted-foreground">
             {heading.sub}
           </p>
-        </div>
+        </Reveal>
 
+        {/* The one place on the page a stagger reads as a single movement:
+            three cards side by side from `md`, so they cross the fold
+            together and can arrive left to right, 80ms apart. Each card IS
+            its own Reveal — the div the card already was — so the grid still
+            sizes them as one row and the pictures stay on one line. */}
         <div className="mt-16 grid gap-4 md:mt-20 md:grid-cols-3 md:gap-6">
           {items.map((item, index) => {
             const shot = TEAM_CARDS.shots[index];
             return (
-              <div
+              <Reveal
                 key={item.id}
+                step={index + 1}
                 className="flex flex-col overflow-hidden rounded-4xl bg-surface-raised md:rounded-5xl"
               >
                 <div className="flex flex-col gap-3 px-6 pt-6 md:px-10 md:pt-10">
@@ -216,7 +223,7 @@ export function TeamCards() {
                   </p>
                 </div>
                 <ShotPanel shot={shot} />
-              </div>
+              </Reveal>
             );
           })}
         </div>

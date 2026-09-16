@@ -27,6 +27,16 @@ import { SiteHeader } from "./site-header";
 export function LandingPageD() {
   return (
     <div className="flex min-h-svh flex-col bg-surface-secondary text-foreground">
+      {/* The scroll entrances (../reveal) hold each band on the first frame of
+          its animation until an observer reports it. With no JavaScript
+          nothing ever reports one, so this hands every band its animation
+          already running: the entrances play once, on load, and the page is
+          whole rather than a column of held-back blocks. Under reduced motion
+          there is no animation to hand out — the module's rules live in a
+          `no-preference` query — so the rule is inert there. */}
+      <noscript>
+        <style>{"[data-reveal]{--reveal-play:running}"}</style>
+      </noscript>
       <a
         href="#main"
         className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-(--z-toast) focus:rounded-full focus:bg-background focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:shadow-md"

@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { IconTile } from "@/components/ui/icon-tile";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
+import { Reveal } from "../reveal";
 import { FORMATS } from "./content";
 import { SectionHeading } from "./section";
 import { useTypewriter } from "./use-typewriter";
@@ -84,19 +85,26 @@ export function FormatShowcase() {
       className="scroll-mt-16 px-4 py-24 sm:px-6 md:py-40"
     >
       <div className="mx-auto flex max-w-6xl flex-col">
-        <SectionHeading
-          id={headingId}
-          heading={heading}
-          cut="display"
-          className="max-w-4xl"
-        />
+        {/* The band arrives in three beats as the reader reaches it: the
+            heading, the formats, then the pair of controls under them. The
+            panel keeps its own fade on a tab change, which has long since
+            finished by the time the band is scrolled to. */}
+        <Reveal>
+          <SectionHeading
+            id={headingId}
+            heading={heading}
+            cut="display"
+            className="max-w-4xl"
+          />
+        </Reveal>
 
-        <Tabs
-          value={value}
-          onValueChange={setValue}
-          className="mt-16 w-full gap-6 md:mt-20 md:gap-8"
-        >
-          {/* The track scrolls rather than wraps on a phone: `w-max` keeps the
+        <Reveal step={1}>
+          <Tabs
+            value={value}
+            onValueChange={setValue}
+            className="mt-16 w-full gap-6 md:mt-20 md:gap-8"
+          >
+            {/* The track scrolls rather than wraps on a phone: `w-max` keeps the
               row at its natural width, so it starts at the left edge and runs
               past the gutter into the scroller instead of squeezing.
 
@@ -104,31 +112,31 @@ export function FormatShowcase() {
               off the pill inside it, so a 48px track draws a 40px pill and a
               thumb wants 44. This is the track height the other variants'
               tab rows already take. */}
-          <div className="-mx-4 overflow-x-auto px-4 [scrollbar-width:none] sm:mx-0 sm:px-0">
-            <TabsList
-              aria-label={tabsLabel}
-              className="w-max group-data-horizontal/tabs:h-13 sm:group-data-horizontal/tabs:h-9"
-            >
-              {items.map((item) => (
-                <TabsTrigger key={item.id} value={item.id} className="px-4">
-                  {item.name}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-          </div>
+            <div className="-mx-4 overflow-x-auto px-4 [scrollbar-width:none] sm:mx-0 sm:px-0">
+              <TabsList
+                aria-label={tabsLabel}
+                className="w-max group-data-horizontal/tabs:h-13 sm:group-data-horizontal/tabs:h-9"
+              >
+                {items.map((item) => (
+                  <TabsTrigger key={item.id} value={item.id} className="px-4">
+                    {item.name}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </div>
 
-          <div className="rounded-4xl bg-background p-2 shadow-card">
-            {items.map((item, index) => {
-              const Icon = FORMAT_ICONS[index] ?? IconFileText;
-              const chipsId = `${id}-${item.id}-examples`;
-              return (
-                <TabsContent
-                  key={item.id}
-                  value={item.id}
-                  className="motion-safe:animate-fade-in"
-                >
-                  <div className="grid gap-2 md:h-104 md:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
-                    {/* `min-w-0` lets the grid item shrink to its track:
+            <div className="rounded-4xl bg-background p-2 shadow-card">
+              {items.map((item, index) => {
+                const Icon = FORMAT_ICONS[index] ?? IconFileText;
+                const chipsId = `${id}-${item.id}-examples`;
+                return (
+                  <TabsContent
+                    key={item.id}
+                    value={item.id}
+                    className="motion-safe:animate-fade-in"
+                  >
+                    <div className="grid gap-2 md:h-104 md:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
+                      {/* `min-w-0` lets the grid item shrink to its track:
                         without it the chip row's min-content width pushes the
                         whole panel past the page gutter on a phone.
 
@@ -144,42 +152,42 @@ export function FormatShowcase() {
                         the copy in the brief and team cards. The column is
                         centred in the panel's fixed height from `md`, so it
                         has no vertical padding of its own to keep. */}
-                    <div className="flex min-h-72 min-w-0 flex-col justify-center gap-10 px-4 py-6 md:min-h-0 md:px-8 md:py-0">
-                      <div className="flex flex-col gap-3">
-                        <h3 className="text-2xl font-medium text-balance text-foreground md:text-3xl">
-                          {item.title}
-                        </h3>
-                        <p className="text-base text-pretty text-muted-foreground">
-                          {item.body}
+                      <div className="flex min-h-72 min-w-0 flex-col justify-center gap-10 px-4 py-6 md:min-h-0 md:px-8 md:py-0">
+                        <div className="flex flex-col gap-3">
+                          <h3 className="text-2xl font-medium text-balance text-foreground md:text-3xl">
+                            {item.title}
+                          </h3>
+                          <p className="text-base text-pretty text-muted-foreground">
+                            {item.body}
+                          </p>
+                        </div>
+                        <p id={chipsId} className="sr-only">
+                          {examplesLabel}
                         </p>
+                        <ul
+                          role="list"
+                          aria-labelledby={chipsId}
+                          className="-mx-4 flex gap-2 overflow-x-auto px-4 [scrollbar-width:none] md:mx-0 md:flex-wrap md:overflow-visible md:px-0"
+                        >
+                          {item.examples.map((example) => (
+                            <li key={example}>
+                              <Badge
+                                variant="outline"
+                                className="h-7 px-3 text-sm font-normal"
+                              >
+                                {example}
+                              </Badge>
+                            </li>
+                          ))}
+                        </ul>
                       </div>
-                      <p id={chipsId} className="sr-only">
-                        {examplesLabel}
-                      </p>
-                      <ul
-                        role="list"
-                        aria-labelledby={chipsId}
-                        className="-mx-4 flex gap-2 overflow-x-auto px-4 [scrollbar-width:none] md:mx-0 md:flex-wrap md:overflow-visible md:px-0"
-                      >
-                        {item.examples.map((example) => (
-                          <li key={example}>
-                            <Badge
-                              variant="outline"
-                              className="h-7 px-3 text-sm font-normal"
-                            >
-                              {example}
-                            </Badge>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
 
-                    <div
-                      role="img"
-                      aria-label={`${item.name}, ${assetLabel}. ${item.request}`}
-                      className="relative h-56 overflow-hidden rounded-3xl sm:h-72 md:h-full"
-                    >
-                      {/* The ground. Absolute under everything else in the
+                      <div
+                        role="img"
+                        aria-label={`${item.name}, ${assetLabel}. ${item.request}`}
+                        className="relative h-56 overflow-hidden rounded-3xl sm:h-72 md:h-full"
+                      >
+                        {/* The ground. Absolute under everything else in the
                           well, and the well's height is set by the grid, so
                           the picture can never move anything as it arrives.
                           Only the open tab's panel is mounted, so this is one
@@ -188,37 +196,41 @@ export function FormatShowcase() {
                           white watermark on every tab change. Decorative: the
                           well's own `role="img"` and label carry what it
                           means, so the file stays out of the tree. */}
-                      <Image
-                        src={`/img/gradients/${FORMAT_GRADIENTS[index] ?? FORMAT_GRADIENTS[0]}.webp`}
-                        alt=""
-                        fill
-                        unoptimized
-                        loading="eager"
-                        sizes="(min-width: 768px) 58vw, 100vw"
-                        className="object-cover"
-                      />
-                      {/* The watermark is white on colour now, not ink on a
+                        <Image
+                          src={`/img/gradients/${FORMAT_GRADIENTS[index] ?? FORMAT_GRADIENTS[0]}.webp`}
+                          alt=""
+                          fill
+                          unoptimized
+                          loading="eager"
+                          sizes="(min-width: 768px) 58vw, 100vw"
+                          className="object-cover"
+                        />
+                        {/* The watermark is white on colour now, not ink on a
                           tint: at 55% it reads on every one of the six
                           grounds without competing with the composer. */}
-                      <div className="absolute inset-x-0 top-0 bottom-28 flex items-center justify-center">
-                        <Icon
-                          className="size-14 text-white/55 drop-shadow-sm"
-                          aria-hidden="true"
-                        />
+                        <div className="absolute inset-x-0 top-0 bottom-28 flex items-center justify-center">
+                          <Icon
+                            className="size-14 text-white/55 drop-shadow-sm"
+                            aria-hidden="true"
+                          />
+                        </div>
+                        <RequestCard request={item.request} />
                       </div>
-                      <RequestCard request={item.request} />
                     </div>
-                  </div>
-                </TabsContent>
-              );
-            })}
-          </div>
-        </Tabs>
+                  </TabsContent>
+                );
+              })}
+            </div>
+          </Tabs>
+        </Reveal>
 
         {/* `lg` draws these at 40px, which is a pointer's button and a
             thumb's near miss, so below `sm` they take the 44px the pills
             above them take. */}
-        <div className="mt-6 flex w-full items-center justify-between md:mt-8">
+        <Reveal
+          step={2}
+          className="mt-6 flex w-full items-center justify-between md:mt-8"
+        >
           <Button
             variant="outline"
             size="lg"
@@ -237,7 +249,7 @@ export function FormatShowcase() {
             {next}
             <IconArrowRight aria-hidden="true" />
           </Button>
-        </div>
+        </Reveal>
       </div>
     </section>
   );

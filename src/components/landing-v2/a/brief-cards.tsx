@@ -5,6 +5,7 @@ import { useEffect, useRef, type RefObject } from "react";
 
 import { cn } from "@/lib/utils";
 
+import { Reveal } from "../reveal";
 import { BRIEF_CARDS } from "./content";
 import { SectionHeading } from "./section";
 
@@ -213,16 +214,25 @@ export function BriefCards() {
             the container's left edge, with the sub under it at the same size
             in the muted tier. `cut` is passed here rather than changed in
             SectionHeading, whose default stays `section` for variant A. */}
-        <SectionHeading
-          id={headingId}
-          heading={heading}
-          cut="display"
-          className="max-w-4xl"
-        />
+        <Reveal>
+          <SectionHeading
+            id={headingId}
+            heading={heading}
+            cut="display"
+            className="max-w-4xl"
+          />
+        </Reveal>
 
+        {/* One step for all three, not a 0/1/2 ladder: the cards are a screen
+            apart down the page, so the scroll already sequences them and a
+            growing delay would only read as lag on the last one. The single
+            step is what keeps a card that enters alongside the heading from
+            arriving with it. */}
         <div className="mt-16 flex flex-col gap-16 md:mt-20 md:gap-24">
           {items.map((card, index) => (
-            <BriefCard key={card.id} card={card} flipped={index % 2 === 1} />
+            <Reveal key={card.id} step={1}>
+              <BriefCard card={card} flipped={index % 2 === 1} />
+            </Reveal>
           ))}
         </div>
       </div>
