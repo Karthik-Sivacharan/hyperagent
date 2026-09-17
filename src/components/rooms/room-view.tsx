@@ -89,6 +89,10 @@ function RoomBody({ room, tab, onTabChange }: { room: Room; tab: RoomTab; onTabC
   // the rail washes on. Opening one yourself leaves it at null.
   const [arrival, setArrival] = useState<number | null>(null);
   const [mentionRuns, setMentionRuns] = useState<readonly AgentRun[]>([]);
+  // Runs somebody stopped. An id set rather than an edit, because half the bar
+  // is the board's and this view does not own those rows — it can only say
+  // "this one is over" and let the composition below apply it.
+  const [endedIds, setEndedIds] = useState<ReadonlySet<string>>(new Set());
 
   // The roster in this room's own order, which is the order `@` offers it in.
   const members = useMemo(
@@ -100,8 +104,17 @@ function RoomBody({ room, tab, onTabChange }: { room: Room; tab: RoomTab; onTabC
   // for. De-duplicated on id, so a run that later gains a card is one chip.
   const runs = useMemo(() => {
     const seen = new Set(agentRuns.map((run) => run.id));
-    return [...agentRuns, ...mentionRuns.filter((run) => !seen.has(run.id))];
-  }, [agentRuns, mentionRuns]);
+    const all = [...agentRuns, ...mentionRuns.filter((run) => !seen.has(run.id))];
+    // A stopped run keeps its chip and its words and loses the one thing that
+    // was still true of it. `done` rather than `stuck`: the person ended it,
+    // nothing failed, and of the four states it is the only terminal one that
+    // is not a complaint. The dial goes with the fraction, because a run that
+    // was stopped is not a fraction of anything any more.
+    if (endedIds.size === 0) return all;
+    return all.map((run) =>
+      endedIds.has(run.id) ? { ...run, state: "done" as const, progress: undefined } : run,
+    );
+  }, [agentRuns, mentionRuns, endedIds]);
 
   // A send starts a run for every agent the draft named. An agent already in
   // the bar is handed the new message rather than added twice.
@@ -169,6 +182,18 @@ function RoomBody({ room, tab, onTabChange }: { room: Room; tab: RoomTab; onTabC
     [allTasks, openMessage, room],
   );
 
+  // Stopping one. The interval below reads the mention runs rather than this
+  // list, so a stopped mention run is also written back there or the next tick
+  // would start it going again.
+  const handleEndRun = useCallback((run: AgentRun) => {
+    setEndedIds((current) => new Set(current).add(run.id));
+    setMentionRuns((current) =>
+      current.map((existing) =>
+        existing.id === run.id ? { ...existing, state: "done" as const, progress: undefined } : existing,
+      ),
+    );
+  }, []);
+
   // …and where it goes in the WORK. Only a board run has a card; `focusTask`
   // stays put for anything else rather than showing an empty board.
   const handleOpenTask = useCallback((run: AgentRun) => focusTask(run.id), [focusTask]);
@@ -227,6 +252,7 @@ function RoomBody({ room, tab, onTabChange }: { room: Room; tab: RoomTab; onTabC
                       onOpen={handleOpenRun}
                       onOpenTask={handleOpenTask}
                       canOpenTask={hasCard}
+                      onEndRun={handleEndRun}
                     />
                   ) : null
                 }

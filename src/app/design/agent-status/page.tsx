@@ -323,6 +323,7 @@ function DetailSpecimen({ run }: { run: AgentRun }) {
                 runs={[run]}
                 onBack={() => setShown(false)}
                 onOpenTask={() => () => {}}
+                onEndRun={() => {}}
                 className={AGENT_BAR_DETAIL}
               />
             </div>
@@ -431,7 +432,7 @@ export default function AgentStatusPage() {
         >
           <Measures>
             <BarFrame>
-              <ComposerAgentStatus runs={ONE_AGENT_MANY_TASKS} onOpenTask={() => {}} />
+              <ComposerAgentStatus runs={ONE_AGENT_MANY_TASKS} onOpenTask={() => {}} onEndRun={() => {}} />
             </BarFrame>
           </Measures>
         </Section>
