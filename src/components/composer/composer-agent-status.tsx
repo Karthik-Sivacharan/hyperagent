@@ -37,13 +37,19 @@ import { cn } from "@/lib/utils";
 // PICKING A CHIP IS A NAVIGATION, not just a disclosure. One click does both
 // things a person wants from a figure they just spotted: the bar swaps to that
 // agent's detail, and the surface behind the composer goes to where the agent
-// is actually working (`onOpen`). There is no second control for the second
-// half — a "go to thread" button in the detail would be a click asking for a
-// click, and the row is 36px with four things in it already. The detail is
-// then the receipt for the jump rather than a menu to read: it names the agent
-// you are now looking at, and the back arrow undoes the disclosure without
-// undoing the navigation, which is the right asymmetry — you can stop reading
-// about an agent while still standing in its thread.
+// is actually working (`onOpen`). The detail is then the receipt for the jump
+// rather than a menu to read: it names the agent you are now looking at, and
+// the back arrow undoes the disclosure without undoing the navigation, which
+// is the right asymmetry — you can stop reading about an agent while still
+// standing in its thread.
+//
+// THE ARROW AT THE END OF A ROW IS THE SAME TRIP, ASKED PER TASK (`onOpenTask`),
+// and that is the whole reason it is not redundant with the chip. A chip is an
+// agent, and an agent holding four tasks has four places its work is written
+// down; the chip can only take you to the one it was pressed on. On a single
+// row the two do land in the same place, and the arrow stays there anyway: a
+// control that appears on three rows out of four and vanishes on the fourth
+// costs more than a click that agrees with the one before it.
 //
 // What came back to the left is the one thing the stack genuinely cannot say:
 // HOW MANY. Three discs and a "+3" is six agents, and nobody reads that sum
@@ -136,15 +142,15 @@ export function ComposerAgentStatus({
    */
   onOpen?: (run: AgentRun) => void;
   /**
-   * Where the opened run is written down. Given, the last slot in the detail
-   * stops being the word "Done" and becomes the way to that card.
+   * Where one run's work is written down. Given, the last slot on that line in
+   * the detail stops being the word "Done" and becomes the way there.
    */
   onOpenTask?: (run: AgentRun) => void;
   /**
    * Whether THIS run has somewhere to be opened. Asked per run, because a bar
-   * routinely holds both kinds at once: work the board has a card for, and a
-   * run something just started that it does not. Omitted, every run is assumed
-   * to have one.
+   * routinely holds both kinds at once: work that came out of something
+   * somebody said, and work that was only ever entered. Omitted, every run is
+   * assumed to have somewhere.
    */
   canOpenTask?: (run: AgentRun) => boolean;
   /**

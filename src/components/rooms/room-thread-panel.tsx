@@ -22,6 +22,8 @@ import { EmptyState } from "@/components/patterns/empty-state";
 import { RoomComposer } from "@/components/rooms/room-composer";
 import { RoomMessageRow } from "@/components/rooms/room-message";
 import { visibleRoomMessages } from "@/components/rooms/room-message-list";
+import { RoomWorkingMessage, type RoomWorkingTask } from "@/components/rooms/room-working-message";
+import { reasoningForTask } from "@/lib/mock/room-reasoning";
 import { roomMessages, roomThread, type Room } from "@/lib/mock/rooms";
 
 // The room's third column: one message and everything said under it, kept out
@@ -50,6 +52,23 @@ import { roomMessages, roomThread, type Room } from "@/lib/mock/rooms";
 // or position, because animating the rail's box would push the message column
 // around for 220ms. It is entirely `motion-safe:`, so with reduced motion the
 // panel simply appears.
+//
+// `entrance` is the one thing the caller has to tell it, and it exists because
+// the rail is now two levels deep (room-agent-thread.tsx). A rail that just
+// appeared beside the column travels 16px in from the right, because that is
+// where it came from. A thread the reader popped BACK to did not travel: the
+// rail stood exactly where it is the whole time and only its contents changed,
+// so it fades and stays put. Sliding a box in from the right on a back move is
+// the same lie in the opposite direction.
+//
+// A WORKING TASK STANDS IN THE THREAD IT CAME OUT OF. The board knows which
+// tasks are running and which message each one came out of, so a thread whose
+// root started work shows that work as a live cell after the replies — the
+// newest thing in the thread, which is what it is (room-working-message.tsx).
+// It is a cell rather than a line of copy because it leads somewhere: the rail
+// has a second level, and this is the way into it. A task nothing has written
+// a turn for keeps the cell and loses the press, which is the same rule the
+// composer's agent bar keeps at the end of a row.
 //
 // THE ARRIVAL WASH. Opening a thread yourself needs no announcement: you
 // clicked the reply count, the rail is where you were looking. Being SENT here
@@ -101,6 +120,9 @@ export function RoomThreadPanel({
   room,
   rootId,
   arrival,
+  entrance = "rail",
+  working,
+  onOpenAgent,
   onClose,
   className,
 }: {
@@ -112,6 +134,16 @@ export function RoomThreadPanel({
    * the reader opening it. Null, or left out, and the rail never washes.
    */
   arrival?: number | null;
+  /**
+   * How this panel arrived. `rail` is the rail itself appearing beside the
+   * column; `level` is the reader coming back to it from the agent view, where
+   * the rail never moved (see MOTION above).
+   */
+  entrance?: "rail" | "level";
+  /** Work still running that came out of this thread's root message. */
+  working?: readonly RoomWorkingTask[];
+  /** Open one of those tasks' turns in the rail, in place of this panel. */
+  onOpenAgent?: (taskId: string) => void;
   onClose: () => void;
   className?: string;
 }) {
@@ -121,6 +153,7 @@ export function RoomThreadPanel({
   // welcome in a thread than in the room, and filtering here rather than in the
   // map keeps the count on the rule counting what is under it.
   const replies = visibleRoomMessages(roomThread(room, rootId));
+  const live = working ?? [];
 
   return (
     <aside
@@ -130,7 +163,10 @@ export function RoomThreadPanel({
         // `animation-duration-*` is the animate-in form of the duration token:
         // `duration-*` alone would set transition-duration, which this element
         // has no transition to spend it on (src/components/teams/org/org-entrance.tsx).
-        "ease-out-quint motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-right-4 motion-safe:animation-duration-(--duration-move)",
+        "motion-safe:animate-in motion-safe:fade-in",
+        entrance === "rail"
+          ? "ease-out-quint motion-safe:slide-in-from-right-4 motion-safe:animation-duration-(--duration-move)"
+          : "ease-out-quart motion-safe:animation-duration-(--duration-enter)",
         className,
       )}
     >
@@ -218,16 +254,31 @@ export function RoomThreadPanel({
               ))}
             </>
           ) : (
-            <>
-              <div className="mx-4 my-2 h-px bg-border-subtle" />
-              <EmptyState
-                variant="plain"
-                icon={IconMessageOff}
-                title="No replies yet"
-                description="Replies here stay in the thread and do not post back to the room."
-              />
-            </>
+            // The same hairline with no count to carry: it is closing the
+            // root, which is a job it has whether or not anyone replied.
+            <div className="mx-4 my-2 h-px bg-border-subtle" />
           )}
+
+          {/* Last, because it is the newest thing in the thread and because it
+              is the only part of it that has not finished happening. */}
+          {live.map((task) => (
+            <RoomWorkingMessage
+              key={task.taskId}
+              {...task}
+              onOpen={
+                onOpenAgent && reasoningForTask(task.taskId) ? () => onOpenAgent(task.taskId) : undefined
+              }
+            />
+          ))}
+
+          {replies.length === 0 && live.length === 0 ? (
+            <EmptyState
+              variant="plain"
+              icon={IconMessageOff}
+              title="No replies yet"
+              description="Replies here stay in the thread and do not post back to the room."
+            />
+          ) : null}
         </div>
       </ScrollArea>
 

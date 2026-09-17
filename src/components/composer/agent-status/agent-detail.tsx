@@ -48,13 +48,16 @@ import type { AgentRun } from "./types";
 // who cannot separate the hues, and the colour is confirmation rather than the
 // whole message.
 //
-// UNLESS THE RUN HAS A CARD, in which case that last slot is a way out instead
-// of a full stop. "Done" at the end of a row is the least useful true thing
-// the bar can say: the dial in front of the name already said it, in the same
-// hue, 200px to the left. Where the run is a task on the room's board, the
-// slot becomes the link to it — an arrow that leaves the plane and no words at
-// all (docs/brand/icons.md: an arrow goes, a chevron reveals), in the quiet
-// pair the back control wears rather than in the state's tint. A stack would
+// UNLESS THE RUN HAS SOMEWHERE TO GO, in which case that last slot is a way
+// out instead of a full stop. "Done" at the end of a row is the least useful
+// true thing the bar can say: the dial in front of the name already said it,
+// in the same hue, 200px to the left. Where the caller knows where the run's
+// work is written down, the slot becomes the link to it — an arrow that leaves
+// the plane and no words at all (docs/brand/icons.md: an arrow goes, a chevron
+// reveals), in the quiet pair the back control wears rather than in the state's
+// tint. The one caller that wires it up is the room, where it opens the
+// conversation the task came out of, which is why the name below says
+// conversation rather than naming a surface this file cannot see. A stack would
 // otherwise end in four coloured arrows down its right edge, and four hues in
 // a column read as four more state marks: the colour belongs to the dial and
 // the figure, and the arrow is a way out, which is the same sentence in every
@@ -171,7 +174,7 @@ function RunEnd({
         variant="ghost"
         size="icon-xs"
         onClick={onOpenTask}
-        aria-label={`${run.name}, ${label} — open this task on the board`}
+        aria-label={`${run.name}, ${label} — open this task's conversation`}
         className="-mr-1.5 shrink-0 text-muted-foreground hover:text-foreground"
       >
         <IconArrowUpRight className="size-3.5" aria-hidden="true" />
@@ -198,7 +201,7 @@ export function AgentDetail({
   onBack: () => void;
   /**
    * Where a run's work is written down, asked per run because a stack
-   * routinely mixes work the board has a card for with work it does not.
+   * routinely mixes work that has somewhere to go with work that does not.
    * Returning nothing leaves that line's state word where it was.
    */
   onOpenTask?: (run: AgentRun) => (() => void) | undefined;
