@@ -1,5 +1,5 @@
 import type { AgentRun } from "@/components/composer/agent-status/types";
-import type { RoomMember } from "@/lib/mock/rooms";
+import type { Room, RoomMember, RoomMessage } from "@/lib/mock/rooms";
 
 // What an agent starts doing when a room message tags it, so the mention in
 // the field turns into a run in the bar above it. Static like every other mock
@@ -53,4 +53,59 @@ export function runForMention(member: RoomMember, message: string): AgentRun {
     detail: excerpt(message),
     progress: 0.08,
   };
+}
+
+/* ------------------------------------------------- where an agent is working */
+
+// Picking an agent's chip puts its conversation on screen, which means the bar
+// has to answer "where is this one working?" from nothing but an id. A room
+// keeps that answer in three places, and they are searched in the order of how
+// directly each one is about THIS agent:
+//
+//   1. a thread the agent has replied in — it is talking there right now;
+//   2. the last message that named it — it was asked there, and the rail opens
+//      on a root with no replies perfectly well;
+//   3. the last message it posted itself, for an agent that speaks on a
+//      schedule and was never tagged by anyone;
+//   4. failing all three, the membership line that put it in the room — the
+//      only place a silent agent appears at all. It is a thin destination and
+//      it is deliberately last, but it is a true one, and the room reads
+//      better for landing on "was added to the room by Priya" than for a click
+//      that does nothing.
+//
+// LAST, NOT FIRST, at every step: an agent that has been in four threads is
+// most likely still in the one it was in most recently, and a room reads
+// oldest-first, so the scans run from the end.
+//
+// UNDEFINED IS A REAL ANSWER, and three of this mock's four rooms give it:
+// they have no messages at all yet, so there is nowhere in them for any agent
+// to be. The caller is told so rather than sent somewhere plausible — a jump
+// to the wrong thread costs more than a click that politely does nothing.
+
+/** Every message in the room, oldest first, days flattened away. */
+function allMessages(room: Room): RoomMessage[] {
+  return room.days.flatMap((day) => day.messages);
+}
+
+/** True when this message's prose carries `@[id]` for the given member. */
+function mentions(message: RoomMessage, memberId: string): boolean {
+  const token = `@[${memberId}]`;
+  return message.blocks.some((block) =>
+    block.kind === "paragraph" ? block.text.includes(token) : block.items.some((item) => item.includes(token)),
+  );
+}
+
+/** The root message whose thread an agent belongs in, or `undefined` for one
+    the room has not spoken to yet. */
+export function threadForAgent(room: Room, agentId: string): string | undefined {
+  const spoke = [...room.threads].reverse().find((thread) => thread.replies.some((r) => r.authorId === agentId));
+  if (spoke) return spoke.rootId;
+
+  const messages = allMessages(room).reverse();
+  const byAgent = (message: RoomMessage) => message.authorId === agentId;
+  return (
+    messages.find((message) => mentions(message, agentId))?.id ??
+    messages.find((message) => byAgent(message) && !message.system)?.id ??
+    messages.find(byAgent)?.id
+  );
 }

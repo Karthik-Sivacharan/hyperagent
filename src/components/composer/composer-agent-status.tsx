@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { AgentDetail } from "@/components/composer/agent-status/agent-detail";
 import { AgentStack } from "@/components/composer/agent-status/agent-stack";
+import { RunCount } from "@/components/composer/agent-status/run-count";
 import type { AgentRun } from "@/components/composer/agent-status/types";
 import { cn } from "@/lib/utils";
 
@@ -14,17 +15,35 @@ import { cn } from "@/lib/utils";
 // it — and it holds the variant's two views: the stack, and one agent opened
 // out of it.
 //
-// THE LEFT IS EMPTY, AND THAT IS THE VARIANT. The strip this replaces spends
-// its left on three pulsing dots and the word "Working…", and its right on a
-// ghost Stop. Both say the same thing, "something is happening", and neither
-// says which thing, how many, or whether any of them has stopped and is
-// waiting on you. Four figures wearing their own states answer all three
-// without a word, so the words and the dots went and the whole readout moved
-// to the right edge, where the send arrow already is. Stop went too, but it
-// did not disappear: it belongs to ONE agent rather than to the composer, so
-// it is inside that agent's detail, one click from the chip that names it. An
-// empty left beats a label that repeats what the figures are already doing,
-// and it is the room the detail opens into.
+// THE LEFT CARRIES A COUNT, AND THAT IS THE VARIANT. The strip this replaces
+// spends its left on three pulsing dots and the word "Working…", and its right
+// on a ghost Stop. Both say the same thing, "something is happening", and
+// neither says which thing, how many, or whether any of them has stopped and
+// is waiting on you. Four figures wearing their own states answer two of those
+// three without a word, so the dots went and the whole readout moved to the
+// right edge, where the send arrow already is. Stop went too, but it did not
+// disappear: it belongs to ONE agent rather than to the composer, so it is
+// inside that agent's detail, one click from the chip that names it.
+//
+// PICKING A CHIP IS A NAVIGATION, not just a disclosure. One click does both
+// things a person wants from a figure they just spotted: the bar swaps to that
+// agent's detail, and the surface behind the composer goes to where the agent
+// is actually working (`onOpen`). There is no second control for the second
+// half — a "go to thread" button in the detail would be a click asking for a
+// click, and the row is 36px with four things in it already. The detail is
+// then the receipt for the jump rather than a menu to read: it names the agent
+// you are now looking at, and the back arrow undoes the disclosure without
+// undoing the navigation, which is the right asymmetry — you can stop reading
+// about an agent while still standing in its thread.
+//
+// What came back to the left is the one thing the stack genuinely cannot say:
+// HOW MANY. Three discs and a "+3" is six agents, and nobody reads that sum
+// off a row of overlapping circles. So the left is a count and a tense — "6
+// agents working", shimmering on the product's own running-label device while
+// anything is still out, plain and past-tense once the last one lands
+// (agent-status/run-count.tsx). It is also the bar's only spoken readout,
+// which is what keeps the state hues confirmation rather than the message.
+// The detail still opens over it, so the count is the room the detail uses.
 //
 // 40px, AND THE SAME IN BOTH VIEWS. The strip it replaces is 36, sized around
 // a 28px ghost button with 4px of air either side. A chip is a 28px disc plus
@@ -81,11 +100,19 @@ const REVEAL = "animate-in fade-in-0 duration-(--duration-enter) ease-out-quart 
 export function ComposerAgentStatus({
   runs,
   max,
+  onOpen,
   className,
 }: {
   runs: readonly AgentRun[];
   /** How many chips before the rest collapse into a count. */
   max?: number;
+  /**
+   * Where the agent's work actually is. Called with the same click that opens
+   * the chip, so picking a figure both explains it here and puts its
+   * conversation on screen. Omitted, the chip only opens the detail, which is
+   * what the bar does anywhere there is nowhere to go.
+   */
+  onOpen?: (run: AgentRun) => void;
   className?: string;
 }) {
   // The one piece of state in the bar: which agent is open. An id rather than
@@ -150,11 +177,19 @@ export function ComposerAgentStatus({
         <div
           ref={stackRef}
           tabIndex={-1}
-          className={cn(REVEAL, "flex h-full min-w-0 flex-1 items-center justify-end outline-none")}
+          className={cn(REVEAL, "flex h-full min-w-0 flex-1 items-center gap-3 outline-none")}
         >
+          <RunCount runs={runs} className="flex-1" />
           {/* No `activeId`: the stack and the detail are never on screen
               together, so there is never a chip to mark as the open one. */}
-          <AgentStack runs={runs} max={max} onSelect={(run: AgentRun) => setOpenId(run.id)} />
+          <AgentStack
+            runs={runs}
+            max={max}
+            onSelect={(run: AgentRun) => {
+              setOpenId(run.id);
+              onOpen?.(run);
+            }}
+          />
         </div>
       )}
     </div>

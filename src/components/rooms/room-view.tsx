@@ -11,7 +11,7 @@ import { RoomHeader, type RoomTab } from "@/components/rooms/room-header";
 import { RoomMessageList } from "@/components/rooms/room-message-list";
 import { RoomThreadPanel } from "@/components/rooms/room-thread-panel";
 import { roomMember, type Room } from "@/lib/mock/rooms";
-import { runForMention } from "@/lib/mock/room-agent-runs";
+import { runForMention, threadForAgent } from "@/lib/mock/room-agent-runs";
 
 // The room, assembled: chrome, the message column, the composer, and the
 // thread rail beside them. This file owns the two pieces of state the three
@@ -39,6 +39,15 @@ import { runForMention } from "@/lib/mock/room-agent-runs";
 // settles on `done`, which is the shortest honest lifecycle the four states
 // allow: hueless while it works, green when it stops. One interval for the
 // whole fleet rather than one per agent, so ten chips cost one timer.
+//
+// AND PICKING A CHIP IS A JUMP. The bar hands back the agent whose figure was
+// clicked, and the rail goes to where that agent is working — which is the
+// same rail, the same state and the same close button as clicking a reply
+// count in the message column, because there is only one way to be looking at
+// a thread in this room. Below `lg` that swaps the column for the rail, so the
+// jump reads as going somewhere on a phone too. The messages tab comes back
+// first: a chip clicked while the canvas was open would otherwise open a rail
+// beside a surface that has no messages in it.
 
 /** How often the mock fleet advances, and how much of the dial a tick is worth. */
 const TICK_MS = 900;
@@ -101,6 +110,18 @@ export function RoomView({ room }: { room: Room }) {
     return () => window.clearInterval(id);
   }, [working]);
 
+  // Where a picked chip goes. An agent with nothing to its name in this room
+  // leaves the rail alone rather than guessing (room-agent-runs.ts).
+  const handleOpenRun = useCallback(
+    (run: AgentRun) => {
+      const rootId = threadForAgent(room, run.id);
+      if (!rootId) return;
+      setTab("messages");
+      setThreadRootId(rootId);
+    },
+    [room],
+  );
+
   const openThread = (messageId: string) => setThreadRootId(messageId);
   const toggleThread = () => setThreadRootId((current) => (current ? undefined : room.threads[0]?.rootId));
 
@@ -128,7 +149,7 @@ export function RoomView({ room }: { room: Room }) {
                 placeholder={`Message #${room.slug}`}
                 members={members}
                 onSend={handleSend}
-                status={runs.length > 0 ? <ComposerAgentStatus runs={runs} /> : null}
+                status={runs.length > 0 ? <ComposerAgentStatus runs={runs} onOpen={handleOpenRun} /> : null}
               />
             </div>
           </>

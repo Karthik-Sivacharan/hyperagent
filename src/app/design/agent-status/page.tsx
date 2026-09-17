@@ -21,10 +21,11 @@ import { AGENT_RUNS, ONE_PER_STATE } from "@/lib/mock/agent-status";
 // Two measures again, and for a sharper reason here than on the stream page.
 // 752px is the thread column before the shell arrives; 512px is the floor the
 // shell holds it to while the agent panel is docked (use-shell-fit.ts). The
-// bar is right-aligned, so at 752 it is mostly the empty left it is named for
-// and nothing is under pressure; 512 is where the expanded row's parameter
-// starts to truncate and where the count has to earn its place. A bar that
-// only works at 752 is not finished.
+// fleet is right-aligned and the count sits opposite it, so at 752 the two
+// ends have the whole row between them and nothing is under pressure; 512 is
+// where the expanded row's parameter starts to truncate, where the count
+// label meets the chips, and where the overflow count has to earn its place. A
+// bar that only works at 752 is not finished.
 //
 // Every specimen sits on `surface-elevated` rather than on the page, because a
 // chip is ringed in the composer's own surface so that it bites a clean edge
@@ -338,7 +339,7 @@ export default function AgentStatusPage() {
           <h1 className="font-heading text-2xl">The agents, in one row</h1>
           <p className="max-w-content text-sm text-muted-foreground">
             The variant of the working strip for a composer with more than one agent out. The left
-            goes empty and the right carries the fleet, one glyph per agent wearing its own state; a
+            counts them and the right carries them, one glyph per agent wearing its own state; a
             click opens any of them out into the same 40px row, and Back or Escape puts them away.
             The pattern is the one the 2026-09-17 desk research keeps turning up: the signal lives
             on the figure rather than in a layer beside it, and motion carries the reassurance a
@@ -379,7 +380,7 @@ export default function AgentStatusPage() {
 
         <Section
           label="The stack"
-          blurb="Six agents, three chips and a count for the rest, in the order the bar sorts them: whoever wants something, then trouble, then the ones still going, then the ones already finished. At 752 the bar is mostly the empty left it is named for; at 512 it is the same bar, because the readout was never the part under pressure. Below it, the same fleet with the count set earlier and later."
+          blurb="Six agents, three chips and a count for the rest, in the order the bar sorts them: whoever wants something, then trouble, then the ones still going, then the ones already finished. Opposite them, the one thing a row of overlapping discs cannot say: how many there are, and whether any is still going — it shimmers on the product's running-label device while something is out, and changes tense when the last one lands. At 512 it is the same bar, because the readout was never the part under pressure. Below it, the same fleet with the overflow count set earlier and later."
         >
           <Measures>
             <BarFrame>
