@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { IconArrowLeft, IconArrowUpRight } from "@tabler/icons-react";
+import { IconArrowLeft, IconArrowUpRight, IconPlayerStopFilled } from "@tabler/icons-react";
 
 import { AgentGlyph } from "@/components/brand/agent-glyph";
 import { Button } from "@/components/ui/button";
@@ -96,36 +96,87 @@ function TaskText({ run }: { run: AgentRun }) {
   );
 }
 
-/** The end of a line: the way to this run's card, or the state as a word. */
+/**
+ * The end of a line: stop it, go to its card, or — for a run with neither —
+ * the state as a word.
+ *
+ * STOP BELONGS TO ONE RUN, which is the whole reason it is here rather than on
+ * the bar. The strip this variant replaces spends its right edge on a single
+ * ghost Stop, and a fleet makes that control a question it cannot answer:
+ * stop WHICH one. So it moved down to the line that names the work, where
+ * "stop" has exactly one meaning.
+ *
+ * ONLY WHILE SOMETHING IS RUNNING. The other three states have already
+ * stopped — done, waiting on you, stuck — so a Stop beside them would be a
+ * control with nothing to do, which is the same lie as a Stop that stops
+ * nothing (composer-status.tsx says it in those words). It sits BEFORE the
+ * arrow because the two are not peers: stopping is the destructive one and
+ * the arrow is the safe one, and a reader who overshoots the last control on
+ * a line should land on the harmless one.
+ *
+ * IT IS AS NEUTRAL AS THE ARROW. A red Stop on a hueless `running` row would
+ * put the loudest colour in the bar on the one state that deliberately spends
+ * none, and it would read as the state rather than as the action. The muted
+ * tier for both, and the hover is the only thing that separates them.
+ */
 function RunEnd({
   run,
+  onEnd,
   onOpenTask,
   className,
 }: {
   run: AgentRun;
+  /** Stop this run. Only ever shown on `running`; omit and there is no Stop. */
+  onEnd?: () => void;
   onOpenTask?: () => void;
   className?: string;
 }) {
   const { label, tint } = RUN_STATES[run.state];
+  const stop =
+    run.state === "running" && onEnd ? (
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon-xs"
+        onClick={onEnd}
+        aria-label={`Stop ${run.name}: ${run.task}`}
+        className="shrink-0 text-muted-foreground hover:text-foreground"
+      >
+        <IconPlayerStopFilled className="size-3.5" aria-hidden="true" />
+      </Button>
+    ) : null;
 
-  if (!onOpenTask) return <span className={cn("shrink-0 text-xs", tint, className)}>{label}</span>;
+  if (!onOpenTask) {
+    if (!stop) return <span className={cn("shrink-0 text-xs", tint, className)}>{label}</span>;
+    return (
+      <span className={cn("flex shrink-0 items-center gap-0.5", className)}>
+        {stop}
+        <span className={cn("text-xs", tint)}>{label}</span>
+      </span>
+    );
+  }
 
   return (
-    // The back control's own size, at the other end of the same line:
-    // `icon-xs` is a 24px square, which is the line exactly, so an icon-only
-    // control adds nothing between the lines of a stack and the row keeps its
-    // height. `icon-xs` sets no icon size of its own and the Button base
-    // shrinks any svg that carries none, so the `size-3.5` is load-bearing.
-    <Button
-      type="button"
-      variant="ghost"
-      size="icon-xs"
-      onClick={onOpenTask}
-      aria-label={`${run.name}, ${label} — open this task on the board`}
-      className={cn("-mr-1.5 shrink-0 text-muted-foreground hover:text-foreground", className)}
-    >
-      <IconArrowUpRight className="size-3.5" aria-hidden="true" />
-    </Button>
+    <span className={cn("flex shrink-0 items-center gap-0.5", className)}>
+      {stop}
+      {/* The back control's own size, at the other end of the same line:
+          `icon-xs` is a 24px square, which is the line exactly, so an icon-only
+          control adds nothing between the lines of a stack and the row keeps
+          its height. `icon-xs` sets no icon size of its own and the Button base
+          shrinks any svg that carries none, so the `size-3.5` is load-bearing.
+          Both controls are that size, so a running line ends in two equal
+          squares rather than in a pair that has to be read for weight. */}
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon-xs"
+        onClick={onOpenTask}
+        aria-label={`${run.name}, ${label} — open this task on the board`}
+        className="-mr-1.5 shrink-0 text-muted-foreground hover:text-foreground"
+      >
+        <IconArrowUpRight className="size-3.5" aria-hidden="true" />
+      </Button>
+    </span>
   );
 }
 
@@ -133,6 +184,7 @@ export function AgentDetail({
   runs,
   onBack,
   onOpenTask,
+  onEndRun,
   claimFocus = false,
   className,
 }: {
@@ -150,6 +202,8 @@ export function AgentDetail({
    * Returning nothing leaves that line's state word where it was.
    */
   onOpenTask?: (run: AgentRun) => (() => void) | undefined;
+  /** Stop one run. Only reaches the lines that are actually running. */
+  onEndRun?: (run: AgentRun) => void;
   /**
    * This row opened because someone picked a chip, so it may take the focus
    * that chip left behind. Off by default: a row rendered cold — a specimen
@@ -234,7 +288,12 @@ export function AgentDetail({
           <span className="shrink-0 font-medium text-foreground">{lead.name}</span>
           <TaskText run={lead} />
         </span>
-        <RunEnd run={lead} onOpenTask={onOpenTask?.(lead)} className={ENTER} />
+        <RunEnd
+          run={lead}
+          onEnd={onEndRun ? () => onEndRun(lead) : undefined}
+          onOpenTask={onOpenTask?.(lead)}
+          className={ENTER}
+        />
       </div>
     );
   }
@@ -268,7 +327,7 @@ export function AgentDetail({
             <span className="min-w-0 flex-1">
               <TaskText run={run} />
             </span>
-            <RunEnd run={run} onOpenTask={onOpenTask?.(run)} />
+            <RunEnd run={run} onEnd={onEndRun ? () => onEndRun(run) : undefined} onOpenTask={onOpenTask?.(run)} />
           </li>
         ))}
       </ul>

@@ -122,6 +122,7 @@ export function ComposerAgentStatus({
   onOpen,
   onOpenTask,
   canOpenTask,
+  onEndRun,
   className,
 }: {
   runs: readonly AgentRun[];
@@ -146,6 +147,12 @@ export function ComposerAgentStatus({
    * to have one.
    */
   canOpenTask?: (run: AgentRun) => boolean;
+  /**
+   * Stop one run. Reaches only the `running` lines of the opened detail, where
+   * "stop" has exactly one meaning; the bar itself never carries a Stop,
+   * because a fleet cannot answer "stop which one".
+   */
+  onEndRun?: (run: AgentRun) => void;
   className?: string;
 }) {
   // The one piece of state in the bar: which agent is open. An id rather than
@@ -215,6 +222,7 @@ export function ComposerAgentStatus({
                 ? (run) => ((canOpenTask?.(run) ?? true) ? () => onOpenTask(run) : undefined)
                 : undefined
             }
+            onEndRun={onEndRun}
             claimFocus
             className={AGENT_BAR_DETAIL}
           />
