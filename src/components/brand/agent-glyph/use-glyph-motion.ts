@@ -3,7 +3,7 @@
 import { useReducedMotion } from "motion/react";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
-import type { Choreography, GlyphFrame, GlyphPace } from "./choreography";
+import type { Choreography, GlyphFrame, GlyphIdle, GlyphPace } from "./choreography";
 import { GlyphController, type GlyphMotionSettings } from "./glyph-controller";
 import type { GlyphShape } from "./types";
 
@@ -17,6 +17,9 @@ export type GlyphMotionInput = {
   from?: GlyphShape;
   choreography: Choreography;
   pace: GlyphPace;
+  idle: GlyphIdle;
+  /** The rendered edge in px; the controller sizes a glance from it. */
+  size: number;
   hold: number;
   blink: boolean;
   glance: boolean;
@@ -68,10 +71,12 @@ export function useGlyphMotion(input: GlyphMotionInput) {
   }, [input.onSettle, input.onFrame]);
 
   const controllerRef = useRef<GlyphController | null>(null);
-  const { choreography, pace, hold, blink, glance, paused } = input;
+  const { choreography, pace, idle, size, hold, blink, glance, paused } = input;
   const settingsRef = useRef<GlyphMotionSettings>({
     choreography,
     pace,
+    idle,
+    size,
     hold,
     blink,
     glance,
@@ -101,9 +106,9 @@ export function useGlyphMotion(input: GlyphMotionInput) {
   }, [initial]);
 
   useLayoutEffect(() => {
-    settingsRef.current = { ...settingsRef.current, choreography, pace, hold, blink, glance, paused, reducedMotion };
+    settingsRef.current = { ...settingsRef.current, choreography, pace, idle, size, hold, blink, glance, paused, reducedMotion };
     controllerRef.current?.update(settingsRef.current);
-  }, [choreography, pace, hold, blink, glance, paused, reducedMotion]);
+  }, [choreography, pace, idle, size, hold, blink, glance, paused, reducedMotion]);
 
   // Off screen or in a hidden tab, nobody sees the glyph: stop its clock.
   // Written straight to the controller, never through React state.

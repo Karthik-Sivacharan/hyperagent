@@ -1,7 +1,9 @@
 export { AgentGlyph, type AgentGlyphProps } from "./agent-glyph";
 export {
   CHOREOGRAPHIES,
+  GLYPH_IDLES,
   GLYPH_PACES,
+  IDLE_TIMING,
   PACE_TIMING,
   TRANSITION_MS,
   defaultPace,
@@ -10,7 +12,9 @@ export {
   restSnapshot,
   type Choreography,
   type GlyphFrame,
+  type GlyphIdle,
   type GlyphPace,
+  type IdleTiming,
   type PaceTiming,
 } from "./choreography";
 export { GlyphStage, type GlyphStageProps } from "./glyph-stage";
