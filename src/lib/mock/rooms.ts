@@ -101,6 +101,10 @@ export type Room = {
 
 /* --------------------------------------------------------------- roster */
 
+// The three colleagues' faces are placeholder portraits from i.pravatar.cc,
+// which serves Unsplash-licensed photographs; they are vendored into
+// `public/avatars/` rather than hot-linked so the room renders with the
+// network off and nobody's face changes under us between screenshots.
 export const roomMembers: RoomMember[] = [
   {
     id: "you",
@@ -110,9 +114,23 @@ export const roomMembers: RoomMember[] = [
     avatarUrl: currentUser.avatarUrl,
     role: "Workspace owner",
   },
-  { id: "priya", name: "Priya Raghunathan", kind: "human", initials: "PR", role: "Product engineer" },
-  { id: "dan", name: "Dan Whitfield", kind: "human", initials: "DW", role: "Infrastructure" },
-  { id: "mara", name: "Mara Osei", kind: "human", initials: "MO", role: "Design" },
+  {
+    id: "priya",
+    name: "Priya Raghunathan",
+    kind: "human",
+    initials: "PR",
+    avatarUrl: "/avatars/priya.jpg",
+    role: "Product engineer",
+  },
+  {
+    id: "dan",
+    name: "Dan Whitfield",
+    kind: "human",
+    initials: "DW",
+    avatarUrl: "/avatars/dan.jpg",
+    role: "Infrastructure",
+  },
+  { id: "mara", name: "Mara Osei", kind: "human", initials: "MO", avatarUrl: "/avatars/mara.jpg", role: "Design" },
   {
     id: "media-lab",
     name: "Media Lab Director",
@@ -131,7 +149,11 @@ export const roomMembers: RoomMember[] = [
     id: "evalbot",
     name: "EvalBot",
     kind: "agent",
-    glyph: { shape: "slot-stack", tone: "ink" },
+    // Trefoil for the shape it is paid to have: three lobes pulled into one
+    // answer, which is what 62 cases reduced to a verdict looks like. It is
+    // also the only round silhouette among this room's agents, so it survives
+    // the facepile where slot-stack's notches silted up into a blob.
+    glyph: { shape: "trefoil", tone: "sand" },
     role: "Runs the eval suite on every merge",
   },
   {

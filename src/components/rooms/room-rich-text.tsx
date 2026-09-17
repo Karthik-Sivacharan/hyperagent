@@ -17,8 +17,8 @@ const TOKENS = /(\*\*[^*]+\*\*|`[^`]+`|@\[[a-z0-9-]+\])/g;
  * A mention as it reads inside a sentence: the live site's inline reference
  * chip (`rounded-lg` on a tint fill), carrying the speaker's face at the size
  * of the surrounding line so the eye finds it without a colour being spent.
- * Agents get their glyph; people get a monogram dot, which is the smallest
- * mark that still says "person, not agent" at 14px.
+ * Agents get their glyph; people get a monogram on the same small tile, so a
+ * mention carries the room's one avatar silhouette down into the sentence.
  */
 export function MentionChip({ member, className }: { member: RoomMember; className?: string }) {
   return (
@@ -35,7 +35,7 @@ export function MentionChip({ member, className }: { member: RoomMember; classNa
       ) : (
         <span
           aria-hidden="true"
-          className="flex size-3.5 shrink-0 items-center justify-center rounded-full bg-tint-20 text-[8px] font-medium text-muted-foreground"
+          className="flex size-3.5 shrink-0 items-center justify-center rounded-xs bg-tint-20 text-[8px] font-medium text-muted-foreground"
         >
           {member.initials}
         </span>

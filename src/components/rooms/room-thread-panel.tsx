@@ -19,6 +19,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { EmptyState } from "@/components/patterns/empty-state";
 import { RoomComposer } from "@/components/rooms/room-composer";
 import { RoomMessageRow } from "@/components/rooms/room-message";
+import { visibleRoomMessages } from "@/components/rooms/room-message-list";
 import { roomMessages, roomThread, type Room } from "@/lib/mock/rooms";
 
 // The room's third column: one message and everything said under it, kept out
@@ -80,7 +81,10 @@ export function RoomThreadPanel({
 }) {
   const alsoSendId = useId();
   const root = roomMessages(room).find((message) => message.id === rootId);
-  const replies = roomThread(room, rootId);
+  // The channel's own filter, not a copy of it: a membership event is no more
+  // welcome in a thread than in the room, and filtering here rather than in the
+  // map keeps the count on the rule counting what is under it.
+  const replies = visibleRoomMessages(roomThread(room, rootId));
 
   return (
     <aside
@@ -159,21 +163,9 @@ export function RoomThreadPanel({
                 </span>
               </div>
 
-              {replies.map((reply, index) => {
-                const previous = index > 0 ? replies[index - 1] : undefined;
-                // The channel's rule, kept verbatim: consecutive turns by the
-                // same author collapse into one block, and a membership line
-                // never groups with anything on either side of it.
-                const grouped =
-                  previous !== undefined &&
-                  previous.authorId === reply.authorId &&
-                  !previous.system &&
-                  !reply.system;
-
-                return (
-                  <RoomMessageRow key={reply.id} message={reply} variant="thread" grouped={grouped} />
-                );
-              })}
+              {replies.map((reply) => (
+                <RoomMessageRow key={reply.id} message={reply} variant="thread" />
+              ))}
             </>
           ) : (
             <>

@@ -17,29 +17,26 @@ import { roomMember, type Room, type RoomMessage } from "@/lib/mock/rooms";
 // for a reader who has scrolled a long way and lost the header. Only the last
 // group sticks, because only one date can be the one you are inside.
 //
-// The second is grouping. A run of messages from the same speaker loses its
-// face and its name (see `room-message.tsx`), and the rule for when a run
-// breaks lives here rather than in the row, because it is a question about
-// neighbours. A system line never joins a run and never continues one, and
-// neither does a scheduled post: both are announcements, and an announcement
-// that inherits the face above it reads as a reply to it.
+// The second is what does not reach the screen. Membership events are real
+// messages in the mock and the row knows how to draw them; the prototype keeps
+// them out of the column anyway, because a room this size would spend a third
+// of its height announcing arrivals instead of showing work. That filter is
+// this file's job rather than the row's: it is a question about the column, and
+// it is the reason a day can turn out to have nothing in it.
 //
 // The column opens at the bottom, which is where a room's newest message is
 // and where every chat client in the world puts you.
 
 /**
- * Does this message continue the one above it? Same author, both ordinary
- * messages, neither posted by a schedule. The mock's times are written labels
- * rather than instants, so the "within a few minutes" half of the usual rule
- * is the day group itself: a run never crosses a divider.
+ * A prototype decision, not a product one: "Mara Osei joined the room." stays
+ * in the mock and stays renderable by `RoomMessageRow`, it just does not reach
+ * the screen. Flipping this to `true` is the whole of putting it back.
  */
-function isGrouped(messages: RoomMessage[], index: number): boolean {
-  const message = messages[index];
-  const previous = messages[index - 1];
-  if (!previous) return false;
-  if (previous.system || message.system) return false;
-  if (previous.schedule || message.schedule) return false;
-  return previous.authorId === message.authorId;
+const SHOW_MEMBERSHIP_EVENTS = false;
+
+/** The messages a reader is actually shown, of the ones the mock holds. */
+export function visibleRoomMessages(messages: RoomMessage[]): RoomMessage[] {
+  return SHOW_MEMBERSHIP_EVENTS ? messages : messages.filter((message) => !message.system);
 }
 
 /**
@@ -113,18 +110,23 @@ export function RoomMessageList({
     if (viewport) viewport.scrollTop = viewport.scrollHeight;
   }, [room.id]);
 
+  // A day whose every message was filtered out drops with its divider: a date
+  // pinned over nothing is a promise the column does not keep.
+  const days = room.days
+    .map((day) => ({ label: day.label, messages: visibleRoomMessages(day.messages) }))
+    .filter((day) => day.messages.length > 0);
+
   return (
     <ScrollArea className={cn("min-h-0 flex-1", className)} viewportRef={viewportRef}>
       <div className="flex flex-col pb-4">
         <RoomIntro room={room} />
-        {room.days.map((day, dayIndex) => (
+        {days.map((day, dayIndex) => (
           <section key={day.label} className="flex flex-col">
-            <RoomDayDivider label={day.label} sticky={dayIndex === room.days.length - 1} />
-            {day.messages.map((message, index) => (
+            <RoomDayDivider label={day.label} sticky={dayIndex === days.length - 1} />
+            {day.messages.map((message) => (
               <RoomMessageRow
                 key={message.id}
                 message={message}
-                grouped={isGrouped(day.messages, index)}
                 active={activeThreadId === message.id}
                 onOpenThread={onOpenThread}
               />

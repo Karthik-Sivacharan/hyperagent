@@ -23,14 +23,12 @@ import { roomMember, type RoomMember, type RoomMessage } from "@/lib/mock/rooms"
 
 // One line of a room: a face in a fixed gutter, a name, and what was said.
 //
-// The column earns its rhythm from three things rather than from one padding
-// value painted everywhere. A new speaker gets air above them and their face;
-// a run of messages from the same speaker closes up to a single line's gap and
-// drops both the face and the name, because repeating them is noise once the
-// reader knows who is talking. What the grouped row keeps is the timestamp,
-// parked in the empty avatar gutter and revealed only on hover — the detail
-// that lets someone answer "when was that?" without the column carrying a
-// clock on every line.
+// Every row carries all three, including the second and third message from
+// the same speaker. Collapsing a run of them buys back a little height and
+// charges the reader for it at the worst moment: the message most likely to be
+// quoted, answered, or asked "when was that?" about is exactly the one a run
+// strips of its face, its name and its clock. One padding value serves the
+// whole column now, because every row is the same shape.
 //
 // The other thing this row has to say is *why* an agent spoke. A reply is
 // obvious from the thread it sits in; a message that arrived on a timer is
@@ -39,7 +37,9 @@ import { roomMember, type RoomMember, type RoomMessage } from "@/lib/mock/rooms"
 //
 // Membership events are not messages and are not laid out as any. They are one
 // quiet `sm` line at tier 2, aligned into the same column so the eye skips
-// them: furniture, not conversation.
+// them: furniture, not conversation. The prototype currently keeps them off
+// screen entirely; the branch stays because the decision is a flag in
+// `room-message-list.tsx`, not a deletion.
 //
 // Phase 2: fills are tints, the hover cluster is an elevated surface behind a
 // hairline and a `shadow-sm`, and the only colour spent is `text-brand-accent`
@@ -51,14 +51,6 @@ export type RoomMessageVariant = "channel" | "thread";
 
 /** The menu behind the hover cluster's `IconDots`. Same four on every row. */
 const MORE_ACTIONS = ["Copy link", "Pin to room", "Mark unread", "Remind me"] as const;
-
-/**
- * "10:14 AM" → "10:14". The avatar gutter is 36px and the meridiem does not
- * fit in it at 10px; the full label stays on the element's `title`.
- */
-function clockOnly(time: string): string {
-  return time.replace(/\s*[ap]\.?m\.?$/i, "");
-}
 
 /**
  * An author id the roster no longer resolves — someone who left the workspace.
@@ -86,15 +78,12 @@ function ScheduleChip({ label }: { label: string }) {
 export function RoomMessageRow({
   message,
   variant = "channel",
-  grouped = false,
   active = false,
   onOpenThread,
   className,
 }: {
   message: RoomMessage;
   variant?: RoomMessageVariant;
-  /** Same author as the row above, close enough in time: no face, no name. */
-  grouped?: boolean;
   /** This message's thread is the one open in the side rail. */
   active?: boolean;
   /**
@@ -148,38 +137,33 @@ export function RoomMessageRow({
       data-active={active || undefined}
       className={cn(
         "group/message relative flex gap-3 px-4",
-        // A new speaker opens a paragraph; a continuation closes up to a line.
-        grouped ? "py-1" : "pt-3 pb-1.5",
+        // Symmetric, and a shade tighter than the old new-speaker gap: a name
+        // opens every row now, so the gap between two rows no longer has to do
+        // the separating by itself.
+        "py-2",
         "transition-[background-color] duration-(--duration-fast) ease-out",
         active ? "bg-tint-5" : "hover:bg-tint-5",
         className,
       )}
     >
       <div className="w-9 shrink-0">
-        {grouped ? (
-          <span
-            title={message.time}
-            className="block text-right text-[10px] leading-6 text-foreground-low tabular-nums opacity-0 transition-opacity duration-(--duration-fast) ease-out group-hover/message:opacity-100"
-          >
-            {clockOnly(message.time)}
-          </span>
-        ) : (
-          <RoomAvatar member={author} size="lg" />
-        )}
+        <RoomAvatar member={author} size="lg" />
       </div>
 
       <div className="min-w-0 flex-1">
-        {!grouped ? (
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 leading-5">
-            <span className="text-sm font-medium text-foreground">{author.name}</span>
-            {message.schedule ? <ScheduleChip label={message.schedule} /> : null}
-            <span className="text-xs text-foreground-low tabular-nums">{message.time}</span>
-          </div>
-        ) : null}
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 leading-6">
+          {/* The name labels the block under it, so it cannot be smaller than
+              the block. `base` at 600 is the brand's heading-at-body-size role
+              (docs/brand/design.md §4): weight does the separating and the
+              scale does not have to grow a size for it. */}
+          <span className="text-base font-semibold text-foreground">{author.name}</span>
+          {message.schedule ? <ScheduleChip label={message.schedule} /> : null}
+          <span className="text-xs text-foreground-low tabular-nums">{message.time}</span>
+        </div>
 
         {/* Running copy is tier 1. These are a colleague's own words, not a
             caption about them; muted is saved for the meta around them. */}
-        <div className={cn("flex flex-col gap-1.5", !grouped && "mt-0.5")}>
+        <div className="mt-0.5 flex flex-col gap-1.5">
           {message.blocks.map((block, i) =>
             block.kind === "paragraph" ? (
               <p key={i} className="text-base text-foreground">
