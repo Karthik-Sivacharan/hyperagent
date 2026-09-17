@@ -29,6 +29,9 @@ const TONE_LABEL: Record<GlyphTone, string> = {
   ink: "Ink",
   tangerine: "Tangerine",
   accent: "Accent",
+  success: "Success",
+  warning: "Warning",
+  danger: "Danger",
 };
 
 const subscribeNever = () => () => {};

@@ -17,14 +17,35 @@ import { GLYPH_BOX, MODULE } from "./types";
  *   `--color-tangerine-500`, the brand's graphics orange (the same step
  *   `--brand-accent` reads, and the same one `tangerine` puts in its tile), so
  *   a view spends the one orange budget on either this or `tangerine`.
+ * - `success`, `warning`, `danger`: `accent`'s shape in the three state hues,
+ *   for a readout where a row of glyphs has to say which agent finished,
+ *   which one is asking and which one fell over. Paper tile again, so the
+ *   eyes stay holes punched to paper and only the figure carries the state;
+ *   these spend no orange budget, because they answer a different question
+ *   from the accent's.
+ *
+ *   They read the raw ramps, not the theme-mapped `--success` / `--warning` /
+ *   `--destructive`: the tile is paper in BOTH themes, so the body has one
+ *   right answer in both, and a semantic that flips to its 500 step in the
+ *   dark would leave a light figure on light paper. The steps are measured
+ *   against that tile (#efefed), where a figure is a graphic and 3:1 is the
+ *   floor — amber-600 at 4.3:1 and red-600 at 4.5:1, the same two steps the
+ *   light theme maps `--warning` and `--destructive` to. Green goes one
+ *   darker, to 700 (5.0:1), because green's luminance runs high at equal L
+ *   and green-600 lands at 3.9:1: over the floor, but thin for a filled
+ *   silhouette at avatar size. It is the step brand.css already picks for
+ *   `--success`, for that same reason.
  */
-export type GlyphTone = "sand" | "ink" | "tangerine" | "accent";
+export type GlyphTone = "sand" | "ink" | "tangerine" | "accent" | "success" | "warning" | "danger";
 
 export const GLYPH_TONES: readonly GlyphTone[] = [
   "sand",
   "ink",
   "tangerine",
   "accent",
+  "success",
+  "warning",
+  "danger",
 ];
 
 export type TonePalette = {
@@ -57,6 +78,24 @@ export const TONE_PALETTES: Readonly<Record<GlyphTone, TonePalette>> = {
   accent: {
     tile: "var(--color-neutral-100)",
     body: "var(--color-tangerine-500)",
+    dot: "var(--color-neutral-300)",
+  },
+  // The three states, on the same paper. The note above `GlyphTone` has why
+  // these are ramp steps rather than the theme's semantics, and why green
+  // sits a step darker than the other two.
+  success: {
+    tile: "var(--color-neutral-100)",
+    body: "var(--color-green-700)",
+    dot: "var(--color-neutral-300)",
+  },
+  warning: {
+    tile: "var(--color-neutral-100)",
+    body: "var(--color-amber-600)",
+    dot: "var(--color-neutral-300)",
+  },
+  danger: {
+    tile: "var(--color-neutral-100)",
+    body: "var(--color-red-600)",
     dot: "var(--color-neutral-300)",
   },
 };
