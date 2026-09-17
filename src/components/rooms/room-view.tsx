@@ -54,14 +54,23 @@ import { runForMention, threadForAgent } from "@/lib/mock/room-agent-runs";
 // for the whole fleet rather than one per agent, so ten chips cost one timer.
 // The board's runs are static and are left alone by it.
 //
-// AND A CHIP IS TWO WAYS INTO THE CONVERSATION, one per agent and one per
-// task. Picking the figure takes the reader to where that AGENT is: the column
-// scrolls to the message its work came out of and pulses it, the rail opens on
-// that thread and washes once, so a rail that swapped under someone whose eyes
-// were on the field says so. The arrow at the end of a row in the opened detail
-// takes them to where that TASK is, which is a different question the moment an
-// agent is holding four of them — the chip can only answer for the one it was
-// pressed on, and the rows below it each have their own message.
+// AND A CHIP IS A WAY INTO THE CONVERSATION ONLY WHEN THE AGENT HOLDS ONE
+// TASK. Then there is nothing to choose and one click does the whole trip: the
+// column scrolls to the message the work came out of and pulses it, the rail
+// opens on that thread and washes once, so a rail that swapped under someone
+// whose eyes were on the field says so. An agent holding four opens its four
+// rows and the room stays exactly where it was — the bar has just handed the
+// reader a chooser, and a jump made before they picked would be the room
+// answering a question it was never asked, with the column dragged and a
+// message pulsed to prove it. The bar is the one that knows how many runs are
+// behind a figure, so the bar is where that rule lives
+// (composer/composer-agent-status.tsx); this file is simply not called.
+//
+// THE ROW IS THE OTHER WAY IN, and it makes the same trip for the task it
+// names — `handleOpenTask` below is `handleOpenRun` with the guessing taken
+// out. It is the only one of the two that can say WHICH once an agent is
+// holding four, and the whole line is the target rather than the arrow at the
+// end of it (composer/agent-status/agent-detail.tsx).
 //
 // Both trips end in the rail rather than on the tracker. The tracker still has
 // every card and `focusTask` still puts the reader on one; what changed is that
@@ -198,11 +207,13 @@ function RoomBody({ room, tab, onTabChange }: { room: Room; tab: RoomTab; onTabC
     return () => window.clearInterval(id);
   }, [working]);
 
-  // Where a picked chip goes in the CONVERSATION. A board run knows the message
-  // its task came out of; a mention's run has no card, so the room is asked
-  // where that agent has been working instead (room-agent-runs.ts). Neither
-  // answering means the chip opens its detail and nothing else moves, which is
-  // the honest outcome for an agent this room has not spoken to yet.
+  // Where a picked chip goes in the CONVERSATION, on the one occasion the bar
+  // still asks: an agent whose whole presence in the strip is this single run.
+  // A board run knows the message its task came out of; a mention's run has no
+  // card, so the room is asked where that agent has been working instead
+  // (room-agent-runs.ts). Neither answering means the chip opens its detail and
+  // nothing else moves, which is the honest outcome for an agent this room has
+  // not spoken to yet.
   const handleOpenRun = useCallback(
     (run: AgentRun) => {
       // A board run's id is a task id and a mention's run id is the agent's,
@@ -240,7 +251,8 @@ function RoomBody({ room, tab, onTabChange }: { room: Room; tab: RoomTab; onTabC
     );
   }, []);
 
-  // …and where ONE ROW of that detail goes. The task's own source message, and
+  // …and where ONE ROW of that detail goes — which, for an agent holding more
+  // than one, is now the only way in. The task's own source message, and
   // nothing else: the chip's fallback (where has this agent been talking?) is
   // an answer about the agent, and a row that borrowed it would send four rows
   // of one agent's detail to the same thread and call each of them precise.

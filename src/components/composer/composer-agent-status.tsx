@@ -34,22 +34,30 @@ import { cn } from "@/lib/utils";
 // and its siblings follow it in the stack's own order, and the row that opens
 // is as tall as that takes.
 //
-// PICKING A CHIP IS A NAVIGATION, not just a disclosure. One click does both
+// A CHIP IS A NAVIGATION ONLY WHEN THERE IS NOTHING TO CHOOSE. One run behind
+// a figure means the chip has exactly one destination, so picking it does both
 // things a person wants from a figure they just spotted: the bar swaps to that
-// agent's detail, and the surface behind the composer goes to where the agent
-// is actually working (`onOpen`). The detail is then the receipt for the jump
-// rather than a menu to read: it names the agent you are now looking at, and
-// the back arrow undoes the disclosure without undoing the navigation, which
-// is the right asymmetry — you can stop reading about an agent while still
-// standing in its thread.
+// agent's detail, and the surface behind the composer goes to where the work
+// actually is (`onOpen`). The detail is then the receipt for the jump rather
+// than a menu to read, and the back arrow undoes the disclosure without undoing
+// the navigation, which is the right asymmetry — you can stop reading about an
+// agent while still standing in its thread.
 //
-// THE ARROW AT THE END OF A ROW IS THE SAME TRIP, ASKED PER TASK (`onOpenTask`),
-// and that is the whole reason it is not redundant with the chip. A chip is an
-// agent, and an agent holding four tasks has four places its work is written
-// down; the chip can only take you to the one it was pressed on. On a single
-// row the two do land in the same place, and the arrow stays there anyway: a
-// control that appears on three rows out of four and vanishes on the fourth
-// costs more than a click that agrees with the one before it.
+// FOUR RUNS BEHIND THE FIGURE AND THAT SAME CLICK IS A GUESS. What opens is a
+// list of four tasks to choose between, and a bar that had already jumped to
+// one of them answered before the question was read: the rail swapped, the
+// column scrolled, and a message the reader never asked for pulsed. It is also
+// the one mistake reading cannot undo — having been sent somewhere, they have
+// to work out WHICH of the four they were sent to before they can pick. So a
+// chip for an agent holding more than one run opens the detail and moves
+// nothing else. A chooser sits still while it is being read.
+//
+// WHICH LEAVES THE NAVIGATION ON THE ROW (`onOpenTask`), and it is the same
+// trip the single chip makes, asked per task. A chip is an agent and a row is a
+// task, and once an agent is holding four, the row is the only one of the two
+// that can answer "which". On a single row the two land in the same place,
+// which is exactly why that chip is allowed to go: there is nothing else it
+// could have meant.
 //
 // What came back to the left is the one thing the stack genuinely cannot say:
 // HOW MANY. Three discs and a "+3" is six agents, and nobody reads that sum
@@ -118,6 +126,14 @@ function sameAgent(a: AgentRun, b: AgentRun): boolean {
   return a.agentId && b.agentId ? a.agentId === b.agentId : a.name === b.name;
 }
 
+/** Everything the agent behind `run` has out, that run first and the rest in
+    the order the bar was handed them. It answers both questions the bar asks
+    about a picked chip — what the detail lists, and whether there was anything
+    to choose — from one definition, so the list and the rule cannot drift. */
+function agentGroup(runs: readonly AgentRun[], run: AgentRun): AgentRun[] {
+  return [run, ...runs.filter((other) => other !== run && sameAgent(other, run))];
+}
+
 /** The fade the stack arrives on, the sibling strip's exactly. The detail
     fades its own contents in already and is left to do it. */
 const REVEAL = "animate-in fade-in-0 duration-(--duration-enter) ease-out-quart motion-reduce:animate-none";
@@ -135,15 +151,18 @@ export function ComposerAgentStatus({
   /** How many chips before the rest collapse into a count. */
   max?: number;
   /**
-   * Where the agent's work actually is. Called with the same click that opens
-   * the chip, so picking a figure both explains it here and puts its
-   * conversation on screen. Omitted, the chip only opens the detail, which is
-   * what the bar does anywhere there is nowhere to go.
+   * Where the agent's work actually is. Called with the click that opens a
+   * chip, but only for an agent whose whole presence in the bar is that one
+   * run: with more than one, the detail that opens is a chooser and the choice
+   * is the reader's (see the note above). Omitted, a chip only ever opens the
+   * detail, which is what the bar does anywhere there is nowhere to go.
    */
   onOpen?: (run: AgentRun) => void;
   /**
    * Where one run's work is written down. Given, the last slot on that line in
-   * the detail stops being the word "Done" and becomes the way there.
+   * the detail stops being the word "Done" and becomes the way there — and on
+   * a stacked detail the whole line goes with it, because that list is what the
+   * chip stopped answering for.
    */
   onOpenTask?: (run: AgentRun) => void;
   /**
@@ -169,7 +188,7 @@ export function ComposerAgentStatus({
   const open = runs.find((run) => run.id === openId) ?? null;
   // The picked run leads, then the rest of that agent's work in the order the
   // stack already put it in, so the lines read the way the chips did.
-  const openGroup = open ? [open, ...runs.filter((run) => run !== open && sameAgent(run, open))] : [];
+  const openGroup = open ? agentGroup(runs, open) : [];
 
   const stackRef = useRef<HTMLDivElement>(null);
   const detailRef = useRef<HTMLDivElement>(null);
@@ -247,7 +266,12 @@ export function ComposerAgentStatus({
             max={max}
             onSelect={(run: AgentRun) => {
               setOpenId(run.id);
-              onOpen?.(run);
+              // The rule above, as one question about the row that is opening:
+              // is there more than one line in it? `openGroup` cannot answer
+              // yet — it is derived from state this click has only just set —
+              // so the group is taken again here, from the same function, which
+              // is what guarantees the count and the list agree.
+              if (agentGroup(runs, run).length === 1) onOpen?.(run);
             }}
           />
         </div>
