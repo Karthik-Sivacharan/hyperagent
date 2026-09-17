@@ -34,6 +34,8 @@ const ROUTES = [
   ["library", "library"],
   ["marketplace", "marketplace"],
   ["agents", "agents"],
+  ["rooms", "rooms"],
+  ["rooms/room-capability-checks", "room"],
   ["settings", "settings"],
   ["settings/integrations", "settings-integrations"],
   ["settings/profile", "settings-profile"],

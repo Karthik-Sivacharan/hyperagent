@@ -13,6 +13,7 @@ import {
   IconDots,
   IconEdit,
   IconFolderOpen,
+  IconHash,
   IconInbox,
   IconLayoutSidebarLeftCollapse,
   IconLayoutSidebarLeftExpand,
@@ -46,6 +47,7 @@ import { NewAgentMenu } from "@/components/app/new-agent-menu";
 import { SearchPalette } from "@/components/app/search-palette";
 import { ThreadContextMenu, ThreadOptionsMenu } from "@/components/app/thread-menu";
 import { currentUser } from "@/lib/mock/user";
+import { recentRooms } from "@/lib/mock/rooms";
 import { recentThreads } from "@/lib/mock/threads";
 
 // Markup is transcribed from hyperagent.com's sidebar
@@ -202,6 +204,34 @@ function SectionHeader({
   );
 }
 
+/** Rail-only "Rooms" menu, the same fold the rail gives recent threads. */
+function RailRoomsMenu({ children, ...triggerProps }: React.ComponentProps<typeof DropdownMenuTrigger>) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild {...triggerProps}>
+        {children}
+      </DropdownMenuTrigger>
+      <DropdownMenuContent side="right" align="start" className="w-64">
+        {recentRooms.map((room) => (
+          <DropdownMenuItem key={room.id} asChild>
+            <Link href={`/rooms/${room.slug}`}>
+              <IconHash className="size-4" aria-hidden="true" />
+              <span className="truncate text-sm">{room.slug}</span>
+            </Link>
+          </DropdownMenuItem>
+        ))}
+        <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <Link href="/rooms">
+            <IconArrowUpRight className="size-4" aria-hidden="true" />
+            <span className="text-sm">View all</span>
+          </Link>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
 /** Rail-only "Threads" menu (the collapsed sidebar folds recent threads into a menu). */
 function RailThreadsMenu({ children, ...triggerProps }: React.ComponentProps<typeof DropdownMenuTrigger>) {
   return (
@@ -320,6 +350,7 @@ export function Sidebar({
   const [searchOpen, setSearchOpen] = useState(false);
   const [agentsOpen, setAgentsOpen] = useState(false);
   const [threadsOpen, setThreadsOpen] = useState(true);
+  const [roomsOpen, setRoomsOpen] = useState(true);
 
   // Collapse to the 64px rail. The live column has no idle transition; the
   // width animates only while toggling, so the settled DOM stays identical.
@@ -581,6 +612,16 @@ export function Sidebar({
                             </NavItem>
                           </RailThreadsMenu>
                         </RailTooltip>
+                        <RailTooltip label="Rooms" collapsed>
+                          <RailRoomsMenu>
+                            <NavItem aria-label="Rooms">
+                              <div className="flex shrink-0 items-center justify-center h-5 w-5">
+                                <IconHash className="h-4 w-4" aria-hidden="true" />
+                              </div>
+                              <NavLabel label="Rooms" collapsed />
+                            </NavItem>
+                          </RailRoomsMenu>
+                        </RailTooltip>
                       </>
                     )}
 
@@ -690,6 +731,58 @@ export function Sidebar({
                               </div>
                             )}
                           </div>
+                      )}
+
+                      {/* Rooms: the shared channels, folded into the rail's
+                          Rooms menu when the column collapses. Unread counts
+                          sit at the end of the row as tier-3 figures rather
+                          than as a coloured badge; a room is not an alert. */}
+                      {!collapsed && (
+                        <div className="mt-3">
+                          <SectionHeader
+                            label="Rooms"
+                            expanded={roomsOpen}
+                            ariaLabel={roomsOpen ? "Collapse rooms" : "Expand rooms"}
+                            onToggle={() => setRoomsOpen((o) => !o)}
+                            action={
+                              <Button variant="ghost" size="icon-2xs" asChild className={HEADER_ACTION}>
+                                <Link aria-label="New room" href="/rooms">
+                                  <IconPlus className="size-3.5" aria-hidden="true" />
+                                </Link>
+                              </Button>
+                            }
+                          />
+                          {roomsOpen && (
+                            <div className="space-y-0.5">
+                              {recentRooms.map((room) => {
+                                const active = pathname === `/rooms/${room.slug}`;
+                                return (
+                                  <NavItem key={room.id} asChild active={active}>
+                                    <Link href={`/rooms/${room.slug}`}>
+                                      <div className="flex shrink-0 items-center justify-center h-5 w-5">
+                                        <IconHash className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+                                      </div>
+                                      <span className="min-w-0 flex-1 truncate">{room.slug}</span>
+                                      {room.unread ? (
+                                        <span className="shrink-0 text-xs text-foreground-low tabular-nums">
+                                          {room.unread}
+                                        </span>
+                                      ) : null}
+                                    </Link>
+                                  </NavItem>
+                                );
+                              })}
+                              <NavItem asChild active={isActive("/rooms")} tone="muted">
+                                <Link href="/rooms">
+                                  <div className="flex shrink-0 items-center justify-center h-5 w-5">
+                                    <IconArrowUpRight className="h-4 w-4" aria-hidden="true" />
+                                  </div>
+                                  <span className="whitespace-nowrap transition-opacity duration-200">View all</span>
+                                </Link>
+                              </NavItem>
+                            </div>
+                          )}
+                        </div>
                       )}
 
                       {/* Resources */}

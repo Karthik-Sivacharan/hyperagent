@@ -22,9 +22,10 @@ import { runCaption, TONE_GLYPH, type RunCaption } from "@/components/teams/flee
 // --duration-slow on hover and nothing else; the card never grows. It is one
 // target with no controls inside: a button, so a click, Enter or Space opens
 // the agent sheet, which holds the ask and its Review action (v1 has no run
-// page). The arrow keys move between cards (board-view.tsx); the scroll
-// margins keep a card that takes focus clear of the sticky lane header and
-// the board's gutters.
+// page). The arrow keys move between cards, which is why the button carries
+// `data-tracker-card`: that is how the board shell finds them
+// (tracker/board/tracker-board.tsx). The scroll margins keep a card that
+// takes focus clear of the sticky lane header and the board's gutters.
 //
 // Colour: only a queued run whose agent is paused or in error carries a
 // hue, the 14px tone glyph before the reason (docs/plans/2026-09-11-teams-
@@ -49,7 +50,7 @@ export function RunCard({ run, queuePosition }: { run: FleetRun; queuePosition?:
     >
       <button
         type="button"
-        data-run-card=""
+        data-tracker-card=""
         data-status={run.status}
         aria-labelledby={titleId}
         aria-describedby={detailId}

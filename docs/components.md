@@ -139,6 +139,51 @@ The context holds:
 
 To replace a placeholder, search for its `data-asset` id, build the asset from the `brief` beside its copy, and delete the `AssetSlot`.
 
+### Rooms (`src/components/rooms/`)
+
+`/rooms` and `/rooms/[slug]` (2026-09-17, `feat/rooms`) are new UI rather than a clone: the shared channel where a team and its agents talk, with a thread rail beside it. Data is `src/lib/mock/rooms.ts`; the route composes `RoomView`, which owns the two pieces of state the three columns share (the tab, and which thread the rail is on).
+
+The one design rule the whole view is arranged around: **the composer's send button is its single brand-orange control**. Everywhere else colour is tint and hairline, and the only other brand tone spent is `text-brand-accent` on a reply count, which is the row's one link-shaped affordance.
+
+| File | Owns |
+|---|---|
+| `room-rich-text.tsx` | `renderRoomInline` (`**bold**`, `` `code` ``, `@[member-id]`) and `MentionChip`. Mentions resolve against the roster, so a name that changes moves everywhere it was said. |
+| `room-avatar.tsx` | `RoomAvatar` and `RoomFacepile`. A person is the round `Avatar`; an agent is its `AgentGlyph` on a rounded-square tile. The two silhouettes differ on purpose: in a room where both talk, the shape says which one you are reading before the name does. `monogram="letter"` and `overflow={false}` are the two stack fixes (a second initial hides under the next face; a `+N` beside a printed total answers one question twice). |
+| `room-message.tsx` | `RoomMessageRow`: face, name, schedule chip, blocks, reactions, the reply bar, and the hover action cluster. `variant="thread"` drops the reply bar; `grouped` drops the face and the name and moves the timestamp into the gutter on hover; `active` holds the row and its reply bar in the open-thread state. |
+| `room-message-list.tsx` | `RoomMessageList` and `RoomIntro`. Owns the grouping rule (a run never crosses a day divider, and neither a system line nor a scheduled post joins one) and the sticky day pill. |
+| `room-header.tsx` | `RoomHeader`, `RoomTab`: two bands under one hairline, band 1 on `ThreadHeader`'s 48px metrics, band 2 the `line` tabs. Title menu, star, badge, schedule count, member popover, overflow menu, rail toggle. |
+| `room-composer.tsx` | `RoomComposer`. The auto-grow and the `ResizeObserver` re-measure are `composer/composer.tsx`'s, credited in place; `size="compact"` is the rail's. The send button is the view's one `variant="brand"`. Owns the `@` token under the caret and `mentionedMemberIds`, which reads the roster back out of a draft on send; `status` is the slot the agent bar sits in, the same one `composer/composer.tsx` has. |
+| `room-mention-menu.tsx` | `RoomMentionMenu`, `matchMembers`, `sortForMention`: the roster over the field. Not a `Popover` — a popover takes focus, and an autocomplete that takes the caret out of the sentence is a different, worse control. The field keeps focus and forwards the keys; `onMouseDown` is prevented so a click never blurs it. |
+| `room-thread-panel.tsx` | `RoomThreadPanel`: the rail on `surface-secondary` behind a left hairline, its 48px header matching the room header across the seam, the root message, the replies, the reply composer and the "also send to the room" checkbox. `arrival` is the wash a rail plays when something OPENED it for the reader rather than the reader opening it: a `-z-10` tint layer inside the rail's own `isolate`, keyed by token so being sent twice reads twice. Unlike the tracker's pulse it survives reduced motion — nothing travels. |
+| `rooms-directory.tsx` | `RoomsDirectory`: `/rooms` as rows under hairlines, not a grid of cards. |
+| `room-view.tsx` | Assembly, the tab and open-thread state, and the responsive rule: under `lg` the rail takes the column rather than squeezing it (`max-lg:hidden` on the message column, no resize listener). `RoomView` mounts the tracker provider and owns the tab; `RoomBody` holds everything that reads it. Also the two lifetimes the agent bar is handed (the board's standing work, then anything a mention just started, de-duplicated on id) and the two ways out of a chip: the figure goes to the conversation, the control at the end of the opened row goes to the card. |
+
+Rooms also reach the shell in three places: the sidebar group and its collapsed-rail menu (`app/sidebar.tsx`), the ⌘K palette's "Rooms" group (`app/search-palette.tsx`), and the screenshot routes.
+
+#### The room tracker (`src/components/rooms/tracker/`)
+
+The room's third tab (2026-09-17, `docs/plans/2026-09-17-room-tracker.md`): the work the room is talking about, as a board or a list of the same tasks. One card per task rather than per agent, so an agent doing three things has three cards and can be working on one while blocked on another, which is the whole reason the board exists. Data is `src/lib/mock/room-tracker.ts`; the board and the list themselves are the shared tracker shell below, and only the card and the row are the room's own.
+
+| File | Owns |
+|---|---|
+| `tracker-context.tsx` | `RoomTrackerProvider` / `useRoomTracker`: the query, which view is showing, the pulse that answers "where is this agent's work", the message a card points back at, and `agentRuns` (the composer bar's `AgentRun[]`). The pulse carries an optional `taskId`: `focusAgent` lights everything an agent holds, `focusTask` lights one card, and a card matches on the task when there is one and the assignee when there is not. Wrapped around the whole room, not the tab, because both tabs read it. It does not own the tab: `RoomView` does, and hands the provider the two moves it makes. |
+| `tracker-panel.tsx` | The tab body: the toolbar over the board or the list, the cross-fade between them, the scroll that puts a pulsed card on screen, and the polite live region that says the pulse in words. |
+| `tracker-toolbar.tsx` | Search and the board/list switch, the same icon-only `ToggleGroup` /threads and /teams use, on the room header's `px-3` gutter. |
+| `task-card.tsx`, `task-row.tsx` | The board card and the list row. No status glyph on either: the lane or group header above already carries it. A task that came out of a message is a button back to it; one without a source is a plain card or line and takes no tab stop. |
+| `pulse.tsx` | The one-shot "here it is", shared by the card, the row and the message row, so both directions of the jump read as one gesture. A sheen on `slide`/`out-quint` over an `inset-ring-tint-40` that fades in behind it; no hue, because it is a pointer and the lanes own the board's two. Keyed by a token, so asking twice replays it. Reduced motion keeps the ring and drops the sheen. |
+| `task-status.ts` | `TASK_STATUS_META` and `TASK_EMPTY_COPY`. Five lanes: Needs you, Blocked, Working, Queued, Done. |
+| `agent-runs.ts` | `roomAgentRuns`, the board mapped onto the composer bar's own `AgentRun` (one row per live task, `queued` and human assignees dropped). The run's id is the TASK's, not the agent's, which is what lets one chip point at one card. |
+
+### The tracker shell (`src/components/tracker/`)
+
+A kanban board and a grouped list, generic over a status vocabulary (`S extends string`) and an item type, shared by `/teams` and the room tracker. Neither file imports a mock and neither names a status: the vocabulary, the meta table, the items, the empty copy and the renderer all come in as props. It is a pattern in the sense §1 means, a composite of primitives two pages use with the same intent, kept in its own folder because it is four files rather than one.
+
+| File | Owns |
+|---|---|
+| `status.tsx` | `TrackerStatusMeta`, `TrackerTone` (`brand` / `neutral` / `danger`), `TRACKER_TONE_CLASSES`, `TrackerStatusIcon`. |
+| `board/tracker-board.tsx`, `board/tracker-column.tsx` | The board: sticky lane headers, the one lane that folds (folded at rest; opening it scrolls the board to its end when it would overflow), lanes sharing the width at `density` `default` or `compact`, and the arrow-key walk between cards. A card renderer must carry `data-tracker-card` on its focusable element. |
+| `list/tracker-list.tsx`, `list/tracker-group.tsx` | The list: folding status groups under sticky headers, the fold-during-search rules, and the ↑/↓ walk over rows and headers. A row renderer must carry `data-list-nav`. |
+
 ### Slots the clone emits that the live site does not
 
 `toggle-group`, `toggle-group-item`, `input-group`, `input-group-addon`, `input-group-control`, `popover-content`, `collapsible`, `collapsible-trigger`, `collapsible-content`. The live site builds the same boxes without a slot: its layout switch is a `role=group` of `aria-pressed` ghost buttons, its search field a bare input with an absolute icon, its popovers unnamed `role=dialog` panels and its collapsibles bare radix. The clone's primitives wrap the same radix parts and name them, the rendered boxes are the same, and the slot lock checks only the live direction (every live slot has a local definition), so an extra local slot costs nothing. The `flow-*` slots are local for a simpler reason: `flow.tsx` has no live counterpart.

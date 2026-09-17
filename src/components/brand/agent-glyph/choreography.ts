@@ -24,6 +24,11 @@
  * Both run at a `pace`: `expressive` for the landing stage and anything at
  * hero size, `quick` for avatars in lists, where a state change must be fast
  * and quiet.
+ *
+ * A third table, `IDLE_TIMING`, covers what the face does BETWEEN transitions
+ * — how often it blinks, how often it looks about. That is a separate axis
+ * from the pace, because whether an agent is thinking has nothing to do with
+ * how big it is drawn.
  */
 
 // Relative, not `@/lib/motion`: vitest resolves no tsconfig paths, and this
@@ -187,8 +192,9 @@ export const PACE_TIMING: Readonly<Record<GlyphPace, PaceTiming>> = {
     cutSettleMs: 60,
     cutSettleWeight: 0.15,
     cutEyeLagMs: 40,
-    // Twenty avatars on one page should not twitch: roughly one blink across
-    // the whole list every 300ms rather than every 200ms.
+    // The CALM rate (IDLE_TIMING below): twenty avatars on one page should not
+    // twitch, so roughly one blink across the whole list every 300ms rather
+    // than every 200ms. An avatar whose agent is working overrides it.
     blinkEveryMs: [4000, 9000],
   },
 };
@@ -209,6 +215,80 @@ export const TRANSITION_MS = PACE_TIMING.expressive.durationMs;
 export const BLINK_SCALE = 0.23;
 /** A blink lasts somewhere in 80-120ms. */
 export const BLINK_MS = [80, 120] as const;
+
+/* ----------------------------------------------------------------- idle */
+
+/**
+ * What a glyph does when it is NOT changing shape, which for an avatar is
+ * almost all of the time. The pace decides how a transition moves; this
+ * decides how the face behaves between transitions, and the two are separate
+ * axes on purpose: a 28px chip and a 28px chip are the same size and the same
+ * pace whether their agent is thinking or has finished.
+ *
+ * - `calm` — the original behaviour, unchanged: a blink every few seconds and
+ *   nothing else. It is what a glyph at rest, or an agent that has stopped,
+ *   should look like, and it defers to the pace's own `blinkEveryMs` so the
+ *   avatar and the hero keep the two rates they were tuned to.
+ * - `busy` — an agent that is working. The face is doing something roughly
+ *   once a second: rather more than half of those beats are a look rather
+ *   than a blink, because eyes that MOVE read as thought where eyes that only
+ *   blink read as alive-but-idle. The shape never changes — a glyph's outline
+ *   is its identity — so the whole signal is in the eyes.
+ * - `restless` — the same idea wound tighter, for judging on a design page
+ *   whether `busy` is too slow. Under three seconds of watching it starts to
+ *   read as agitated rather than occupied, which is the point of having it to
+ *   compare against.
+ *
+ * Nothing here is on a shared clock: every interval is drawn per controller
+ * from `Math.random()`, including the FIRST one, so a row of chips that
+ * mounts in a single frame still scatters its first beat across the range and
+ * never blinks in unison. `prefers-reduced-motion` skips the idle loop
+ * entirely (glyph-controller.ts), so none of this runs for someone who asked
+ * for stillness.
+ */
+export type GlyphIdle = "calm" | "busy" | "restless";
+
+export const GLYPH_IDLES: readonly GlyphIdle[] = ["calm", "busy", "restless"];
+
+export type IdleTiming = {
+  /** Gap between one resting beat and the next. `null` defers to the pace's
+      own `blinkEveryMs`. */
+  everyMs: readonly [number, number] | null;
+  /** The share of beats that are a look rather than a blink, for a glyph that
+      glances at all. */
+  glanceShare: number;
+  /** How long the eyes hold off-centre before they come back. */
+  glanceHoldMs: readonly [number, number];
+  /** One blink in this many is a double blink. */
+  doubleBlinkIn: number;
+};
+
+export const IDLE_TIMING: Readonly<Record<GlyphIdle, IdleTiming>> = {
+  calm: {
+    everyMs: null,
+    glanceShare: 0.35,
+    glanceHoldMs: [480, 1000],
+    doubleBlinkIn: 6,
+  },
+  busy: {
+    // ~1.5s between beats. Three chips in one row then do something every
+    // half-second between them, which is about the rate at which a group of
+    // figures reads as occupied; at the `quick` pace's 4-9s it reads as
+    // asleep, and much under a second a row of them reads as a twitch.
+    everyMs: [900, 2100],
+    glanceShare: 0.55,
+    // Shorter holds than `calm`, or at this rate the eyes would spend most of
+    // their life parked off-centre instead of returning between looks.
+    glanceHoldMs: [280, 640],
+    doubleBlinkIn: 4,
+  },
+  restless: {
+    everyMs: [520, 1200],
+    glanceShare: 0.6,
+    glanceHoldMs: [180, 420],
+    doubleBlinkIn: 3,
+  },
+};
 
 const easings = new Map<readonly number[], Easing>();
 function easing(curve: readonly number[]): Easing {

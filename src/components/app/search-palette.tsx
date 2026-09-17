@@ -11,6 +11,7 @@ import {
   IconClipboardCheck,
   IconFiles,
   IconFolderOpen,
+  IconHash,
   IconInbox,
   IconMessage,
   IconMessages,
@@ -25,6 +26,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { CommandDialog, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Kbd } from "@/components/ui/kbd";
+import { rooms } from "@/lib/mock/rooms";
 import { recentThreads } from "@/lib/mock/threads";
 
 // The ⌘K search palette from hyperagent.com (docs/reference/overlays/search.html):
@@ -44,6 +46,7 @@ const GO_TO: GoTo[] = [
   { value: "inbox", label: "Inbox", icon: IconInbox, href: "/inbox" },
   { value: "agents", label: "Agents", icon: IconRobotFace, href: "/agents" },
   { value: "command-center", label: "Command Center", icon: IconActivity },
+  { value: "rooms", label: "Rooms", icon: IconHash, href: "/rooms" },
   { value: "teams", label: "Teams", icon: IconUsers, href: "/teams" },
   { value: "skills", label: "Skills", icon: IconPuzzle, href: "/skills" },
   { value: "memories", label: "Memories", icon: IconBrain, href: "/memories" },
@@ -151,6 +154,32 @@ export function SearchPalette({ open, onOpenChange }: { open: boolean; onOpenCha
                     </Button>
                   </div>
                 </div>
+              </CommandItem>
+            ))}
+          </CommandGroup>
+          {/* Rooms sit between the threads and the destinations: a room is
+              a place you go, but you go to it by name, so it reads as a list
+              of its own rather than a row in "Go to". */}
+          <CommandGroup heading="Rooms">
+            {rooms.map((room) => (
+              <CommandItem
+                key={room.id}
+                value={room.slug}
+                className="!pr-3 flex h-12 items-center gap-2 overflow-hidden rounded-xl px-2 py-1.5 group"
+                onSelect={() => go(`/rooms/${room.slug}`)}
+              >
+                <div className="flex size-8 shrink-0 items-center justify-center">
+                  <IconHash className="size-5 text-muted-foreground" aria-hidden="true" />
+                </div>
+                <div className="flex min-w-0 flex-1 flex-col">
+                  <span className="truncate text-foreground text-sm leading-5">{room.slug}</span>
+                  <span className="truncate text-foreground-low text-xs leading-4">{room.topic}</span>
+                </div>
+                {room.unread ? (
+                  <span className="ml-auto shrink-0 text-muted-foreground text-xs leading-4 tabular-nums">
+                    {room.unread} unread
+                  </span>
+                ) : null}
               </CommandItem>
             ))}
           </CommandGroup>

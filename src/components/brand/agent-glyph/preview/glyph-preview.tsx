@@ -24,11 +24,21 @@ export type GlyphPreviewProps = {
   tone?: GlyphTone;
 };
 
+// The four `avatar*` names carry their family in the label, because they are
+// the only tones that answer to the theme switch above: flip it and they move
+// while the other seven hold their face (tones.ts).
 const TONE_LABEL: Record<GlyphTone, string> = {
   sand: "Sand",
   ink: "Ink",
   tangerine: "Tangerine",
   accent: "Accent",
+  success: "Success",
+  warning: "Warning",
+  danger: "Danger",
+  avatar: "Avatar",
+  "avatar-success": "Avatar · success",
+  "avatar-warning": "Avatar · warning",
+  "avatar-danger": "Avatar · danger",
 };
 
 const subscribeNever = () => () => {};
