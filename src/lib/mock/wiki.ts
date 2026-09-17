@@ -97,6 +97,33 @@ export type WikiTopic = {
   }[];
 };
 
+export type WikiRun = {
+  id: string;
+  sequence: number;
+  sourceDay: string | null;
+  sourceWindowEnd: string | null;
+  startedAt: string | null;
+  finishedAt: string | null;
+  status: string;
+  storeKind: string | null;
+  summary: string;
+  model: string | null;
+  atomsAddedIds: string[];
+  atomsSupersededIds: string[];
+  atomsMergedCount: number;
+  topicsMinted: { id: string; title: string; group: WikiGroupId }[];
+  topicsMerged: { id: string; title: string; into: string }[];
+  pagesRecomposed: { slug: string; title: string }[];
+  conflictCount: number;
+  verdictCounts: Record<string, number>;
+  aliasQuestions: number;
+  inputCounts: Record<string, number>;
+  inputLabels: string[];
+  extractionGroups: { agent: string; events: number; atomsAdded: number }[];
+  memoryCoverage: Record<string, number>;
+  tokenUsage: { input?: number; output?: number; calls?: number; model?: string };
+};
+
 export type WikiLinkedFrom = { slug: string; title: string; group: WikiGroupId; sentence: string };
 
 type WikiStore = {
@@ -115,6 +142,9 @@ type WikiStore = {
   };
   groupOrder: WikiGroupId[];
   groupLabels: Record<WikiGroupId, string>;
+  runs: WikiRun[];
+  days: string[];
+  agents: { id: string; name: string }[];
   pages: WikiPage[];
   topics: Record<string, WikiTopic>;
   atoms: Record<string, WikiAtom>;
@@ -127,6 +157,30 @@ export const wikiWorkspace = store.workspace;
 export const wikiJob = store.job;
 export const wikiPages = store.pages;
 export const wikiTopics = store.topics;
+export const wikiRuns = store.runs;
+export const wikiDays = store.days;
+export const wikiAgents = store.agents;
+
+/** Atoms a serving path may return: the sensitivity-tagged and the withheld are counted, never listed. */
+export const wikiServableAtoms = () =>
+  Object.values(store.atoms).filter((atom) => !atom.tagged && atom.withheld.length === 0);
+
+/** Every atom, for the Knowledge browser: the audit view lists the withheld ones too. */
+export const wikiAllAtoms = () => Object.values(store.atoms);
+
+/** The Topics the Knowledge filters and the atom timeline can select: alive, and carrying atoms. */
+export const wikiTopicOptions = () =>
+  Object.values(store.topics)
+    .filter((topic) => topic.status !== "merged" && topic.atomCount > 0)
+    .sort((a, b) => a.title.localeCompare(b.title));
+
+/** The counts the view tabs carry. */
+export const wikiCounts = () => ({
+  pages: store.pages.filter((page) => !page.hidden).length,
+  days: store.days.length,
+  runs: store.runs.length,
+  atoms: wikiServableAtoms().length,
+});
 
 /** The page the wiki opens on: the workspace's own page. */
 export const wikiDefaultSlug = "brightwell-supply-co";

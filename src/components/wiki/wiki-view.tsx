@@ -6,6 +6,7 @@ import { AtomDrawer } from "@/components/wiki/atom-drawer";
 import { WikiArticle } from "@/components/wiki/wiki-article";
 import { WikiDetailsRail } from "@/components/wiki/wiki-details-rail";
 import { WikiIndexRail } from "@/components/wiki/wiki-index-rail";
+import { WikiTabs } from "@/components/wiki/wiki-tabs";
 import type { InlineContext } from "@/components/wiki/wiki-body";
 import type { WikiGroupId, WikiIndexEntry, WikiView as WikiViewData } from "@/lib/mock/wiki";
 
@@ -19,12 +20,14 @@ export function WikiView({
   hiddenPages,
   totalPages,
   header,
+  counts,
 }: {
   view: WikiViewData;
   groups: { id: WikiGroupId; label: string; pages: WikiIndexEntry[] }[];
   hiddenPages: WikiIndexEntry[];
   totalPages: number;
   header: { workspace: string; subtitle: string };
+  counts: { pages: number; days: number; runs: number; atoms: number };
 }) {
   const [atomId, setAtomId] = useState<string | null>(null);
   const { page, topic, atoms, topicTitles, linkedFrom } = view;
@@ -51,6 +54,8 @@ export function WikiView({
           </nav>
           <p className="text-sm text-muted-foreground">{header.subtitle}</p>
         </header>
+
+        <WikiTabs counts={counts} />
 
         <div className="flex items-start gap-8">
           <div className="sticky top-0 self-start">

@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { WikiView } from "@/components/wiki/wiki-view";
 import {
   getWikiView,
+  wikiCounts,
   wikiHiddenPages,
   wikiIndexGroups,
   wikiJob,
@@ -32,6 +33,7 @@ export function WikiPageShell({ slug }: { slug: string }) {
       groups={wikiIndexGroups()}
       hiddenPages={wikiHiddenPages()}
       totalPages={wikiPages.filter((page) => !page.hidden).length}
+      counts={wikiCounts()}
       header={{
         workspace: wikiWorkspace.name,
         subtitle: `${wikiJob.runCount} dreaming runs read ${fmtInt(wikiJob.threadCount)} threads, ${fmtInt(wikiJob.messageCount)} messages, ${wikiJob.memoryCount} saved memories and ${wikiJob.documentCount} documents from ${fmtWindow(wikiJob.windowStart, wikiJob.windowEnd)} and composed these pages.`,

@@ -3,7 +3,8 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { PageHeading } from "@/components/patterns/page-heading";
-import { wikiGroupDot, wikiHiddenPages, wikiIndexGroups, wikiPages } from "@/lib/mock/wiki";
+import { WikiTabs } from "@/components/wiki/wiki-tabs";
+import { wikiCounts, wikiGroupDot, wikiHiddenPages, wikiIndexGroups, wikiPages } from "@/lib/mock/wiki";
 
 // The page index: every listed page with its summary and its slug, grouped by
 // the type of Topic it sits on.
@@ -23,6 +24,8 @@ export default function Page() {
           <span aria-hidden="true">/</span>
           <span>All pages</span>
         </nav>
+
+        <WikiTabs counts={wikiCounts()} />
 
         <PageHeading
           title="All pages"
