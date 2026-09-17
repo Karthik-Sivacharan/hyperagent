@@ -49,7 +49,7 @@ import { roomMember, type Room, type RoomMember } from "@/lib/mock/rooms";
 // tint pill because it is a readout, not a control. No orange lives up here —
 // the room's single brand action is the composer's send button.
 
-export type RoomTab = "messages" | "canvas";
+export type RoomTab = "messages" | "tracker" | "canvas";
 
 /** Band 1's ghost icon buttons: 32px, third tier at rest, first tier on hover. */
 const ICON_BUTTON = "size-8 shrink-0 text-muted-foreground hover:text-foreground";
@@ -85,6 +85,7 @@ export function RoomHeader({
   onTabChange,
   threadOpen,
   onToggleThread,
+  trackerWaiting = 0,
   className,
 }: {
   room: Room;
@@ -93,6 +94,13 @@ export function RoomHeader({
   /** The thread rail beside the room is showing. */
   threadOpen: boolean;
   onToggleThread: () => void;
+  /**
+   * Tasks on the tracker that are waiting on a person (Needs you plus
+   * Blocked). Printed beside the tab so work the room owes is not hidden one
+   * click away; a plain tabular figure on the third tier, with no hue, since
+   * the lanes behind the tab already spend the two the board has.
+   */
+  trackerWaiting?: number;
   className?: string;
 }) {
   // Seeded from the mock and owned here: nothing in this clone persists a
@@ -231,6 +239,18 @@ export function RoomHeader({
         <Tabs value={tab} onValueChange={(value) => onTabChange(value as RoomTab)}>
           <TabsList variant="line">
             <TabsTrigger value="messages">Messages</TabsTrigger>
+            <TabsTrigger value="tracker">
+              Tracker
+              {trackerWaiting ? (
+                <span className="text-foreground-low tabular-nums">
+                  <span className="sr-only">, </span>
+                  {trackerWaiting}
+                  <span className="sr-only">
+                    {trackerWaiting === 1 ? " task waiting on someone" : " tasks waiting on someone"}
+                  </span>
+                </span>
+              ) : null}
+            </TabsTrigger>
             <TabsTrigger value="canvas">Canvas</TabsTrigger>
           </TabsList>
         </Tabs>

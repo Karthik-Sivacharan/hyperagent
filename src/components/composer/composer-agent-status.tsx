@@ -101,6 +101,8 @@ export function ComposerAgentStatus({
   runs,
   max,
   onOpen,
+  onOpenTask,
+  canOpenTask,
   className,
 }: {
   runs: readonly AgentRun[];
@@ -113,6 +115,18 @@ export function ComposerAgentStatus({
    * what the bar does anywhere there is nowhere to go.
    */
   onOpen?: (run: AgentRun) => void;
+  /**
+   * Where the opened run is written down. Given, the last slot in the detail
+   * stops being the word "Done" and becomes the way to that card.
+   */
+  onOpenTask?: (run: AgentRun) => void;
+  /**
+   * Whether THIS run has somewhere to be opened. Asked per run, because a bar
+   * routinely holds both kinds at once: work the board has a card for, and a
+   * run something just started that it does not. Omitted, every run is assumed
+   * to have one.
+   */
+  canOpenTask?: (run: AgentRun) => boolean;
   className?: string;
 }) {
   // The one piece of state in the bar: which agent is open. An id rather than
@@ -171,7 +185,13 @@ export function ComposerAgentStatus({
           tabIndex={-1}
           className="flex h-full min-w-0 flex-1 items-center outline-none"
         >
-          <AgentDetail run={open} onBack={() => setOpenId(null)} claimFocus className={AGENT_BAR_DETAIL} />
+          <AgentDetail
+            run={open}
+            onBack={() => setOpenId(null)}
+            onOpenTask={onOpenTask && (canOpenTask?.(open) ?? true) ? () => onOpenTask(open) : undefined}
+            claimFocus
+            className={AGENT_BAR_DETAIL}
+          />
         </div>
       ) : (
         <div

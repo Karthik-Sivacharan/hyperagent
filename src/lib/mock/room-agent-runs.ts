@@ -66,12 +66,14 @@ export function runForMention(member: RoomMember, message: string): AgentRun {
 //   2. the last message that named it — it was asked there, and the rail opens
 //      on a root with no replies perfectly well;
 //   3. the last message it posted itself, for an agent that speaks on a
-//      schedule and was never tagged by anyone;
-//   4. failing all three, the membership line that put it in the room — the
-//      only place a silent agent appears at all. It is a thin destination and
-//      it is deliberately last, but it is a true one, and the room reads
-//      better for landing on "was added to the room by Priya" than for a click
-//      that does nothing.
+//      schedule and was never tagged by anyone.
+//
+// MEMBERSHIP LINES ARE NOT A DESTINATION, which is why `system` messages are
+// skipped. "Yuki was added to the room by Priya" is where a silent agent
+// appears, but the column filters those out (room-message-list.tsx), so
+// sending a reader there scrolls to an element that is not on screen and opens
+// a rail on a join notice. An agent with nothing to its name is better served
+// by the other way out of the bar: its card on the tracker.
 //
 // LAST, NOT FIRST, at every step: an agent that has been in four threads is
 // most likely still in the one it was in most recently, and a room reads
@@ -102,10 +104,8 @@ export function threadForAgent(room: Room, agentId: string): string | undefined 
   if (spoke) return spoke.rootId;
 
   const messages = allMessages(room).reverse();
-  const byAgent = (message: RoomMessage) => message.authorId === agentId;
   return (
     messages.find((message) => mentions(message, agentId))?.id ??
-    messages.find((message) => byAgent(message) && !message.system)?.id ??
-    messages.find(byAgent)?.id
+    messages.find((message) => message.authorId === agentId && !message.system)?.id
   );
 }

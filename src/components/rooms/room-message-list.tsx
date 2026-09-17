@@ -5,6 +5,8 @@ import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { RoomFacepile } from "@/components/rooms/room-avatar";
 import { RoomMessageRow } from "@/components/rooms/room-message";
+import { Pulse } from "@/components/rooms/tracker/pulse";
+import type { MessagePulse } from "@/components/rooms/tracker/tracker-context";
 import { roomMember, type Room, type RoomMessage } from "@/lib/mock/rooms";
 
 // The scrolling column: an orientation block, then each day behind its own
@@ -26,6 +28,14 @@ import { roomMember, type Room, type RoomMessage } from "@/lib/mock/rooms";
 //
 // The column opens at the bottom, which is where a room's newest message is
 // and where every chat client in the world puts you.
+//
+// THE RETURN TRIP. A card on the room's tracker can point back at the message
+// its work came out of. The column brings that message into view and pulses it
+// once, with the same component the cards pulse with, so the two directions of
+// the jump read as one gesture (`tracker/pulse.tsx`,
+// docs/plans/2026-09-17-room-tracker.md §7). The pulse is drawn by a wrapper
+// around the row rather than by the row itself: it is a fact about this column
+// and the tracker beside it, not about a message.
 
 /**
  * A prototype decision, not a product one: "Mara Osei joined the room." stays
@@ -93,12 +103,18 @@ export function RoomMessageList({
   room,
   activeThreadId,
   onOpenThread,
+  onFocusAgent,
+  highlight,
   className,
 }: {
   room: Room;
   /** The message whose thread the side rail is showing, if any. */
   activeThreadId?: string;
   onOpenThread: (messageId: string) => void;
+  /** Handed to every row: an agent's name opens its cards on the tracker. */
+  onFocusAgent?: (agentId: string) => void;
+  /** The message a tracker card pointed back at, and which ask it was. */
+  highlight?: MessagePulse | null;
   className?: string;
 }): ReactNode {
   const viewportRef = useRef<HTMLDivElement>(null);
@@ -109,6 +125,20 @@ export function RoomMessageList({
     const viewport = viewportRef.current;
     if (viewport) viewport.scrollTop = viewport.scrollHeight;
   }, [room.id]);
+
+  // A card asked for a message. Centre it, because a message arriving at the
+  // very edge of the column reads as the column having jumped rather than as
+  // an answer. The token is in the dependency list, so asking twice scrolls
+  // twice even when the answer is the same message.
+  useEffect(() => {
+    if (!highlight) return;
+    const frame = requestAnimationFrame(() => {
+      viewportRef.current
+        ?.querySelector<HTMLElement>(`[data-message-id="${CSS.escape(highlight.messageId)}"]`)
+        ?.scrollIntoView({ block: "center" });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [highlight]);
 
   // A day whose every message was filtered out drops with its divider: a date
   // pinned over nothing is a promise the column does not keep.
@@ -124,12 +154,15 @@ export function RoomMessageList({
           <section key={day.label} className="flex flex-col">
             <RoomDayDivider label={day.label} sticky={dayIndex === days.length - 1} />
             {day.messages.map((message) => (
-              <RoomMessageRow
-                key={message.id}
-                message={message}
-                active={activeThreadId === message.id}
-                onOpenThread={onOpenThread}
-              />
+              <div key={message.id} data-message-id={message.id} className="relative">
+                <RoomMessageRow
+                  message={message}
+                  active={activeThreadId === message.id}
+                  onOpenThread={onOpenThread}
+                  onFocusAgent={onFocusAgent}
+                />
+                <Pulse token={highlight?.messageId === message.id ? highlight.token : null} radius="none" />
+              </div>
             ))}
           </section>
         ))}

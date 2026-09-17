@@ -159,6 +159,30 @@ The one design rule the whole view is arranged around: **the composer's send but
 
 Rooms also reach the shell in three places: the sidebar group and its collapsed-rail menu (`app/sidebar.tsx`), the ⌘K palette's "Rooms" group (`app/search-palette.tsx`), and the screenshot routes.
 
+#### The room tracker (`src/components/rooms/tracker/`)
+
+The room's third tab (2026-09-17, `docs/plans/2026-09-17-room-tracker.md`): the work the room is talking about, as a board or a list of the same tasks. One card per task rather than per agent, so an agent doing three things has three cards and can be working on one while blocked on another, which is the whole reason the board exists. Data is `src/lib/mock/room-tracker.ts`; the board and the list themselves are the shared tracker shell below, and only the card and the row are the room's own.
+
+| File | Owns |
+|---|---|
+| `tracker-context.tsx` | `RoomTrackerProvider` / `useRoomTracker`: the query, which view is showing, the pulse that answers "where is this agent's work", the message a card points back at, and `agentRuns` (the composer strip's `AgentRun[]`). Wrapped around the whole room, not the tab, because both tabs read it. It does not own the tab: `RoomView` does, and hands the provider the two moves it makes. |
+| `tracker-panel.tsx` | The tab body: the toolbar over the board or the list, the cross-fade between them, the scroll that puts a pulsed card on screen, and the polite live region that says the pulse in words. |
+| `tracker-toolbar.tsx` | Search and the board/list switch, the same icon-only `ToggleGroup` /threads and /teams use, on the room header's `px-3` gutter. |
+| `task-card.tsx`, `task-row.tsx` | The board card and the list row. No status glyph on either: the lane or group header above already carries it. A task that came out of a message is a button back to it; one without a source is a plain card or line and takes no tab stop. |
+| `pulse.tsx` | The one-shot "here it is", shared by the card, the row and the message row, so both directions of the jump read as one gesture. A sheen on `slide`/`out-quint` over an `inset-ring-tint-40` that fades in behind it; no hue, because it is a pointer and the lanes own the board's two. Keyed by a token, so asking twice replays it. Reduced motion keeps the ring and drops the sheen. |
+| `task-status.ts` | `TASK_STATUS_META` and `TASK_EMPTY_COPY`. Five lanes: Needs you, Blocked, Working, Queued, Done. |
+| `agent-runs.ts` | `roomAgentRuns`, the board mapped onto the composer strip's vocabulary (one row per live task, `queued` and human assignees dropped). |
+
+### The tracker shell (`src/components/tracker/`)
+
+A kanban board and a grouped list, generic over a status vocabulary (`S extends string`) and an item type, shared by `/teams` and the room tracker. Neither file imports a mock and neither names a status: the vocabulary, the meta table, the items, the empty copy and the renderer all come in as props. It is a pattern in the sense §1 means, a composite of primitives two pages use with the same intent, kept in its own folder because it is four files rather than one.
+
+| File | Owns |
+|---|---|
+| `status.tsx` | `TrackerStatusMeta`, `TrackerTone` (`brand` / `neutral` / `danger`), `TRACKER_TONE_CLASSES`, `TrackerStatusIcon`. |
+| `board/tracker-board.tsx`, `board/tracker-column.tsx` | The board: sticky lane headers, the one lane that folds (folded at rest; opening it scrolls the board to its end when it would overflow), lanes sharing the width at `density` `default` or `compact`, and the arrow-key walk between cards. A card renderer must carry `data-tracker-card` on its focusable element. |
+| `list/tracker-list.tsx`, `list/tracker-group.tsx` | The list: folding status groups under sticky headers, the fold-during-search rules, and the ↑/↓ walk over rows and headers. A row renderer must carry `data-list-nav`. |
+
 ### Slots the clone emits that the live site does not
 
 `toggle-group`, `toggle-group-item`, `input-group`, `input-group-addon`, `input-group-control`, `popover-content`, `collapsible`, `collapsible-trigger`, `collapsible-content`. The live site builds the same boxes without a slot: its layout switch is a `role=group` of `aria-pressed` ghost buttons, its search field a bare input with an absolute icon, its popovers unnamed `role=dialog` panels and its collapsibles bare radix. The clone's primitives wrap the same radix parts and name them, the rendered boxes are the same, and the slot lock checks only the live direction (every live slot has a local definition), so an extra local slot costs nothing. The `flow-*` slots are local for a simpler reason: `flow.tsx` has no live counterpart.

@@ -1,9 +1,11 @@
 "use client";
 
 import { useId } from "react";
+import { motion } from "motion/react";
 import { IconChevronDown, IconMessageOff, IconX } from "@tabler/icons-react";
 
 import { cn } from "@/lib/utils";
+import { DURATION, EASE } from "@/lib/motion";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -48,6 +50,30 @@ import { roomMessages, roomThread, type Room } from "@/lib/mock/rooms";
 // or position, because animating the rail's box would push the message column
 // around for 220ms. It is entirely `motion-safe:`, so with reduced motion the
 // panel simply appears.
+//
+// THE ARRIVAL WASH. Opening a thread yourself needs no announcement: you
+// clicked the reply count, the rail is where you were looking. Being SENT here
+// — by a chip in the composer's agent bar, which swaps the whole rail under a
+// reader whose eyes were on the field — does, or the thread that was already
+// open and the one that just replaced it are the same grey rectangle. So an
+// arrival tints the surface one step warmer for ARRIVAL_MS and then eases back
+// over `--duration-slow`, which is long enough to be noticed and short enough
+// that nothing is left marked. It is a tint, not a hue: the room spends its
+// one colour on the send arrow, and a thread is not a status.
+//
+// The wash is keyed on the caller's token rather than on the rootId, for the
+// same reason the tracker's pulse is (tracker/pulse.tsx): being sent to the
+// thread you are already reading is still an arrival, and a flag cannot say
+// "again", so a new token remounts the layer and replays it. It is a layer
+// rather than a class on the root for the same reason — a class cannot be
+// replayed — and it sits at `-z-10` inside the rail's own stacking context, so
+// it covers the surface and nothing else: the tint is over the fill and under
+// every word, and no text fades with it.
+//
+// IT SURVIVES REDUCED MOTION, unlike the sheen in the tracker's pulse. Nothing
+// here travels and nothing changes size; a colour that arrives and settles
+// asks nothing of a vestibular system, and dropping it would leave exactly the
+// readers who most need the orientation without it.
 
 /** The model the read-out names; the mock carries no per-thread model. */
 const USAGE_MODEL = "Opus 5";
@@ -67,15 +93,25 @@ function usageRows(replyCount: number): { label: string; value: string }[] {
   ];
 }
 
+/** Full on for the first third, then off over the rest: long enough to be
+    caught by an eye that was on the composer, gone before it is furniture. */
+const ARRIVAL = { duration: DURATION.slide * 3, times: [0, 0.34, 1], ease: EASE.out };
+
 export function RoomThreadPanel({
   room,
   rootId,
+  arrival,
   onClose,
   className,
 }: {
   room: Room;
   /** The message the thread hangs off, by id. */
   rootId: string;
+  /**
+   * Bumped every time something OPENED this rail for the reader rather than
+   * the reader opening it. Null, or left out, and the rail never washes.
+   */
+  arrival?: number | null;
   onClose: () => void;
   className?: string;
 }) {
@@ -90,7 +126,7 @@ export function RoomThreadPanel({
     <aside
       aria-label={`Thread in #${room.slug}`}
       className={cn(
-        "flex h-full min-h-0 flex-col border-l border-border-subtle bg-surface-secondary",
+        "relative isolate flex h-full min-h-0 flex-col border-l border-border-subtle bg-surface-secondary",
         // `animation-duration-*` is the animate-in form of the duration token:
         // `duration-*` alone would set transition-duration, which this element
         // has no transition to spend it on (src/components/teams/org/org-entrance.tsx).
@@ -98,6 +134,20 @@ export function RoomThreadPanel({
         className,
       )}
     >
+      {arrival === null || arrival === undefined ? null : (
+        <motion.span
+          key={arrival}
+          aria-hidden="true"
+          // A tint, not a hue: the room spends its one colour on the send
+          // arrow, and being moved is not a status. `-z-10` in the rail's own
+          // `isolate` puts it over the fill and under every word.
+          className="pointer-events-none absolute inset-0 -z-10 bg-tint-10"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: [1, 1, 0] }}
+          transition={ARRIVAL}
+        />
+      )}
+
       {/* 48px, matching the room header's band across the seam. */}
       <div className="flex h-12 shrink-0 items-center gap-2 border-b border-border-subtle px-3">
         <div className="flex min-w-0 flex-1 items-baseline gap-2">

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { IconArrowLeft } from "@tabler/icons-react";
+import { IconArrowLeft, IconArrowUpRight } from "@tabler/icons-react";
 
 import { AgentGlyph } from "@/components/brand/agent-glyph";
 import { Button } from "@/components/ui/button";
@@ -29,6 +29,18 @@ import type { AgentRun } from "./types";
 // it is readable, so the fleet stays usable for someone who cannot separate
 // the hues, and the colour is confirmation rather than the whole message.
 //
+// UNLESS THE RUN HAS A CARD, in which case that last slot is a way out instead
+// of a full stop. "Done" at the end of a row is the least useful true thing
+// the bar can say: the dial in front of the name already said it, in the same
+// hue, 200px to the left. Where the run is a task on the room's board, the
+// slot becomes the link to it — a ghost control in the state's own tint, so
+// the colour survives the swap, carrying an arrow that leaves the plane
+// (docs/brand/icons.md: an arrow goes, a chevron reveals). The state is not
+// lost for anyone who could not read the hue: it is in the control's
+// accessible name, which spells out the agent, the state and the destination
+// in that order. Without `onOpenTask` — a run started from a mention, a
+// specimen on a design page — the word is exactly what it was.
+//
 // The words themselves are a tool-call row's (thread/tool-call-row.tsx): a
 // name at weight 500, the task in the muted tier, then the one parameter
 // after a middot on the tier below, truncated. Same idiom, same restraint —
@@ -41,12 +53,19 @@ const ENTER = "animate-in fade-in-0 duration-(--duration-enter) ease-out-quart m
 export function AgentDetail({
   run,
   onBack,
+  onOpenTask,
   claimFocus = false,
   className,
 }: {
   run: AgentRun;
   /** Back to the stack. */
   onBack: () => void;
+  /**
+   * Where this run's work is written down. Given, the state word at the end of
+   * the row becomes the control that goes there; omitted, it stays a word,
+   * because a run with no card has nowhere to send anyone.
+   */
+  onOpenTask?: () => void;
   /**
    * This row opened because someone picked a chip, so it may take the focus
    * that chip left behind. Off by default: a row rendered cold — a specimen
@@ -145,7 +164,25 @@ export function AgentDetail({
         </span>
       </span>
 
-      <span className={cn("shrink-0 text-xs", tint, ENTER)}>{label}</span>
+      {onOpenTask ? (
+        // `size="none"` and an explicit box: the row is 36px and a default
+        // Button is 36px, so a sized one would touch both hairlines. The tint
+        // is the state's, the hover fill is the ghost's own, and the arrow is
+        // the only thing here that is not the word it replaced.
+        <Button
+          type="button"
+          variant="ghost"
+          size="none"
+          onClick={onOpenTask}
+          aria-label={`${run.name}, ${label} — open this task on the board`}
+          className={cn("-mr-1.5 h-6 shrink-0 gap-1 rounded-md px-1.5 text-xs", tint, ENTER)}
+        >
+          View task
+          <IconArrowUpRight className="size-3.5" aria-hidden="true" />
+        </Button>
+      ) : (
+        <span className={cn("shrink-0 text-xs", tint, ENTER)}>{label}</span>
+      )}
     </div>
   );
 }
