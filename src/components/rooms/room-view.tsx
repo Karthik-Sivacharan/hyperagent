@@ -146,13 +146,15 @@ function RoomBody({ room, tab, onTabChange }: { room: Room; tab: RoomTab; onTabC
     const seen = new Set(agentRuns.map((run) => run.id));
     const all = [...agentRuns, ...mentionRuns.filter((run) => !seen.has(run.id))];
     // A stopped run keeps its chip and its words and loses the one thing that
-    // was still true of it. `done` rather than `stuck`: the person ended it,
-    // nothing failed, and of the four states it is the only terminal one that
-    // is not a complaint. The dial goes with the fraction, because a run that
-    // was stopped is not a fraction of anything any more.
+    // was still true of it. `stopped` is its own state rather than `done`,
+    // because a green tick on work that was called off half way is the bar
+    // telling the reader their own decision went fine; and rather than
+    // `stuck`, which would blame the agent for it. The dial goes with the
+    // fraction, because a run that was stopped is not a fraction of anything
+    // any more.
     if (endedIds.size === 0) return all;
     return all.map((run) =>
-      endedIds.has(run.id) ? { ...run, state: "done" as const, progress: undefined } : run,
+      endedIds.has(run.id) ? { ...run, state: "stopped" as const, progress: undefined } : run,
     );
   }, [agentRuns, mentionRuns, endedIds]);
 
@@ -233,7 +235,7 @@ function RoomBody({ room, tab, onTabChange }: { room: Room; tab: RoomTab; onTabC
     setEndedIds((current) => new Set(current).add(run.id));
     setMentionRuns((current) =>
       current.map((existing) =>
-        existing.id === run.id ? { ...existing, state: "done" as const, progress: undefined } : existing,
+        existing.id === run.id ? { ...existing, state: "stopped" as const, progress: undefined } : existing,
       ),
     );
   }, []);

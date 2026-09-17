@@ -5,12 +5,13 @@ import type { AgentRun, AgentRunState } from "@/components/composer/agent-status
 // this directory: nothing is running behind this screen, so every state is
 // written out.
 //
-// SIX, NOT FOUR. The bar shows three chips and folds the rest into a count, so
-// a fleet of exactly four would only ever prove the exact-fit case and the
-// overflow would never be seen. Six puts three figures on the right and a "+3"
-// behind them, which is the shape the bar exists for. It also lets `running`
-// and `done` appear twice, so the stack reads as a group of agents rather than
-// as one chip per state, which is the thing a four-run fleet quietly implies.
+// SEVEN, NOT FIVE. The bar shows three chips and folds the rest into a count,
+// so a fleet of exactly one per state would only ever prove the exact-fit case
+// and the overflow would never be seen. Seven puts three figures on the right
+// and a "+4" behind them, which is the shape the bar exists for. It also lets
+// `running` and `done` appear twice, so the stack reads as a group of agents
+// rather than as one chip per state, which is the thing a one-each fleet
+// quietly implies.
 //
 // THE ORDER HERE IS NOT THE ORDER ON SCREEN. The stack sorts by
 // STATE_PRIORITY (run-state.ts): whoever wants something first, then trouble,
@@ -89,6 +90,18 @@ export const AGENT_RUNS: readonly AgentRun[] = [
     state: "done",
     task: "Reconciling the month",
     detail: "Calder and Rowe, 3 gaps",
+  },
+  // The one state nothing about the work produced: somebody pressed Stop on
+  // it. It keeps the task it was part way through and carries no fraction,
+  // because a run that was called off is not a fraction of anything — the same
+  // reason `done` and `stuck` carry none.
+  {
+    id: "deck-build",
+    name: "Deck build",
+    glyph: "slot-stack",
+    state: "stopped",
+    task: "Laying out the quarterly deck",
+    detail: "Stopped at slide 6 of 18",
   },
 ];
 
@@ -201,10 +214,10 @@ export const THREE_RUNNING_OF_FOUR: readonly AgentRun[] = [
 ];
 
 /** The order types.ts declares, which is hueless first and loudest last. */
-const STATE_ORDER: readonly AgentRunState[] = ["running", "done", "input", "stuck"];
+const STATE_ORDER: readonly AgentRunState[] = ["running", "done", "input", "stuck", "stopped"];
 
 /**
- * One run per state, for the specimen row that compares the four side by side.
+ * One run per state, for the specimen row that compares them side by side.
  * Picked out of the fleet rather than written again, so a state can never be
  * shown on the design page in a dress the bar itself never puts it in.
  */

@@ -1,3 +1,4 @@
+import { STATE_PRIORITY } from "@/components/composer/agent-status/run-state";
 import type { AgentRun, AgentRunState } from "@/components/composer/agent-status/types";
 import { roomMember } from "@/lib/mock/rooms";
 import type { RoomTask, TaskStatus } from "@/lib/mock/room-tracker";
@@ -38,19 +39,14 @@ const RUN_STATE_BY_STATUS: Record<TaskStatus, AgentRunState | null> = {
   done: "done",
 };
 
-/**
- * The strip's reading order. It mirrors `STATE_PRIORITY` in
- * src/components/composer/agent-status/run-state.ts — whoever wants something
- * first, then trouble, then the ones still going, then the ones already
- * finished — and is kept here rather than imported because this sort decides
- * what the ROOM hands over, and the bar is free to re-sort what it is given.
- */
-const STATE_PRIORITY: Record<AgentRunState, number> = {
-  input: 0,
-  stuck: 1,
-  running: 2,
-  done: 3,
-};
+// The reading order is the bar's own `STATE_PRIORITY`, imported rather than
+// mirrored. It used to be a copy, on the argument that this sort decides what
+// the ROOM hands over and the bar is free to re-sort what it is given — true,
+// but the two tables are the same sentence, and the copy silently went stale
+// the moment the bar learnt a fifth state. One table cannot drift. The board
+// never produces every state in it (nothing on a board is `stopped`, which a
+// person does to a run), and a priority for a state this file cannot emit
+// costs nothing.
 
 /**
  * The strip's rows for a room's tasks, one per live task an agent holds.

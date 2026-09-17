@@ -21,8 +21,14 @@
  * - `input`    — stopped and waiting on the person. Amber, the only state
  *                that is asking for something.
  * - `stuck`    — failed or blocked on something it cannot pass. Red.
+ * - `stopped`  — a person ended it. Red, and the only state in the list that
+ *                nothing about the work produced: the other four are things
+ *                that happened TO a run, this one is a thing someone did to
+ *                it. It is not `done`, which would hand a green tick to work
+ *                that was called off half way, and it is not `stuck`, which
+ *                blames the agent for a decision the reader made.
  */
-export type AgentRunState = "running" | "done" | "input" | "stuck";
+export type AgentRunState = "running" | "done" | "input" | "stuck" | "stopped";
 
 /** One agent's turn, as the bar needs to draw it. */
 export type AgentRun = {

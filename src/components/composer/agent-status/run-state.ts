@@ -1,4 +1,10 @@
-import { IconAlertTriangleFilled, IconCircleCheckFilled, IconCircleHalf2, type TablerIcon } from "@tabler/icons-react";
+import {
+  IconAlertTriangleFilled,
+  IconCircleCheckFilled,
+  IconCircleHalf2,
+  IconPlayerStopFilled,
+  type TablerIcon,
+} from "@tabler/icons-react";
 
 import type { GlyphTone } from "@/components/brand/agent-glyph";
 import type { AgentRunState } from "./types";
@@ -77,6 +83,21 @@ export const RUN_STATES: Readonly<Record<AgentRunState, RunStatePresentation>> =
     icon: IconAlertTriangleFilled,
     wants: false,
   },
+  // Red, like `stuck`, because both are a run that ended without its work
+  // finishing and the reader should find them at the same glance. The MARK is
+  // what separates them, and it is the one control that produces this state:
+  // you pressed a stop square, so the run wears a stop square. That also makes
+  // it the only non-circular mark in the table, which is right — it is the one
+  // state a person put there.
+  stopped: {
+    label: "Stopped",
+    tone: "avatar-danger",
+    paperTone: "danger",
+    tint: "text-destructive",
+    ring: "ring-destructive/55",
+    icon: IconPlayerStopFilled,
+    wants: false,
+  },
 };
 
 /**
@@ -102,5 +123,8 @@ export const STATE_PRIORITY: Readonly<Record<AgentRunState, number>> = {
   input: 0,
   stuck: 1,
   running: 2,
-  done: 3,
+  // Ahead of `done` and behind everything else: a run somebody called off is
+  // news, and a run that finished is the one piece that can wait.
+  stopped: 3,
+  done: 4,
 };
