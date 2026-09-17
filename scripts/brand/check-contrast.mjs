@@ -287,6 +287,22 @@ const PAIRS = [
   ['mind-sage', 'background', 'ui', 'advisory'],
   ['mind-legendary', 'background', 'ui', 'advisory'],
   ['mind-eternal', 'background', 'ui', 'advisory'],
+  // ── the agent glyph's avatar tones - the one colourway the glyph module lets
+  //    the theme move (src/components/brand/agent-glyph/tones.ts). The figure is
+  //    a filled silhouette at 18px inside a 28px chip, so it is a graphic and the
+  //    gate is 3:1 - but the tile is the glyph's EYE colour too, so these are the
+  //    pairs that decide whether the eyes still read as holes punched through the
+  //    body. Both themes, because unlike every other tone in that file these two
+  //    are different colours.
+  ['glyph-avatar-figure', 'glyph-avatar', 'ui'],
+  ['glyph-avatar-success', 'glyph-avatar', 'ui'],
+  ['glyph-avatar-warning', 'glyph-avatar', 'ui'],
+  ['glyph-avatar-danger', 'glyph-avatar', 'ui'],
+  //    And the disc against the card it is docked on. Advisory: the disc has
+  //    never carried this edge in either theme (light is 1.15:1), the figure does,
+  //    and the separating ring is the card's own colour by design. Kept so the
+  //    number is on the record if the tile step is ever moved.
+  ['glyph-avatar', 'surface-elevated', 'ui', 'advisory'],
   // ── decorative boundaries  (ADVISORY, exempt under 1.4.11) ──
   ['border', 'background', 'ui', 'advisory'],
   ['input', 'background', 'ui', 'advisory'],
