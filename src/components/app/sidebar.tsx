@@ -18,6 +18,7 @@ import {
   IconLayoutSidebarLeftCollapse,
   IconLayoutSidebarLeftExpand,
   IconMessageCircle,
+  IconNotebook,
   IconPlus,
   IconPuzzle,
   IconRobotFace,
@@ -342,10 +343,12 @@ export function Sidebar({
   onExpandedWidthChange?: (width: number) => void;
 }) {
   const pathname = usePathname();
-  // Exact match, except section roots with sub-routes (/settings/*). The
-  // "View all" link stays inactive on /threads/new, as on the live site.
+  // Exact match, except section roots with sub-routes (/settings/*, /wiki/*).
+  // The "View all" link stays inactive on /threads/new, as on the live site.
   const isActive = (href: string) =>
-    pathname === href || (href === "/settings" && pathname.startsWith("/settings/"));
+    pathname === href ||
+    (href === "/settings" && pathname.startsWith("/settings/")) ||
+    (href === "/wiki" && pathname.startsWith("/wiki/"));
 
   const [searchOpen, setSearchOpen] = useState(false);
   const [agentsOpen, setAgentsOpen] = useState(false);
@@ -794,6 +797,7 @@ export function Sidebar({
                           <NavLink href="/teams" icon={IconUsers} label="Teams" active={isActive("/teams")} collapsed={collapsed} />
                           <NavLink href="/skills" icon={IconPuzzle} label="Skills" active={isActive("/skills")} collapsed={collapsed} />
                           <NavLink href="/memories" icon={IconBrain} label="Memories" active={isActive("/memories")} collapsed={collapsed} />
+                          <NavLink href="/wiki" icon={IconNotebook} label="Wiki" active={isActive("/wiki")} collapsed={collapsed} />
                           <RailTooltip label="Learning" collapsed={collapsed}>
                             <LearningMenu>
                               <NavItem aria-label="Learning" active={isActive("/learning")}>
