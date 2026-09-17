@@ -60,3 +60,9 @@ next-env.d.ts
 # Generated gradient PNGs from the smear-gradients experiment (regenerate with
 # `node experiments/smear-gradients/smear-gradient.mjs`)
 /experiments/smear-gradients/output/
+
+# Stack best-practice reference for agents (Next 16.3.4, React 19, Tailwind v4,
+# Radix, Motion, Vitest), researched 2026-09-15 against the installed versions.
+# Local only: a working reference, not a repo convention — docs/components.md
+# and docs/clone-conventions.md own those.
+/docs/frontend-practices.md
