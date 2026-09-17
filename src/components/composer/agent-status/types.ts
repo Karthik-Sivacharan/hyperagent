@@ -26,7 +26,19 @@ export type AgentRunState = "running" | "done" | "input" | "stuck";
 
 /** One agent's turn, as the bar needs to draw it. */
 export type AgentRun = {
+  /**
+   * This RUN's id, which is not the agent's: one agent doing three things is
+   * three runs. The bar keys chips and the open detail on it.
+   */
   id: string;
+  /**
+   * The agent behind the run, when the caller has an id for it. It is what
+   * lets the bar gather one agent's runs into a single expanded row, and it is
+   * optional because a bar handed four unrelated runs never needs to — those
+   * fall back to matching on `name`, which is the only other thing a run
+   * carries that belongs to the agent rather than to the work.
+   */
+  agentId?: string;
   /** The agent's own name, shown in the tooltip and the expanded row. */
   name: string;
   /** A glyph id from the registry (`ALL_GLYPHS`), e.g. "trefoil". */

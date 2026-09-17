@@ -92,6 +92,55 @@ export const AGENT_RUNS: readonly AgentRun[] = [
   },
 ];
 
+/**
+ * One agent on four tasks, for the specimen that shows the expanded row
+ * stacking. It is the case the board makes routine and the bar has to survive:
+ * an agent can be stuck on one piece of work and perfectly fine on another, so
+ * the four states here sit on ONE name and one glyph rather than four. Written
+ * out rather than derived from AGENT_RUNS, because every line has to be a
+ * sentence that agent could really be saying at the same moment as the others.
+ */
+export const ONE_AGENT_MANY_TASKS: readonly AgentRun[] = [
+  {
+    id: "render-second",
+    agentId: "media-lab",
+    name: "Media Lab Director",
+    glyph: "pinwheel",
+    state: "stuck",
+    task: "Start the second background render",
+    detail: "The spawn is parked in pending approval",
+  },
+  {
+    id: "allowlist",
+    agentId: "media-lab",
+    name: "Media Lab Director",
+    glyph: "pinwheel",
+    state: "input",
+    task: "Widen the delegation allowlist",
+    detail: "Drafted and parked, it needs a yes",
+    progress: 0.8,
+  },
+  {
+    id: "trace-gate",
+    agentId: "media-lab",
+    name: "Media Lab Director",
+    glyph: "pinwheel",
+    state: "running",
+    task: "Trace the approval gate through the logs",
+    detail: "41 of 60 spawns",
+    progress: 0.68,
+  },
+  {
+    id: "first-render",
+    agentId: "media-lab",
+    name: "Media Lab Director",
+    glyph: "pinwheel",
+    state: "done",
+    task: "Render the team as a background job",
+    detail: "One image, everyone as a cat",
+  },
+];
+
 /** The order types.ts declares, which is hueless first and loudest last. */
 const STATE_ORDER: readonly AgentRunState[] = ["running", "done", "input", "stuck"];
 
