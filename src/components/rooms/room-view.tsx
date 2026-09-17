@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { IconLayoutBoardSplit } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 import { EmptyState } from "@/components/patterns/empty-state";
@@ -8,21 +8,46 @@ import { RoomComposer } from "@/components/rooms/room-composer";
 import { RoomHeader, type RoomTab } from "@/components/rooms/room-header";
 import { RoomMessageList } from "@/components/rooms/room-message-list";
 import { RoomThreadPanel } from "@/components/rooms/room-thread-panel";
+import { RoomTrackerProvider, useRoomTracker } from "@/components/rooms/tracker/tracker-context";
+import { TrackerPanel } from "@/components/rooms/tracker/tracker-panel";
 import type { Room } from "@/lib/mock/rooms";
 
-// The room, assembled: chrome, the message column, the composer, and the
-// thread rail beside them. This file owns the two pieces of state the three
-// columns share (which tab is showing, which thread the rail is on) and
-// nothing else; every part below it is told what to render.
+// The room, assembled: chrome, the three tabs, the composer, and the thread
+// rail beside them. This file owns the two pieces of state the columns share
+// (which tab is showing, which thread the rail is on) and nothing else; every
+// part below it is told what to render.
 //
 // The rail is the interesting layout problem. On a wide screen it sits beside
 // the messages, which is the whole point of replying in a thread: the room
 // keeps going while a side conversation happens. Below `lg` there is no room
 // for both, so the rail takes the column instead of squeezing it, which is
 // done with one `max-lg:hidden` rather than a resize listener.
+//
+// THE TRACKER is the room's work, the same way Messages is its conversation
+// (docs/plans/2026-09-17-room-tracker.md). Its state lives in a provider
+// wrapped around the whole room rather than inside the tab, because both tabs
+// read it: the conversation needs `focusAgent` so a name can open an agent's
+// cards, and the header needs the count of what is waiting on a person. The
+// provider does not own the tab itself; it is handed the two moves it makes
+// (show the tracker, show the conversation) so that nothing below has to know
+// how many tabs there are.
 
 export function RoomView({ room }: { room: Room }) {
   const [tab, setTab] = useState<RoomTab>("messages");
+
+  const showTracker = useCallback(() => setTab("tracker"), []);
+  const showMessages = useCallback(() => setTab("messages"), []);
+
+  return (
+    <RoomTrackerProvider room={room} onShowTracker={showTracker} onShowMessages={showMessages}>
+      <RoomBody room={room} tab={tab} onTabChange={setTab} />
+    </RoomTrackerProvider>
+  );
+}
+
+function RoomBody({ room, tab, onTabChange }: { room: Room; tab: RoomTab; onTabChange: (tab: RoomTab) => void }) {
+  const { tasksByStatus, focusAgent, highlight } = useRoomTracker();
+
   // The room opens on its liveliest thread. A room whose threads are all
   // resolved opens closed, which is also what a new room does.
   const [threadRootId, setThreadRootId] = useState<string | undefined>(room.threads[0]?.rootId);
@@ -30,15 +55,20 @@ export function RoomView({ room }: { room: Room }) {
   const openThread = (messageId: string) => setThreadRootId(messageId);
   const toggleThread = () => setThreadRootId((current) => (current ? undefined : room.threads[0]?.rootId));
 
+  // What the room owes a person: the two lanes that are asking for one. The
+  // header prints it beside the tab so it is not hidden behind a click.
+  const waiting = tasksByStatus["needs-you"].length + tasksByStatus.blocked.length;
+
   return (
     <div className="flex min-h-0 flex-1 overflow-hidden">
       <div className={cn("flex min-w-0 flex-1 flex-col", threadRootId && "max-lg:hidden")}>
         <RoomHeader
           room={room}
           tab={tab}
-          onTabChange={setTab}
+          onTabChange={onTabChange}
           threadOpen={Boolean(threadRootId)}
           onToggleThread={toggleThread}
+          trackerWaiting={waiting}
         />
 
         {tab === "messages" ? (
@@ -47,12 +77,16 @@ export function RoomView({ room }: { room: Room }) {
               room={room}
               activeThreadId={threadRootId}
               onOpenThread={openThread}
+              onFocusAgent={focusAgent}
+              highlight={highlight}
               className="min-h-0 flex-1"
             />
             <div className="shrink-0 px-4 pt-1 pb-4">
               <RoomComposer placeholder={`Message #${room.slug}`} />
             </div>
           </>
+        ) : tab === "tracker" ? (
+          <TrackerPanel />
         ) : (
           // The canvas is the room's shared document. It is not built yet, so
           // the tab says so in one line rather than rendering a fake surface.

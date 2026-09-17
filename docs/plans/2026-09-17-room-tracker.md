@@ -115,6 +115,7 @@ export function TrackerBoard<S extends string, T>(props: {
   getKey: (item: T) => string;
   renderItem: (item: T) => ReactNode;      // must carry data-tracker-card on its focusable element
   emptyCopy: Record<S, string>;            // the line an empty lane shows outside a search
+  noun: { one: string; many: string };     // what a header counts: "4 runs", "4 tasks"
   searching: boolean;                      // an empty lane then means "no match"
   /** The one lane that folds, folded at rest. Defaults to the last status. */
   foldable?: S | null;
@@ -134,6 +135,7 @@ export function TrackerList<S extends string, T>(props: {
   itemsByStatus: Record<S, T[]>;
   getKey: (item: T) => string;
   renderItem: (item: T) => ReactNode;      // must carry data-list-nav on its focusable element
+  noun: { one: string; many: string };
   searching: boolean;
   /** Statuses folded at rest. Defaults to the last status. */
   defaultFolded?: readonly S[];
@@ -177,10 +179,32 @@ as a fraction, `glyph` the member's glyph shape, `name` the member's name.
 Human assignees are dropped: it is an agent bar.
 
 The type is redeclared locally, with a comment naming the file it mirrors.
-**On merge:** delete `RoomAgentRun`, import `AgentRun` from
-`@/components/composer/agent-status/types`, and the mapping table is the only
-thing that has to survive. The two are structurally identical today; if that
-branch changes its shape, this file is the one place that has to move.
+
+**Status as of writing.** That branch has since merged into `feat/rooms`
+(387282b, "the agent bar joins the room composer"), so
+`src/components/composer/agent-status/types.ts` now exists there and its
+`AgentRun` is byte-for-byte what `RoomAgentRun` was written against. This
+branch has not merged it in, because `feat/rooms` is still moving under
+`room-view.tsx` and `room-message.tsx`, which are two of the four files this
+branch touches there.
+
+**On merge, three things:**
+
+1. Delete `RoomAgentRun` and import `AgentRun`. The mapping table is the only
+   thing that has to survive.
+2. **Pick what feeds the bar.** `feat/rooms` drives it from `@` mentions in the
+   composer: tagging an agent and sending starts an ephemeral run that fills a
+   dial and settles on `done`. `roomAgentRuns(tasks)` drives it from the
+   board. These are not rivals, they are two lifetimes of the same thing, and
+   the bar should hold both: the board's runs are the room's standing work and
+   are there when you arrive, the mention's run is the one you just started and
+   has no card yet. Concatenate, board first, and de-duplicate on the run id.
+   The alternative, letting a send write a `working` task onto the board, is
+   the better product and the larger change; it belongs in its own pass.
+3. `room-message.tsx` is edited on both branches. `feat/rooms` changed the
+   name's tier; this branch makes an agent's name a control. Both edits are in
+   the same three lines, and both want to survive: the resolution is a `Button`
+   carrying the tier `feat/rooms` settled on.
 
 ### 6.2 `feat/rooms` — the room itself
 
@@ -202,19 +226,42 @@ Clicking an agent in a message switches to the tracker and pulses that agent's
 cards **once**. The state is a pair — the agent id and a token that increments
 on every click — so clicking the same agent twice pulses twice.
 
-- A sheen sweeps the card left to right once, 700ms on `ease-out-quart`, over
-  a 2px `ring-tint-20` that fades in with it and out after. No hue: this is a
-  pointer, not a status, and the lanes already own the two hues the board
-  spends. The card does not move or grow, the same rule the board card has
-  always had.
-- **Reduced motion** drops the sweep and keeps the ring, faded in over 200ms
-  and out over 900ms, so the answer still arrives without anything travelling.
+One component draws it, `rooms/tracker/pulse.tsx`, and all three surfaces use
+it: the board card, the list row, and the message row on the return trip. The
+two directions of the jump then read as one gesture.
+
+- A sheen sweeps across once on `slide` (480ms) with its paired `out-quint`,
+  the token pair for a large transform move, over a 2px `inset-ring-tint-40`
+  that fades in behind it and out after, over `slide + reveal` (880ms). No
+  hue: this is a pointer, not a status, and the lanes already own the two hues
+  the board spends. Nothing moves layout, so nothing around it shifts.
+- **Reduced motion** drops the sweep and keeps the ring, so the answer still
+  arrives without anything travelling.
 - The first pulsed card is scrolled into view (`block: "nearest"`), because an
   answer below the fold is not an answer.
 - A polite live region says it in words: "3 tasks for Media Lab Director" —
   the pulse is a pointer, and a pointer nobody can see is nothing.
 
-## 8. Verification
+## 8. What this deliberately leaves
+
+- **Three of the four rooms have no `sourceMessageId`.** They have no `days` in
+  `rooms.ts`, so there is no real message to point at, and a link to an id that
+  does not exist is worse than no link. `room-capability-checks` has seven, and
+  is the room the return trip is designed on.
+- **A pulse into the folded Done lane points at a card nobody can see.** The
+  live region still says how many tasks the agent has, so the answer arrives in
+  words; the lane does not open itself. Worth fixing when the board learns to
+  open a lane for a reason other than a search.
+- **The tab and the view are local state, not URL state.** `/teams` writes
+  `?view=` with `history.replaceState` under a Suspense boundary, and the same
+  move would work here; it is three lines and a decision about whether a room
+  tab is worth a shareable URL. `RoomView` holds the tab and `RoomTrackerProvider`
+  holds the view, so it is one place each when the answer is yes.
+- **The strip above the composer is not mounted.** `agentRuns` is on the
+  context and correct; the component that draws it lands with
+  `feat/composer-agent-status` (§6.1).
+
+## 9. Verification
 
 `npx tsc --noEmit`, `npm run lint`, `npm test` and `npm run build` clean, and
 `/teams` unchanged at 1456×868 against the branch point: the extraction has to

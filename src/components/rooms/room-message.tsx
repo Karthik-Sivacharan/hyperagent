@@ -80,6 +80,7 @@ export function RoomMessageRow({
   variant = "channel",
   active = false,
   onOpenThread,
+  onFocusAgent,
   className,
 }: {
   message: RoomMessage;
@@ -92,6 +93,13 @@ export function RoomMessageRow({
    * used for static previews as well as for the live column.
    */
   onOpenThread?: (messageId: string) => void;
+  /**
+   * Takes the reader to this agent's cards on the room's tracker and pulses
+   * them once (`tracker/tracker-context.tsx`). Given only where a tracker is
+   * mounted beside the column; without it the name is plain text, which is
+   * what every static preview of this row wants.
+   */
+  onFocusAgent?: (agentId: string) => void;
   className?: string;
 }): ReactNode {
   const author = roomMember(message.authorId) ?? formerMember(message.authorId);
@@ -156,7 +164,25 @@ export function RoomMessageRow({
               the block. `base` at 600 is the brand's heading-at-body-size role
               (docs/brand/design.md §4): weight does the separating and the
               scale does not have to grow a size for it. */}
-          <span className="text-base font-semibold text-foreground">{author.name}</span>
+          {/* An agent's name is the way into its work: one click and the
+              tracker opens on its cards. The face beside it stays decorative,
+              so the row keeps one tab stop for one action rather than two for
+              the same one. A person's name is not a control: people do not
+              have cards of their own to point at. */}
+          {onFocusAgent && author.kind === "agent" ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="none"
+              onClick={() => onFocusAgent(author.id)}
+              aria-label={`Show ${author.name}'s work on the tracker`}
+              className="-mx-1 rounded-md px-1 text-base font-semibold text-foreground hover:bg-tint-10"
+            >
+              {author.name}
+            </Button>
+          ) : (
+            <span className="text-base font-semibold text-foreground">{author.name}</span>
+          )}
           {message.schedule ? <ScheduleChip label={message.schedule} /> : null}
           <span className="text-xs text-foreground-low tabular-nums">{message.time}</span>
         </div>
