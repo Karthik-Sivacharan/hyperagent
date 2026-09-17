@@ -1,6 +1,6 @@
-# Cloning hyperagent.com: conventions for every page branch
+# Cloning the reference dashboard: conventions for every page branch
 
-Phase 1 of this repo is a pixel-faithful clone of the hyperagent.com dashboard
+Phase 1 of this repo is a pixel-faithful clone of a reference agent dashboard
 (every page reachable from the left sidebar). Phase 2 re-skinned it with the
 Brand design language; its contract is `docs/brand/reskin-conventions.md`,
 which keeps rule 1's path ownership and the verification steps below and
@@ -20,7 +20,9 @@ rules keep the parallel branches mergeable and the clone honest.
   `safe-area-*`, `h-dvh-below-banners`, `bg-glass-gradient`, `scrollbar-hide`,
   `animate-shimmer`, `animate-card-enter`, `prose-message`, and the keyframes.
   Add a missing one to globals.css only if you must, in its own small commit.
-- **Live site:** compare https://hyperagent.com/<your page> against your build
+- **Live site:** compare the reference site's own `/<your page>` against your
+  build — its URL is in `docs/research/00-source.md`, which is git-ignored so
+  that no tracked file names it —
   in whatever browser your runtime gives you — BrowserOS neo (MCP
   `browseros-neo`) on a local machine, the platform's own browser on a cloud
   agent, a hosted session such as Browserbase otherwise; `docs/agent-setup.md`
@@ -83,7 +85,7 @@ padding. The shell gives you the sidebar and the frame only. Reuse
    1456×868 with no visible layout difference.
 7. Commit small, conventional commits on your branch: `feat(<page>): ...`.
    Never merge, rebase onto main, or push. Use
-   `-c user.name="Karthik Sivacharan" -c user.email="karthicksivacharan@gmail.com"`
+   `-c user.name="Karthik Sivacharan" -c user.email="karthik@example.com"`
    and end every message with
    `Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>` and
    `Claude-Session: https://claude.ai/code/session_01NSEBJjUSUQkexCoK1qcXEU`.

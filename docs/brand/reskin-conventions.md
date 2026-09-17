@@ -1,6 +1,6 @@
 # Re-skinning with the brand: conventions for every phase-2 page branch
 
-Phase 1 cloned the hyperagent.com dashboard pixel for pixel. Phase 2 keeps
+Phase 1 cloned the reference dashboard pixel for pixel. Phase 2 keeps
 that layout and re-skins it with the brand design language. The shell is
 done and merged on `main`: the token bridge (`src/app/globals.css`), the
 primitives (`src/components/ui/*`), the sidebar, the composer, the menus, the
@@ -15,7 +15,7 @@ are the parts that matter here).
 
 **Keep the layout, change the skin.** Same element tree, same copy, same icon
 sizes, same spacing and heights as the phase-1 clone; only colours, radii,
-borders, shadows, type and motion change. Where Hyperagent's skin and the
+borders, shadows, type and motion change. Where the reference skin and the
 brand disagree (8px nav corners vs pills, 14px cards vs 22px, a navy accent
 vs tangerine, grey borders vs tints), the brand wins.
 
@@ -127,7 +127,7 @@ vs tangerine, grey borders vs tints), the brand wins.
    `npm run build` and `npm run brand:lint-tokens` all clean.
 6. **Commits.** Small conventional commits on your branch: `feat(<page>): …`.
    Never merge, rebase onto main, or push. Use
-   `-c user.name="Karthik Sivacharan" -c user.email="karthicksivacharan@gmail.com"`
+   `-c user.name="Karthik Sivacharan" -c user.email="karthik@example.com"`
    and end every message with
    `Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>` and
    `Claude-Session: https://claude.ai/code/session_01LozFJZiGqmzcowQqxGbx84`.

@@ -23,9 +23,9 @@ After this branch: send is the moment the flow becomes a thread.
 5. All of this while the sidebar and the agent panel arrive and the column
    narrows: the existing handoff, untouched.
 
-## Ground truth: the live stream (read off hyperagent.com, 2026-09-10)
+## Ground truth: the live stream (read off the reference site, 2026-09-10)
 
-Captured by sending a prompt on hyperagent.com/threads/new with a frame
+Captured by sending a prompt on the reference site's `/threads/new` with a frame
 recorder installed before the click. The DOM at each checkpoint is saved in
 `docs/reference/overlays/thread-streaming-live.html`. What it showed, in order:
 

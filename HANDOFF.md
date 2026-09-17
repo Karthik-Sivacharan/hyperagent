@@ -174,7 +174,7 @@ light (`src/lib/theme-routes.ts`) and the closing band and footer are
 dark through a local `dark` class. Type uses the existing roles (H1
 `text-heading-display` at 600). Buttons are ink, with no tangerine on the
 page. The copy has no agent names, customer names, quotes or invented
-figures; every fact comes from Hyperagent's docs.
+figures; every fact comes from the reference product's docs.
 
 **Open for the owner.** Display weight 500 instead of 600 for the site;
 named agents in marketing; promoting the page to `/`.
@@ -278,7 +278,7 @@ edges and node trays; 208×56 nodes at zoom 1, specialists stacked on
 elbows, the rest in a 250ms tooltip. Sheet: bands, caps and the week chart;
 now Needs you, Runs, Details (folded). One caption rule: `fleet/run-caption.ts`.
 
-**Avatars.** An agent is a rounded square holding Hyperagent's own orb (the
+**Avatars.** An agent is a rounded square holding the reference product's own orb (the
 tile `app/agent-orb.tsx` draws for agent templates) in its hue, with a
 Tabler glyph for its role; a person is initials in a neutral circle, so the
 two never read alike at 20px. The avatar libraries that were compared and
@@ -334,7 +334,7 @@ data: `FleetProvider` already takes `team`, `agents` and `runs` as props.
 
 ## Where things stand
 
-- **Phase 1 is complete:** a pixel-faithful clone of the hyperagent.com
+- **Phase 1 is complete:** a pixel-faithful clone of the reference site
   dashboard (every left-sidebar page plus the shell overlays).
 - **Phase 2 is complete and merged.** `main` renders the same layout in the
   brand design language: paper-white canvas with a dark mapping, sand
@@ -343,7 +343,7 @@ data: `FleetProvider` already takes `team`, `agents` and `runs` as props.
   roles (headings at the spec's 600, Geist Mono for identifiers).
 - **Plan step 5 is complete and merged.** The brand tokens are the only
   palette: `brand.css` defines them on `:root` and `.dark`, the phase-1
-  Hyperagent palettes and the comparison switch are gone, and a vitest
+  reference palettes and the comparison switch are gone, and a vitest
   suite locks the contract. Token values did not change; 32 of the 34
   route screenshots (17 routes, light and dark) are pixel-identical to the
   capture taken before the change, and the two that differ are the swatch
@@ -372,7 +372,7 @@ data: `FleetProvider` already takes `team`, `agents` and `runs` as props.
   `Input` and `Textarea` bare, `ScrollArea` viewport props, `Switch` sm),
   with `cn()` learning the brand shadows and radii; the `resources/` to
   `patterns/` rename; 42 overlay captures from a live sweep of
-  hyperagent.com; the select indicator slot; three migration commits
+  the reference site; the select indicator slot; three migration commits
   (the shell; home, thread and threads; the resource, settings and
   marketplace pages) that replaced every raw control outside `ui/` (the
   `asChild` child in option-cards is the one kept), the four hand-built
@@ -402,9 +402,9 @@ data: `FleetProvider` already takes `team`, `agents` and `runs` as props.
 - **The signup flow is merged (2026-09-10).**
   `feat/hyper-personalized-onboarding` went onto `main` with `--no-ff`
   (26 commits); both refs are pushed to `origin`
-  (github.com/Karthik-Sivacharan/hyperagent, private). It adds `/signup` —
+  (github.com/Karthik-Sivacharan/hyperagent, public since 2026-09-17). It adds `/signup` —
   five beats that are the first thing in this repo not cloned from an
-  existing hyperagent.com page. See "The signup flow" below before touching
+  existing the reference site page. See "The signup flow" below before touching
   it: three things on that page are load-bearing and easy to break. It
   merged with its known gaps rather than finished — chief among them that
   there is still no streaming assistant turn — and the gap list is in that
@@ -444,7 +444,7 @@ data: `FleetProvider` already takes `team`, `agents` and `runs` as props.
   answers in the product's own streaming idiom (reasoning, stacked tool calls,
   prose) ending on the skills question that `a6b87b6` unwired, which is now
   answerable. `<main>` becomes the thread's scroller at send, so the PAGE still
-  never scrolls. The running state was captured live off hyperagent.com for
+  never scrolls. The running state was captured live off the reference site for
   this (`docs/reference/overlays/thread-streaming-live.html`). See "The agent
   streams" below; `probe:signup` now waits for the finished turn and asserts
   six things instead of three, one of them a real hit-test of every control
@@ -456,7 +456,7 @@ data: `FleetProvider` already takes `team`, `agents` and `runs` as props.
   consolidation audit at `docs/plans/2026-09-10-agent-panel-consolidation.md`).
   Both are described under "The signup flow".
 - **The artifact workspace is built but not wired (2026-09-10,
-  `feat/workspace-panel`).** The desktop hyperagent.com opens beside a thread
+  `feat/workspace-panel`).** The reference site's desktop app opens beside a thread
   once it has produced something: wallpaper, a glass toolbar, the artifacts on
   a carousel, a dock. Static, Carousel layout only, in
   `src/components/workspace/`, shown beside the real thread view at
@@ -493,7 +493,7 @@ node scripts/dev/contact-sheet.mjs out/light out/sheet-light.png "main"
   merges: `npm run build` locally (Vercel's build passes), `probe:signup`, and
   the 17-route pixel comparison.
 - **The home screen is no longer a pixel clone (2026-09-11, `feat/home-hero`).**
-  `/threads/new` drops Recent threads and the "See what Hyperagent is capable
+  `/threads/new` drops Recent threads and the "See what the reference product is capable
   of building" showcase (the components stay in `src/components/home/`), puts
   the 64px `MaterialMark` above "Let's get to work." and centres the block with
   `my-auto` (not `justify-center`, which clips a too-tall block above the
@@ -546,14 +546,14 @@ node scripts/dev/contact-sheet.mjs out/light out/sheet-light.png "main"
   `genui-prose` block are plain, unprefixed classes inside the
   `@layer utilities` / `@layer components` wrappers, so utilities still win.
 - `src/app/globals.css` owns no colour. It carries the Tailwind imports, the
-  `@theme inline` block (the shadcn contract, the Hyperagent extras, the
+  `@theme inline` block (the shadcn contract, reference-site extras, the
   radius offsets that coincide with the brand scale at `--radius: 10px`, the
   site's `animate-*` names), the "PHASE 2 BRIDGE" (an `@theme inline
 reference` block naming every brand-only token, `--color-tint-10:
 var(--tint-10)` and so on, so `bg-tint-10`, `text-foreground-low`,
   `font-strong`, `rounded-5xl`, `shadow-card`, `gap-group`,
   `ease-out-quart` exist app-wide without re-emitting anything on `:root`),
-  a small `:root` block that maps the Hyperagent-only names the site
+  a small `:root` block that maps the reference-only names the site
   utilities still read (`--bg-gradient-*`, `--surface`, `--pending`,
   `--glow`, `--shimmer-sweep`, `--sidebar-fade`, `--motion-*`, `--glass-*`)
   onto brand tokens plus the banner-stack and dialog-height variables, the
@@ -590,7 +590,7 @@ var(--tint-10)` and so on, so `bg-tint-10`, `text-foreground-low`,
   vitest 5 wants `@types/node ^22` and the repo
   pins `^20`, hence 4.x.
 - The phase-1 skin exists only in history: `c10d36c` is the last commit that
-  carries the Hyperagent palettes; `docs/reference/` keeps the captured
+  carries the reference palettes; `docs/reference/` keeps the captured
   ground truth.
 
 ## How phase 2 was done (so the pattern can be reused)
@@ -646,7 +646,7 @@ var(--tint-10)` and so on, so `bg-tint-10`, `text-foreground-low`,
 - One worktree (`component-system`, dev server on :3001), a plan file with
   file ownership per task (`docs/plans/2026-09-07-component-system-sweep.md`)
   and a baseline capture of all 17 routes, light and dark, before any edit.
-- Phase 1, two read-only audits in parallel: a live sweep of hyperagent.com
+- Phase 1, two read-only audits in parallel: a live sweep of the reference site
   with BrowserOS neo (every menu, dialog, select, toggle and populated
   state; 42 new dumps under `docs/reference/overlays/`) and a local audit
   of the component set (every primitive, every `data-slot` in the dumps,
@@ -675,7 +675,7 @@ a brief → and on send, the app shell arrives around the conversation. It is a
 demo of hyper-personalized onboarding, and the first UI in this repo invented
 rather than cloned, so `docs/reference/` has no ground truth for the flow as a
 whole; the individual blocks inside it do, and each one names its dump below.
-The design references were a competing agent builder's tiles and hyperagent.com's own
+The design references were a competing agent builder's tiles and the reference site's own
 thread column, both measured live rather than eyeballed.
 
 **Nothing authenticates.** `src/lib/mock/signup-identity.ts` is the whole
@@ -711,7 +711,7 @@ it. The sidebar keeps its own 20px mark rather than receiving the flying one:
 they are different objects, and flying one into the other would say the thing
 that had been speaking to you was a nav button all along.
 
-**One mark for the whole flow.** The Hyperagent mark is rendered ONCE in the
+**One mark for the whole flow.** The the reference product mark is rendered ONCE in the
 stage and never unmounted — unmounting replays its entrance, which is the
 blink this replaced. Each screen carries an empty seat (`data-mark-slot`)
 holding its place in the column, and the mark is FLIPped between seats in a
@@ -798,7 +798,7 @@ baseline comes from the label's own line box (inline-flex measured 1.7px low).
 premise that something was out there researching for you. Now
 `research-signals.tsx` runs a five-source pass in the product's own tool-row
 idiom, and the ground truth for it is a live capture:
-`docs/reference/overlays/thread-streaming-turn.html`, read off hyperagent.com
+`docs/reference/overlays/thread-streaming-turn.html`, read off the reference site
 on 2026-09-09. **The finding that shaped everything: a running turn has NO
 spinner anywhere.** A tool call is one 28px row — a 12px mark, a 12/16 label
 at weight 500, a middot, a truncated parameter — and running vs complete is
@@ -899,7 +899,7 @@ viewport — which made every screen scroll. C is the only one that fits the
 ~806px budget. Whichever comes back, re-run the two layout gates above.
 
 **The agent config panel is built but NOT consolidated** (`/design/agent-panel`).
-hyperagent.com puts the same agent configuration in three places — the
+the reference site puts the same agent configuration in three places — the
 composer's `+` menu, the composer's settings pill, and a right panel at
 `?panel=settings` that opens CLOSED behind tabs and an accordion — so the
 menus win and the configuration that should be read whole is only read in
@@ -1216,7 +1216,7 @@ after send: the live finding this flow was built on is that a running turn
 has no spinner anywhere, and a turning mark is one.
 
 **Ground truth was captured live, not reconstructed.** A frame recorder was
-installed on hyperagent.com/threads/new before a send click and survived the
+installed on the reference site/threads/new before a send click and survived the
 client-side route change, so one clock covers the whole turn:
 `docs/reference/overlays/thread-streaming-live.html`. It confirmed the
 2026-09-09 reconstruction and added what that file could not see: the
@@ -1344,7 +1344,7 @@ element at its own centre (scrolled-out, disabled and `inert` controls are
 skipped). `--sidebar-collapsed` and `--panel-closed` now press a real mouse at
 the control through CDP instead of calling `el.click()`. Criterion 6 was
 proved against the bug: with the wrapper re-armed it fails and names "Hide
-sidebar" and "Hyperagent home"; with the fix it passes. At the merge: 6 of 6
+sidebar" and "the reference product home"; with the fix it passes. At the merge: 6 of 6
 in dark and light at 902 and 868 tall. `--panel-closed` and
 `--sidebar-collapsed` passed the first five at both heights before criterion
 6 existed and were not re-run with it (the collapse and expand toggles were
@@ -1371,7 +1371,7 @@ cloned routes are byte-identical to `main` at 1456×868 in both themes.
 ## The artifact workspace (built, not wired, 2026-09-10)
 
 Branch `feat/workspace-panel`. The right-hand desktop of a populated thread on
-hyperagent.com, cloned as a still: the Carousel layout at rest, no behaviour.
+the reference site, cloned as a still: the Carousel layout at rest, no behaviour.
 Ground truth is `docs/reference/overlays/thread-workspace-carousel.html`,
 captured read-only the same day (its header comment also records the
 document iframe's measured type, which the dump itself cannot carry).
@@ -1438,7 +1438,7 @@ window with three traffic-light buttons and eight resize handles, keeps each
 window's geometry per thread in localStorage, and adds sort / tile / cascade
 buttons to the switch), every menu, the Spotlight overlay, the Browser view
 and the entrance animation. The site keeps the chosen layout in localStorage
-(`hyperagent-workspace-layout-mode`: `scroll`, `grid` or `windows`). The layout
+(`the reference product-workspace-layout-mode`: `scroll`, `grid` or `windows`). The layout
 switch is held on Carousel. Scrolling the carousel and its snapping work,
 because they are CSS.
 
@@ -1561,7 +1561,7 @@ git-ignored file (docs/research, other worktrees) left the machine.
 
 | Path                                           | What                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | ---------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `src/app/globals.css`                          | Tailwind theme wiring, the phase-2 bridge, the `:root` remap of Hyperagent-only names onto brand tokens, base layer, site utilities, keyframes; no palette                                                                                                                                                                                                                                                                                                                              |
+| `src/app/globals.css`                          | Tailwind theme wiring, the phase-2 bridge, the `:root` remap of the reference-only names onto brand tokens, base layer, site utilities, keyframes; no palette                                                                                                                                                                                                                                                                                                                              |
 | `src/app/globals.test.ts`                      | vitest: globals.css owns no colour, every bridge entry has a target in brand.css                                                                                                                                                                                                                                                                                                                                                                                                        |
 | `src/app/layout.tsx`                           | Geist and Geist Mono on `<html>`, `<body className="antialiased">`, the next-themes and tooltip providers                                                                                                                                                                                                                                                                                                                                                                               |
 | `src/app/(app)/`                               | One route per sidebar page inside the app shell                                                                                                                                                                                                                                                                                                                                                                                                                                         |
@@ -1617,7 +1617,7 @@ same day) and tightened:
   heading and is the single line to change if a display face is ever
   reconsidered. Candidates recorded at the time, for the record: Figtree,
   Newsreader, Instrument Serif, Fraunces; the reference copy of Season Sans
-  (hyperagent.com's own display face) stays in `docs/reference/fonts` for
+  (the reference site's own display face) stays in `docs/reference/fonts` for
   comparison only.
 - Correction to the earlier survey: wajo.ai's landing page (the local
   `wajo-landing-page` repo) is set in STK Bureau Sans (self-hosted, Book 300)
@@ -1739,7 +1739,7 @@ enforce that; keep it so.
 
 Conventional messages (`feat(<page>): …`, `fix(shell): …`, `refactor(theme):
 …`, `test: …`, `docs: …`), author `Karthik Sivacharan
-<karthicksivacharan@gmail.com>` (pass `-c user.name="Karthik Sivacharan"`;
+<karthik@example.com>` (pass `-c user.name="Karthik Sivacharan"`;
 the repo config has the hyphenated GitHub name), ending with
 a `Co-Authored-By:` trailer naming the model that made the change (the
 session tells you which; it has been Fable 5.1 and Opus 5) and a
@@ -1760,7 +1760,7 @@ other stale worktrees: `agent-stream`, `workspace-panel`, `landing`,
 
 The next session is ORIENTATION ONLY: read, then report, then wait. Paste this:
 
-> Read-only orientation of ~/Projects/hyperagent. Do not run tests, builds,
+> Read-only orientation of ~/Projects/the reference product. Do not run tests, builds,
 > probes or a dev server, and do not edit, commit, push or merge anything.
 > Do not start work: report and wait for my instructions.
 >
@@ -1771,7 +1771,7 @@ The next session is ORIENTATION ONLY: read, then report, then wait. Paste this:
 > Look at src/components/landing-v2/d/landing-page.tsx and the three sections
 > it imports from ../a/.
 >
-> In short: a Next.js 16 + Tailwind v4 + shadcn clone of the hyperagent.com
+> In short: a Next.js 16 + Tailwind v4 + shadcn clone of the reference site
 > dashboard re-skinned in the brand design language, plus an invented
 > /signup demo. The current work is the marketing page: /landing/d is five
 > bands (hero, format showcase, brief cards, team cards, footer) and is the

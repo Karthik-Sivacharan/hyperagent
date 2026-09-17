@@ -5,7 +5,7 @@
 > configured — is already taken (`src/lib/mock/agent-config.ts:19-24`). This
 > document says what that costs, what has to move, and in what order.
 
-**The problem.** hyperagent.com puts the same configuration in three places:
+**The problem.** the reference site puts the same configuration in three places:
 the composer's `+` menu, the composer's thread-settings pill, and the right
 panel at `?panel=settings`. The panel is COLLAPSED on arrival and closed again
 on every visit; the menus are one click from the text box. The menus win, so

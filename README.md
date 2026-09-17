@@ -1,12 +1,19 @@
-# Hyperagent dashboard clone
+# Agent dashboard, rebuilt and re-skinned
 
-A pixel-faithful rebuild of the hyperagent.com dashboard (every page reachable
-from the left sidebar) on the stack the site uses: Next.js 16 (App Router),
+A pixel-faithful rebuild of a reference agent dashboard (every page reachable
+from the left sidebar) on the stack that site uses: Next.js 16 (App Router),
 Tailwind CSS v4, shadcn (radix). The site draws its icons with lucide; this
 repo renders every icon with Tabler (`@tabler/icons-react`), see
-`docs/brand/icons.md`. Phase 1 reproduces Hyperagent's own design exactly;
-phase 2 re-skins the same components with the Brand design language, whose
-token system lives alongside in `src/design/brand/`.
+`docs/brand/icons.md`. Phase 1 reproduces the reference design exactly; phase 2
+re-skins the same components with the Brand design language, whose token system
+lives alongside in `src/design/brand/`.
+
+The reference product is not named in this repo's own framing — it is a study
+of a UI, not a claim about where the idea came from — so the name and the live
+URL sit in `docs/research/00-source.md`, which is git-ignored. It does still
+appear inside `src/`, where it is the cloned product's own copy, and
+throughout the captured DOM dumps under `docs/reference/`, which are that
+site's markup and are left exactly as captured.
 
 ```bash
 npm install
@@ -31,7 +38,7 @@ token swatches.
 
 | Path | What |
 |---|---|
-| `src/app/globals.css` | Tailwind imports, the `@theme inline` block (shadcn contract, Hyperagent extras, radius steps, `animate-*`), the "PHASE 2 BRIDGE" that turns brand-only tokens into utilities, a small `:root` block mapping the Hyperagent-only names the site utilities read onto brand tokens, base layer, site utilities, keyframes. No palette of its own |
+| `src/app/globals.css` | Tailwind imports, the `@theme inline` block (shadcn contract, reference-site extras, radius steps, `animate-*`), the "PHASE 2 BRIDGE" that turns brand-only tokens into utilities, a small `:root` block mapping the site-only names those utilities read onto brand tokens, base layer, site utilities, keyframes. No palette of its own |
 | `src/app/layout.tsx` | Fonts (Geist and Geist Mono from `next/font/google`) on `<html>`, the next-themes and tooltip providers |
 | `src/app/(app)/` | One route per sidebar page, wrapped by the app shell |
 | `src/components/app/` | Shell: sidebar, frame, brand marks |
@@ -42,7 +49,7 @@ token swatches.
 | `src/design/brand/` | The Brand token system: `brand.css` is the app's only palette (light on `:root`, dark on `.dark`), bridged into Tailwind by the "PHASE 2 BRIDGE" block in `globals.css` |
 | `docs/brand/` | `design.md` (the brand language), `reskin-conventions.md` (the phase-2 page-branch contract), `icons.md` (Tabler only, and the lucide-to-Tabler names), the style audit |
 | `scripts/brand/`, `scripts/dev/` | Ramp generator, WCAG contrast gate, token lint; headless screenshot and contact-sheet scripts |
-| `docs/reference/` | Ground truth captured from hyperagent.com: compiled CSS, fonts, a DOM dump per page, and `overlays/` with every captured menu, dialog and tooltip |
+| `docs/reference/` | Ground truth captured from the live reference site: compiled CSS, fonts, a DOM dump per page, and `overlays/` with every captured menu, dialog and tooltip. Captured artifacts, left exactly as captured |
 | `docs/components.md` | The component system: tiers, rules, the component map with live evidence, how to add a component, the live UI the clone lacks |
 | `docs/clone-conventions.md` | The rules every page branch follows |
 | `docs/agent-setup.md` | What an agent needs installed: the declared skills and MCP servers, the optional extras, and the map from each skill to the convention that uses it |
@@ -55,7 +62,7 @@ the default; the account menu's Theme item switches to dark or system through
 `next-themes` (a `dark` class on `<html>`, remembered in localStorage; system
 follows the OS). `/design/brand` has its own local light/dark toggle so every
 token can be inspected in either mapping regardless of the app theme. The
-phase-1 Hyperagent palettes are no longer in the code: the last commit that
+the phase-1 reference palettes are no longer in the code: the last commit that
 carries them is `c10d36c`, and `docs/reference/` keeps the captured ground
 truth.
 

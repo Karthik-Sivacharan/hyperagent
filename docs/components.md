@@ -23,7 +23,7 @@ Conventions every primitive follows (copy them in a new one): `data-slot` on the
 
 ## 2. Component map
 
-Live evidence comes from the 2026-09-07 sweep of hyperagent.com (the DOM dumps under `docs/reference/`). "Used by" lists the directories under `src/components/` (and `src/app/`) that import the file.
+Live evidence comes from the 2026-09-07 sweep of the reference site (the DOM dumps under `docs/reference/`). "Used by" lists the directories under `src/components/` (and `src/app/`) that import the file.
 
 ### Primitives (`src/components/ui/`)
 
@@ -200,7 +200,7 @@ A kanban board and a grouped list, generic over a status vocabulary (`S extends 
 
 ## 4. Live UI the clone does not render
 
-The 2026-09-07 sweep found UI on hyperagent.com that the 2026-09-06 capture did not have and the clone lacks. These are clone gaps, not component gaps: every primitive they need exists in `ui/` or is listed here. The two shadcn primitives the live site uses that `ui/` does not have are `RadioGroup` (the Live-mode dialog's channel picker) and `Progress` (the account menu's plan card, `role=progressbar`); add them with `npx shadcn@latest add radio-group progress` when those features are cloned. The dump for each item is under `docs/reference/overlays/`.
+The 2026-09-07 sweep found UI on the reference site that the 2026-09-06 capture did not have and the clone lacks. These are clone gaps, not component gaps: every primitive they need exists in `ui/` or is listed here. The two shadcn primitives the live site uses that `ui/` does not have are `RadioGroup` (the Live-mode dialog's channel picker) and `Progress` (the account menu's plan card, `role=progressbar`); add them with `npx shadcn@latest add radio-group progress` when those features are cloned. The dump for each item is under `docs/reference/overlays/`.
 
 - **Starred sidebar group** between the nav block and Agents, with a project-folder glyph at the end of the row (a `tooltip-trigger` naming the project) and menus that read "Unstar thread". Dumps: `sidebar-starred-row-menu.html`, `sidebar-starred-row-context-menu.html`, `tooltip-project-tag.html`.
 - **Thread rows** on home and /threads: a project tag (folder glyph plus name), a star toggle beside the `…` button (a ghost icon button with a filled star when starred) and a swipe-to-archive layer behind the row. Dumps: `home-thread-card-menu.html`, `home-thread-card-context-menu.html`, `threads-card-menu.html`.

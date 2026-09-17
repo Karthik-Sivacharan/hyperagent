@@ -2,7 +2,7 @@
 
 > **For agentic workers:** the orchestrator dispatches one agent per task below (subagent-driven). Every task states its file ownership; agents touch nothing outside it. Steps use checkbox syntax for tracking.
 
-**Goal:** every piece of UI in the clone is built from one organised component system on the brand tokens, and every component the live hyperagent.com dashboard uses (including the ones that only appear after clicking through menus, dialogs, toggles and populated states) has a mapped local counterpart, with a test that keeps it that way.
+**Goal:** every piece of UI in the clone is built from one organised component system on the brand tokens, and every component the live the reference site dashboard uses (including the ones that only appear after clicking through menus, dialogs, toggles and populated states) has a mapped local counterpart, with a test that keeps it that way.
 
 **Architecture:** four tiers under `src/components/`: `ui/` (shadcn primitives on the brand tokens; the only place `radix-ui` and `cmdk` are imported), `patterns/` (shared composites built from primitives, used by two or more pages; today's `resources/`), `app/` + `composer/` (the shell), `<page>/` (page components built from the tiers above). Page files hold layout and data wiring, never a raw control. The duplicate prototype set `src/design/brand/ui/` is retired so there is one component set. A vitest file locks the rules and checks that every `data-slot` seen in the reference dumps has a local definition.
 
@@ -12,18 +12,18 @@
 
 **Pixel contract:** the migration changes no pixels at 1456×868, light and dark, on the 17 routes, compared with the baseline captured from this worktree at `6fab9a4` before any edit. The only allowed differences are ones the audit names as a genuine inconsistency that the primitive fixes; each must be listed in the final report with its diff PNG.
 
-**Read-only on the live account:** never send, create, edit, star, archive or delete anything on hyperagent.com. Menus, popovers, dialogs and toggles that only reveal UI may be opened; dismiss them with Escape.
+**Read-only on the live account:** never send, create, edit, star, archive or delete anything on the reference site. Menus, popovers, dialogs and toggles that only reveal UI may be opened; dismiss them with Escape.
 
 ---
 
 ## Phase 1: audit (parallel, read-only on the repo)
 
-### Task A1: live sweep of hyperagent.com
+### Task A1: live sweep of the reference site
 
 **Owner:** one agent with BrowserOS neo (own tabs, own session).
 **Writes:** `<scratchpad>/live-inventory.md`; new DOM dumps under `docs/reference/overlays/` in the worktree for anything not already captured there; screenshots under `<scratchpad>/live/`.
 
-- [x] Open `https://hyperagent.com/threads/new` in a new tab (1456×868). Record every `data-slot`, `role`, `data-radix-*` marker and every `<button>` / `<input>` / `<a>` control shape in the resting page.
+- [x] Open the reference site's `/threads/new` in a new tab (1456×868). Record every `data-slot`, `role`, `data-radix-*` marker and every `<button>` / `<input>` / `<a>` control shape in the resting page.
 - [x] Click through every interactive surface, one at a time, Escape after each: sidebar collapse, the Starred / Agents / Recent threads / Resources group chevrons, the group hover menus, a thread's `…` menu and right-click context menu, "New agent", "View all", the account menu (Theme, Token usage, Help sub-panels), ⌘K search, the composer `+` menu and its sub-menus, the model picker, the Agent picker, the Execute/Plan pill, reasoning effort, thread settings, the mic tooltip, the "Set up your agent" chip popover, "More…", the list/grid toggle, "Show all", the star button on a thread card (hover only; do not toggle it), the project tag on the card.
 - [x] Visit `/threads`, `/thread/<the starred thread>`, `/inbox`, `/teams`, `/skills`, `/memories`, `/learning`, `/projects`, `/library`, `/marketplace`, `/agents`, `/settings`, `/settings/integrations`. On each, record the resting markers and open the page's own menus, selects, tabs, switches, checkboxes, dialogs. Populated states matter: the threads list and the thread detail now have real content.
 - [x] For each distinct component write one row: name, evidence (slot / role / structure), where seen, whether `docs/reference/overlays/*.html` or `docs/reference/pages/*.html` already captures it, and whether the local clone renders it (compare with `http://localhost:3000` in a second tab).
