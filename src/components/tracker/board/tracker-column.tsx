@@ -5,76 +5,96 @@ import { AnimatePresence, motion } from "motion/react";
 import { IconChevronRight } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import type { FleetRun, RunStatus } from "@/lib/mock/teams";
 import { DURATION, EASE, LAYOUT_TRANSITION } from "@/lib/motion";
-import { RUN_STATUS_META, RunStatusIcon } from "@/components/teams/fleet/run-status";
-import { RunCard } from "@/components/teams/board/run-card";
+import { TrackerStatusIcon, type TrackerStatusMeta } from "@/components/tracker/status";
 
-// One status lane: a header and a stack of cards 8px apart, with no ground
-// of its own, so the cards sit on the page like /threads' rows. The header
-// is the status glyph, the label and the count, sticky to the board's
-// scroller so a long lane keeps its name. Only the Needs you glyph carries
-// the accent; every other glyph is third-tier grey, because the label
-// already says which lane it is.
+// One status lane of the tracker board: a header and a stack of items 8px
+// apart, with no ground of its own, so the cards sit on the page like
+// /threads' rows. The header is the status glyph, the label and the count,
+// sticky to the board's scroller so a long lane keeps its name. The lane
+// names no status and knows nothing about what it holds: its label, its glyph
+// and its tone come from the status table the board was handed
+// (tracker/status.tsx), and the card is whatever `renderItem` returns
+// (docs/plans/2026-09-17-room-tracker.md §5).
 //
-// FOLDING. A lane given `onOpenChange` folds (the board folds Done, as the
+// WIDTH. An open lane shares the row between a floor and a ceiling; `density`
+// picks the pair, written out as literals because Tailwind's JIT only sees
+// literal strings. `default` is a page's board, 240px to 320px; `compact` is a
+// column narrower than a page, 208px to 288px. `narrow` drops the floor one
+// step, which is what lets five open lanes still share a page's width.
+//
+// FOLDING. A lane given `onOpenChange` folds (a board folds one lane, as the
 // list does). Folded, it is its header alone, a ghost button sized to its
 // content with a chevron; open, the same button over the cards, its chevron
-// hidden at rest and shown on hover or focus, so the open lane reads like
-// the others. The cards arrive on opacity; the move is the board's (the
-// headers and cards around it slide on `layout`, board-view.tsx). Folding
-// removes the cards at once and the lanes slide back.
+// hidden at rest and shown on hover or focus, so the open lane reads like the
+// others. The cards arrive on opacity; the move is the board's (the headers
+// and cards around it slide on `layout`, tracker-board.tsx). Folding removes
+// the cards at once and the lanes slide back.
 //
 // MOTION. When search changes the set, cards that leave pop out of the flow
-// and fade at the exit speed, the rest slide into place on
-// LAYOUT_TRANSITION, and cards that come back fade and settle in at 200ms.
-// Layout is position only (`layout="position"`): a card's width follows the
-// lane without a scale, so text and shadows never stretch mid-move. Nothing
-// plays on first paint. Reduced motion is MotionConfig's job (teams-page):
-// it drops every slide and keeps the fades.
+// and fade at the exit speed, the rest slide into place on LAYOUT_TRANSITION,
+// and cards that come back fade and settle in at 200ms. Layout is position
+// only (`layout="position"`): a card's width follows the lane without a
+// scale, so text and shadows never stretch mid-move. Nothing plays on first
+// paint. Reduced motion is MotionConfig's job, on the page that renders the
+// board: it drops every slide and keeps the fades.
 
-const EMPTY_COPY: Record<RunStatus, string> = {
-  "needs-you": "Nothing needs you right now",
-  working: "No agent is working",
-  queued: "The queue is clear",
-  review: "Nothing waiting for review",
-  done: "Nothing finished yet",
+export type TrackerDensity = "default" | "compact";
+
+/** The floor, the narrowed floor and the ceiling per density, as literals Tailwind can see. */
+const LANE_WIDTH: Record<TrackerDensity, { max: string; wide: string; narrow: string }> = {
+  default: { max: "max-w-80", wide: "min-w-60", narrow: "min-w-52" },
+  compact: { max: "max-w-72", wide: "min-w-52", narrow: "min-w-48" },
 };
 
-export function BoardColumn({
+export function TrackerColumn<T>({
   status,
-  runs,
+  meta,
+  items,
+  noun,
+  getKey,
+  renderItem,
+  emptyCopy,
   searching,
-  queuePositions,
+  density = "default",
   narrow = false,
   open = true,
   onOpenChange,
 }: {
-  status: RunStatus;
-  runs: FleetRun[];
+  /** The status this lane holds. It goes on `data-board-column`, which the board's arrow keys walk. */
+  status: string;
+  meta: TrackerStatusMeta;
+  items: T[];
+  /** The word for one item and for several, so the count reads "Needs you, 4 runs". */
+  noun: { one: string; many: string };
+  getKey: (item: T) => string;
+  renderItem: (item: T) => React.ReactNode;
+  /** The line this lane shows when it is empty outside a search. */
+  emptyCopy: string;
   /** A search is active, so an empty lane means "no match", not "nothing here". */
   searching: boolean;
-  queuePositions: Map<string, number>;
-  /** Lets an open lane shrink to 208px instead of 240px (the board sets it while Done is open). */
+  /** Lane widths: `compact` is for a column narrower than a page. */
+  density?: TrackerDensity;
+  /** Lets an open lane shrink one step (the board sets it while the folding lane is open). */
   narrow?: boolean;
-  /** Whether a foldable lane shows its cards. */
+  /** Whether a foldable lane shows its items. */
   open?: boolean;
   /** Makes the lane foldable. */
   onOpenChange?: (open: boolean) => void;
 }) {
-  const meta = RUN_STATUS_META[status];
   const headingId = React.useId();
   const listId = React.useId();
   const foldable = Boolean(onOpenChange);
+  const width = LANE_WIDTH[density];
 
   const label = (
     <>
-      <RunStatusIcon status={status} />
+      <TrackerStatusIcon meta={meta} />
       <span className="text-sm font-medium text-foreground">{meta.label}</span>
       <span className="text-sm font-normal text-foreground-low tabular-nums">
         <span className="sr-only">, </span>
-        {runs.length}
-        <span className="sr-only"> {runs.length === 1 ? "run" : "runs"}</span>
+        {items.length}
+        <span className="sr-only"> {items.length === 1 ? noun.one : noun.many}</span>
       </span>
     </>
   );
@@ -85,10 +105,10 @@ export function BoardColumn({
       data-board-column={status}
       // An open lane is `contain-inline-size`: its cards' one-line captions
       // would otherwise lend it their full width as a minimum, and the board
-      // would scroll long before the lanes reached 240px.
+      // would scroll long before the lanes reached their floor.
       className={cn(
         "relative flex flex-col",
-        open ? cn("max-w-80 flex-1 contain-inline-size", narrow ? "min-w-52" : "min-w-60") : "flex-none",
+        open ? cn(width.max, "flex-1 contain-inline-size", narrow ? width.narrow : width.wide) : "flex-none",
       )}
     >
       <motion.div layout="position" transition={LAYOUT_TRANSITION} className="sticky top-0 z-10 bg-background">
@@ -130,19 +150,19 @@ export function BoardColumn({
           transition={LAYOUT_TRANSITION}
         >
           <AnimatePresence initial={false} mode="popLayout">
-            {runs.map((run) => (
+            {items.map((item) => (
               <motion.li
-                key={run.id}
+                key={getKey(item)}
                 layout="position"
                 transition={LAYOUT_TRANSITION}
                 initial={{ opacity: 0, scale: 0.98 }}
                 animate={{ opacity: 1, scale: 1, transition: { duration: DURATION.normal, ease: EASE.outQuart } }}
                 exit={{ opacity: 0, scale: 0.98, transition: { duration: DURATION.exit, ease: EASE.out } }}
               >
-                <RunCard run={run} queuePosition={queuePositions.get(run.id)} />
+                {renderItem(item)}
               </motion.li>
             ))}
-            {runs.length === 0 ? (
+            {items.length === 0 ? (
               <motion.li
                 key="empty"
                 layout="position"
@@ -152,7 +172,7 @@ export function BoardColumn({
                 exit={{ opacity: 0, transition: { duration: DURATION.exit, ease: EASE.out } }}
                 className="truncate px-3 py-2 text-md text-foreground-low"
               >
-                {searching ? "No matches" : EMPTY_COPY[status]}
+                {searching ? "No matches" : emptyCopy}
               </motion.li>
             ) : null}
           </AnimatePresence>

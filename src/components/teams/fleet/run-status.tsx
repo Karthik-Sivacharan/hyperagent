@@ -4,12 +4,15 @@ import {
   IconProgress,
   IconProgressCheck,
   IconProgressHelp,
-  type TablerIcon,
 } from "@tabler/icons-react";
-import { cn } from "@/lib/utils";
 import type { RunStatus } from "@/lib/mock/teams";
+import { TrackerStatusIcon, type TrackerStatusMeta } from "@/components/tracker/status";
 
 // The five run statuses and how each one looks, shared by every fleet view.
+// The shape is the tracker shell's (tracker/status.tsx), so the board and the
+// list draw this table without knowing a run from anything else a tracker
+// holds (docs/plans/2026-09-17-room-tracker.md §5). This file is /teams'
+// vocabulary, and the only place it is written down.
 //
 // Icons are one family, Tabler's progress circles: dashed while nothing has
 // happened (queued), part drawn while the run is under way (working, needs
@@ -18,16 +21,17 @@ import type { RunStatus } from "@/lib/mock/teams";
 // (docs/brand/icons.md).
 //
 // Colour means a person is needed (docs/plans/2026-09-11-teams-fleet-polish.md
-// §3), so there are two tones. "Needs you" is `brand`: its glyph is the
-// tangerine accent, the one place /teams spends it. Every other status is
-// `neutral`, on the third text tier (`foreground-low`), because its glyph
-// and its label already say which status it is and a hue would only repeat
-// them. No status has a fill or a pill: an ask or a status is set as words
-// and a glyph, never on a tinted block.
+// §3), so /teams spends two of the shell's three tones. "Needs you" is
+// `brand`: its glyph is the tangerine accent, the one place /teams spends it.
+// Every other status is `neutral`, on the third text tier
+// (`foreground-low`), because its glyph and its label already say which
+// status it is and a hue would only repeat them. `danger` belongs to work
+// that has stopped and cannot ask its way out, which is not a status a run
+// has: a stuck agent is marked on the run's caption instead
+// (fleet/run-caption.ts). No status has a fill or a pill: an ask or a status
+// is set as words and a glyph, never on a tinted block.
 
-export type RunTone = "brand" | "neutral";
-
-export const RUN_STATUS_META: Record<RunStatus, { label: string; icon: TablerIcon; tone: RunTone }> = {
+export const RUN_STATUS_META: Record<RunStatus, TrackerStatusMeta> = {
   "needs-you": { label: "Needs you", icon: IconProgressHelp, tone: "brand" },
   working: { label: "Working", icon: IconProgress, tone: "neutral" },
   queued: { label: "Queued", icon: IconCircleDashed, tone: "neutral" },
@@ -35,15 +39,7 @@ export const RUN_STATUS_META: Record<RunStatus, { label: string; icon: TablerIco
   done: { label: "Done", icon: IconCircleCheck, tone: "neutral" },
 };
 
-/** The glyph colour per tone, spelled out so Tailwind sees every literal. */
-export const RUN_TONE_CLASSES: Record<RunTone, string> = {
-  brand: "text-brand-accent",
-  neutral: "text-foreground-low",
-};
-
-/** The status glyph alone, in its tone. Decorative unless given a label. */
+/** The status glyph alone, in its tone: the shell's glyph, looked up by run status. */
 export function RunStatusIcon({ status, className }: { status: RunStatus; className?: string }) {
-  const meta = RUN_STATUS_META[status];
-  const Icon = meta.icon;
-  return <Icon className={cn("size-4 shrink-0", RUN_TONE_CLASSES[meta.tone], className)} aria-hidden="true" />;
+  return <TrackerStatusIcon meta={RUN_STATUS_META[status]} className={className} />;
 }
