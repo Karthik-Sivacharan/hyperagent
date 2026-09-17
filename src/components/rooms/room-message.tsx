@@ -126,10 +126,13 @@ export function RoomMessageRow({
         <span className="flex w-9 shrink-0 justify-end">
           <RoomAvatar member={author} size="sm" />
         </span>
+        {/* The time follows the sentence instead of being pushed to the far
+            edge: at the column's full width a right-aligned clock ends up a
+            hand's breadth from the line it belongs to. */}
         <p className="min-w-0 flex-1 text-sm text-muted-foreground">
-          <span className="font-medium text-muted-foreground">{author.name}</span> {renderRoomInline(text)}
+          <span className="font-medium text-muted-foreground">{author.name}</span> {renderRoomInline(text)}{" "}
+          <span className="text-xs text-foreground-low tabular-nums">{message.time}</span>
         </p>
-        <span className="shrink-0 text-xs text-foreground-low tabular-nums">{message.time}</span>
       </div>
     );
   }
