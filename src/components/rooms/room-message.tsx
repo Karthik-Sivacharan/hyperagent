@@ -161,18 +161,23 @@ export function RoomMessageRow({
           <span className="text-xs text-foreground-low tabular-nums">{message.time}</span>
         </div>
 
-        {/* Running copy is tier 1. These are a colleague's own words, not a
-            caption about them; muted is saved for the meta around them. */}
+        {/* Running copy is tier 2. It sat on tier 1 to say "these are a
+            colleague's own words", but at 16/400 the name above it is the
+            same size and only 200 weight units away, so the two shared a
+            voice. There is no lighter weight than 400 in the brand's set, so
+            the step down is the tier: the message reads as the sentence it is
+            (docs/brand/design.md §4.1), and what stays on tier 1 is the name,
+            a `<strong>` run and a code span, which is the right short list. */}
         <div className="mt-0.5 flex flex-col gap-1.5">
           {message.blocks.map((block, i) =>
             block.kind === "paragraph" ? (
-              <p key={i} className="text-base text-foreground">
+              <p key={i} className="text-base text-muted-foreground">
                 {renderRoomInline(block.text)}
               </p>
             ) : (
               <ul key={i} className="flex list-disc flex-col gap-1 pl-5 marker:text-foreground-low">
                 {block.items.map((item, j) => (
-                  <li key={j} className="text-base text-foreground">
+                  <li key={j} className="text-base text-muted-foreground">
                     {renderRoomInline(item)}
                   </li>
                 ))}
