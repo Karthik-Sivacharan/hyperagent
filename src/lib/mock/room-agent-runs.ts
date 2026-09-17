@@ -43,7 +43,10 @@ function excerpt(message: string, max = 48): string {
  */
 export function runForMention(member: RoomMember, message: string): AgentRun {
   return {
+    // A mention's run has no task, so the agent IS the run: one mention of an
+    // agent already out replaces its row rather than adding a second.
     id: member.id,
+    agentId: member.id,
     name: member.name,
     // Every agent on the roster carries a glyph; `trefoil` is the floor for a
     // member that somehow does not, so the bar never renders a hole.

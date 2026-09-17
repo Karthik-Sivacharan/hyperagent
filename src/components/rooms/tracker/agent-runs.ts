@@ -74,6 +74,7 @@ export function roomAgentRuns(tasks: RoomTask[]): AgentRun[] {
 
     runs.push({
       id: task.id,
+      agentId: member.id,
       name: member.name,
       glyph: member.glyph.shape,
       state,

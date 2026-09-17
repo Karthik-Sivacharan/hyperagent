@@ -25,6 +25,15 @@ import { cn } from "@/lib/utils";
 // disappear: it belongs to ONE agent rather than to the composer, so it is
 // inside that agent's detail, one click from the chip that names it.
 //
+// AND IT OPENS THE AGENT, NOT THE CHIP. The stack is per RUN, because the
+// board is per task and an agent stuck on one render while fine on another is
+// the sentence the whole tracker exists to say. The detail is per AGENT, for
+// the same reason from the other end: having clicked a face, the question is
+// "what is this one doing", and answering with one of its four tasks would be
+// answering a narrower question than the one asked. So the picked run leads
+// and its siblings follow it in the stack's own order, and the row that opens
+// is as tall as that takes.
+//
 // PICKING A CHIP IS A NAVIGATION, not just a disclosure. One click does both
 // things a person wants from a figure they just spotted: the bar swaps to that
 // agent's detail, and the surface behind the composer goes to where the agent
@@ -90,8 +99,18 @@ import { cn } from "@/lib/utils";
     without the 40px being typed a second time and drifting. */
 export const AGENT_BAR_ROW = "flex h-10 min-w-0 items-center border-b border-border-subtle px-4";
 
+/** The same row with the height let go, for the one thing that needs more than
+    a line: an agent holding several tasks (agent-status/agent-detail.tsx). */
+export const AGENT_BAR_ROW_TALL = "flex min-h-10 min-w-0 items-stretch border-b border-border-subtle px-4";
+
 /** What the detail wears inside that row: its own box off, the bar's kept. */
 export const AGENT_BAR_DETAIL = "h-full min-w-0 flex-1 border-b-0 px-0";
+
+/** One agent's runs, by the id it carries or, failing that, by its name — the
+    only other thing on a run that belongs to the agent and not to the work. */
+function sameAgent(a: AgentRun, b: AgentRun): boolean {
+  return a.agentId && b.agentId ? a.agentId === b.agentId : a.name === b.name;
+}
 
 /** The fade the stack arrives on, the sibling strip's exactly. The detail
     fades its own contents in already and is left to do it. */
@@ -135,6 +154,9 @@ export function ComposerAgentStatus({
   // row that is no longer true.
   const [openId, setOpenId] = useState<string | null>(null);
   const open = runs.find((run) => run.id === openId) ?? null;
+  // The picked run leads, then the rest of that agent's work in the order the
+  // stack already put it in, so the lines read the way the chips did.
+  const openGroup = open ? [open, ...runs.filter((run) => run !== open && sameAgent(run, open))] : [];
 
   const stackRef = useRef<HTMLDivElement>(null);
   const detailRef = useRef<HTMLDivElement>(null);
@@ -165,7 +187,7 @@ export function ComposerAgentStatus({
 
   return (
     <div
-      className={cn(AGENT_BAR_ROW, className)}
+      className={cn(openGroup.length > 1 ? AGENT_BAR_ROW_TALL : AGENT_BAR_ROW, className)}
       onKeyDown={(event) => {
         // The detail handles Escape inside itself and stops it there; this is
         // the same key from the rest of the bar, and it stops here for the
@@ -183,12 +205,16 @@ export function ComposerAgentStatus({
           key={open.id}
           ref={detailRef}
           tabIndex={-1}
-          className="flex h-full min-w-0 flex-1 items-center outline-none"
+          className="flex h-full min-w-0 flex-1 items-stretch outline-none"
         >
           <AgentDetail
-            run={open}
+            runs={openGroup}
             onBack={() => setOpenId(null)}
-            onOpenTask={onOpenTask && (canOpenTask?.(open) ?? true) ? () => onOpenTask(open) : undefined}
+            onOpenTask={
+              onOpenTask
+                ? (run) => ((canOpenTask?.(run) ?? true) ? () => onOpenTask(run) : undefined)
+                : undefined
+            }
             claimFocus
             className={AGENT_BAR_DETAIL}
           />

@@ -10,12 +10,16 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 # Project rules
 
-This repo clones the hyperagent.com dashboard pixel for pixel, then re-skins it
-with the Brand design language. Before changing UI, read
-`docs/clone-conventions.md` (ground truth, file layout, verification, commit
-rules) and `README.md`. Reference material for every page is in
-`docs/reference/`; copy Tailwind classes from the DOM dumps rather than
-inventing styles.
+This repo rebuilds a reference agent dashboard pixel for pixel, then re-skins
+it with the Brand design language. Don't name the reference product in this
+repo's own framing — its docs, its README or a commit message; the name and the
+live URL are in `docs/research/00-source.md`, which is git-ignored. It stays
+where it is the product's own copy (`src/`) and in the captured dumps.
+
+Before changing UI, read `docs/clone-conventions.md` (ground truth, file
+layout, verification, commit rules) and `README.md`. Reference material for
+every page is in `docs/reference/`; copy Tailwind classes from the DOM dumps
+rather than inventing styles.
 
 Icons come from `@tabler/icons-react` only, never `lucide-react` or another
 set. Read `docs/brand/icons.md` before adding an icon: it has the import

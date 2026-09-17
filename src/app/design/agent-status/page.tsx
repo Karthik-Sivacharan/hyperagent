@@ -12,7 +12,7 @@ import { Composer } from "@/components/composer/composer";
 import { AGENT_BAR_DETAIL, AGENT_BAR_ROW, ComposerAgentStatus } from "@/components/composer/composer-agent-status";
 import { Button } from "@/components/ui/button";
 import { Overline } from "@/components/ui/overline";
-import { AGENT_RUNS, ONE_PER_STATE } from "@/lib/mock/agent-status";
+import { AGENT_RUNS, ONE_AGENT_MANY_TASKS, ONE_PER_STATE } from "@/lib/mock/agent-status";
 
 // The composer's agent bar, block by block, the way /design/agent-stream lays
 // out the streaming turn: every specimen below is the live component on the
@@ -304,6 +304,11 @@ function MaxVariants() {
 // go stale). Back is wired the way the stream page wires Stop: it takes the
 // row away and a control brings it back, because a back control that goes
 // nowhere is not the control being shown.
+//
+// `onOpenTask` is handed over for the same reason the stacked specimen below
+// hands it over: a room gives every live run a card, so the last slot on a
+// single row is the arrow out to it, and a page that left it off would be
+// showing the one shape the product does not draw.
 
 function DetailSpecimen({ run }: { run: AgentRun }) {
   const [shown, setShown] = useState(true);
@@ -314,7 +319,12 @@ function DetailSpecimen({ run }: { run: AgentRun }) {
         <div className="w-full">
           <BarFrame>
             <div className={AGENT_BAR_ROW}>
-              <AgentDetail run={run} onBack={() => setShown(false)} className={AGENT_BAR_DETAIL} />
+              <AgentDetail
+                runs={[run]}
+                onBack={() => setShown(false)}
+                onOpenTask={() => () => {}}
+                className={AGENT_BAR_DETAIL}
+              />
             </div>
           </BarFrame>
         </div>
@@ -406,13 +416,24 @@ export default function AgentStatusPage() {
 
         <Section
           label="Expanded"
-          blurb="One agent, opened out in the row the stack was just in: same height, same hairline, same sides, so the only thing that changed hands is the contents. Three states at the tight measure, where the dial, the hue, the state word and the truncation all have to hold at once."
+          blurb="One agent, opened out in the row the stack was just in: same height, same hairline, same sides, so the only thing that changed hands is the contents. Three states at the tight measure, where the dial, the hue, the truncation and the arrow out to the card all have to hold at once. That arrow is the same 24px square in all three and takes none of their hues: it is a way out rather than a status, and the colour stays on the dial and the figure, which is where it means something. A run the board has no card for keeps the state as a word in its tint instead — the same slot, saying the only thing left to say."
         >
           <div className="flex flex-col gap-6">
             {EXPANDED.map((run) => (
               <DetailSpecimen key={run.id} run={run} />
             ))}
           </div>
+        </Section>
+
+        <Section
+          label="Expanded, stacked"
+          blurb="The same row for an agent that is doing four things at once, which the board makes routine: one figure, one name, a count where a single row ends, and a line each for the work — dial, task, parameter, and the same neutral arrow out to its card. Four of them down the right edge is exactly why that arrow carries no hue: tinted, a column of them would read as four more state marks beside the four dials that already are. This is the one thing that changes the bar's height, and it earns it. A readout that folded these four into one state could not say Media Lab Director is stuck on the second render and fine on the trace, and that sentence is the reason the board is per task rather than per agent. The box grows upward, into the thread; the field below it does not move."
+        >
+          <Measures>
+            <BarFrame>
+              <ComposerAgentStatus runs={ONE_AGENT_MANY_TASKS} onOpenTask={() => {}} />
+            </BarFrame>
+          </Measures>
         </Section>
       </div>
     </div>

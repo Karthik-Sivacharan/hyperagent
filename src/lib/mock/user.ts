@@ -2,7 +2,7 @@
 export const currentUser = {
   id: "cmtlsm8gc0j8k07ad76cnzvmz",
   name: "Karthik Sivacharan",
-  email: "karthicksivacharan@gmail.com",
+  email: "karthik@example.com",
   initials: "KS",
   avatarUrl: "/img/avatar.jpg",
 };

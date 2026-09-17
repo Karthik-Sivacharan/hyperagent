@@ -49,7 +49,8 @@ No browser is declared in `.mcp.json` — see the next section for why.
 ## Live-site access
 
 `docs/clone-conventions.md` compares every page against
-`https://hyperagent.com/<page>`, so an agent working on UI needs a real browser
+the live reference site (`docs/research/00-source.md`, git-ignored, has the
+URL), so an agent working on UI needs a real browser
 signed into the account. Which one depends on where you are running, so this is
 a routing rule rather than a dependency. Take the first row that applies:
 
