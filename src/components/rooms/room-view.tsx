@@ -8,8 +8,10 @@ import type { AgentRun } from "@/components/composer/agent-status/types";
 import { EmptyState } from "@/components/patterns/empty-state";
 import { RoomComposer } from "@/components/rooms/room-composer";
 import { RoomHeader, type RoomTab } from "@/components/rooms/room-header";
+import { RoomAgentThread } from "@/components/rooms/room-agent-thread";
 import { RoomMessageList } from "@/components/rooms/room-message-list";
 import { RoomThreadPanel } from "@/components/rooms/room-thread-panel";
+import type { RoomWorkingTask } from "@/components/rooms/room-working-message";
 import { RoomTrackerProvider, useRoomTracker } from "@/components/rooms/tracker/tracker-context";
 import { TrackerPanel } from "@/components/rooms/tracker/tracker-panel";
 import { roomMember, type Room } from "@/lib/mock/rooms";
@@ -52,19 +54,50 @@ import { runForMention, threadForAgent } from "@/lib/mock/room-agent-runs";
 // for the whole fleet rather than one per agent, so ten chips cost one timer.
 // The board's runs are static and are left alone by it.
 //
-// AND A CHIP IS TWO WAYS OUT, which is the shape both halves of this file
-// agreed on independently. Picking the figure goes to the CONVERSATION: the
-// column scrolls to the message the work came out of and pulses it, the rail
-// opens on that thread and washes once so a rail that swapped under you says
-// so. The control at the end of the opened row goes to the WORK: the tracker
-// tab, with that one card pulsing. Same two surfaces the room already links
-// between, reached from the bar instead of from a message — and the pulse, the
-// scroll and the wash are all the room's existing gestures, so nothing here
-// introduces a fourth way of saying "over there".
+// AND A CHIP IS TWO WAYS INTO THE CONVERSATION, one per agent and one per
+// task. Picking the figure takes the reader to where that AGENT is: the column
+// scrolls to the message its work came out of and pulses it, the rail opens on
+// that thread and washes once, so a rail that swapped under someone whose eyes
+// were on the field says so. The arrow at the end of a row in the opened detail
+// takes them to where that TASK is, which is a different question the moment an
+// agent is holding four of them — the chip can only answer for the one it was
+// pressed on, and the rows below it each have their own message.
+//
+// Both trips end in the rail rather than on the tracker. The tracker still has
+// every card and `focusTask` still puts the reader on one; what changed is that
+// the bar is no longer the thing that asks for it. A person reading a room who
+// picks an agent out of the strip above the composer wants the conversation the
+// work is happening in, not a card restating the row they just read.
+//
+// A TASK WITH NO MESSAGE HAS NOWHERE TO GO, and roughly half of them have none:
+// they were entered on the board rather than said out loud. Those rows keep the
+// state word they always had at the end, because a control that goes nowhere is
+// worse than no control.
+//
+// THE RAIL IS A STACK NOW, two deep and no deeper (§ RailView below): a thread,
+// and under it one agent's turn on one task. Everything that opens the rail
+// opens it at the thread level; only the live cell inside a thread pushes the
+// second. Back pops to the exact thread it was pushed from rather than to
+// whichever thread the rail happened to open on first, which is why the agent
+// level carries that id rather than reading it back off some other state.
 
 /** How often a mention's run advances, and how much of the dial a tick is worth. */
 const TICK_MS = 900;
 const TICK_PROGRESS = 0.12;
+
+/**
+ * Where the rail is. Closed is `null`.
+ *
+ * An explicit two-case union rather than a pair of ids, because the two levels
+ * are not the same kind of thing and a flag beside a rootId would let them be
+ * on at once. `fromRootId` is the thread the agent view was pushed from, so
+ * Back is exact. `back` marks the thread the reader popped onto rather than
+ * opened, which is the one thing the panel needs in order not to slide a rail
+ * that never moved (room-thread-panel.tsx).
+ */
+type RailView =
+  | { kind: "thread"; rootId: string; back?: true }
+  | { kind: "agent"; taskId: string; fromRootId: string };
 
 export function RoomView({ room }: { room: Room }) {
   const [tab, setTab] = useState<RoomTab>("messages");
@@ -80,11 +113,18 @@ export function RoomView({ room }: { room: Room }) {
 }
 
 function RoomBody({ room, tab, onTabChange }: { room: Room; tab: RoomTab; onTabChange: (tab: RoomTab) => void }) {
-  const { allTasks, tasksByStatus, agentRuns, focusAgent, focusTask, highlight, openMessage } = useRoomTracker();
+  const { allTasks, tasksByStatus, agentRuns, focusAgent, highlight, openMessage } = useRoomTracker();
 
   // The room opens on its liveliest thread. A room whose threads are all
   // resolved opens closed, which is also what a new room does.
-  const [threadRootId, setThreadRootId] = useState<string | undefined>(room.threads[0]?.rootId);
+  const [rail, setRail] = useState<RailView | null>(() => {
+    const first = room.threads[0]?.rootId;
+    return first ? { kind: "thread", rootId: first } : null;
+  });
+  // The thread the rail is on, at either level: the agent view is still ABOUT
+  // that thread, so the message it hangs off keeps its open mark in the column
+  // and the header's rail toggle stays pressed while the reader is one deeper.
+  const railRootId = rail ? (rail.kind === "thread" ? rail.rootId : rail.fromRootId) : undefined;
   // Bumped only when something opened the rail FOR the reader, which is what
   // the rail washes on. Opening one yourself leaves it at null.
   const [arrival, setArrival] = useState<number | null>(null);
@@ -168,15 +208,19 @@ function RoomBody({ room, tab, onTabChange }: { room: Room; tab: RoomTab; onTabC
       const task = allTasks.find((candidate) => candidate.id === run.id);
       const agentId = task?.assigneeId ?? run.id;
       // The task's own source message is the best answer there is — it is
-      // literally what the work came out of. Half this room's tasks have none,
-      // so the fallback is where that agent has been talking instead.
+      // literally what the work came out of, and every task in the demo room
+      // now carries one. The fallback is for the two cases that never will: a
+      // mention's run, which has no task at all, and a room whose board is
+      // written but whose conversation is not.
       const messageId = task?.sourceMessageId ?? threadForAgent(room, agentId);
       if (!messageId) return;
       // `openMessage` brings the messages tab back and scrolls the column to
       // the message, pulsing it — the same trip a card makes, so the two read
       // as one gesture. The rail follows it onto that thread.
       openMessage(messageId);
-      setThreadRootId(messageId);
+      // Always the thread level: a jump that landed the reader two deep would
+      // leave a Back control pointing at a thread they were never on.
+      setRail({ kind: "thread", rootId: messageId });
       setArrival((current) => (current ?? 0) + 1);
     },
     [allTasks, openMessage, room],
@@ -194,25 +238,76 @@ function RoomBody({ room, tab, onTabChange }: { room: Room; tab: RoomTab; onTabC
     );
   }, []);
 
-  // …and where it goes in the WORK. Only a board run has a card; `focusTask`
-  // stays put for anything else rather than showing an empty board.
-  const handleOpenTask = useCallback((run: AgentRun) => focusTask(run.id), [focusTask]);
+  // …and where ONE ROW of that detail goes. The task's own source message, and
+  // nothing else: the chip's fallback (where has this agent been talking?) is
+  // an answer about the agent, and a row that borrowed it would send four rows
+  // of one agent's detail to the same thread and call each of them precise.
+  const handleOpenTask = useCallback(
+    (run: AgentRun) => {
+      const task = allTasks.find((candidate) => candidate.id === run.id);
+      if (!task?.sourceMessageId) return;
+      openMessage(task.sourceMessageId);
+      setRail({ kind: "thread", rootId: task.sourceMessageId });
+      setArrival((current) => (current ?? 0) + 1);
+    },
+    [allTasks, openMessage],
+  );
 
-  // A run the board has no card for keeps the word it always had at the end of
-  // its row, because a control that goes nowhere is worse than no control.
-  const hasCard = useCallback(
-    (run: AgentRun) => allTasks.some((candidate) => candidate.id === run.id),
+  // A run whose task was never said out loud keeps the word it always had at
+  // the end of its row. The same test as the handler above, asked before the
+  // arrow is drawn rather than after it is pressed, so no row ends in a control
+  // that would quietly do nothing.
+  const hasThread = useCallback(
+    (run: AgentRun) =>
+      allTasks.some((candidate) => candidate.id === run.id && candidate.sourceMessageId !== undefined),
     [allTasks],
   );
 
+  // What is still running in the thread the rail is on. `endedIds` counts here
+  // as well as in the bar: a run somebody stopped from the composer must not go
+  // on shimmering in the rail as though nobody had.
+  const workingHere = useMemo<RoomWorkingTask[]>(() => {
+    if (!railRootId) return [];
+    return allTasks.flatMap((task) => {
+      if (task.status !== "working" || task.sourceMessageId !== railRootId) return [];
+      if (endedIds.has(task.id)) return [];
+      const member = roomMember(task.assigneeId);
+      if (!member) return [];
+      return [{ taskId: task.id, member, title: task.title, time: task.updated }];
+    });
+  }, [allTasks, endedIds, railRootId]);
+
   const openThread = (messageId: string) => {
-    setThreadRootId(messageId);
+    setRail({ kind: "thread", rootId: messageId });
     setArrival(null);
   };
   const toggleThread = () => {
     setArrival(null);
-    setThreadRootId((current) => (current ? undefined : room.threads[0]?.rootId));
+    setRail((current) => {
+      if (current) return null;
+      const first = room.threads[0]?.rootId;
+      return first ? { kind: "thread", rootId: first } : null;
+    });
   };
+  // Push: only ever from a thread, because the cell that asks is inside one.
+  const openAgentTurn = useCallback((taskId: string) => {
+    setArrival(null);
+    setRail((current) =>
+      current?.kind === "thread" ? { kind: "agent", taskId, fromRootId: current.rootId } : current,
+    );
+  }, []);
+  // Pop. Close is the other control and it is not this one's neighbour: back
+  // goes up a level, close puts the whole rail away.
+  const backToThread = useCallback(() => {
+    setArrival(null);
+    setRail((current) =>
+      current?.kind === "agent" ? { kind: "thread", rootId: current.fromRootId, back: true } : current,
+    );
+  }, []);
+  const closeRail = useCallback(() => {
+    setArrival(null);
+    setRail(null);
+  }, []);
 
   // What the room owes a person: the two lanes that are asking for one. The
   // header prints it beside the tab so it is not hidden behind a click.
@@ -220,12 +315,12 @@ function RoomBody({ room, tab, onTabChange }: { room: Room; tab: RoomTab; onTabC
 
   return (
     <div className="flex min-h-0 flex-1 overflow-hidden">
-      <div className={cn("flex min-w-0 flex-1 flex-col", threadRootId && "max-lg:hidden")}>
+      <div className={cn("flex min-w-0 flex-1 flex-col", railRootId && "max-lg:hidden")}>
         <RoomHeader
           room={room}
           tab={tab}
           onTabChange={onTabChange}
-          threadOpen={Boolean(threadRootId)}
+          threadOpen={Boolean(railRootId)}
           onToggleThread={toggleThread}
           trackerWaiting={waiting}
         />
@@ -234,7 +329,7 @@ function RoomBody({ room, tab, onTabChange }: { room: Room; tab: RoomTab; onTabC
           <>
             <RoomMessageList
               room={room}
-              activeThreadId={threadRootId}
+              activeThreadId={railRootId}
               onOpenThread={openThread}
               onFocusAgent={focusAgent}
               highlight={highlight}
@@ -251,7 +346,7 @@ function RoomBody({ room, tab, onTabChange }: { room: Room; tab: RoomTab; onTabC
                       runs={runs}
                       onOpen={handleOpenRun}
                       onOpenTask={handleOpenTask}
-                      canOpenTask={hasCard}
+                      canOpenTask={hasThread}
                       onEndRun={handleEndRun}
                     />
                   ) : null
@@ -275,18 +370,31 @@ function RoomBody({ room, tab, onTabChange }: { room: Room; tab: RoomTab; onTabC
         )}
       </div>
 
-      {threadRootId ? (
-        <RoomThreadPanel
-          room={room}
-          rootId={threadRootId}
-          arrival={arrival}
-          onClose={() => {
-            setArrival(null);
-            setThreadRootId(undefined);
-          }}
+      {/* One rail, two levels. They are siblings in the same slot rather than
+          one panel with a mode, so each owns its own header, its own entrance
+          and its own Escape, and neither has to carry the other's state. */}
+      {rail === null ? null : rail.kind === "agent" ? (
+        <RoomAgentThread
+          // Keyed on the task, so opening a second agent's turn replays rather
+          // than streaming the new prose into the old one's position.
+          key={rail.taskId}
+          taskId={rail.taskId}
+          onBack={backToThread}
+          onClose={closeRail}
           className="w-full shrink-0 lg:w-[400px]"
         />
-      ) : null}
+      ) : (
+        <RoomThreadPanel
+          room={room}
+          rootId={rail.rootId}
+          arrival={arrival}
+          entrance={rail.back ? "level" : "rail"}
+          working={workingHere}
+          onOpenAgent={openAgentTurn}
+          onClose={closeRail}
+          className="w-full shrink-0 lg:w-[400px]"
+        />
+      )}
     </div>
   );
 }

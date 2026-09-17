@@ -43,10 +43,17 @@
 // three. Two sit on people, one on the signed-in account.
 //
 // Only room_capability_checks has messages in rooms.ts, so it is the only
-// room whose tasks carry a `sourceMessageId`: seven of its fourteen, each one
-// a real top-level message in that room (m_1 through m_9, skipping the two
-// membership events). Ids leave gaps the way a shared counter does when other
-// rooms draw from it.
+// room whose tasks carry a `sourceMessageId`, and there all fourteen do: the
+// trip back is the point, so a card in the room the board was designed on is
+// not allowed to be the one that goes nowhere. Each id is a real top-level
+// message in that room (m_1 through m_11, skipping the two membership
+// events), and a message carries as many tasks as it asked for things: the
+// 9:12 from the account asks for two and carries two, and the overnight
+// failure report carries three, the retry, the sweep that found it and the
+// backoff its thread settled on. Two of the fourteen had nothing honest to
+// point at, so rooms.ts gained the messages they came out of rather than a
+// link to something near enough. Ids leave gaps the way a shared counter
+// does when other rooms draw from it.
 
 /** The five lanes, and the state a card is in. */
 export type TaskStatus = "needs-you" | "blocked" | "working" | "queued" | "done";
@@ -139,6 +146,7 @@ export const ROOM_TASKS: RoomTask[] = [
     assigneeId: "media-lab",
     caption: "Reading last night's four spawns for a pattern",
     progress: { done: 3, total: 4 },
+    sourceMessageId: "m_6",
     updated: "9m ago",
   },
   {
@@ -160,6 +168,7 @@ export const ROOM_TASKS: RoomTask[] = [
     assigneeId: "evalbot",
     caption: "Through 41 of 62 cases on the new flag",
     progress: { done: 41, total: 62 },
+    sourceMessageId: "m_8",
     updated: "4m ago",
   },
 
@@ -171,6 +180,7 @@ export const ROOM_TASKS: RoomTask[] = [
     status: "queued",
     assigneeId: "dan",
     progress: { done: 0, total: 3 },
+    sourceMessageId: "m_7",
     updated: "1h ago",
   },
   {
@@ -180,6 +190,7 @@ export const ROOM_TASKS: RoomTask[] = [
     status: "queued",
     assigneeId: "evalbot",
     progress: { done: 0, total: 2 },
+    sourceMessageId: "m_9",
     updated: "4m ago",
   },
   {
@@ -189,6 +200,7 @@ export const ROOM_TASKS: RoomTask[] = [
     status: "queued",
     assigneeId: "zippy",
     progress: { done: 0, total: 9 },
+    sourceMessageId: "m_10",
     updated: "Yesterday",
   },
 
@@ -210,6 +222,7 @@ export const ROOM_TASKS: RoomTask[] = [
     status: "done",
     assigneeId: "triage",
     caption: "Four failures, all the same 403 shape",
+    sourceMessageId: "m_7",
     updated: "3h ago",
   },
   {
@@ -219,6 +232,7 @@ export const ROOM_TASKS: RoomTask[] = [
     status: "done",
     assigneeId: "yuki",
     caption: "Three lines, filed under unreleased",
+    sourceMessageId: "m_11",
     updated: "Yesterday",
   },
 
