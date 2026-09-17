@@ -7,6 +7,7 @@ import {
   blinkEyes,
   frameAt,
   glanceEyes,
+  IDLE_TIMING,
   PACE_TIMING,
   planTransition,
   restFrame,
@@ -14,11 +15,12 @@ import {
   snapshotOf,
   type Choreography,
   type GlyphFrame,
+  type GlyphIdle,
   type GlyphPace,
   type TransitionPlan,
 } from "./choreography";
 import type { BBox } from "./geometry";
-import type { EyeRect, GlyphShape } from "./types";
+import { GLYPH_BOX, MODULE, type EyeRect, type GlyphShape } from "./types";
 
 /**
  * The imperative half of the animated glyph. It owns one glyph's timeline —
@@ -40,25 +42,53 @@ export type GlyphElements = {
 export type GlyphMotionSettings = {
   choreography: Choreography;
   pace: GlyphPace;
+  /** What the face does between transitions (choreography `IDLE_TIMING`). */
+  idle: GlyphIdle;
   /** Milliseconds at rest between autoplay transitions. */
   hold: number;
   blink: boolean;
   glance: boolean;
   paused: boolean;
   reducedMotion: boolean;
+  /** The glyph's rendered edge in px. The timeline needs it for one thing
+      only, and it is the whole reason glancing was ever switched off on a
+      chip: a glance is authored in glyph UNITS, and 140 of those are the
+      rendered size, so the same amplitude that carries 3px at hero size
+      carries a third of a pixel at 18. See `glanceBy`. */
+  size: number;
   /** On screen and in a visible tab. Off, the clock stops and a change of
       shape jumps straight to rest. */
   visible: boolean;
 };
 
-/** How far a glance moves the eyes, in glyph units (0.3 module: well inside
-    the ¾-module margin every shape keeps around its eyes, and 2% of the box,
-    under the 4% a calm idle allows). */
+/** How far a glance moves the eyes at hero size, in glyph units (0.3 module:
+    well inside the ¾-module margin every shape keeps around its eyes, and 2%
+    of the box, under the 4% a calm idle allows). The floor, not the value —
+    `glanceBy` scales up from here as the glyph gets smaller. */
 export const GLANCE_DX = 3;
-/** A glance that looks up rather than aside moves this far. */
-const GLANCE_DY = 2;
-/** How long a glance holds before the eyes come back. */
-const GLANCE_HOLD_MS = [480, 1000] as const;
+/** A glance that looks up rather than aside moves this share of the sideways
+    travel (2 units against 3, the two amplitudes this started with). */
+const GLANCE_UP_RATIO = 2 / 3;
+/**
+ * What a glance is worth on screen. A unit is `size / 140` of a pixel, so the
+ * authored 3 units are 2.6px on a 120px hero and 0.39px on an 18px chip —
+ * under half a pixel, which is antialiasing rather than motion, and the
+ * reason the chip had glancing switched off. The amplitude is therefore
+ * computed from the rendered size to buy this much travel wherever the glyph
+ * is drawn.
+ */
+const GLANCE_TRAVEL_PX = 1.5;
+/**
+ * And the ceiling it cannot pass, in units: `EYE_CLEARANCE` (grammar.ts), the
+ * body every shape is contractually obliged to keep around each eye. Go
+ * further and an eye can reach the outline and stop reading as a hole in the
+ * figure — on shapes that exist today AND on shapes nobody has drawn yet,
+ * which is why this is the guaranteed margin rather than a per-shape
+ * measurement. At 18px the ceiling binds and a look travels ~0.96px: two
+ * thirds of an eye's own width, which reads, and the busy idle leans on the
+ * blink for the rest.
+ */
+const GLANCE_MAX = 0.75 * MODULE;
 /** The gap between the two blinks of a double blink. */
 const DOUBLE_BLINK_GAP_MS = 150;
 
@@ -104,7 +134,9 @@ export class GlyphController {
       before.hold !== settings.hold ||
       before.reducedMotion !== settings.reducedMotion ||
       before.visible !== settings.visible ||
-      before.pace !== settings.pace;
+      before.pace !== settings.pace ||
+      before.idle !== settings.idle ||
+      before.size !== settings.size;
     if (idleChanged && !this.tween && !this.scrubPlan) {
       this.clearIdle();
       this.scheduleIdle();
@@ -229,7 +261,7 @@ export class GlyphController {
   /* --------------------------------------------------------------- idle */
 
   private scheduleIdle() {
-    const { paused, reducedMotion, visible, blink, glance, hold, pace } = this.settings;
+    const { paused, reducedMotion, visible, blink, glance, hold, pace, idle } = this.settings;
     if (paused || !visible) return;
 
     if (this.sequence && this.sequence.length > 1) {
@@ -247,12 +279,30 @@ export class GlyphController {
     }
 
     if (reducedMotion || (!blink && !glance)) return;
-    // A lone glyph idles: every few seconds it blinks, or now and then glances.
-    this.after(between(PACE_TIMING[pace].blinkEveryMs), () => {
-      if (glance && (!blink || Math.random() < 0.35)) this.glance(GLANCE_HOLD_MS[1]);
+    // A lone glyph idles: every so often it blinks, or looks about. How often,
+    // and how much of it is looking rather than blinking, is the idle mode's
+    // (IDLE_TIMING); `calm` defers to the pace, which is where the interval
+    // used to live outright. The interval is drawn fresh every beat — the
+    // first one included — so nothing here is a shared clock and a row of
+    // chips that mounted together still scatters.
+    const timing = IDLE_TIMING[idle];
+    this.after(between(timing.everyMs ?? PACE_TIMING[pace].blinkEveryMs), () => {
+      if (glance && (!blink || Math.random() < timing.glanceShare)) this.glance(timing.glanceHoldMs[1]);
       else this.blink();
       this.scheduleIdle();
     });
+  }
+
+  /**
+   * The glance amplitude for the size this glyph is drawn at: enough units to
+   * move `GLANCE_TRAVEL_PX`, never less than the authored `GLANCE_DX` and
+   * never past the clearance every eye is guaranteed.
+   */
+  private glanceBy() {
+    const { size } = this.settings;
+    const perUnit = size > 0 ? size / GLYPH_BOX : 0;
+    const wanted = perUnit > 0 ? GLANCE_TRAVEL_PX / perUnit : GLANCE_DX;
+    return Math.min(GLANCE_MAX, Math.max(GLANCE_DX, wanted));
   }
 
   private blink() {
@@ -261,8 +311,8 @@ export class GlyphController {
     this.drawEyes(blinkEyes(eyes));
     this.after(between(BLINK_MS), () => {
       this.drawEyes(eyes);
-      // One blink in six is a double blink.
-      if (Math.random() < 1 / 6) {
+      // One blink in a few is a double blink; a busier face doubles more often.
+      if (Math.random() < 1 / IDLE_TIMING[this.settings.idle].doubleBlinkIn) {
         this.after(DOUBLE_BLINK_GAP_MS, () => {
           if (this.tween || this.shape.eyes !== eyes) return;
           this.drawEyes(blinkEyes(eyes));
@@ -276,9 +326,10 @@ export class GlyphController {
   private glance(maxHoldMs: number) {
     if (this.tween) return;
     const eyes = this.shape.eyes;
+    const by = this.glanceBy();
     const up = Math.random() < 0.25;
-    const dx = up ? 0 : (Math.random() < 0.5 ? -1 : 1) * GLANCE_DX;
-    const dy = up ? -GLANCE_DY : 0;
+    const dx = up ? 0 : (Math.random() < 0.5 ? -1 : 1) * by;
+    const dy = up ? -by * GLANCE_UP_RATIO : 0;
     const move = (from: number, to: number, done?: () => void) => {
       this.eyeTween?.stop();
       this.eyeTween = animate(from, to, {
@@ -288,7 +339,7 @@ export class GlyphController {
         onComplete: done,
       });
     };
-    const holdMs = Math.min(maxHoldMs, between(GLANCE_HOLD_MS));
+    const holdMs = Math.min(maxHoldMs, between(IDLE_TIMING[this.settings.idle].glanceHoldMs));
     move(0, 1, () => this.after(holdMs, () => move(1, 0)));
   }
 

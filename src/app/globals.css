@@ -162,6 +162,10 @@
   --color-brand-subtle: var(--brand-subtle);
   --color-brand-subtle-foreground: var(--brand-subtle-foreground);
   --color-chip: var(--chip);
+  /* The agent glyph's avatar tile (`bg-glyph-avatar`): the disc a chip is cut
+     from. The figure and the three state hues are read as raw var()s by the
+     SVG itself (agent-glyph/tones.ts), so only the tile needs a utility. */
+  --color-glyph-avatar: var(--glyph-avatar);
   --color-chip-foreground: var(--chip-foreground);
   --color-chat-bubble-user: var(--chat-bubble-user);
   --color-chat-bubble-user-foreground: var(--chat-bubble-user-foreground);

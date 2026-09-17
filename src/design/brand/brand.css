@@ -577,6 +577,27 @@
   --chat-bubble-assistant: var(--color-neutral-100); /* tint-11 flattened over white */
   --chat-bubble-assistant-foreground: var(--color-neutral-950);
 
+  /* Agent-glyph AVATAR tones - the one colourway the glyph module lets the
+     theme move (src/components/brand/agent-glyph/tones.ts). Every other tone
+     reads the ramps directly, because a glyph is artwork and an agent keeps
+     the same face in both themes. An avatar is not artwork: it is a 28px disc
+     of UI furniture sitting on --surface-elevated, and in the dark theme a
+     paper-white disc is the brightest object in the composer. So the tile
+     inverts with the theme, and because the glyph's EYES are painted in the
+     tile colour (they read as holes punched to the surface, not as chips),
+     inverting the tile means re-picking every figure against it.
+
+     Light: the paper tile the tones were measured on, and the same steps the
+     light theme maps its own status fills to.
+     Measured on #efefed, where a figure is a graphic and 3:1 is the floor -
+     figure 14.5:1, green-700 4.95:1, amber-600 4.26:1, red-600 4.51:1. */
+  --glyph-avatar: var(--color-neutral-100);          /* tile, and the eyes */
+  --glyph-avatar-figure: var(--color-neutral-950);   /* the hueless working agent */
+  --glyph-avatar-success: var(--color-green-700);
+  --glyph-avatar-warning: var(--color-amber-600);
+  --glyph-avatar-danger: var(--color-red-600);
+  --glyph-avatar-dot: var(--color-neutral-300);      /* the stage's dot grid, if an avatar tone ever reaches one */
+
   /* Shadow highlight layers (consumed by --shadow-* in @theme) */
   --highlight: oklch(1 0 0 / 0.5);
   --highlight-soft: oklch(1 0 0 / 0.2);
@@ -702,6 +723,28 @@
   --chat-bubble-user-foreground: oklch(1 0 0);
   --chat-bubble-assistant: var(--color-neutral-900);
   --chat-bubble-assistant-foreground: var(--color-neutral-100);
+
+  /* Agent-glyph avatar tones, inverted. The tile is neutral-800 (#3b3a37):
+     a step UP off the #2a2a28 composer card rather than a hole through it,
+     which is the reading a disc wants, and the only dark candidate that
+     separates from the card at all (1.26:1, against the light theme's own
+     1.15:1 - the disc has never carried that edge; the figure does).
+
+     The figures lift two steps, exactly as --brand-accent lifts from
+     tangerine-500 to tangerine-400 in the dark, and for the same reason: a
+     graphic on a dark ground needs the lighter end of the ramp. The 500 steps
+     the dark theme maps --success / --warning / --destructive to are FILLS
+     carrying dark text; against a dark tile they land at 3.5-4.1:1, over the
+     3:1 floor but thin for a filled silhouette at 18px - the same measurement
+     that put light's green at 700 rather than 600.
+     Measured on #3b3a37 - figure 9.88:1, green-400 5.70:1, amber-400 5.31:1,
+     red-400 5.15:1. */
+  --glyph-avatar: var(--color-neutral-800);
+  --glyph-avatar-figure: var(--color-neutral-100);
+  --glyph-avatar-success: var(--color-green-400);
+  --glyph-avatar-warning: var(--color-amber-400);
+  --glyph-avatar-danger: var(--color-red-400);
+  --glyph-avatar-dot: var(--color-neutral-700);
 
   /* Dark glass: highlights fade, a 1px light edge appears (Brand dark composer) */
   --highlight: oklch(1 0 0 / 0.15);

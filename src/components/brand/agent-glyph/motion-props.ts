@@ -1,4 +1,4 @@
-import { defaultPace, type Choreography, type GlyphPace } from "./choreography";
+import { defaultPace, type Choreography, type GlyphIdle, type GlyphPace } from "./choreography";
 import { defaultSequence, resolveGlyph } from "./registry";
 import type { GlyphShape } from "./types";
 
@@ -29,12 +29,23 @@ export type GlyphMotionProps = {
    * to `expressive` from 64px up and on the stage, `quick` below.
    */
   pace?: GlyphPace;
+  /**
+   * What the face does BETWEEN transitions (choreography `IDLE_TIMING`).
+   * `calm` (the default) is a blink every few seconds; `busy` is an agent
+   * that is thinking — a beat about once a second, more of them looks than
+   * blinks; `restless` is the same, wound tighter. Nothing here changes the
+   * SHAPE, which is an agent's identity, and none of it runs under
+   * `prefers-reduced-motion`.
+   */
+  idle?: GlyphIdle;
   /** Autoplay rest per shape, in ms. Defaults to 1100. */
   hold?: number;
   /** Blink now and then at rest. Defaults to true. */
   blink?: boolean;
-  /** Glance aside now and then at rest. Defaults to false; best kept for
-      glyphs of 64px and up. */
+  /** Glance aside now and then at rest. Defaults to false. The amplitude is
+      scaled to the rendered size (glyph-controller `glanceBy`), so this is no
+      longer the invisible sub-pixel twitch it used to be below 64px — but at
+      avatar size it still costs a timer per glyph, so it stays opt-in. */
   glance?: boolean;
   /** Stop the autoplay clock (a running transition still finishes). */
   paused?: boolean;
@@ -66,6 +77,9 @@ export function resolveMotionProps(props: GlyphMotionProps, size: number) {
     progress: props.progress,
     choreography: props.choreography ?? "morph",
     pace: props.pace ?? defaultPace(size),
+    idle: props.idle ?? "calm",
+    // Passed through, not just consumed: the controller sizes a glance from it.
+    size,
     hold: props.hold ?? DEFAULT_HOLD_MS,
     blink: props.blink ?? true,
     glance: props.glance ?? false,
