@@ -5,7 +5,6 @@ import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { RoomAvatar } from "@/components/rooms/room-avatar";
-import { SHIMMER, sweepStyle } from "@/components/thread/shimmer";
 import { workingLabelForTask } from "@/lib/mock/room-reasoning";
 import type { RoomMember } from "@/lib/mock/rooms";
 
@@ -24,21 +23,30 @@ import type { RoomMember } from "@/lib/mock/rooms";
 // step it is on — rather than prose, and it sits one tier below the body of a
 // real message, because status is not speech.
 //
-// THE SHIMMER IS THE HOUSE ONE (thread/shimmer.ts): a flat base in the text's
-// own colour under a soft band that travels, both clipped to the glyphs. The
-// WHOLE cell wears it rather than the status word alone — the name and the
-// clock sweep with the line under them, on two spans cut to the same width and
-// mounted in the same frame, so one band appears to cross the cell and it
-// reads as a single live object rather than a message with a blinking word in
-// it. That is also why nothing inside those spans names a colour: under
-// `motion-safe:` every word is transparent and painted by the band, so a child
-// that set a tier would punch a solid hole in it. The tiers come back as
-// weights, and literally under `motion-reduce:`, where the treatment is not
-// applied at all and the cell is a message row again.
+// THE SHIMMER CROSSES THE CELL, NOT THE WORDS. The product's running-label
+// device (thread/shimmer.ts) clips its band to the glyphs, which is right for
+// a label inside a sentence: there, the thing that is running IS the word, and
+// sweeping the box around it would light up a rectangle nobody drew. Here the
+// thing that is running is the ROW — a face, a name, a clock and a status line
+// that are one live object — so the band is a layer over the whole cell, the
+// face included, and the text underneath keeps its ordinary tiers.
 //
-// THE FACE DOES NOT SHIMMER. It is artwork, not text, so there is nothing for
-// `bg-clip-text` to clip to — and an avatar pulsing on its own would be a
-// second signal saying the first one's sentence a beat out of step with it.
+// Two consequences worth naming, because they are the reasons this is simpler
+// than the text version rather than a sloppier one. Nothing is transparent, so
+// there is no failure mode where the row paints as invisible text; and nothing
+// has to be measured, because a band sized to the cell does not care how long
+// the status line is, where the text version had to be cut per character and
+// re-cut for whichever run was longest.
+//
+// It is the repo's own `@keyframes shimmer` (globals.css), which moves
+// `background-position` from -200% to 200% across a 200% tile: four element
+// widths of travel over two whole tiles, so the loop closes with no seam and
+// the band crosses twice a cycle. `reverse` sends it left to right, with the
+// reading. The tint is the one the tracker's pulse sweeps with, so the two
+// live signals in this feature are made of the same light. Under
+// `motion-reduce:` the layer is not drawn at all and the cell is a quiet row
+// that says "Working" in words, which was always the part carrying the
+// meaning.
 //
 // AND IT IS A CONTROL WHERE THERE IS SOMEWHERE TO GO. Clicking opens what the
 // agent is actually doing, its rows and its prose, in the rail the cell is
@@ -58,10 +66,15 @@ export type RoomWorkingTask = {
   time: string;
 };
 
-/** The row, as both shapes wear it. `text-muted-foreground` is the resting
-    colour the shimmer's base is set to, and the colour the whole column falls
-    back to under reduced motion. */
-const ROW = "flex w-full items-start gap-3 px-4 py-2 text-left text-muted-foreground";
+/** The row, as both shapes wear it. `relative` and `overflow-hidden` are for
+    the band: it is an inset layer, and the cell is what clips it. */
+const ROW =
+  "relative flex w-full items-start gap-3 overflow-hidden px-4 py-2 text-left text-muted-foreground";
+
+/** The band. One full crossing every 1.3s, which is two to a cycle. */
+const SWEEP =
+  "pointer-events-none absolute inset-0 bg-linear-to-r from-transparent via-tint-20 to-transparent " +
+  "[background-size:200%_100%] motion-safe:animate-[shimmer_2600ms_linear_infinite_reverse] motion-reduce:hidden";
 
 export function RoomWorkingMessage({
   taskId,
@@ -79,42 +92,26 @@ export function RoomWorkingMessage({
   // is allowed to be missing: a task whose agent is working somewhere this
   // room does not follow still has a state, and the state is the whole line.
   const step = workingLabelForTask(taskId);
-  const status = step ? `Working · ${step}` : "Working";
-
-  // The band is sized off the longest run of text in the column, so a cell
-  // whose status line is twice the name's length is not swept by a band cut
-  // for the name (shimmer.ts sizes it per character).
-  const sweep = sweepStyle(
-    Math.max(status.length, member.name.length),
-    "var(--color-foreground)",
-    "var(--color-muted-foreground)",
-  );
 
   const content = (
     <>
+      <span aria-hidden="true" className={SWEEP} />
+
       <div className="w-9 shrink-0">
         <RoomAvatar member={member} size="lg" />
       </div>
 
       <span className="min-w-0 flex-1">
-        {/* Both lines are their own sweep, and both are one inline run of text
-            with nothing blockish inside them. `background-clip: text` is a
-            paint-time clip: an element's own `overflow` is safe (it is what
-            `truncate` sets, and a clipped label with an ellipsis is ordinary),
-            but a block descendant inside the clipped box is the shape that
-            breaks it, and the failure mode is transparent text on no
-            background — an invisible row. The two spans are the same width and
-            mount in the same frame, so their bands run in step and read as one
-            crossing the cell. */}
-        <span className={cn("block truncate leading-6", SHIMMER)} style={sweep}>
-          <span className="text-base font-semibold motion-reduce:text-foreground">{member.name}</span>
-          {/* Both `motion-reduce:` colours are the tiers coming back where the
-              band is not there to carry them (see above). */}
-          <span className="ml-2 text-xs tabular-nums motion-reduce:text-foreground-low">{time}</span>
+        {/* The message row's own two tiers: the name at the body size in tier
+            1, the clock beside it in tier 3 (room-message.tsx). Nothing here
+            is transparent — the band is a layer above, not a clip. */}
+        <span className="block truncate leading-6">
+          <span className="text-base font-semibold text-foreground">{member.name}</span>
+          <span className="ml-2 text-xs tabular-nums text-foreground-low">{time}</span>
         </span>
         {/* The rail is 400px, so the line truncates; what is lost is the tail
             of the step, and the control's name below carries the whole of it. */}
-        <span className={cn("mt-0.5 block truncate text-sm", SHIMMER)} style={sweep}>
+        <span className="mt-0.5 block truncate text-sm">
           <span className="font-medium">Working</span>
           {step ? (
             <>
