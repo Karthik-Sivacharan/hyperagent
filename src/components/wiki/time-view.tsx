@@ -9,7 +9,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { AtomDrawer } from "@/components/wiki/atom-drawer";
-import { wikiGroupDot, type WikiAtom, type WikiRun, type WikiTopic } from "@/lib/mock/wiki";
+import { TopicsOverTime } from "@/components/wiki/topics-over-time";
+import {
+  wikiGroupDot,
+  type WikiAtom,
+  type WikiConflict,
+  type WikiGraphPage,
+  type WikiRun,
+  type WikiTopic,
+} from "@/lib/mock/wiki";
 
 // The job as it happened: 51 runs over a fortnight of source days, and the
 // atoms of one Topic laid out across those days — a bar from validFrom to the
@@ -298,15 +306,16 @@ function TopicTimeline({
   atoms,
   days,
   onAtom,
+  topicId,
+  setTopicId,
 }: {
   topics: WikiTopic[];
   atoms: WikiAtom[];
   days: string[];
   onAtom: (id: string) => void;
+  topicId: string;
+  setTopicId: (id: string) => void;
 }) {
-  const [topicId, setTopicId] = useState(
-    () => [...topics].sort((a, b) => b.atomCount - a.atomCount)[0]?.id ?? "",
-  );
   const [show, setShow] = useState("current");
   const topic = topics.find((entry) => entry.id === topicId);
 
@@ -476,17 +485,24 @@ export function TimeView({
   runs,
   atoms,
   topics,
+  pages,
+  conflicts,
   days,
+  dayFinalSeq,
   job,
 }: {
   runs: WikiRun[];
   atoms: WikiAtom[];
   topics: WikiTopic[];
+  pages: WikiGraphPage[];
+  conflicts: WikiConflict[];
   days: string[];
+  dayFinalSeq: number[];
   job: { id: string; model: string; tokensIn: number; tokensOut: number; calls: number };
 }) {
-  const [tab, setTab] = useState("runs");
+  const [tab, setTab] = useState("graph");
   const [openAtom, setOpenAtom] = useState<string | null>(null);
+  const [topicId, setTopicId] = useState(() => [...topics].sort((a, b) => b.atomCount - a.atomCount)[0]?.id ?? "");
   const byId = useMemo(() => Object.fromEntries(atoms.map((atom) => [atom.id, atom])), [atoms]);
   const topicTitles = useMemo(
     () => Object.fromEntries(topics.map((topic) => [topic.id, { title: topic.title, group: topic.group }])),
@@ -497,18 +513,44 @@ export function TimeView({
     <div className="flex flex-col gap-4">
       <Tabs value={tab} onValueChange={setTab} className="min-h-0">
         <TabsList>
+          <TabsTrigger value="graph">Topics over time</TabsTrigger>
+          <TabsTrigger value="topic">Topic atoms</TabsTrigger>
           <TabsTrigger value="runs">
             Run feed
             <Badge variant="secondary" className="ml-1.5">
               {runs.length}
             </Badge>
           </TabsTrigger>
-          <TabsTrigger value="topic">Topic atoms over the window</TabsTrigger>
         </TabsList>
       </Tabs>
 
+      {tab === "graph" ? (
+        <TopicsOverTime
+          atoms={atoms}
+          topics={topics}
+          pages={pages}
+          runs={runs}
+          conflicts={conflicts}
+          days={days}
+          dayFinalSeq={dayFinalSeq}
+          onAtom={setOpenAtom}
+          onTopic={(id) => {
+            setTopicId(id);
+            setTab("topic");
+          }}
+        />
+      ) : null}
       {tab === "runs" ? <RunFeed runs={runs} atoms={byId} onAtom={setOpenAtom} job={job} /> : null}
-      {tab === "topic" ? <TopicTimeline topics={topics} atoms={atoms} days={days} onAtom={setOpenAtom} /> : null}
+      {tab === "topic" ? (
+        <TopicTimeline
+          topics={topics}
+          atoms={atoms}
+          days={days}
+          onAtom={setOpenAtom}
+          topicId={topicId}
+          setTopicId={setTopicId}
+        />
+      ) : null}
 
       <AtomDrawer
         atomId={openAtom}

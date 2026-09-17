@@ -37,6 +37,11 @@ export type WikiAtom = {
   extractionGroup: string;
   namedAgent: string | null;
   dreamRunId: string | null;
+  /** The run that wrote this atom, and the one that retired it: the graph's frame coordinates. */
+  createdSeq: number;
+  retiredSeq: number | null;
+  /** Index of validFrom in the source-day calendar, -1 when it falls outside the window. */
+  dayIdx: number;
   topicIds: string[];
   conflictWith: string[];
   sources: WikiSource[];
@@ -87,6 +92,8 @@ export type WikiTopic = {
   atomCount: number;
   currentAtomCount: number;
   pageSlug: string | null;
+  /** The frame at which this Topic's page first existed; null while no page is composed. */
+  pageSeq: number | null;
   versions: {
     version: number;
     changeNote: string;
@@ -124,6 +131,9 @@ export type WikiRun = {
   tokenUsage: { input?: number; output?: number; calls?: number; model?: string };
 };
 
+/** A retained conflict: reconciliation kept both sides rather than picking one. */
+export type WikiConflict = { id: string; atomIds: string[]; sides: string[][] };
+
 export type WikiLinkedFrom = { slug: string; title: string; group: WikiGroupId; sentence: string };
 
 type WikiStore = {
@@ -143,6 +153,8 @@ type WikiStore = {
   groupOrder: WikiGroupId[];
   groupLabels: Record<WikiGroupId, string>;
   runs: WikiRun[];
+  conflicts: WikiConflict[];
+  dayFinalSeq: number[];
   days: string[];
   agents: { id: string; name: string }[];
   pages: WikiPage[];
@@ -160,6 +172,9 @@ export const wikiTopics = store.topics;
 export const wikiRuns = store.runs;
 export const wikiDays = store.days;
 export const wikiAgents = store.agents;
+export const wikiConflicts = store.conflicts;
+/** The last run of each source day: the frame a day-mode step lands on. */
+export const wikiDayFinalSeq = store.dayFinalSeq;
 
 /** Atoms a serving path may return: the sensitivity-tagged and the withheld are counted, never listed. */
 export const wikiServableAtoms = () =>
@@ -223,6 +238,19 @@ export function wikiHiddenPages(): WikiIndexEntry[] {
     .filter((page) => page.hidden)
     .map(({ slug, title, summary, group, hidden }) => ({ slug, title, summary, group, hidden }));
 }
+
+export type WikiGraphPage = Pick<WikiPage, "slug" | "title" | "topicId" | "content" | "citations" | "links">;
+
+/** What the Topic graph reads from the pages: bodies and citations, without the revision history. */
+export const wikiPagesForGraph = (): WikiGraphPage[] =>
+  store.pages.map(({ slug, title, topicId, content, citations, links }) => ({
+    slug,
+    title,
+    topicId,
+    content,
+    citations,
+    links,
+  }));
 
 export type WikiView = {
   page: WikiPage;
