@@ -1,0 +1,323 @@
+"use client";
+
+import type { ReactNode } from "react";
+import {
+  IconChevronRight,
+  IconClockPlay,
+  IconDots,
+  IconMessageReply,
+  IconMoodPlus,
+} from "@tabler/icons-react";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { RoomAvatar, RoomFacepile } from "@/components/rooms/room-avatar";
+import { renderRoomInline } from "@/components/rooms/room-rich-text";
+import { roomMember, type RoomMember, type RoomMessage } from "@/lib/mock/rooms";
+
+// One line of a room: a face in a fixed gutter, a name, and what was said.
+//
+// The column earns its rhythm from three things rather than from one padding
+// value painted everywhere. A new speaker gets air above them and their face;
+// a run of messages from the same speaker closes up to a single line's gap and
+// drops both the face and the name, because repeating them is noise once the
+// reader knows who is talking. What the grouped row keeps is the timestamp,
+// parked in the empty avatar gutter and revealed only on hover — the detail
+// that lets someone answer "when was that?" without the column carrying a
+// clock on every line.
+//
+// The other thing this row has to say is *why* an agent spoke. A reply is
+// obvious from the thread it sits in; a message that arrived on a timer is
+// not, so `message.schedule` puts a small clock chip beside the name naming
+// the job that posted it. Nobody asked for that message: the chip says so.
+//
+// Membership events are not messages and are not laid out as any. They are one
+// quiet `sm` line at tier 2, aligned into the same column so the eye skips
+// them: furniture, not conversation.
+//
+// Phase 2: fills are tints, the hover cluster is an elevated surface behind a
+// hairline and a `shadow-sm`, and the only colour spent is `text-brand-accent`
+// on the reply count — the one link-shaped affordance in the row
+// (docs/brand/design.md §3, §5, §6, §8).
+
+/** Rendered inside a thread rail, the row is the same minus its reply bar. */
+export type RoomMessageVariant = "channel" | "thread";
+
+/** The menu behind the hover cluster's `IconDots`. Same four on every row. */
+const MORE_ACTIONS = ["Copy link", "Pin to room", "Mark unread", "Remind me"] as const;
+
+/**
+ * "10:14 AM" → "10:14". The avatar gutter is 36px and the meridiem does not
+ * fit in it at 10px; the full label stays on the element's `title`.
+ */
+function clockOnly(time: string): string {
+  return time.replace(/\s*[ap]\.?m\.?$/i, "");
+}
+
+/**
+ * An author id the roster no longer resolves — someone who left the workspace.
+ * The message still happened, so it still renders; it just loses its face.
+ */
+function formerMember(id: string): RoomMember {
+  return { id, name: "Former member", kind: "human", initials: "?" };
+}
+
+/** The clock chip beside the name: an agent posted this on a schedule. */
+function ScheduleChip({ label }: { label: string }) {
+  return (
+    <span
+      data-slot="room-schedule-chip"
+      // Tier 3 on a `tint-10` ground drops to `muted-foreground`;
+      // `foreground-low` misses AA there (docs/brand/design.md §4.1, §10).
+      className="inline-flex shrink-0 items-center gap-1 rounded-full bg-tint-10 px-2 py-0.5 text-xs text-muted-foreground"
+    >
+      <IconClockPlay className="size-3" aria-hidden="true" />
+      {label}
+    </span>
+  );
+}
+
+export function RoomMessageRow({
+  message,
+  variant = "channel",
+  grouped = false,
+  active = false,
+  onOpenThread,
+  className,
+}: {
+  message: RoomMessage;
+  variant?: RoomMessageVariant;
+  /** Same author as the row above, close enough in time: no face, no name. */
+  grouped?: boolean;
+  /** This message's thread is the one open in the side rail. */
+  active?: boolean;
+  /**
+   * Opens the thread hanging off this message. Omitted, the reply bar and the
+   * reply action render exactly as they do wired but do nothing — the row is
+   * used for static previews as well as for the live column.
+   */
+  onOpenThread?: (messageId: string) => void;
+  className?: string;
+}): ReactNode {
+  const author = roomMember(message.authorId) ?? formerMember(message.authorId);
+  const openThread = onOpenThread ? () => onOpenThread(message.id) : undefined;
+
+  if (message.system) {
+    // No blocks, no reactions, no hover cluster. The `sm` avatar is
+    // right-aligned in the same 36px gutter the faces use, so the sentence
+    // starts on the same column as every message around it.
+    const text = message.blocks
+      .filter((block) => block.kind === "paragraph")
+      .map((block) => (block.kind === "paragraph" ? block.text : ""))
+      .join(" ");
+
+    return (
+      <div
+        data-slot="room-message"
+        data-system="true"
+        className={cn("flex items-center gap-3 px-4 py-1", className)}
+      >
+        <span className="flex w-9 shrink-0 justify-end">
+          <RoomAvatar member={author} size="sm" />
+        </span>
+        <p className="min-w-0 flex-1 text-sm text-muted-foreground">
+          <span className="font-medium text-muted-foreground">{author.name}</span> {renderRoomInline(text)}
+        </p>
+        <span className="shrink-0 text-xs text-foreground-low tabular-nums">{message.time}</span>
+      </div>
+    );
+  }
+
+  const replies = variant === "channel" ? message.replies : undefined;
+  const participants = replies
+    ? replies.participantIds.map((id) => roomMember(id) ?? formerMember(id))
+    : [];
+
+  return (
+    <div
+      data-slot="room-message"
+      data-active={active || undefined}
+      className={cn(
+        "group/message relative flex gap-3 px-4",
+        // A new speaker opens a paragraph; a continuation closes up to a line.
+        grouped ? "py-1" : "pt-3 pb-1.5",
+        "transition-[background-color] duration-(--duration-fast) ease-out",
+        active ? "bg-tint-5" : "hover:bg-tint-5",
+        className,
+      )}
+    >
+      <div className="w-9 shrink-0">
+        {grouped ? (
+          <span
+            title={message.time}
+            className="block text-right text-[10px] leading-6 text-foreground-low tabular-nums opacity-0 transition-opacity duration-(--duration-fast) ease-out group-hover/message:opacity-100"
+          >
+            {clockOnly(message.time)}
+          </span>
+        ) : (
+          <RoomAvatar member={author} size="lg" />
+        )}
+      </div>
+
+      <div className="min-w-0 flex-1">
+        {!grouped ? (
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 leading-5">
+            <span className="text-sm font-medium text-foreground">{author.name}</span>
+            {message.schedule ? <ScheduleChip label={message.schedule} /> : null}
+            <span className="text-xs text-foreground-low tabular-nums">{message.time}</span>
+          </div>
+        ) : null}
+
+        {/* Running copy is tier 1. These are a colleague's own words, not a
+            caption about them; muted is saved for the meta around them. */}
+        <div className={cn("flex flex-col gap-1.5", !grouped && "mt-0.5")}>
+          {message.blocks.map((block, i) =>
+            block.kind === "paragraph" ? (
+              <p key={i} className="text-base text-foreground">
+                {renderRoomInline(block.text)}
+              </p>
+            ) : (
+              <ul key={i} className="flex list-disc flex-col gap-1 pl-5 marker:text-foreground-low">
+                {block.items.map((item, j) => (
+                  <li key={j} className="text-base text-foreground">
+                    {renderRoomInline(item)}
+                  </li>
+                ))}
+              </ul>
+            ),
+          )}
+        </div>
+
+        {message.reactions?.length ? (
+          <div className="mt-1.5 flex flex-wrap items-center gap-1">
+            {message.reactions.map((reaction) => (
+              <Button
+                key={reaction.emoji}
+                type="button"
+                variant="ghost"
+                size="none"
+                aria-pressed={reaction.reacted ?? false}
+                aria-label={`${reaction.emoji} reaction, ${reaction.count}`}
+                className={cn(
+                  "h-6 gap-1 rounded-full px-2 text-xs font-medium",
+                  reaction.reacted
+                    ? // Pressed: the brand's quiet fill with its own foreground,
+                      // rimmed so the state survives on either canvas without
+                      // reaching for the solid orange.
+                      "bg-brand-subtle text-brand-subtle-foreground ring-1 ring-brand-accent/40 hover:bg-brand-subtle"
+                    : "bg-tint-10 text-muted-foreground hover:bg-tint-15 hover:text-foreground",
+                )}
+              >
+                <span aria-hidden="true">{reaction.emoji}</span>
+                <span className="tabular-nums">{reaction.count}</span>
+              </Button>
+            ))}
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-xs"
+              aria-label="Add reaction"
+              // The list overrides the base transition, so it has to carry
+              // `scale` through or the press feedback stops easing.
+              className="text-foreground-low opacity-0 transition-[color,background-color,opacity,scale] duration-(--duration-fast) ease-out hover:text-foreground focus-visible:opacity-100 group-hover/message:opacity-100"
+            >
+              <IconMoodPlus className="size-3.5" aria-hidden="true" />
+            </Button>
+          </div>
+        ) : null}
+
+        {replies ? (
+          <Button
+            type="button"
+            variant="ghost"
+            size="none"
+            data-active={active || undefined}
+            aria-expanded={active}
+            onClick={openThread}
+            className={cn(
+              "group/replies mt-1.5 -ml-1.5 flex h-9 w-full max-w-md justify-start gap-2 rounded-lg px-1.5 font-normal",
+              "transition-[color,background-color,scale] duration-(--duration-fast) ease-out",
+              active ? "bg-tint-5" : "hover:bg-tint-5",
+            )}
+          >
+            <RoomFacepile members={participants} max={3} size="sm" />
+            {/* The one link-coloured thing in the row, and the only place in
+                this view a brand colour is spent on text. */}
+            <span className="shrink-0 text-sm font-medium text-brand-accent">
+              {replies.count} {replies.count === 1 ? "reply" : "replies"}
+            </span>
+            {/* Both labels share one grid cell so the swap moves no pixels. */}
+            <span className="grid min-w-0 flex-1 text-left">
+              <span className="col-start-1 row-start-1 truncate text-xs text-foreground-low transition-opacity duration-(--duration-fast) ease-out group-hover/replies:opacity-0 group-data-[active]/replies:opacity-0">
+                {replies.lastReplyLabel}
+              </span>
+              <span
+                aria-hidden="true"
+                className="col-start-1 row-start-1 inline-flex items-center gap-0.5 truncate text-xs text-foreground-low opacity-0 transition-opacity duration-(--duration-fast) ease-out group-hover/replies:opacity-100 group-data-[active]/replies:opacity-100"
+              >
+                View thread
+                <IconChevronRight className="size-3" aria-hidden="true" />
+              </span>
+            </span>
+          </Button>
+        ) : null}
+      </div>
+
+      {/* The cluster hangs over the top edge of the row. `:hover` on an
+          ancestor does not care where a descendant is painted, so the row
+          stays hovered while the pointer is up here; `pointer-events-none` at
+          rest keeps the invisible cluster from swallowing clicks. */}
+      <div
+        className="pointer-events-none absolute -top-3 right-3 z-10 flex items-center gap-0.5 rounded-lg border border-border-subtle bg-surface-elevated p-0.5 opacity-0 shadow-sm transition-opacity duration-(--duration-fast) ease-out focus-within:pointer-events-auto focus-within:opacity-100 group-hover/message:pointer-events-auto group-hover/message:opacity-100"
+      >
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-xs"
+          aria-label="React to message"
+          className="text-foreground-low hover:text-foreground"
+        >
+          <IconMoodPlus className="size-3.5" aria-hidden="true" />
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-xs"
+          aria-label="Reply in thread"
+          onClick={openThread}
+          className="text-foreground-low hover:text-foreground"
+        >
+          <IconMessageReply className="size-3.5" aria-hidden="true" />
+        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-xs"
+              aria-label="More message actions"
+              className="text-foreground-low hover:text-foreground"
+            >
+              <IconDots className="size-3.5" aria-hidden="true" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-44">
+            {MORE_ACTIONS.slice(0, 2).map((action) => (
+              <DropdownMenuItem key={action}>{action}</DropdownMenuItem>
+            ))}
+            <DropdownMenuSeparator />
+            {MORE_ACTIONS.slice(2).map((action) => (
+              <DropdownMenuItem key={action}>{action}</DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    </div>
+  );
+}

@@ -139,6 +139,26 @@ The context holds:
 
 To replace a placeholder, search for its `data-asset` id, build the asset from the `brief` beside its copy, and delete the `AssetSlot`.
 
+### Rooms (`src/components/rooms/`)
+
+`/rooms` and `/rooms/[slug]` (2026-09-17, `feat/rooms`) are new UI rather than a clone: the shared channel where a team and its agents talk, with a thread rail beside it. Data is `src/lib/mock/rooms.ts`; the route composes `RoomView`, which owns the two pieces of state the three columns share (the tab, and which thread the rail is on).
+
+The one design rule the whole view is arranged around: **the composer's send button is its single brand-orange control**. Everywhere else colour is tint and hairline, and the only other brand tone spent is `text-brand-accent` on a reply count, which is the row's one link-shaped affordance.
+
+| File | Owns |
+|---|---|
+| `room-rich-text.tsx` | `renderRoomInline` (`**bold**`, `` `code` ``, `@[member-id]`) and `MentionChip`. Mentions resolve against the roster, so a name that changes moves everywhere it was said. |
+| `room-avatar.tsx` | `RoomAvatar` and `RoomFacepile`. A person is the round `Avatar`; an agent is its `AgentGlyph` on a rounded-square tile. The two silhouettes differ on purpose: in a room where both talk, the shape says which one you are reading before the name does. `monogram="letter"` and `overflow={false}` are the two stack fixes (a second initial hides under the next face; a `+N` beside a printed total answers one question twice). |
+| `room-message.tsx` | `RoomMessageRow`: face, name, schedule chip, blocks, reactions, the reply bar, and the hover action cluster. `variant="thread"` drops the reply bar; `grouped` drops the face and the name and moves the timestamp into the gutter on hover; `active` holds the row and its reply bar in the open-thread state. |
+| `room-message-list.tsx` | `RoomMessageList` and `RoomIntro`. Owns the grouping rule (a run never crosses a day divider, and neither a system line nor a scheduled post joins one) and the sticky day pill. |
+| `room-header.tsx` | `RoomHeader`, `RoomTab`: two bands under one hairline, band 1 on `ThreadHeader`'s 48px metrics, band 2 the `line` tabs. Title menu, star, badge, schedule count, member popover, overflow menu, rail toggle. |
+| `room-composer.tsx` | `RoomComposer`. The auto-grow and the `ResizeObserver` re-measure are `composer/composer.tsx`'s, credited in place; `size="compact"` is the rail's. The send button is the view's one `variant="brand"`. |
+| `room-thread-panel.tsx` | `RoomThreadPanel`: the rail on `surface-secondary` behind a left hairline, its 48px header matching the room header across the seam, the root message, the replies, the reply composer and the "also send to the room" checkbox. |
+| `rooms-directory.tsx` | `RoomsDirectory`: `/rooms` as rows under hairlines, not a grid of cards. |
+| `room-view.tsx` | Assembly, the tab and open-thread state, and the responsive rule: under `lg` the rail takes the column rather than squeezing it (`max-lg:hidden` on the message column, no resize listener). |
+
+Rooms also reach the shell in three places: the sidebar group and its collapsed-rail menu (`app/sidebar.tsx`), the ⌘K palette's "Rooms" group (`app/search-palette.tsx`), and the screenshot routes.
+
 ### Slots the clone emits that the live site does not
 
 `toggle-group`, `toggle-group-item`, `input-group`, `input-group-addon`, `input-group-control`, `popover-content`, `collapsible`, `collapsible-trigger`, `collapsible-content`. The live site builds the same boxes without a slot: its layout switch is a `role=group` of `aria-pressed` ghost buttons, its search field a bare input with an absolute icon, its popovers unnamed `role=dialog` panels and its collapsibles bare radix. The clone's primitives wrap the same radix parts and name them, the rendered boxes are the same, and the slot lock checks only the live direction (every live slot has a local definition), so an extra local slot costs nothing. The `flow-*` slots are local for a simpler reason: `flow.tsx` has no live counterpart.
