@@ -113,7 +113,11 @@ export function AgentDetail({
       {/* Identity, then how far along. The glyph carries no label, which is
           how AgentGlyph knows to mark itself aria-hidden: the name is two
           spans away in words, and an avatar that announced itself would read
-          as a second agent. */}
+          as a second agent. It is TILED here, unlike the chip's bare figure,
+          and the tile is the state's `avatar` tone — the one colourway that
+          follows the theme (agent-glyph/tones.ts) — so a 20px paper square
+          does not sit in a dark bar for the same reason the discs no longer
+          do. */}
       <span className={cn("flex shrink-0 items-center gap-1.5", ENTER)}>
         <AgentGlyph shape={run.glyph} size={20} tone={tone} />
         <StateDial state={run.state} progress={run.progress} />

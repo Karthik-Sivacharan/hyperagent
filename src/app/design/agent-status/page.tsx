@@ -1,10 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type CSSProperties } from "react";
 
+import type { GlyphIdle } from "@/components/brand/agent-glyph";
+import { AgentChip } from "@/components/composer/agent-status/agent-chip";
 import { AgentDetail } from "@/components/composer/agent-status/agent-detail";
 import { AgentStack } from "@/components/composer/agent-status/agent-stack";
-import { RUN_STATES } from "@/components/composer/agent-status/run-state";
+import { RUN_STATES, type ChipTreatment } from "@/components/composer/agent-status/run-state";
 import type { AgentRun } from "@/components/composer/agent-status/types";
 import { Composer } from "@/components/composer/composer";
 import { AGENT_BAR_DETAIL, AGENT_BAR_ROW, ComposerAgentStatus } from "@/components/composer/composer-agent-status";
@@ -74,6 +76,182 @@ function BarFrame({ children }: { children: React.ReactNode }) {
     <div className="overflow-hidden rounded-5xl bg-surface-elevated shadow-lg ring-1 ring-input">
       {children}
       <div className="h-11" />
+    </div>
+  );
+}
+
+// ===== STILL BEING CHOSEN ==================================================
+//
+// Two questions are open, and both of them are the kind that a person settles
+// by looking rather than by reading a number, so both candidates are on the
+// page at real size on the real surface, with the live one marked. When one
+// wins, the loser and the prop that selects it come out together: `treatment`
+// and `idle` on AgentChip, `paperTone` in RUN_STATES, `restless` in
+// IDLE_TIMING.
+//
+// Every specimen is the shipping AgentChip with one prop moved. Nothing here
+// is a mock-up of a chip, because a mock-up would be the one thing on this
+// page that could disagree with the bar and not be caught.
+
+/** A pill for the candidate the bar actually renders. The brand's 12px caps
+    role rather than a one-off size, so it sits at the same weight as the
+    Overline above it without being one. */
+function LiveTag() {
+  return (
+    <span className="rounded-full bg-tint-15 px-1.5 py-0.5 text-label-12-caps text-muted-foreground">Live</span>
+  );
+}
+
+function Candidate({ title, live, note, children }: { title: string; live?: boolean; note: string; children: React.ReactNode }) {
+  return (
+    <div className="flex flex-col gap-2">
+      <p className="flex items-center gap-2 text-xs text-foreground-low">
+        {title}
+        {live && <LiveTag />}
+      </p>
+      {/* The composer's own card, because a disc is ringed in `surface-elevated`
+          so that it bites the disc behind it: judged on any other colour that
+          ring reads as a halo the bar never has. */}
+      <div className="w-fit max-w-full rounded-3xl bg-surface-elevated px-6 py-5 ring-1 ring-input">{children}</div>
+      <p className="max-w-content text-xs text-foreground-low">{note}</p>
+    </div>
+  );
+}
+
+const DISC_CANDIDATES: readonly { treatment: ChipTreatment; title: string; live?: boolean; note: string }[] = [
+  {
+    treatment: "surface",
+    title: "Themed disc · avatar tones",
+    live: true,
+    note: "The tile, the eyes and the three state hues are variables brand.css re-maps under `.dark`, so the chip knows nothing about the theme and the first paint is already right. Dark is a neutral-800 tile with the figures lifted two ramp steps to the 400s, the same lift --brand-accent takes; light is the paper measurement unchanged. Figure against its own tile: 9.88 / 5.70 / 5.31 / 5.15 dark, 14.5 / 4.95 / 4.26 / 4.51 light, against a 3:1 floor for a graphic.",
+  },
+  {
+    treatment: "paper",
+    title: "Paper disc · the first version",
+    note: "A fixed neutral-100 tile in both themes. In the light theme this is the themed disc, to the pixel — which is the cheapest proof that nothing about the light composer moved. In the dark it is the row of near-white coins that started this: three 28px discs brighter than any type in the composer, and the eyes, which are painted in the tile colour, glowing with them.",
+  },
+];
+
+function DiscCandidates() {
+  return (
+    <div className="flex flex-col gap-6">
+      {DISC_CANDIDATES.map((candidate) => (
+        <Candidate key={candidate.treatment} title={candidate.title} live={candidate.live} note={candidate.note}>
+          <div className="flex flex-wrap items-start gap-10">
+            {ONE_PER_STATE.map((run) => (
+              <div key={run.id} className="flex flex-col items-center gap-2.5">
+                <AgentChip run={run} treatment={candidate.treatment} />
+                <p className="text-xs text-foreground-low">{RUN_STATES[run.state].label}</p>
+              </div>
+            ))}
+          </div>
+        </Candidate>
+      ))}
+    </div>
+  );
+}
+
+/**
+ * The one dial the dark disc leaves open, and it is one variable, so it can be
+ * turned on this page without inventing a tone: an inline
+ * `--glyph-avatar-figure` shadows the sheet's value for that subtree and the
+ * chip is otherwise untouched.
+ *
+ * `running` spends no hue, so its figure is whatever the theme calls
+ * foreground — and in the dark that is neutral-100, the brightest thing the
+ * palette has. It is the faithful inverse of light's ink on paper, and it is
+ * also the reason a working chip out-weighs the three states that are
+ * actually news. The two steps under it put the figure in the same lightness
+ * band as the hues (which all sit at the 400s), so all four figures would
+ * differ by chroma alone and the hueless one would stop leading the row. Each
+ * row pairs Working with Done, because the question is not how bright the
+ * figure is on its own, it is whether it out-shouts a state that wants
+ * reading.
+ */
+const FIGURE_STEPS: readonly { token: string; label: string; live?: boolean }[] = [
+  { token: "var(--color-neutral-100)", label: "neutral-100 · 9.88:1 · the theme's own foreground", live: true },
+  { token: "var(--color-neutral-300)", label: "neutral-300 · 8.06:1" },
+  { token: "var(--color-neutral-400)", label: "neutral-400 · 5.41:1 · the hues' own lightness step" },
+];
+
+/** The two runs this block compares: the hueless one, and the quietest of the
+    three that carry a colour. */
+const FIGURE_PAIR = ONE_PER_STATE.filter((run) => run.state === "running" || run.state === "done");
+
+function FigureSteps() {
+  return (
+    <div className="w-fit max-w-full rounded-3xl bg-surface-elevated px-6 py-5 ring-1 ring-input">
+      <div className="flex flex-col gap-4">
+        {FIGURE_STEPS.map((step) => (
+          <div
+            key={step.token}
+            style={{ "--glyph-avatar-figure": step.token } as CSSProperties}
+            className="flex items-center gap-3"
+          >
+            {FIGURE_PAIR.map((run) => (
+              <AgentChip key={run.id} run={run} />
+            ))}
+            <p className="flex items-center gap-2 text-xs text-foreground-low">
+              {step.label}
+              {step.live && <LiveTag />}
+            </p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/** Both working agents from the fleet, so the desynchronisation is visible:
+    nothing here shares a clock, and two chips that mounted in the same frame
+    should never be caught on the same beat. */
+const RUNNING_RUNS = AGENT_RUNS.filter((run) => run.state === "running");
+
+/** The loupe. Big enough to watch an eye, and honestly labelled: a glance is
+    scaled to the rendered size, so this is the candidate's RHYTHM at a size
+    the bar never uses, not its exact travel. */
+const LOUPE_PX = 56;
+
+const MOTION_CANDIDATES: readonly { idle: GlyphIdle; title: string; live?: boolean; note: string }[] = [
+  {
+    idle: "calm",
+    title: "Calm · what it was",
+    note: "The `quick` pace's own resting rate: one blink somewhere in four to nine seconds, and nothing else — glancing was off, because 3 units of a 140-unit box is under half a pixel at 18px. Watch it for five seconds and you will most likely see nothing at all, which is the complaint.",
+  },
+  {
+    idle: "busy",
+    title: "Busy · a working agent",
+    live: true,
+    note: "A beat about every second and a half, rather more of them a look than a blink. Looking is what carries it: eyes that MOVE read as thought where eyes that only blink read as awake. The travel is now sized from the rendered px and capped at the clearance every eye is guaranteed, so at 18px a look is about two thirds of an eye's width instead of a third of a pixel. The outline never changes — a shape is the agent's identity.",
+  },
+  {
+    idle: "restless",
+    title: "Restless · the same, wound tighter",
+    note: "Roughly twice the rate, with shorter holds. It is here to answer the question `busy` cannot answer on its own — whether the shipping one is too slow — and watching both for ten seconds is the whole test. Past about a beat a second a row of discs starts to read as agitated rather than occupied.",
+  },
+];
+
+function MotionCandidates() {
+  return (
+    <div className="flex flex-col gap-6">
+      {MOTION_CANDIDATES.map((candidate) => (
+        <Candidate key={candidate.idle} title={candidate.title} live={candidate.live} note={candidate.note}>
+          <div className="flex items-center gap-10">
+            <div className="flex flex-col items-center gap-2.5">
+              <div className="flex items-center gap-3">
+                {RUNNING_RUNS.map((run) => (
+                  <AgentChip key={run.id} run={run} idle={candidate.idle} />
+                ))}
+              </div>
+              <p className="text-xs text-foreground-low tabular-nums">28px · the bar</p>
+            </div>
+            <div className="flex flex-col items-center gap-2.5">
+              <AgentChip run={RUNNING_RUNS[0]} size={LOUPE_PX} idle={candidate.idle} />
+              <p className="text-xs text-foreground-low tabular-nums">56px · the rhythm, magnified</p>
+            </div>
+          </div>
+        </Candidate>
+      ))}
     </div>
   );
 }
@@ -167,6 +345,30 @@ export default function AgentStatusPage() {
             word would otherwise have to.
           </p>
         </header>
+
+        <Section
+          label="Still being chosen · the disc"
+          blurb="The disc used to be the glyph's paper tile in both themes, which in a dark composer is three near-white coins sitting above the field, brighter than anything else in the card. Both candidates are below, on the composer's own surface at the size the bar draws them. The eyes are the reason this is not simply a background: they are painted in the tile colour so they read as holes punched through to it, so inverting the tile inverts the eyes and every hued figure has to be re-measured against the new ground."
+        >
+          <DiscCandidates />
+          <div className="flex flex-col gap-2">
+            <p className="text-xs text-foreground-low">The working figure, three steps down the ramp</p>
+            <FigureSteps />
+            <p className="max-w-content text-xs text-foreground-low">
+              Only `running` is affected: the other three read their own hue. The live step is the
+              faithful inverse of the light theme, ink on paper becoming paper on ink, and it is also
+              the one that leaves a working agent brighter than an agent that finished. Overriding the
+              figure needs no new tone — it is one variable, shadowed on a wrapper.
+            </p>
+          </div>
+        </Section>
+
+        <Section
+          label="Still being chosen · how a working agent moves"
+          blurb="Three rhythms for the one state that is still going. The shape is fixed in all of them — a running glyph that morphed into another glyph would be saying something false about who it is — so the whole signal is the eyes: blinks, and looks about. Two chips per candidate, because nothing here shares a clock and the thing to check is that a row never falls into step. None of it runs under prefers-reduced-motion: the idle loop is skipped outright, and all three candidates go still."
+        >
+          <MotionCandidates />
+        </Section>
 
         <Section
           label="The four states"
