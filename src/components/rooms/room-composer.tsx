@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { type ReactNode, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { IconArrowUp, IconPlus } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Textarea } from "@/components/ui/textarea";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { matchMembers, RoomMentionMenu } from "@/components/rooms/room-mention-menu";
+import type { RoomMember } from "@/lib/mock/rooms";
 
 // The box you type into in a room: the app composer's leaner relative. It
 // keeps the brand's chat-composer shape (the elevated surface, the hairline,
@@ -31,7 +33,22 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 // only one here that is.
 //
 // Nothing is ever sent: this is a UI clone. Enter still clears the draft, so
-// the affordance is honest rather than dead.
+// the affordance is honest rather than dead — and it hands the room the agents
+// the draft named, which is the one consequence a send has here.
+//
+// `@` OPENS THE ROSTER (room-mention-menu.tsx). The token is detected on the
+// text BEFORE THE CARET rather than on the whole draft, so mentioning someone
+// in the middle of a sentence you are going back over works the same as
+// mentioning them at the end. What is inserted is the member's NAME, not the
+// prose marker `@[id]` the message list renders: the field is a textarea, a
+// reader would see the brackets, and a roster of fixed names resolves back to
+// ids on send without a rich-text editor being introduced for a mock.
+//
+// THE MENU BORROWS THE FIELD'S KEYS. While it is open, Up, Down, Enter and Tab
+// belong to the list and Escape closes it; everything else falls through to
+// the textarea untouched, including the Enter that sends when the menu is shut.
+// That ordering is the whole contract, and it is why the key handler below
+// checks the menu first and returns.
 
 type RoomComposerSize = "default" | "compact";
 
@@ -72,22 +89,71 @@ function grow(el: HTMLTextAreaElement | null) {
 }
 const useBeforePaint = typeof window === "undefined" ? useEffect : useLayoutEffect;
 
+/** The `@name` being typed: what has been written after the `@`, and where the `@` is. */
+type MentionQuery = { query: string; at: number };
+
+/** The token under the caret, if the caret is inside one. A mention starts a
+    word, so an email address never opens the roster. */
+function mentionAt(text: string, caret: number): MentionQuery | null {
+  const before = text.slice(0, caret);
+  const match = /(?:^|\s)@([\p{L}\p{N}_-]*)$/u.exec(before);
+  if (!match) return null;
+  return { query: match[1], at: caret - match[1].length - 1 };
+}
+
+/**
+ * The ids a draft named, in roster order. Longest name first while scanning,
+ * so "@Media Lab Director" is not read as a mention of a "Media" who also
+ * happens to be in the room; each hit is blanked out so one `@` is spent once.
+ */
+export function mentionedMemberIds(draft: string, members: readonly RoomMember[]): string[] {
+  let rest = draft;
+  const found = new Set<string>();
+  for (const member of [...members].sort((a, b) => b.name.length - a.name.length)) {
+    const token = `@${member.name}`;
+    if (!rest.includes(token)) continue;
+    found.add(member.id);
+    rest = rest.split(token).join(" ");
+  }
+  return members.filter((member) => found.has(member.id)).map((member) => member.id);
+}
+
 export function RoomComposer({
   placeholder,
   size = "default",
   autoFocus,
+  members = [],
+  status,
+  onSend,
   className,
 }: {
   /** Names the destination, and is the field's accessible name: "Message #release-train". */
   placeholder: string;
   size?: RoomComposerSize;
   autoFocus?: boolean;
+  /** The room's roster, which is what `@` offers. Omit and `@` is just a character. */
+  members?: readonly RoomMember[];
+  /** A strip across the top of the card, above the field: the agent bar
+      (composer-agent-status.tsx) while anything the room tagged is out. */
+  status?: ReactNode;
+  /** The draft, and the ids it named. Called on a send that had something in it. */
+  onSend?: (draft: string, mentionedIds: string[]) => void;
   className?: string;
 }) {
   const [draft, setDraft] = useState("");
+  const [mention, setMention] = useState<MentionQuery | null>(null);
+  const [activeIndex, setActiveIndex] = useState(0);
   const editorRef = useRef<HTMLTextAreaElement>(null);
   const metrics = SIZE[size];
   const canSend = draft.trim().length > 0;
+
+  // No roster, no menu — and no candidates is the same thing as far as every
+  // branch below is concerned, so the two collapse into one list.
+  const candidates = useMemo(
+    () => (mention && members.length > 0 ? matchMembers(members, mention.query) : []),
+    [mention, members],
+  );
+  const menuOpen = candidates.length > 0;
 
   // Keyed on the value rather than hung off the textarea's own `onInput`, so a
   // draft cleared from a keystroke handler re-measures in the same frame that
@@ -109,14 +175,57 @@ export function RoomComposer({
     return () => observer.disconnect();
   }, []);
 
+  /** Re-reads the token under the caret after anything that could have moved it. */
+  function syncMention(el: HTMLTextAreaElement | null) {
+    if (!el) return;
+    const next = mentionAt(el.value, el.selectionStart ?? el.value.length);
+    setMention(next);
+    setActiveIndex(0);
+  }
+
+  /** Swaps the half-typed `@name` for the whole one and puts the caret past it. */
+  function pick(member: RoomMember) {
+    if (!mention) return;
+    const el = editorRef.current;
+    const caret = el?.selectionStart ?? draft.length;
+    const inserted = `@${member.name} `;
+    const next = draft.slice(0, mention.at) + inserted + draft.slice(caret);
+    setDraft(next);
+    setMention(null);
+    setActiveIndex(0);
+    // After React has written the value, or the caret lands where the OLD
+    // string put it and the next keystroke arrives in the middle of the name.
+    const to = mention.at + inserted.length;
+    requestAnimationFrame(() => {
+      el?.focus();
+      el?.setSelectionRange(to, to);
+    });
+  }
+
   function send() {
     if (!canSend) return;
+    onSend?.(draft, mentionedMemberIds(draft, members));
     setDraft("");
+    setMention(null);
     editorRef.current?.focus();
   }
 
   return (
-    <div
+    // The card clips its own corners once there is a bar inside it, so the
+    // strip's hairline stops at the radius rather than running past it; the
+    // menu is OUTSIDE that clip, which is why it hangs off this wrapper and
+    // not off the card.
+    <div className="relative w-full">
+      {menuOpen ? (
+        <RoomMentionMenu
+          members={candidates}
+          activeIndex={activeIndex}
+          onHover={setActiveIndex}
+          onPick={pick}
+        />
+      ) : null}
+
+      <div
       className={cn(
         // The ring is the hairline at rest and the focus ring on focus-within,
         // so the whole box lights up rather than the textarea inside it; both
@@ -125,10 +234,15 @@ export function RoomComposer({
         "group/composer relative w-full bg-surface-elevated shadow-sm ring-1 ring-border-subtle",
         "focus-within:shadow-md focus-within:ring-2 focus-within:ring-ring/50",
         "transition-[box-shadow] duration-[var(--duration-normal)] ease-out",
+        status && "overflow-hidden",
         metrics.shell,
         className,
       )}
     >
+      {/* Inside the card and above the field, where the app composer puts its
+          own status row (composer.tsx): part of the composer, not a banner. */}
+      {status}
+
       <div className={cn("cursor-text", metrics.editor)}>
         <Textarea
           variant="bare"
@@ -138,8 +252,39 @@ export function RoomComposer({
           autoFocus={autoFocus}
           placeholder={placeholder}
           aria-label={placeholder}
-          onChange={(event) => setDraft(event.target.value)}
+          onChange={(event) => {
+            setDraft(event.target.value);
+            syncMention(event.target);
+          }}
+          // The caret can move without the value changing — an arrow key, a
+          // click, a drag-select — and a menu that only watched `onChange`
+          // would stay open over a caret that had left the token.
+          onSelect={(event) => syncMention(event.currentTarget)}
+          onBlur={() => setMention(null)}
           onKeyDown={(event) => {
+            if (menuOpen) {
+              if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+                event.preventDefault();
+                const step = event.key === "ArrowDown" ? 1 : -1;
+                // Wraps, because a four-name list is faster to walk round than
+                // to walk back.
+                setActiveIndex((i) => (i + step + candidates.length) % candidates.length);
+                return;
+              }
+              if (event.key === "Enter" || event.key === "Tab") {
+                event.preventDefault();
+                pick(candidates[activeIndex]);
+                return;
+              }
+              if (event.key === "Escape") {
+                // Stops here: the room closes its thread rail on Escape, and
+                // dismissing a menu should not also close the panel behind it.
+                event.preventDefault();
+                event.stopPropagation();
+                setMention(null);
+                return;
+              }
+            }
             if (event.key !== "Enter") return;
             // ⌘/Ctrl+Enter always sends; plain Enter sends; Shift+Enter is the
             // one Enter that stays a newline.
@@ -201,6 +346,7 @@ export function RoomComposer({
           </TooltipTrigger>
           <TooltipContent>Send message</TooltipContent>
         </Tooltip>
+      </div>
       </div>
     </div>
   );
