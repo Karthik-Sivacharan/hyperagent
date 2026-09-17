@@ -282,6 +282,11 @@ two directions of the jump then read as one gesture.
   move would work here; it is three lines and a decision about whether a room
   tab is worth a shareable URL. `RoomView` holds the tab and `RoomTrackerProvider`
   holds the view, so it is one place each when the answer is yes.
+- **The fold is the shell's own state, and the tracker tab unmounts.** Leaving
+  the Tracker tab and coming back gives the default fold again: Done closed.
+  The view (board or list) survives, because that lives in the provider. If the
+  fold should survive too, `TrackerBoard` and `TrackerList` need controlled fold
+  props; none were added speculatively.
 - **The strip above the composer is not mounted.** `agentRuns` is on the
   context and correct; the component that draws it lands with
   `feat/composer-agent-status` (§6.1).
