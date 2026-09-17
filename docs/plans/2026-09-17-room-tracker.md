@@ -220,6 +220,31 @@ Three additive touches, kept deliberately small because that branch is moving:
 `RoomView` grows the provider and the third branch. Nothing else in
 `src/components/rooms/` is edited.
 
+**The merge, measured rather than guessed.** `git merge-tree feat/room-tracker
+feat/rooms` at b5e915c against 387282b reports exactly one conflict:
+
+```
+Auto-merging src/components/rooms/room-message.tsx
+Auto-merging src/components/rooms/room-view.tsx
+CONFLICT (content): Merge conflict in src/components/rooms/room-view.tsx
+```
+
+`room-message.tsx`, `room-message-list.tsx` and `room-header.tsx` merge clean.
+`room-view.tsx` conflicts because both branches added state to the same
+function, and neither addition replaces the other:
+
+- `feat/rooms` added the fleet the composer's `@` mentions start, the interval
+  that advances it, and the `members` / `onSend` / `status` props on
+  `RoomComposer`.
+- this branch split `RoomView` in two, an outer half that mounts
+  `RoomTrackerProvider` and owns the tab, and an inner `RoomBody` that reads
+  the context. Everything `feat/rooms` added belongs in `RoomBody`, unchanged,
+  except the tab state, which the outer half already holds.
+
+So the resolution is to take this branch's outer/inner split and paste
+`feat/rooms`' fleet state, effect and composer props into `RoomBody`. Then §6.1
+item 2 decides what the bar is handed.
+
 ## 7. The pulse
 
 Clicking an agent in a message switches to the tracker and pulses that agent's
