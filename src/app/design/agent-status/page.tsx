@@ -9,10 +9,15 @@ import { AgentStack } from "@/components/composer/agent-status/agent-stack";
 import { RUN_STATES, type ChipTreatment } from "@/components/composer/agent-status/run-state";
 import type { AgentRun } from "@/components/composer/agent-status/types";
 import { Composer } from "@/components/composer/composer";
-import { AGENT_BAR_DETAIL, AGENT_BAR_ROW, ComposerAgentStatus } from "@/components/composer/composer-agent-status";
+import {
+  AGENT_BAR_DETAIL,
+  AGENT_BAR_ROW,
+  AGENT_BAR_ROW_TALL,
+  ComposerAgentStatus,
+} from "@/components/composer/composer-agent-status";
 import { Button } from "@/components/ui/button";
 import { Overline } from "@/components/ui/overline";
-import { AGENT_RUNS, ONE_AGENT_MANY_TASKS, ONE_PER_STATE } from "@/lib/mock/agent-status";
+import { AGENT_RUNS, ONE_AGENT_MANY_TASKS, ONE_PER_STATE, THREE_RUNNING_OF_FOUR } from "@/lib/mock/agent-status";
 
 // The composer's agent bar, block by block, the way /design/agent-stream lays
 // out the streaming turn: every specimen below is the live component on the
@@ -341,6 +346,39 @@ function DetailSpecimen({ run }: { run: AgentRun }) {
 /** Three of the four: `done` is the state with nothing left to ask for. */
 const EXPANDED = ONE_PER_STATE.filter((run) => run.state !== "done");
 
+// The stacked detail, already open. Every other specimen of the expanded row
+// is reached by clicking a chip, which is right for showing the swap and wrong
+// for showing what the row LOOKS like: a reader comparing three Stops down one
+// edge should not have to find the chip that opens them first. So this one
+// renders AgentDetail straight into the bar's tall row — the same two exported
+// class strings the bar itself uses (AGENT_BAR_ROW_TALL, AGENT_BAR_DETAIL), so
+// no metric is copied here to go stale — and Back takes it away the way the
+// other specimens do, because a Back that goes nowhere is not the control
+// being shown.
+function StackedDetailSpecimen({ runs }: { runs: readonly AgentRun[] }) {
+  const [shown, setShown] = useState(true);
+  if (!shown) {
+    return (
+      <Button type="button" variant="outline" size="sm" onClick={() => setShown(true)}>
+        Open {runs[0]?.name} again
+      </Button>
+    );
+  }
+  return (
+    <BarFrame>
+      <div className={AGENT_BAR_ROW_TALL}>
+        <AgentDetail
+          runs={runs}
+          onBack={() => setShown(false)}
+          onOpenTask={() => () => {}}
+          onEndRun={() => {}}
+          className={AGENT_BAR_DETAIL}
+        />
+      </div>
+    </BarFrame>
+  );
+}
+
 export default function AgentStatusPage() {
   return (
     <div className="min-h-dvh bg-background text-foreground">
@@ -424,6 +462,15 @@ export default function AgentStatusPage() {
               <DetailSpecimen key={run.id} run={run} />
             ))}
           </div>
+        </Section>
+
+        <Section
+          label="Three running of four"
+          blurb="The Stop, in the number a real row produces. It is the one control here that is not on every line: three of EvalBot's four tasks are still going and each of those carries it, while the fourth has already stopped and is waiting on a person, so it carries none — the gap at the bottom of the column is as much the specimen as the three above it. Stop sits before the arrow because the two are not peers: stopping is the destructive one, so a reader who overshoots the end of a line lands on the harmless one. Both are the same 24px square and both are as neutral as each other; a red Stop would put the loudest colour in the bar on the one state that deliberately spends none, and it would read as the state rather than as the action."
+        >
+          <Measures>
+            <StackedDetailSpecimen runs={THREE_RUNNING_OF_FOUR} />
+          </Measures>
         </Section>
 
         <Section

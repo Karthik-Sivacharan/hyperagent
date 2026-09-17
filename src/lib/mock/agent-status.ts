@@ -141,6 +141,65 @@ export const ONE_AGENT_MANY_TASKS: readonly AgentRun[] = [
   },
 ];
 
+/**
+ * One agent, four tasks, three of them still going — the case that puts three
+ * Stops in one row.
+ *
+ * It is the specimen for the control rather than for the state: `running` is
+ * the only state that can be stopped, so a fleet of one running task shows the
+ * Stop but not what a COLUMN of them does to the right edge. Three does, and
+ * three is also the honest number — an agent with four live tasks is normal on
+ * a board that is per task, and a person looking at this row is deciding which
+ * one to call off, not whether the control exists.
+ *
+ * The fourth is `input` rather than `done`, so the row also shows the absence:
+ * the one line that is not running has no Stop, because it has already
+ * stopped and is waiting on a person. Written running-first so the three sit
+ * together and the gap at the bottom is visible as a gap.
+ */
+export const THREE_RUNNING_OF_FOUR: readonly AgentRun[] = [
+  {
+    id: "eval-flag",
+    agentId: "evalbot",
+    name: "EvalBot",
+    glyph: "trefoil",
+    state: "running",
+    task: "Running the suite on the delegation flag",
+    detail: "41 of 62 cases",
+    progress: 0.66,
+  },
+  {
+    id: "eval-replay",
+    agentId: "evalbot",
+    name: "EvalBot",
+    glyph: "trefoil",
+    state: "running",
+    task: "Replaying yesterday's failures",
+    detail: "9 cases, 2 still red",
+    progress: 0.22,
+  },
+  {
+    id: "eval-gate",
+    agentId: "evalbot",
+    name: "EvalBot",
+    glyph: "trefoil",
+    state: "running",
+    task: "Checking the approval gate end to end",
+    detail: "3 of 11 spawns",
+    progress: 0.27,
+  },
+  {
+    id: "eval-flaky",
+    agentId: "evalbot",
+    name: "EvalBot",
+    glyph: "trefoil",
+    state: "input",
+    task: "Waiting on a verdict for the flaky case",
+    detail: "Case 58, third rerun",
+    progress: 0.9,
+  },
+];
+
 /** The order types.ts declares, which is hueless first and loudest last. */
 const STATE_ORDER: readonly AgentRunState[] = ["running", "done", "input", "stuck"];
 
