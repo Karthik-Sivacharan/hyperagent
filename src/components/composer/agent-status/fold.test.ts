@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { roomAgentRuns } from "@/components/rooms/tracker/agent-runs";
 import { AGENT_RUNS, CROWDED_FLEET, THREE_RUNNING_OF_FOUR } from "@/lib/mock/agent-status";
+import { findGlyph } from "@/components/brand/agent-glyph/registry";
 import { tasksForRoom } from "@/lib/mock/room-tracker";
 
 import { agentLeads, foldStack, sameAgent } from "./fold";
@@ -30,6 +31,9 @@ describe("agentLeads", () => {
   it("keeps the design page's crowd at one agent per run, so it still overflows at 512", () => {
     expect(agentLeads(CROWDED_FLEET)).toHaveLength(CROWDED_FLEET.length);
     expect(CROWDED_FLEET).toHaveLength(15);
+    // Every face has to be a registered glyph: an unknown id throws at render,
+    // which only a static build of the design page would otherwise catch.
+    expect(CROWDED_FLEET.filter((run) => !findGlyph(run.glyph)).map((run) => run.glyph)).toEqual([]);
   });
 
   it("wears each agent's loudest run", () => {

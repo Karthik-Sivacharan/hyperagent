@@ -228,8 +228,8 @@ const CROWD: readonly { name: string; glyph: string }[] = [
   { name: "Changelog", glyph: "dome-walker" },
   { name: "Backlog", glyph: "arch-ghost" },
   { name: "Flag audit", glyph: "plug-arrow" },
-  { name: "Render queue", glyph: "turbine" },
-  { name: "Cost report", glyph: "step-tower" },
+  { name: "Render queue", glyph: "pedestal" },
+  { name: "Cost report", glyph: "orb-stems" },
 ];
 
 /**
