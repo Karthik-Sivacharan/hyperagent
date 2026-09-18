@@ -1,4 +1,6 @@
 import type { AgentRun } from "@/components/composer/agent-status/types";
+import type { StreamParagraph, StreamRow } from "@/lib/mock/agent-stream";
+import type { TaskReasoning } from "@/lib/mock/room-reasoning";
 import type { Room, RoomMember, RoomMessage } from "@/lib/mock/rooms";
 
 // What an agent starts doing when a room message tags it, so the mention in
@@ -56,6 +58,126 @@ export function runForMention(member: RoomMember, message: string): AgentRun {
     detail: excerpt(message),
     progress: 0.08,
   };
+}
+
+/* ------------------------------------------------------- the working turn */
+
+// What the rail plays back when someone opens a tagged agent's live cell
+// before it has answered — the tool rows and a line of what it is thinking, in
+// room-reasoning.ts's shape, so RoomAgentThread draws it exactly the way it
+// draws a board task's turn. Three rows: the message it was handed, one step
+// of its own trade, and last, live, the same opening move the bar's row names
+// (OPENING_TASK), so the bar, the cell and the turn all say one thing.
+
+type TurnScript = { middle: Omit<StreamRow, "id">; live: Omit<StreamRow, "id" | "label">; prose: StreamParagraph };
+
+const TURN: Readonly<Record<string, TurnScript>> = {
+  "media-lab": {
+    middle: { label: "Checking the render workers", detail: "two free", icon: "puzzle" },
+    live: { detail: "as a background job", icon: "plug" },
+    prose: [
+      { text: "Going out as a background job rather than inline, so " },
+      { text: "the room keeps moving while it renders", strong: true },
+      { text: "." },
+    ],
+  },
+  triage: {
+    middle: { label: "Pulling the overnight sweep", detail: "render.queue", icon: "download" },
+    live: { detail: "against the new flag", icon: "plug" },
+    prose: [
+      { text: "Nothing new since the sweep so far. Replaying the last four to be sure " },
+      { text: "the flag has reached every worker", strong: true },
+      { text: "." },
+    ],
+  },
+  evalbot: {
+    middle: { label: "Loading the suite", detail: "capability/self-delegation", icon: "download" },
+    live: { detail: "62 cases", icon: "puzzle" },
+    prose: [
+      { text: "Running the whole suite rather than the two that failed last night, so " },
+      { text: "the diff has a baseline to be against", strong: true },
+      { text: "." },
+    ],
+  },
+  yuki: {
+    middle: { label: "Finding the release it belongs to", detail: "the next train", icon: "reading" },
+    live: { detail: "the draft", icon: "pencil" },
+    prose: [
+      { text: "Writing it in the release notes' voice: " },
+      { text: "what changed and who it affects", strong: true },
+      { text: ", nothing about how." },
+    ],
+  },
+  zippy: {
+    middle: { label: "Checking for a duplicate", detail: "open cards", icon: "puzzle" },
+    live: { detail: "by priority", icon: "reading" },
+    prose: [
+      { text: "Making sure " },
+      { text: "nothing like it is already filed", strong: true },
+      { text: " before adding a new card." },
+    ],
+  },
+};
+
+/** The live turn for one tagged agent on one message (`text` as stored). */
+export function turnForMention(member: RoomMember, text: string): TaskReasoning {
+  const ask = askOf(text);
+  const script = TURN[member.id];
+  const rows: StreamRow[] = [
+    { id: "r1", label: "Reading your message", detail: ask ? excerpt(ask, 40) : "the mention", icon: "reading" },
+    ...(script ? [{ id: "r2", ...script.middle }] : []),
+    {
+      id: "r3",
+      label: OPENING_TASK[member.id] ?? "Picking up your message",
+      detail: script?.live.detail ?? "in this room",
+      icon: script?.live.icon ?? "puzzle",
+    },
+  ];
+  return {
+    agentName: member.name,
+    rows,
+    prose: [script?.prose ?? [{ text: "On it. The answer lands in this thread when it is done." }]],
+  };
+}
+
+/* ------------------------------------------------------------- the answer */
+
+// What a tagged agent posts in the thread once its run lands on `done`, so the
+// message that summoned it gains its "1 reply" the way a real one would. One
+// line per agent, in its own trade, with the ask quoted back: a canned answer
+// that did not name what it was answering would read as a bot talking past
+// the message rather than to it. Static like the opening moves above —
+// nothing ran, and the thread is told what a finished run would have said.
+
+/** Each agent's answer, handed the ask already quoted (or "this", for none). */
+const ANSWER: Readonly<Record<string, (said: string) => string>> = {
+  "media-lab": (said) =>
+    `Rendered ${said} as a background job rather than inline. Two variants are on the canvas, side by side.`,
+  triage: (said) =>
+    `Checked ${said} against the overnight sweep. No new failures, and nothing is parked in \`pending_approval\`.`,
+  evalbot: (said) => `Ran ${said} on the new flag: **62 of 62** cases pass, nothing regressed against last night.`,
+  yuki: (said) => `Added ${said} to the changelog draft. It goes out with the next release notes.`,
+  zippy: (said) => `Filed ${said} on the backlog, at the top of the next triage.`,
+};
+
+/** The ask with its mentions taken out: what was asked, not who of. */
+function askOf(text: string): string {
+  return text
+    .replace(/@\[[^\]]+\]/g, " ")
+    .replace(/\s+/g, " ")
+    .replace(/^[\s,:;.]+/, "")
+    .trim();
+}
+
+/**
+ * The reply a tagged agent posts when its run finishes. `text` is the message
+ * as the room stores it, `@[id]` tokens and all; they are stripped, so the
+ * quote is the instruction rather than the roll call in front of it.
+ */
+export function answerForMention(member: RoomMember, text: string): string {
+  const ask = askOf(text);
+  const said = ask ? `“${excerpt(ask, 80)}”` : "this";
+  return ANSWER[member.id]?.(said) ?? `Done with ${said}.`;
 }
 
 /* ------------------------------------------------- where an agent is working */

@@ -18,6 +18,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { RoomAvatar, RoomFacepile } from "@/components/rooms/room-avatar";
+import { SHIMMER, sweepStyle } from "@/components/thread/shimmer";
 import { renderRoomInline } from "@/components/rooms/room-rich-text";
 import { roomMember, type RoomMember, type RoomMessage } from "@/lib/mock/rooms";
 
@@ -75,8 +76,17 @@ function ScheduleChip({ label }: { label: string }) {
   );
 }
 
+/** Who is on it, as the thread link says it: names while they fit, a count
+    once they do not. */
+function workingLabel(members: readonly RoomMember[]): string {
+  if (members.length === 1) return `${members[0].name} is working…`;
+  if (members.length === 2) return `${members[0].name} and ${members[1].name} are working…`;
+  return `${members.length} agents are working…`;
+}
+
 export function RoomMessageRow({
   message,
+  working = [],
   variant = "channel",
   active = false,
   onOpenThread,
@@ -84,6 +94,14 @@ export function RoomMessageRow({
   className,
 }: {
   message: RoomMessage;
+  /**
+   * Agents this message tagged that have not answered yet. The thread link
+   * shows while they work, before there is a reply to count, and names them in
+   * the product's running label — so the message says "someone is on this" in
+   * the place the answer will land, and the answer arriving is the same link
+   * turning into "1 reply" rather than a new thing appearing under it.
+   */
+  working?: readonly RoomMember[];
   variant?: RoomMessageVariant;
   /** This message's thread is the one open in the side rail. */
   active?: boolean;
@@ -135,9 +153,13 @@ export function RoomMessageRow({
   }
 
   const replies = variant === "channel" ? message.replies : undefined;
-  const participants = replies
-    ? replies.participantIds.map((id) => roomMember(id) ?? formerMember(id))
-    : [];
+  const busy = variant === "channel" ? working : [];
+  // Those who answered, then those still on it, each face once.
+  const participants = [
+    ...(replies ? replies.participantIds.map((id) => roomMember(id) ?? formerMember(id)) : []),
+    ...busy,
+  ].filter((member, index, all) => all.findIndex((other) => other.id === member.id) === index);
+  const busyLabel = busy.length > 0 ? workingLabel(busy) : null;
 
   return (
     <div
@@ -250,7 +272,7 @@ export function RoomMessageRow({
           </div>
         ) : null}
 
-        {replies ? (
+        {replies || busyLabel ? (
           <Button
             type="button"
             variant="ghost"
@@ -267,13 +289,28 @@ export function RoomMessageRow({
             <RoomFacepile members={participants} max={3} size="sm" />
             {/* The one link-coloured thing in the row, and the only place in
                 this view a brand colour is spent on text. */}
-            <span className="shrink-0 text-sm font-medium text-brand-accent">
-              {replies.count} {replies.count === 1 ? "reply" : "replies"}
-            </span>
-            {/* Both labels share one grid cell so the swap moves no pixels. */}
+            {replies ? (
+              <span className="shrink-0 text-sm font-medium text-brand-accent">
+                {replies.count} {replies.count === 1 ? "reply" : "replies"}
+              </span>
+            ) : null}
+            {/* Both labels share one grid cell so the swap moves no pixels.
+                While an agent is still on it, the resting label is who, in
+                the running label's sweep (thread/shimmer.ts) — a label inside
+                a line, which is where the clipped version belongs. */}
             <span className="grid min-w-0 flex-1 text-left">
-              <span className="col-start-1 row-start-1 truncate text-xs text-foreground-low transition-opacity duration-(--duration-fast) ease-out group-hover/replies:opacity-0 group-data-[active]/replies:opacity-0">
-                {replies.lastReplyLabel}
+              <span
+                className={cn(
+                  "col-start-1 row-start-1 truncate text-xs transition-opacity duration-(--duration-fast) ease-out group-hover/replies:opacity-0 group-data-[active]/replies:opacity-0",
+                  busyLabel ? cn("text-muted-foreground", SHIMMER) : "text-foreground-low",
+                )}
+                style={
+                  busyLabel
+                    ? sweepStyle(busyLabel.length, "var(--color-foreground)", "var(--color-muted-foreground)")
+                    : undefined
+                }
+              >
+                {busyLabel ?? replies?.lastReplyLabel}
               </span>
               <span
                 aria-hidden="true"

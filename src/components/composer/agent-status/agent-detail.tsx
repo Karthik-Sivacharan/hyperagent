@@ -24,11 +24,11 @@ import type { AgentRun } from "./types";
 // side padding), and only the things inside it fade in.
 //
 // A STACK IS THE ONE THING THAT CHANGES THE BOX, and it is worth it. An agent
-// on four tasks is four chips in the stack, because the board is per task and
-// a readout that collapsed them could not say Media Lab Director is stuck on
-// one render and fine on another — that sentence is the whole reason the board
-// exists, and the bar would be undoing it at the last moment. So picking any
-// one of that agent's chips opens all of them, one line each. The box gets
+// on four tasks is one chip, and a readout that stopped there could not say
+// Media Lab Director is stuck on one render and fine on another — that
+// sentence is the whole reason the board is per task, and the bar would be
+// undoing it at the last moment. So picking that agent's chip opens all four,
+// one line each. The box gets
 // taller, it does not animate getting taller, and the rule it keeps is the
 // real one: nothing MOVES under the reader's hands. The field below it stays
 // exactly where it was; the bar grows upward, into the thread, which is the
@@ -48,13 +48,37 @@ import type { AgentRun } from "./types";
 // who cannot separate the hues, and the colour is confirmation rather than the
 // whole message.
 //
-// UNLESS THE RUN HAS A CARD, in which case that last slot is a way out instead
-// of a full stop. "Done" at the end of a row is the least useful true thing
-// the bar can say: the dial in front of the name already said it, in the same
-// hue, 200px to the left. Where the run is a task on the room's board, the
-// slot becomes the link to it — an arrow that leaves the plane and no words at
-// all (docs/brand/icons.md: an arrow goes, a chevron reveals), in the quiet
-// pair the back control wears rather than in the state's tint. A stack would
+// AND ON A STACK THE WHOLE LINE IS THAT WAY OUT. The list an agent of four
+// tasks opens is a chooser — the bar deliberately goes nowhere until one of
+// these rows is picked (composer-agent-status.tsx) — and a chooser whose only
+// target is a 24px arrow at the far end of a 700px row is asking the reader to
+// aim at the smallest thing on the line. It cannot become a row-sized button,
+// because a `running` row already carries Stop and a button inside a button is
+// invalid markup and takes the keyboard order with it. So the arrow stays the
+// control — one tab stop, one accessible name — and the LINE takes the
+// pointer: a click on it that no control inside claimed opens the task
+// (rowClick below), and Stop keeps its own. What the reader sees is the line
+// lifting under the pointer, not the arrow: the fill is the row's own, 8px
+// wider either side so it reaches past the arrow's overhang instead of
+// stopping short of the control it belongs to.
+//
+// NOT A STRETCHED `::after`, which is what this was, and it failed quietly.
+// The Button presses with `scale`, and any `scale` but `none` makes the button
+// the containing block of its own `::after`: the layer shrank to 24px on
+// mousedown, the mouseup landed on the words, and the browser sent the click
+// to the row they share instead of the arrow. Only a press on the arrow itself
+// ever got through.
+//
+// UNLESS THE RUN HAS SOMEWHERE TO GO, in which case that last slot is a way
+// out instead of a full stop. "Done" at the end of a row is the least useful
+// true thing the bar can say: the dial in front of the name already said it,
+// in the same hue, 200px to the left. Where the caller knows where the run's
+// work is written down, the slot becomes the link to it — an arrow that leaves
+// the plane and no words at all (docs/brand/icons.md: an arrow goes, a chevron
+// reveals), in the quiet pair the back control wears rather than in the state's
+// tint. The one caller that wires it up is the room, where it opens the
+// conversation the task came out of, which is why the name below says
+// conversation rather than naming a surface this file cannot see. A stack would
 // otherwise end in four coloured arrows down its right edge, and four hues in
 // a column read as four more state marks: the colour belongs to the dial and
 // the figure, and the arrow is a way out, which is the same sentence in every
@@ -75,6 +99,36 @@ const ENTER = "animate-in fade-in-0 duration-(--duration-enter) ease-out-quart m
     exact multiple of the row it grew out of rather than a looser version. */
 const LINE = "flex h-6 min-w-0 items-center gap-1.5 text-xs";
 
+/** The line a stacked row is pressable over: the whole line, 8px past each end
+    so the fill covers the arrow's own -6px overhang. `-mx-2 px-2` widens the
+    box without moving a word inside it. The lift answers a hover anywhere
+    in the row, Stop included — both controls belong to this line — and a
+    keyboard focus on either, so tabbing down the list says which row it is on
+    and not only which control.
+
+    No duration or easing of its own: this is applied with ENTER on the same
+    element, tailwind-merge keeps only the last of a group, and ENTER's
+    `duration-(--duration-enter)` would eat any that were written here
+    (button.tsx has the same trap in its transition list). 140ms against the
+    controls' 150 is the same beat, so the fill simply rides the row's. */
+const ROW_TARGET = "-mx-2 cursor-pointer rounded-sm px-2 transition-colors hover:bg-tint-5 has-[:focus-visible]:bg-tint-5";
+
+/** A click on a pressable line (ROW_TARGET) that no control inside it claimed.
+    The arrow's own press, Stop's, and Enter on either reach the row as clicks
+    from a button, and are left to that button — so Stop still only stops, and
+    nothing opens twice. */
+function rowClick(open: () => void) {
+  return (event: React.MouseEvent) => {
+    if ((event.target as Element).closest("button")) return;
+    open();
+  };
+}
+
+/** The whole sentence a truncated line promises. */
+function taskSentence(run: AgentRun): string {
+  return run.detail ? `${run.task} · ${run.detail}` : run.task;
+}
+
 /** The task and its one parameter, as one run of text with one ellipsis. */
 function TaskText({ run }: { run: AgentRun }) {
   return (
@@ -82,7 +136,7 @@ function TaskText({ run }: { run: AgentRun }) {
     // hover away. A plain title rather than the Tooltip primitive because this
     // is text, not a control: a Tooltip needs a focusable trigger, which would
     // put a second stop in the bar's tab order for no action.
-    <span className="truncate text-muted-foreground" title={run.detail ? `${run.task} · ${run.detail}` : run.task}>
+    <span className="truncate text-muted-foreground" title={taskSentence(run)}>
       {run.task}
       {run.detail && (
         <>
@@ -171,7 +225,7 @@ function RunEnd({
         variant="ghost"
         size="icon-xs"
         onClick={onOpenTask}
-        aria-label={`${run.name}, ${label} — open this task on the board`}
+        aria-label={`${run.name}, ${label} — open this task's conversation`}
         className="-mr-1.5 shrink-0 text-muted-foreground hover:text-foreground"
       >
         <IconArrowUpRight className="size-3.5" aria-hidden="true" />
@@ -198,7 +252,7 @@ export function AgentDetail({
   onBack: () => void;
   /**
    * Where a run's work is written down, asked per run because a stack
-   * routinely mixes work the board has a card for with work it does not.
+   * routinely mixes work that has somewhere to go with work that does not.
    * Returning nothing leaves that line's state word where it was.
    */
   onOpenTask?: (run: AgentRun) => (() => void) | undefined;
@@ -321,15 +375,31 @@ export function AgentDetail({
           the first one. `list` because that is what it is, and a screen reader
           should hear how many before it hears the first. */}
       <ul aria-label={`${runs.length} tasks for ${lead.name}`} className="flex min-w-0 flex-col gap-0.5 pl-7">
-        {runs.map((run) => (
-          <li key={run.id} className={cn(LINE, ENTER)}>
-            <StateDial state={run.state} progress={run.progress} />
-            <span className="min-w-0 flex-1">
-              <TaskText run={run} />
-            </span>
-            <RunEnd run={run} onEnd={onEndRun ? () => onEndRun(run) : undefined} onOpenTask={onOpenTask?.(run)} />
-          </li>
-        ))}
+        {runs.map((run) => {
+          // Asked once per row: it decides whether the line ends in an arrow or
+          // in a word, and with it whether the line is a target at all. A run
+          // the caller has nowhere to send stays a line of text — a row that
+          // lit up under the pointer and answered nothing would be worse than
+          // one that never offered.
+          const openTask = onOpenTask?.(run);
+          return (
+            <li
+              key={run.id}
+              className={cn(LINE, openTask && ROW_TARGET, ENTER)}
+              onClick={openTask && rowClick(openTask)}
+            >
+              <StateDial state={run.state} progress={run.progress} />
+              <span className="min-w-0 flex-1">
+                <TaskText run={run} />
+              </span>
+              <RunEnd
+                run={run}
+                onEnd={onEndRun ? () => onEndRun(run) : undefined}
+                onOpenTask={openTask}
+              />
+            </li>
+          );
+        })}
       </ul>
     </div>
   );

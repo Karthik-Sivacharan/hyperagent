@@ -1,4 +1,10 @@
-import { IconAlertTriangleFilled, IconCircleCheckFilled, IconCircleHalf2, type TablerIcon } from "@tabler/icons-react";
+import {
+  IconAlertTriangleFilled,
+  IconCircleCheckFilled,
+  IconCircleHalf2,
+  IconPlayerStopFilled,
+  type TablerIcon,
+} from "@tabler/icons-react";
 
 import type { GlyphTone } from "@/components/brand/agent-glyph";
 import type { AgentRunState } from "./types";
@@ -77,6 +83,21 @@ export const RUN_STATES: Readonly<Record<AgentRunState, RunStatePresentation>> =
     icon: IconAlertTriangleFilled,
     wants: false,
   },
+  // Red, like `stuck`, because both are a run that ended without its work
+  // finishing and the reader should find them at the same glance. The MARK is
+  // what separates them, and it is the one control that produces this state:
+  // you pressed a stop square, so the run wears a stop square. That also makes
+  // it the only non-circular mark in the table, which is right — it is the one
+  // state a person put there.
+  stopped: {
+    label: "Stopped",
+    tone: "avatar-danger",
+    paperTone: "danger",
+    tint: "text-destructive",
+    ring: "ring-destructive/55",
+    icon: IconPlayerStopFilled,
+    wants: false,
+  },
 };
 
 /**
@@ -102,5 +123,35 @@ export const STATE_PRIORITY: Readonly<Record<AgentRunState, number>> = {
   input: 0,
   stuck: 1,
   running: 2,
-  done: 3,
+  // Ahead of `done` and behind everything else: a run somebody called off is
+  // news, and a run that finished is the one piece that can wait.
+  stopped: 3,
+  done: 4,
+};
+
+/**
+ * Which states get a disc when the stack is folded to its three seats, and the
+ * order those discs sit in (agent-status/fold.ts).
+ *
+ * A SECOND ORDER, NOT A COPY OF THE FIRST (§5.7 is about copies). STATE_PRIORITY
+ * lines up everything, and the +N and the unfolded row still read in it. This
+ * answers a narrower question — with three seats and ten runs, which three
+ * faces stand for the fleet — and a queue is the wrong answer to it: three
+ * seats dealt in reading order were two amber discs and a red one, the same
+ * news twice and nothing about the work that is going fine. So the folded
+ * stack deals one seat per state, in this order: first the three things a run
+ * does on its own — it is going, it landed, it fell over — then the two that
+ * are about a person, waiting on one and ended by one.
+ *
+ * `input` giving up a front seat is the cost, and it is paid where it is
+ * cheapest: it leads the +N, whose tooltip and name say it first and which
+ * opens on it first. Keyed on the state, like the table above, so a sixth
+ * state cannot arrive without being given a seat.
+ */
+export const SEAT_PRIORITY: Readonly<Record<AgentRunState, number>> = {
+  running: 0,
+  done: 1,
+  stuck: 2,
+  input: 3,
+  stopped: 4,
 };

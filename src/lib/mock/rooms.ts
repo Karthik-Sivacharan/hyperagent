@@ -238,11 +238,33 @@ const capabilityChecks: Room = {
           },
         },
         {
+          id: "m_10",
+          authorId: "priya",
+          time: "12:06 PM",
+          blocks: [
+            {
+              kind: "paragraph",
+              text: "@[zippy] both renders are in now, so the tickets we filed against the inline path are dead weight. Archive anything on the render board that has not moved since the flag went on. I count nine.",
+            },
+          ],
+        },
+        {
           id: "m_4",
           authorId: "yuki",
           time: "2:06 PM",
           system: true,
           blocks: [{ kind: "paragraph", text: "was added to the room by Priya Raghunathan." }],
+        },
+        {
+          id: "m_11",
+          authorId: "priya",
+          time: "2:09 PM",
+          blocks: [
+            {
+              kind: "paragraph",
+              text: "@[yuki] you have missed the morning, and the delegation thread is the part worth reading: self-delegation works, and the approval gate nobody asked for is still open. Write it up for the changelog and keep it under unreleased, because none of it has shipped.",
+            },
+          ],
         },
         {
           id: "m_5",

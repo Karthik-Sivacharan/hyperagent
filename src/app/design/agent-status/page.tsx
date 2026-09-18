@@ -17,7 +17,13 @@ import {
 } from "@/components/composer/composer-agent-status";
 import { Button } from "@/components/ui/button";
 import { Overline } from "@/components/ui/overline";
-import { AGENT_RUNS, ONE_AGENT_MANY_TASKS, ONE_PER_STATE, THREE_RUNNING_OF_FOUR } from "@/lib/mock/agent-status";
+import {
+  AGENT_RUNS,
+  CROWDED_FLEET,
+  ONE_AGENT_MANY_TASKS,
+  ONE_PER_STATE,
+  THREE_RUNNING_OF_FOUR,
+} from "@/lib/mock/agent-status";
 
 // The composer's agent bar, block by block, the way /design/agent-stream lays
 // out the streaming turn: every specimen below is the live component on the
@@ -429,7 +435,7 @@ export default function AgentStatusPage() {
 
         <Section
           label="The stack"
-          blurb="Six agents, three chips and a count for the rest, in the order the bar sorts them: whoever wants something, then trouble, then the ones still going, then the ones already finished. Opposite them, the one thing a row of overlapping discs cannot say: how many there are, and whether any is still going — it shimmers on the product's running-label device while something is out, and changes tense when the last one lands. At 512 it is the same bar, because the readout was never the part under pressure. Below it, the same fleet with the overflow count set earlier and later."
+          blurb="Seven agents, three chips and a count for the rest. Each disc is one agent, wearing its loudest run; an agent on several tasks is still one face, and picking it opens the list. The three are a sample, not a queue: one per state before any state gets two, in seat order — working, done, stuck, then the two that are about a person. The count holds the rest in reading order, whoever wants something first, and pressing it unfolds them in place. Opposite them, the one thing a row of overlapping discs cannot say: how many there are, and whether any is still going — it shimmers on the product's running-label device while something is out, and changes tense when the last one lands. At 512 it is the same bar, because the readout was never the part under pressure. Below it, the same fleet with the overflow count set earlier and later."
         >
           <Measures>
             <BarFrame>
@@ -437,6 +443,17 @@ export default function AgentStatusPage() {
             </BarFrame>
           </Measures>
           <MaxVariants />
+        </Section>
+
+        <Section
+          label="Unfolded"
+          blurb="The count pressed: every agent in the row, the three seated discs where they were and the rest after them in reading order, held at the spacing the hover opens to, with a chevron at the right edge that folds them back. Fifteen agents, which fit at 752 and do not at 512 — there the row scrolls sideways inside the same 40px rather than growing a line, the edge with more behind it fades, and the chevron stays pinned outside the scroll so the way back is never scrolled away."
+        >
+          <Measures>
+            <BarFrame>
+              <ComposerAgentStatus runs={CROWDED_FLEET} defaultExpanded onOpenTask={() => {}} onEndRun={() => {}} />
+            </BarFrame>
+          </Measures>
         </Section>
 
         <Section
@@ -466,7 +483,7 @@ export default function AgentStatusPage() {
 
         <Section
           label="Three running of four"
-          blurb="The Stop, in the number a real row produces. It is the one control here that is not on every line: three of EvalBot's four tasks are still going and each of those carries it, while the fourth has already stopped and is waiting on a person, so it carries none — the gap at the bottom of the column is as much the specimen as the three above it. Stop sits before the arrow because the two are not peers: stopping is the destructive one, so a reader who overshoots the end of a line lands on the harmless one. Both are the same 24px square and both are as neutral as each other; a red Stop would put the loudest colour in the bar on the one state that deliberately spends none, and it would read as the state rather than as the action."
+          blurb="The Stop, in the number a real row produces. It is the one control here that is not on every line: three of EvalBot's four tasks are still going and each of those carries it, while the fourth has already stopped and is waiting on a person, so it carries none — the gap at the bottom of the column is as much the specimen as the three above it. Stop sits before the arrow because the two are not peers: stopping is the destructive one, so a reader who overshoots the end of a line lands on the harmless one. Both are the same 24px square and both are as neutral as each other; a red Stop would put the loudest colour in the bar on the one state that deliberately spends none, and it would read as the state rather than as the action. It is also the reason the row's own target is the line rather than a button around it: a button inside a button is invalid, so the arrow stays the control and a press anywhere else on the line opens the task, while Stop keeps its own clicks and its place in the tab order."
         >
           <Measures>
             <StackedDetailSpecimen runs={THREE_RUNNING_OF_FOUR} />
@@ -475,7 +492,7 @@ export default function AgentStatusPage() {
 
         <Section
           label="Expanded, stacked"
-          blurb="The same row for an agent that is doing four things at once, which the board makes routine: one figure, one name, a count where a single row ends, and a line each for the work — dial, task, parameter, and the same neutral arrow out to its card. Four of them down the right edge is exactly why that arrow carries no hue: tinted, a column of them would read as four more state marks beside the four dials that already are. This is the one thing that changes the bar's height, and it earns it. A readout that folded these four into one state could not say Media Lab Director is stuck on the second render and fine on the trace, and that sentence is the reason the board is per task rather than per agent. The box grows upward, into the thread; the field below it does not move."
+          blurb="The same row for an agent that is doing four things at once, which the board makes routine: one figure, one name, a count where a single row ends, and a line each for the work — dial, task, parameter, and the same neutral arrow out to its card. Four of them down the right edge is exactly why that arrow carries no hue: tinted, a column of them would read as four more state marks beside the four dials that already are. This list is a chooser, so the chip that opened it went nowhere — with four tasks behind one figure, a click that also jumped would have picked for the reader — and picking a line is what travels. That makes the whole line the target: hover anywhere on one and it lifts, while the arrow at its end stays the control, the tab stop and the name. This is the one thing that changes the bar's height, and it earns it. A readout that folded these four into one state could not say Media Lab Director is stuck on the second render and fine on the trace, and that sentence is the reason the board is per task rather than per agent. The box grows upward, into the thread; the field below it does not move."
         >
           <Measures>
             <BarFrame>

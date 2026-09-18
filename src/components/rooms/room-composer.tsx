@@ -118,6 +118,21 @@ export function mentionedMemberIds(draft: string, members: readonly RoomMember[]
   return members.filter((member) => found.has(member.id)).map((member) => member.id);
 }
 
+/**
+ * The draft as the room stores it: every "@Name" the roster recognises becomes
+ * the `@[id]` token the written messages use (room-rich-text.tsx), so a sent
+ * message draws its mentions exactly the way the mock's own do. The same scan
+ * as above, longest name first, so "@Media Lab Director" is never cut down to
+ * a "@Media" and the rest of the name left behind as prose.
+ */
+export function toRoomText(draft: string, members: readonly RoomMember[]): string {
+  let text = draft.trim();
+  for (const member of [...members].sort((a, b) => b.name.length - a.name.length)) {
+    text = text.split(`@${member.name}`).join(`@[${member.id}]`);
+  }
+  return text;
+}
+
 export function RoomComposer({
   placeholder,
   size = "default",

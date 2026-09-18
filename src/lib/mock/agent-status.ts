@@ -5,20 +5,21 @@ import type { AgentRun, AgentRunState } from "@/components/composer/agent-status
 // this directory: nothing is running behind this screen, so every state is
 // written out.
 //
-// SIX, NOT FOUR. The bar shows three chips and folds the rest into a count, so
-// a fleet of exactly four would only ever prove the exact-fit case and the
-// overflow would never be seen. Six puts three figures on the right and a "+3"
-// behind them, which is the shape the bar exists for. It also lets `running`
-// and `done` appear twice, so the stack reads as a group of agents rather than
-// as one chip per state, which is the thing a four-run fleet quietly implies.
+// SEVEN, NOT FIVE. The bar shows three chips and folds the rest into a count,
+// so a fleet of exactly one per state would only ever prove the exact-fit case
+// and the overflow would never be seen. Seven puts three figures on the right
+// and a "+4" behind them, which is the shape the bar exists for. It also lets
+// `running` and `done` appear twice, so the stack reads as a group of agents
+// rather than as one chip per state, which is the thing a one-each fleet
+// quietly implies.
 //
-// THE ORDER HERE IS NOT THE ORDER ON SCREEN. The stack sorts by
-// STATE_PRIORITY (run-state.ts): whoever wants something first, then trouble,
-// then the ones still going, then the ones already finished. So this file is
-// written in the order a person would have started them, oldest first, and the
-// sorting is left to the thing that draws it. Anything that only reads right
-// in source order is a bug in the reader, and writing it pre-sorted would hide
-// exactly that.
+// THE ORDER HERE IS NOT THE ORDER ON SCREEN. The stack seats one disc per
+// state in SEAT_PRIORITY and folds the rest behind its counter in
+// STATE_PRIORITY (run-state.ts, composer/agent-status/fold.ts). So this file
+// is written in the order a person would have started them, oldest first, and
+// the sorting is left to the thing that draws it. Anything that only reads
+// right in source order is a bug in the reader, and writing it pre-sorted
+// would hide exactly that.
 //
 // TASKS ARE THE TOOL-CALL IDIOM, the one types.ts asks for and the one a
 // running turn already prints (thread/tool-call-row.tsx): present tense,
@@ -89,6 +90,18 @@ export const AGENT_RUNS: readonly AgentRun[] = [
     state: "done",
     task: "Reconciling the month",
     detail: "Calder and Rowe, 3 gaps",
+  },
+  // The one state nothing about the work produced: somebody pressed Stop on
+  // it. It keeps the task it was part way through and carries no fraction,
+  // because a run that was called off is not a fraction of anything — the same
+  // reason `done` and `stuck` carry none.
+  {
+    id: "deck-build",
+    name: "Deck build",
+    glyph: "slot-stack",
+    state: "stopped",
+    task: "Laying out the quarterly deck",
+    detail: "Stopped at slide 6 of 18",
   },
 ];
 
@@ -200,11 +213,50 @@ export const THREE_RUNNING_OF_FOUR: readonly AgentRun[] = [
   },
 ];
 
-/** The order types.ts declares, which is hueless first and loudest last. */
-const STATE_ORDER: readonly AgentRunState[] = ["running", "done", "input", "stuck"];
+/** A face for each of the fifteen runs below, so the crowd is fifteen agents. */
+const CROWD: readonly { name: string; glyph: string }[] = [
+  { name: "Deck build", glyph: "slot-stack" },
+  { name: "Expense review", glyph: "bell" },
+  { name: "Inbox triage", glyph: "sweep" },
+  { name: "Market sweep", glyph: "hammerhead" },
+  { name: "Release watch", glyph: "portal" },
+  { name: "Spend check", glyph: "hourglass" },
+  { name: "Weekly digest", glyph: "cog" },
+  { name: "Media Lab Director", glyph: "pinwheel" },
+  { name: "EvalBot", glyph: "trefoil" },
+  { name: "Tool-Error Triage", glyph: "notched-block" },
+  { name: "Changelog", glyph: "dome-walker" },
+  { name: "Backlog", glyph: "arch-ghost" },
+  { name: "Flag audit", glyph: "plug-arrow" },
+  { name: "Render queue", glyph: "pedestal" },
+  { name: "Cost report", glyph: "orb-stems" },
+];
 
 /**
- * One run per state, for the specimen row that compares the four side by side.
+ * Every run on this page in one bar, each handed its own agent: fifteen
+ * faces, which is wider than the row at the 512px floor once the counter is
+ * unfolded. It is the specimen for the one case the unfolded row has to
+ * survive without growing a line — it scrolls sideways under a fade. The
+ * stack draws one disc per AGENT (fold.ts), so the runs are re-faced rather
+ * than reused as they are: the same fifteen under their own agents would be
+ * nine discs, which fit. The work itself is assembled from the fleets above
+ * rather than written again, so no sentence here exists only to fill a row.
+ */
+export const CROWDED_FLEET: readonly AgentRun[] = [...AGENT_RUNS, ...ONE_AGENT_MANY_TASKS, ...THREE_RUNNING_OF_FOUR].map(
+  (run, index) => ({
+    ...run,
+    id: `crowd-${index}`,
+    agentId: `crowd-${index}`,
+    name: CROWD[index]?.name ?? run.name,
+    glyph: CROWD[index]?.glyph ?? run.glyph,
+  }),
+);
+
+/** The order types.ts declares, which is hueless first and loudest last. */
+const STATE_ORDER: readonly AgentRunState[] = ["running", "done", "input", "stuck", "stopped"];
+
+/**
+ * One run per state, for the specimen row that compares them side by side.
  * Picked out of the fleet rather than written again, so a state can never be
  * shown on the design page in a dress the bar itself never puts it in.
  */

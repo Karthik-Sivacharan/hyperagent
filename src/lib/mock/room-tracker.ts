@@ -34,19 +34,28 @@
 //     what is happening now, on done the outcome. Queued work has not started,
 //     so it usually has nothing to say and carries none.
 //
-// THE TASKS. 32 across the four rooms, every lane populated in every room so
-// no board opens empty. room_capability_checks holds 14 of them, because it
+// THE TASKS. 34 across the four rooms, every lane populated in every room so
+// no board opens empty. room_capability_checks holds 16 of them, because it
 // is the room with the conversation: Media Lab Director carries four tasks in
 // four different lanes, tracing the approval gate through the logs while
 // blocked by that same gate on the next render, which is the contradiction
 // the board is built to show. Tool-Error Triage carries three and EvalBot
-// three. Two sit on people, one on the signed-in account.
+// three, Yuki and Zippy two each, so every agent on the composer's bar is one
+// face standing for more than one run. Two sit on people, one on the
+// signed-in account.
 //
 // Only room_capability_checks has messages in rooms.ts, so it is the only
-// room whose tasks carry a `sourceMessageId`: seven of its fourteen, each one
-// a real top-level message in that room (m_1 through m_9, skipping the two
-// membership events). Ids leave gaps the way a shared counter does when other
-// rooms draw from it.
+// room whose tasks carry a `sourceMessageId`, and there all sixteen do: the
+// trip back is the point, so a card in the room the board was designed on is
+// not allowed to be the one that goes nowhere. Each id is a real top-level
+// message in that room (m_1 through m_11, skipping the two membership
+// events), and a message carries as many tasks as it asked for things: the
+// 9:12 from the account asks for two and carries two, and the overnight
+// failure report carries three, the retry, the sweep that found it and the
+// backoff its thread settled on. Two of them had nothing honest to
+// point at, so rooms.ts gained the messages they came out of rather than a
+// link to something near enough. Ids leave gaps the way a shared counter
+// does when other rooms draw from it.
 
 /** The five lanes, and the state a card is in. */
 export type TaskStatus = "needs-you" | "blocked" | "working" | "queued" | "done";
@@ -139,6 +148,7 @@ export const ROOM_TASKS: RoomTask[] = [
     assigneeId: "media-lab",
     caption: "Reading last night's four spawns for a pattern",
     progress: { done: 3, total: 4 },
+    sourceMessageId: "m_6",
     updated: "9m ago",
   },
   {
@@ -160,7 +170,19 @@ export const ROOM_TASKS: RoomTask[] = [
     assigneeId: "evalbot",
     caption: "Through 41 of 62 cases on the new flag",
     progress: { done: 41, total: 62 },
+    sourceMessageId: "m_8",
     updated: "4m ago",
+  },
+  {
+    id: "t_119",
+    roomId: "room_capability_checks",
+    title: "Archive the stale render tickets",
+    status: "working",
+    assigneeId: "zippy",
+    caption: "Four of the nine moved, five to go",
+    progress: { done: 4, total: 9 },
+    sourceMessageId: "m_10",
+    updated: "6m ago",
   },
 
   // Queued.
@@ -171,6 +193,7 @@ export const ROOM_TASKS: RoomTask[] = [
     status: "queued",
     assigneeId: "dan",
     progress: { done: 0, total: 3 },
+    sourceMessageId: "m_7",
     updated: "1h ago",
   },
   {
@@ -180,16 +203,8 @@ export const ROOM_TASKS: RoomTask[] = [
     status: "queued",
     assigneeId: "evalbot",
     progress: { done: 0, total: 2 },
+    sourceMessageId: "m_9",
     updated: "4m ago",
-  },
-  {
-    id: "t_119",
-    roomId: "room_capability_checks",
-    title: "Archive the stale render tickets",
-    status: "queued",
-    assigneeId: "zippy",
-    progress: { done: 0, total: 9 },
-    updated: "Yesterday",
   },
 
   // Done.
@@ -210,6 +225,7 @@ export const ROOM_TASKS: RoomTask[] = [
     status: "done",
     assigneeId: "triage",
     caption: "Four failures, all the same 403 shape",
+    sourceMessageId: "m_7",
     updated: "3h ago",
   },
   {
@@ -219,7 +235,28 @@ export const ROOM_TASKS: RoomTask[] = [
     status: "done",
     assigneeId: "yuki",
     caption: "Three lines, filed under unreleased",
+    sourceMessageId: "m_11",
     updated: "Yesterday",
+  },
+  {
+    id: "t_126",
+    roomId: "room_capability_checks",
+    title: "Note the open approval gate under known issues",
+    status: "done",
+    assigneeId: "yuki",
+    caption: "One line, linked to the thread",
+    sourceMessageId: "m_11",
+    updated: "2h ago",
+  },
+  {
+    id: "t_120",
+    roomId: "room_capability_checks",
+    title: "Merge the duplicate render tickets",
+    status: "done",
+    assigneeId: "zippy",
+    caption: "Six filed against the inline path, now two",
+    sourceMessageId: "m_10",
+    updated: "20m ago",
   },
 
   /* ----------------------------------------------- room_release_train */

@@ -1,6 +1,7 @@
 import { SHIMMER, sweepStyle } from "@/components/thread/shimmer";
 import { cn } from "@/lib/utils";
 
+import { agentCount } from "./fold";
 import type { AgentRun } from "./types";
 
 // The left of the agent bar, in one line: how many agents are out, and whether
@@ -37,10 +38,12 @@ import type { AgentRun } from "./types";
     eyes already move at (agent-chip.tsx). Two crossings to a cycle. */
 const CYCLE_MS = 3200;
 
-/** "3 agents working", "1 agent done" — the tense is the state of the fleet. */
+/** "3 agents working", "1 agent done" — the tense is the state of the fleet.
+    AGENTS, not runs: one agent on three running tasks is one agent working,
+    the same count the stack beside it draws faces for. */
 export function runCountLabel(runs: readonly AgentRun[]): string {
-  const working = runs.filter((run) => run.state === "running").length;
-  const n = working > 0 ? working : runs.length;
+  const working = agentCount(runs.filter((run) => run.state === "running"));
+  const n = working > 0 ? working : agentCount(runs);
   const noun = n === 1 ? "agent" : "agents";
   return `${n} ${noun} ${working > 0 ? "working" : "done"}`;
 }
