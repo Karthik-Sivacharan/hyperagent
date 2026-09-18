@@ -13,13 +13,13 @@ import type { AgentRun, AgentRunState } from "@/components/composer/agent-status
 // rather than as one chip per state, which is the thing a one-each fleet
 // quietly implies.
 //
-// THE ORDER HERE IS NOT THE ORDER ON SCREEN. The stack sorts by
-// STATE_PRIORITY (run-state.ts): whoever wants something first, then trouble,
-// then the ones still going, then the ones already finished. So this file is
-// written in the order a person would have started them, oldest first, and the
-// sorting is left to the thing that draws it. Anything that only reads right
-// in source order is a bug in the reader, and writing it pre-sorted would hide
-// exactly that.
+// THE ORDER HERE IS NOT THE ORDER ON SCREEN. The stack seats one disc per
+// state in SEAT_PRIORITY and folds the rest behind its counter in
+// STATE_PRIORITY (run-state.ts, composer/agent-status/fold.ts). So this file
+// is written in the order a person would have started them, oldest first, and
+// the sorting is left to the thing that draws it. Anything that only reads
+// right in source order is a bug in the reader, and writing it pre-sorted
+// would hide exactly that.
 //
 // TASKS ARE THE TOOL-CALL IDIOM, the one types.ts asks for and the one a
 // running turn already prints (thread/tool-call-row.tsx): present tense,
@@ -212,6 +212,15 @@ export const THREE_RUNNING_OF_FOUR: readonly AgentRun[] = [
     progress: 0.9,
   },
 ];
+
+/**
+ * Every run on this page in one bar: fifteen, which is wider than the row at
+ * the 512px floor once the counter is unfolded. It is the specimen for the
+ * one case the unfolded row has to survive without growing a line — it
+ * scrolls sideways under a fade — and it is assembled from the fleets above
+ * rather than written again, so no sentence here exists only to fill a row.
+ */
+export const CROWDED_FLEET: readonly AgentRun[] = [...AGENT_RUNS, ...ONE_AGENT_MANY_TASKS, ...THREE_RUNNING_OF_FOUR];
 
 /** The order types.ts declares, which is hueless first and loudest last. */
 const STATE_ORDER: readonly AgentRunState[] = ["running", "done", "input", "stuck", "stopped"];

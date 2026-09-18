@@ -128,3 +128,30 @@ export const STATE_PRIORITY: Readonly<Record<AgentRunState, number>> = {
   stopped: 3,
   done: 4,
 };
+
+/**
+ * Which states get a disc when the stack is folded to its three seats, and the
+ * order those discs sit in (agent-status/fold.ts).
+ *
+ * A SECOND ORDER, NOT A COPY OF THE FIRST (§5.7 is about copies). STATE_PRIORITY
+ * lines up everything, and the +N and the unfolded row still read in it. This
+ * answers a narrower question — with three seats and ten runs, which three
+ * faces stand for the fleet — and a queue is the wrong answer to it: three
+ * seats dealt in reading order were two amber discs and a red one, the same
+ * news twice and nothing about the work that is going fine. So the folded
+ * stack deals one seat per state, in this order: first the three things a run
+ * does on its own — it is going, it landed, it fell over — then the two that
+ * are about a person, waiting on one and ended by one.
+ *
+ * `input` giving up a front seat is the cost, and it is paid where it is
+ * cheapest: it leads the +N, whose tooltip and name say it first and which
+ * opens on it first. Keyed on the state, like the table above, so a sixth
+ * state cannot arrive without being given a seat.
+ */
+export const SEAT_PRIORITY: Readonly<Record<AgentRunState, number>> = {
+  running: 0,
+  done: 1,
+  stuck: 2,
+  input: 3,
+  stopped: 4,
+};

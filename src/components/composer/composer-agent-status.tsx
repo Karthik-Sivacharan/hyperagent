@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { AgentDetail } from "@/components/composer/agent-status/agent-detail";
 import { AgentStack } from "@/components/composer/agent-status/agent-stack";
+import { sameAgent, STACK_MAX } from "@/components/composer/agent-status/fold";
 import { RunCount } from "@/components/composer/agent-status/run-count";
 import type { AgentRun } from "@/components/composer/agent-status/types";
 import { cn } from "@/lib/utils";
@@ -108,6 +109,26 @@ import { cn } from "@/lib/utils";
 // already introduces itself, the stack as a labelled list and the detail in
 // words, and a wrapper repeating either would be announced twice. They are
 // floors, not destinations.
+//
+// THE +N UNFOLDS IN PLACE (agent-status/agent-stack.tsx): the counter becomes
+// the discs it was counting and a chevron at the right edge folds them back,
+// in the same 40px, never a second line. The state lives HERE rather than in
+// the stack, because opening a chip unmounts the stack, and a reader who
+// unfolded the row, opened one agent and came Back should land in the row
+// they left — with the chip they picked still in it for focus to return to.
+// Escape folds it too, after it has closed a detail: one key, one thing.
+//
+// AND FOCUS SURVIVES THE FOLD, under the same guard. Each of the two controls
+// unmounts the moment it is pressed, so this is the same safety net: taken
+// only when focus has already fallen to <body>, and handed to the nearest
+// thing that means the same. From the keyboard, unfolding hands it to the
+// first disc the counter stood for, which is where the counter was and what it
+// was about, and folding hands it back to the counter, the control that undoes
+// the fold. From a pointer it goes to the stack itself, because every control
+// in this row opens its tooltip on focus (Radix does not ask how focus
+// arrived), and a click on +7 that popped a tooltip over a disc the pointer is
+// nowhere near reads as a glitch. The floor still keeps the place: the next
+// Tab walks into the discs rather than restarting at the top of the page.
 
 /** The bar's own row. Exported so a specimen can put something else in it
     without the 40px being typed a second time and drifting. */
@@ -119,12 +140,6 @@ export const AGENT_BAR_ROW_TALL = "flex min-h-10 min-w-0 items-stretch border-b 
 
 /** What the detail wears inside that row: its own box off, the bar's kept. */
 export const AGENT_BAR_DETAIL = "h-full min-w-0 flex-1 border-b-0 px-0";
-
-/** One agent's runs, by the id it carries or, failing that, by its name — the
-    only other thing on a run that belongs to the agent and not to the work. */
-function sameAgent(a: AgentRun, b: AgentRun): boolean {
-  return a.agentId && b.agentId ? a.agentId === b.agentId : a.name === b.name;
-}
 
 /** Everything the agent behind `run` has out, that run first and the rest in
     the order the bar was handed them. It answers both questions the bar asks
@@ -140,7 +155,8 @@ const REVEAL = "animate-in fade-in-0 duration-(--duration-enter) ease-out-quart 
 
 export function ComposerAgentStatus({
   runs,
-  max,
+  max = STACK_MAX,
+  defaultExpanded = false,
   onOpen,
   onOpenTask,
   canOpenTask,
@@ -150,6 +166,9 @@ export function ComposerAgentStatus({
   runs: readonly AgentRun[];
   /** How many chips before the rest collapse into a count. */
   max?: number;
+  /** Start with every chip on show, for a specimen of the unfolded row. The
+      bar itself always opens folded. */
+  defaultExpanded?: boolean;
   /**
    * Where the agent's work actually is. Called with the click that opens a
    * chip, but only for an agent whose whole presence in the bar is that one
@@ -186,6 +205,11 @@ export function ComposerAgentStatus({
   // row that is no longer true.
   const [openId, setOpenId] = useState<string | null>(null);
   const open = runs.find((run) => run.id === openId) ?? null;
+  // Whether the +N has been unfolded. Only true while there IS a +N: a fleet
+  // that shrinks to fit leaves nothing folded, and the stack draws that folded
+  // whatever this says (agent-stack.tsx), so the two are read together.
+  const [expanded, setExpanded] = useState(defaultExpanded);
+  const unfolded = expanded && runs.length > max;
   // The picked run leads, then the rest of that agent's work in the order the
   // stack already put it in, so the lines read the way the chips did.
   const openGroup = open ? agentGroup(runs, open) : [];
@@ -217,17 +241,44 @@ export function ComposerAgentStatus({
     (chip ?? stackRef.current)?.focus({ preventScroll: true });
   }, [open]);
 
+  // The fold's half of the contract (the note above). Seeded with the first
+  // render's value, so a bar that mounts unfolded is not read as a change.
+  const shownUnfolded = useRef(unfolded);
+  // How the last press in the bar arrived. Set by the bar's own pointer-down
+  // and key-down, both of which land before the click they turn into.
+  const byPointer = useRef(false);
+  useEffect(() => {
+    if (shownUnfolded.current === unfolded) return;
+    shownUnfolded.current = unfolded;
+
+    const active = document.activeElement;
+    if (active && active !== document.body) return;
+
+    const stack = stackRef.current;
+    const target = byPointer.current
+      ? null
+      : stack?.querySelector<HTMLElement>(
+          unfolded ? "[data-revealed] button" : "button[aria-expanded='false'][aria-controls]",
+        );
+    (target ?? stack)?.focus({ preventScroll: true });
+  }, [unfolded]);
+
   return (
     <div
       className={cn(openGroup.length > 1 ? AGENT_BAR_ROW_TALL : AGENT_BAR_ROW, className)}
+      onPointerDownCapture={() => {
+        byPointer.current = true;
+      }}
       onKeyDown={(event) => {
+        byPointer.current = false;
         // The detail handles Escape inside itself and stops it there; this is
         // the same key from the rest of the bar, and it stops here for the
         // same reason: one Escape closes one thing, and the composer sits on
         // routes that close their own on it.
-        if (event.key !== "Escape" || !open) return;
+        if (event.key !== "Escape" || !(open || unfolded)) return;
         event.stopPropagation();
-        setOpenId(null);
+        if (open) setOpenId(null);
+        else setExpanded(false);
       }}
     >
       {open ? (
@@ -258,12 +309,20 @@ export function ComposerAgentStatus({
           tabIndex={-1}
           className={cn(REVEAL, "flex h-full min-w-0 flex-1 items-center gap-3 outline-none")}
         >
-          <RunCount runs={runs} className="flex-1" />
+          {/* Folded, the count takes the slack and the stack keeps its width.
+              Unfolded, the count keeps its words and the ROW takes the slack,
+              scrolling inside it when a fleet is wider than the bar: the count
+              is the bar's only spoken readout (§5.1), so it is the last thing
+              that should be squeezed out of it. */}
+          <RunCount runs={runs} className={unfolded ? "shrink-0" : "flex-1"} />
           {/* No `activeId`: the stack and the detail are never on screen
               together, so there is never a chip to mark as the open one. */}
           <AgentStack
             runs={runs}
             max={max}
+            expanded={unfolded}
+            onExpandedChange={setExpanded}
+            className={unfolded ? "flex-1" : undefined}
             onSelect={(run: AgentRun) => {
               setOpenId(run.id);
               // The rule above, as one question about the row that is opening:
