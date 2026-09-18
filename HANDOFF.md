@@ -1,5 +1,13 @@
 # Handoff
 
+> **2026-09-17 — rooms, the agent bar and the tracker.** That day's work has
+> its own handoff: `docs/plans/2026-09-17-rooms-handoff.md`. It is on
+> `feat/rooms` and not yet on `main`, it lives in the `.claude/worktrees/agent-status`
+> worktree on port 3013, and §5 there is a list of decisions that were made,
+> reversed and made again — read it before changing the bar, the rail or the
+> tracker's link to either.
+
+
 Written 2026-09-07 at the end of plan step 5 (the brand colour tokens are
 the app's only palette), updated the same day for the move to Tabler
 icons and for the component system sweep, on 2026-09-09 for the composer
