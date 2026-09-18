@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Overline } from "@/components/ui/overline";
 import { renderInline, type InlineContext } from "@/components/wiki/wiki-body";
-import { wikiAtomTypeIcon } from "@/components/wiki/topic-type";
+import { AtomTypeIcon } from "@/components/wiki/topic-chip";
 import { fmtDay, fmtStamp } from "@/components/wiki/v1/format";
 import { plainText } from "@/components/wiki/v1/text";
 import type { WikiAtom, WikiPageVersion } from "@/lib/mock/wiki";
@@ -39,7 +39,6 @@ function DiffAtoms({
       <ul className="flex flex-col">
         {ids.map((id) => {
           const atom = atoms[id];
-          const Icon = wikiAtomTypeIcon(atom?.type ?? "");
           return (
             <li key={id}>
               <Button
@@ -48,7 +47,7 @@ function DiffAtoms({
                 onClick={() => onAtom(id)}
                 className="h-auto w-full justify-start gap-2 rounded-md px-2 py-1 text-left text-xs font-normal hover:bg-tint-10"
               >
-                <Icon className="size-3.5 text-foreground-low" aria-hidden="true" />
+                <AtomTypeIcon type={atom?.type ?? ""} className="text-foreground-low" />
                 <span
                   className={cn(
                     "min-w-0 flex-1 truncate",

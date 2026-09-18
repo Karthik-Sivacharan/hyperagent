@@ -1,7 +1,8 @@
+import { createElement } from "react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
-import { wikiGroupMeta } from "@/components/wiki/topic-type";
+import { wikiAtomTypeIcon, wikiGroupMeta, wikiSourceKindIcon } from "@/components/wiki/topic-type";
 import type { WikiGroupId } from "@/lib/mock/wiki";
 
 // A Topic, as a chip: its group's icon in the group's colour and a plain
@@ -11,6 +12,19 @@ import type { WikiGroupId } from "@/lib/mock/wiki";
 export function TopicIcon({ group, className }: { group: WikiGroupId; className?: string }) {
   const { icon: Icon, text } = wikiGroupMeta(group);
   return <Icon className={cn("size-3.5 shrink-0", text, className)} aria-hidden="true" />;
+}
+
+// The icon components come from module-level maps, so each lookup returns
+// the same component every render; createElement says so to the linter.
+
+/** An atom's type as its ink icon. */
+export function AtomTypeIcon({ type, className }: { type: string; className?: string }) {
+  return createElement(wikiAtomTypeIcon(type), { className: cn("size-3.5 shrink-0", className), "aria-hidden": true });
+}
+
+/** A source's kind (thread, document, saved memory) as its ink icon. */
+export function SourceKindIcon({ kind, className }: { kind: string; className?: string }) {
+  return createElement(wikiSourceKindIcon(kind), { className: cn("size-3.5 shrink-0", className), "aria-hidden": true });
 }
 
 export function TopicChip({

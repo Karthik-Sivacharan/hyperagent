@@ -2,8 +2,8 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { WikiBody, type InlineContext } from "@/components/wiki/wiki-body";
 import { ArticleHeader } from "@/components/wiki/v1/article-header";
+import { BodyV1, type BodyContext } from "@/components/wiki/v1/body";
 import { HistoryList } from "@/components/wiki/v1/history-list";
 import { MentionedIn } from "@/components/wiki/v1/mentioned-in";
 import { SourcesList } from "@/components/wiki/v1/sources-list";
@@ -38,7 +38,7 @@ export function ArticleV1({
   linkedFrom: WikiLinkedFrom[];
   tab: string;
   onTab: (tab: string) => void;
-  ctx: InlineContext;
+  ctx: BodyContext;
   onAtom: (id: string) => void;
   assistants: string[];
 }) {
@@ -85,7 +85,7 @@ export function ArticleV1({
 
       {tab === "page" ? (
         <div className="flex flex-col">
-          <WikiBody content={body} ctx={ctx} />
+          <BodyV1 content={body} ctx={ctx} />
           <MentionedIn entries={linkedFrom} />
         </div>
       ) : null}

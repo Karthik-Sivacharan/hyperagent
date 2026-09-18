@@ -7,8 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { AtomDrawer } from "@/components/wiki/atom-drawer";
 import { WikiTabs } from "@/components/wiki/wiki-tabs";
-import type { InlineContext } from "@/components/wiki/wiki-body";
 import { ArticleV1 } from "@/components/wiki/v1/article";
+import type { BodyContext } from "@/components/wiki/v1/body";
 import { DetailsRailV1 } from "@/components/wiki/v1/details-rail";
 import { fmtInt, fmtWindow } from "@/components/wiki/v1/format";
 import { IndexRailV1 } from "@/components/wiki/v1/index-rail";
@@ -95,13 +95,15 @@ export function WikiViewV1({
     });
   };
 
-  const ctx: InlineContext = useMemo(
+  const ctx: BodyContext = useMemo(
     () => ({
       cites: new Map(page.citations.map((id, index) => [id, index + 1])),
       links: page.links,
       onAtom: setAtomId,
+      atoms,
+      linkGroups,
     }),
-    [page],
+    [page, atoms, linkGroups],
   );
 
   return (

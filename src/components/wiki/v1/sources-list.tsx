@@ -4,7 +4,8 @@ import { IconAlertTriangle, IconChevronRight } from "@tabler/icons-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { WIKI_ATOM_TYPE_ORDER, wikiAtomTypeIcon, wikiSourceKindIcon } from "@/components/wiki/topic-type";
+import { AtomTypeIcon, SourceKindIcon } from "@/components/wiki/topic-chip";
+import { WIKI_ATOM_TYPE_ORDER } from "@/components/wiki/topic-type";
 import { fmtDay } from "@/components/wiki/v1/format";
 import type { WikiAtom } from "@/lib/mock/wiki";
 
@@ -22,16 +23,13 @@ function SourceKinds({ atom }: { atom: WikiAtom }) {
   }
   return (
     <span className="flex shrink-0 items-center gap-2">
-      {[...kinds].map(([kind, { label, count }]) => {
-        const Icon = wikiSourceKindIcon(kind);
-        return (
-          <span key={kind} className="inline-flex items-center gap-0.5 tabular-nums" title={label}>
-            <Icon className="size-3.5" aria-hidden="true" />
-            <span className="sr-only">{label}</span>
-            {count > 1 ? count : null}
-          </span>
-        );
-      })}
+      {[...kinds].map(([kind, { label, count }]) => (
+        <span key={kind} className="inline-flex items-center gap-0.5 tabular-nums" title={label}>
+          <SourceKindIcon kind={kind} />
+          <span className="sr-only">{label}</span>
+          {count > 1 ? count : null}
+        </span>
+      ))}
     </span>
   );
 }
@@ -107,12 +105,11 @@ export function SourcesList({
   return (
     <div className="flex flex-col gap-5">
       {types.map((type) => {
-        const Icon = wikiAtomTypeIcon(type);
         const rows = cited.filter((atom) => atom.type === type);
         return (
           <section key={type} className="flex flex-col gap-1">
             <h3 className="flex items-center gap-2 px-2 text-label-12-caps text-foreground-low">
-              <Icon className="size-3.5" aria-hidden="true" />
+              <AtomTypeIcon type={type} />
               {type}
               <span className="text-label-12-mono">{rows.length}</span>
             </h3>

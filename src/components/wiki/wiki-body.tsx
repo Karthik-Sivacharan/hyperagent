@@ -105,7 +105,7 @@ function CiteMark({ id, number, onAtom }: { id: string; number?: number; onAtom:
   );
 }
 
-type Block =
+export type Block =
   | { kind: "heading"; level: 2 | 3 | 4; id?: string; text: string }
   | { kind: "paragraph"; text: string }
   | { kind: "list"; ordered: boolean; items: string[] }
@@ -128,7 +128,8 @@ export function bodyHeadings(content: string) {
     .map((block) => ({ id: block.id as string, text: block.text.replace(/\[\[([^\]|]+)(?:\|([^\]]*))?\]\]/g, (_, key, label) => label || key).replace(/[*`]/g, "") }));
 }
 
-function parseBlocks(content: string): Block[] {
+/** The body as blocks, headings numbered `sec-N` in order: the ids the outline links to. */
+export function parseBlocks(content: string): Block[] {
   const blocks: Block[] = [];
   let list: { ordered: boolean; items: string[] } | null = null;
   let paragraph: string[] = [];
