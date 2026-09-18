@@ -213,14 +213,44 @@ export const THREE_RUNNING_OF_FOUR: readonly AgentRun[] = [
   },
 ];
 
+/** A face for each of the fifteen runs below, so the crowd is fifteen agents. */
+const CROWD: readonly { name: string; glyph: string }[] = [
+  { name: "Deck build", glyph: "slot-stack" },
+  { name: "Expense review", glyph: "bell" },
+  { name: "Inbox triage", glyph: "sweep" },
+  { name: "Market sweep", glyph: "hammerhead" },
+  { name: "Release watch", glyph: "portal" },
+  { name: "Spend check", glyph: "hourglass" },
+  { name: "Weekly digest", glyph: "cog" },
+  { name: "Media Lab Director", glyph: "pinwheel" },
+  { name: "EvalBot", glyph: "trefoil" },
+  { name: "Tool-Error Triage", glyph: "notched-block" },
+  { name: "Changelog", glyph: "dome-walker" },
+  { name: "Backlog", glyph: "arch-ghost" },
+  { name: "Flag audit", glyph: "plug-arrow" },
+  { name: "Render queue", glyph: "turbine" },
+  { name: "Cost report", glyph: "step-tower" },
+];
+
 /**
- * Every run on this page in one bar: fifteen, which is wider than the row at
- * the 512px floor once the counter is unfolded. It is the specimen for the
- * one case the unfolded row has to survive without growing a line — it
- * scrolls sideways under a fade — and it is assembled from the fleets above
+ * Every run on this page in one bar, each handed its own agent: fifteen
+ * faces, which is wider than the row at the 512px floor once the counter is
+ * unfolded. It is the specimen for the one case the unfolded row has to
+ * survive without growing a line — it scrolls sideways under a fade. The
+ * stack draws one disc per AGENT (fold.ts), so the runs are re-faced rather
+ * than reused as they are: the same fifteen under their own agents would be
+ * nine discs, which fit. The work itself is assembled from the fleets above
  * rather than written again, so no sentence here exists only to fill a row.
  */
-export const CROWDED_FLEET: readonly AgentRun[] = [...AGENT_RUNS, ...ONE_AGENT_MANY_TASKS, ...THREE_RUNNING_OF_FOUR];
+export const CROWDED_FLEET: readonly AgentRun[] = [...AGENT_RUNS, ...ONE_AGENT_MANY_TASKS, ...THREE_RUNNING_OF_FOUR].map(
+  (run, index) => ({
+    ...run,
+    id: `crowd-${index}`,
+    agentId: `crowd-${index}`,
+    name: CROWD[index]?.name ?? run.name,
+    glyph: CROWD[index]?.glyph ?? run.glyph,
+  }),
+);
 
 /** The order types.ts declares, which is hueless first and loudest last. */
 const STATE_ORDER: readonly AgentRunState[] = ["running", "done", "input", "stuck", "stopped"];

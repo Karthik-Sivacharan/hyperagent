@@ -26,14 +26,14 @@ import { cn } from "@/lib/utils";
 // disappear: it belongs to ONE agent rather than to the composer, so it is
 // inside that agent's detail, one click from the chip that names it.
 //
-// AND IT OPENS THE AGENT, NOT THE CHIP. The stack is per RUN, because the
-// board is per task and an agent stuck on one render while fine on another is
-// the sentence the whole tracker exists to say. The detail is per AGENT, for
-// the same reason from the other end: having clicked a face, the question is
-// "what is this one doing", and answering with one of its four tasks would be
-// answering a narrower question than the one asked. So the picked run leads
-// and its siblings follow it in the stack's own order, and the row that opens
-// is as tall as that takes.
+// AND IT OPENS THE AGENT. The stack is one face per agent, wearing its
+// loudest run (fold.ts), and the detail is that agent's every run: having
+// clicked a face, the question is "what is this one doing", and answering with
+// one of its four tasks would be answering a narrower question than the one
+// asked. The board is per task, and the list is where that survives — an agent
+// stuck on one render while fine on another says so a line each. So the
+// picked run leads and its siblings follow it in the stack's own order, and
+// the row that opens is as tall as that takes.
 //
 // A CHIP IS A NAVIGATION ONLY WHEN THERE IS NOTHING TO CHOOSE. One run behind
 // a figure means the chip has exactly one destination, so picking it does both

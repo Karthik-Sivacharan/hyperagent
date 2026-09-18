@@ -8,7 +8,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { cn } from "@/lib/utils";
 
 import { AgentChip } from "./agent-chip";
-import { foldStack, STACK_MAX } from "./fold";
+import { agentLeads, foldStack, sameAgent, STACK_MAX } from "./fold";
 import { RUN_STATES } from "./run-state";
 import type { AgentRun } from "./types";
 
@@ -142,7 +142,10 @@ export function AgentStack({
   onExpandedChange?: (expanded: boolean) => void;
   className?: string;
 }) {
-  const { seated, folded } = foldStack(runs, max);
+  // One disc per agent, then the seats among them (fold.ts). The counts are
+  // taken from the whole fleet, so a disc can say how much it stands for.
+  const { seated, folded } = foldStack(agentLeads(runs), max);
+  const tasksOf = (lead: AgentRun) => runs.filter((run) => sameAgent(run, lead)).length;
   // Nothing to unfold is folded, whatever the caller last asked for.
   const open = expanded && folded.length > 0;
   const items = open ? [...seated, ...folded] : seated;
@@ -217,7 +220,13 @@ export function AgentStack({
                 style={seat(index, run.id === activeId)}
                 className={open ? cn(stackingClass, revealed && REVEAL) : seatClass}
               >
-                <AgentChip run={run} size={CHIP_PX} active={run.id === activeId} onSelect={onSelect} />
+                <AgentChip
+                  run={run}
+                  size={CHIP_PX}
+                  tasks={tasksOf(run)}
+                  active={run.id === activeId}
+                  onSelect={onSelect}
+                />
               </li>
             );
           })}

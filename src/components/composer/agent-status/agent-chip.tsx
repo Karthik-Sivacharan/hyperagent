@@ -96,9 +96,11 @@ export function AgentChip({
   active = false,
   treatment = "surface",
   idle = RUNNING_IDLE,
+  tasks = 1,
   onSelect,
   className,
 }: {
+  /** The run the disc wears: for an agent on several, its loudest (fold.ts). */
   run: AgentRun;
   /** Rendered diameter in px. Defaults to 28. */
   size?: number;
@@ -110,6 +112,9 @@ export function AgentChip({
   /** What a `running` face does between beats. Same story: a comparison knob,
       not a style one. */
   idle?: GlyphIdle;
+  /** How many runs this agent has in all. Above one, the name and the tooltip
+      say so, because the disc is the agent and its one task is not the story. */
+  tasks?: number;
   /** Omit and the chip is not a control — just the figure and its tooltip. */
   onSelect?: (run: AgentRun) => void;
   className?: string;
@@ -119,7 +124,10 @@ export function AgentChip({
   const glyphSize = Math.round(size * GLYPH_RATIO);
   const task = run.detail ? `${run.task} · ${run.detail}` : run.task;
   // Name, state, task: what the tooltip shows, in the order it shows it.
-  const name = `${run.name}, ${state.label.toLowerCase()}, ${task}`;
+  const name =
+    tasks > 1
+      ? `${run.name}, ${state.label.toLowerCase()}, ${tasks} tasks`
+      : `${run.name}, ${state.label.toLowerCase()}, ${task}`;
 
   const style = {
     width: size,
@@ -205,6 +213,11 @@ export function AgentChip({
           {run.name} · {state.label}
         </span>
         <span className="block text-muted-foreground">{task}</span>
+        {tasks > 1 ? (
+          <span className="block text-muted-foreground">
+            and {tasks - 1} more {tasks - 1 === 1 ? "task" : "tasks"}
+          </span>
+        ) : null}
       </TooltipContent>
     </Tooltip>
   );

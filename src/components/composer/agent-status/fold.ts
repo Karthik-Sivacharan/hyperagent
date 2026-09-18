@@ -1,7 +1,16 @@
 import { SEAT_PRIORITY, STATE_PRIORITY } from "./run-state";
 import type { AgentRun } from "./types";
 
-// Which runs get a disc in the folded stack, and which go behind the +N.
+// Which agents get a disc in the folded stack, and which go behind the +N.
+//
+// ONE DISC PER AGENT (agentLeads). The stack draws agents, not runs: an agent
+// on four tasks is one face, and picking it opens its four
+// (composer-agent-status.tsx). Four copies of Media Lab Director down one
+// strip read as four agents who happen to share a face, and the question the
+// strip answers is who is out there. The disc wears the agent's LOUDEST run,
+// the first in STATE_PRIORITY — the one the figure is answering for, which is
+// the rule the detail's tile already followed — so an agent stuck on one
+// render and fine on another shows stuck, and the list it opens says the rest.
 //
 // ONE SEAT PER STATE BEFORE ANY STATE GETS TWO. Three seats are too few to be
 // a list, so they are a sample: the states the fleet is in, dealt in
@@ -9,14 +18,13 @@ import type { AgentRun } from "./types";
 // done and one stuck. Only when there are fewer states than seats does a state
 // get a second disc, and then the rest of the fleet is taken in reading order.
 //
-// AND A DIFFERENT FACE IN EACH SEAT, WHERE THE FLEET HAS ONE. The seats are per
-// run, but a chip is a face, and the first run of each state in the demo room
-// is Media Lab Director's all three times: three pinwheels in green, red and
-// none read as one agent's history, not a fleet. So each state's run is chosen
-// to put as many different agents on screen as the fleet can, taking the first
-// such choice in the fleet's own order — which is what keeps the seats still
-// when a mention adds a run at the end: an arrival only moves a seat it makes
-// better.
+// AND A DIFFERENT FACE IN EACH SEAT, WHERE THE FLEET HAS ONE. The stack hands
+// `foldStack` one run per agent, so there every seat is a different face by
+// construction. The rule still holds for a caller that passes runs: each
+// state's run is chosen to put as many different agents on screen as the fleet
+// can, taking the first such choice in the fleet's own order — which is what
+// keeps the seats still when a mention adds a run at the end: an arrival only
+// moves a seat it makes better.
 //
 // THE REST KEEP READING ORDER. What folds behind the +N is STATE_PRIORITY,
 // whoever wants something first, so the counter's tooltip and the row it
@@ -34,7 +42,7 @@ export function sameAgent(a: AgentRun, b: AgentRun): boolean {
 }
 
 /** How many different agents a set of runs is. */
-function agentCount(runs: readonly AgentRun[]): number {
+export function agentCount(runs: readonly AgentRun[]): number {
   return runs.filter((run, index) => !runs.slice(0, index).some((earlier) => sameAgent(earlier, run))).length;
 }
 
@@ -62,6 +70,21 @@ function mostAgents(pools: readonly (readonly AgentRun[])[]): AgentRun[] {
   };
   walk([]);
   return best;
+}
+
+/**
+ * One run per agent: its loudest, in the order the agents first appear. Ties
+ * keep the earlier run, so a mention arriving at the end of the fleet does not
+ * take over a face that is already saying something as loud.
+ */
+export function agentLeads(runs: readonly AgentRun[]): AgentRun[] {
+  const leads: AgentRun[] = [];
+  for (const run of runs) {
+    const at = leads.findIndex((lead) => sameAgent(lead, run));
+    if (at === -1) leads.push(run);
+    else if (STATE_PRIORITY[run.state] < STATE_PRIORITY[leads[at].state]) leads[at] = run;
+  }
+  return leads;
 }
 
 export type FoldedStack = {

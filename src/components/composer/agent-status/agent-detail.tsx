@@ -24,11 +24,11 @@ import type { AgentRun } from "./types";
 // side padding), and only the things inside it fade in.
 //
 // A STACK IS THE ONE THING THAT CHANGES THE BOX, and it is worth it. An agent
-// on four tasks is four chips in the stack, because the board is per task and
-// a readout that collapsed them could not say Media Lab Director is stuck on
-// one render and fine on another — that sentence is the whole reason the board
-// exists, and the bar would be undoing it at the last moment. So picking any
-// one of that agent's chips opens all of them, one line each. The box gets
+// on four tasks is one chip, and a readout that stopped there could not say
+// Media Lab Director is stuck on one render and fine on another — that
+// sentence is the whole reason the board is per task, and the bar would be
+// undoing it at the last moment. So picking that agent's chip opens all four,
+// one line each. The box gets
 // taller, it does not animate getting taller, and the rule it keeps is the
 // real one: nothing MOVES under the reader's hands. The field below it stays
 // exactly where it was; the bar grows upward, into the thread, which is the

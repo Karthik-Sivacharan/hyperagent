@@ -435,7 +435,7 @@ export default function AgentStatusPage() {
 
         <Section
           label="The stack"
-          blurb="Seven agents, three chips and a count for the rest. The three are a sample, not a queue: one per state before any state gets two, a different agent in each where the fleet has one, in seat order — working, done, stuck, then the two that are about a person. The count holds the rest in reading order, whoever wants something first, and pressing it unfolds them in place. Opposite them, the one thing a row of overlapping discs cannot say: how many there are, and whether any is still going — it shimmers on the product's running-label device while something is out, and changes tense when the last one lands. At 512 it is the same bar, because the readout was never the part under pressure. Below it, the same fleet with the overflow count set earlier and later."
+          blurb="Seven agents, three chips and a count for the rest. Each disc is one agent, wearing its loudest run; an agent on several tasks is still one face, and picking it opens the list. The three are a sample, not a queue: one per state before any state gets two, in seat order — working, done, stuck, then the two that are about a person. The count holds the rest in reading order, whoever wants something first, and pressing it unfolds them in place. Opposite them, the one thing a row of overlapping discs cannot say: how many there are, and whether any is still going — it shimmers on the product's running-label device while something is out, and changes tense when the last one lands. At 512 it is the same bar, because the readout was never the part under pressure. Below it, the same fleet with the overflow count set earlier and later."
         >
           <Measures>
             <BarFrame>
@@ -447,7 +447,7 @@ export default function AgentStatusPage() {
 
         <Section
           label="Unfolded"
-          blurb="The count pressed: every run in the row, the three seated discs where they were and the rest after them in reading order, held at the spacing the hover opens to, with a chevron at the right edge that folds them back. Fifteen runs, which fit at 752 and do not at 512 — there the row scrolls sideways inside the same 40px rather than growing a line, the edge with more behind it fades, and the chevron stays pinned outside the scroll so the way back is never scrolled away."
+          blurb="The count pressed: every agent in the row, the three seated discs where they were and the rest after them in reading order, held at the spacing the hover opens to, with a chevron at the right edge that folds them back. Fifteen agents, which fit at 752 and do not at 512 — there the row scrolls sideways inside the same 40px rather than growing a line, the edge with more behind it fades, and the chevron stays pinned outside the scroll so the way back is never scrolled away."
         >
           <Measures>
             <BarFrame>

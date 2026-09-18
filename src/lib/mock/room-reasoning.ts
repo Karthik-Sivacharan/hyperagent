@@ -13,7 +13,7 @@ import type { StreamParagraph, StreamRow } from "@/lib/mock/agent-stream";
 // 400px wide and the reader came here from a one-line status, so anything
 // longer is a wall of text arriving where a sentence was promised.
 //
-// Every id below is a task id from `room-tracker.ts`, and the three of them
+// Every id below is a task id from `room-tracker.ts`, and the four of them
 // are its `working` tasks in room_capability_checks: the only room whose board
 // can reach a thread, because it is the only room with messages. The four
 // working cards in the other three rooms have no script and want none, since
@@ -52,7 +52,8 @@ const REASONING: Record<string, TaskReasoning> = {
   // spawns, Tool-Error Triage is retrying the calls that came back 403, and
   // EvalBot is running the suite. Two of them end up at the same parked
   // render, and each says something different about it, which is the reason a
-  // turn is worth opening rather than a status being worth reading.
+  // turn is worth opening rather than a status being worth reading. Zippy's
+  // archive is the quiet fourth: housekeeping the new flag made possible.
   t_110: {
     agentName: "Media Lab Director",
     rows: [
@@ -93,6 +94,20 @@ const REASONING: Record<string, TaskReasoning> = {
       [{ text: "41 cases in, two red, and " }, { text: "both of them are the approval gate", strong: true },
        { text: ": a spawn to myself is accepted and then parked." }],
       [{ text: "The 21 left are delegation scope, all green last night, and none of them touch the gate." }],
+    ],
+  },
+  t_119: {
+    agentName: "Zippy",
+    rows: [
+      { id: "r1", label: "Listing the render board", detail: "not moved since the flag", icon: "reading",
+        receipt: { kind: "count", text: "9 tickets" } },
+      { id: "r2", label: "Checking none is still linked", detail: "open threads and runs", icon: "puzzle" },
+      { id: "r3", label: "Archiving the stale ones", detail: "four of nine", icon: "download" },
+    ],
+    prose: [
+      [{ text: "Nine match, and " }, { text: "none of them is linked to anything still open", strong: true },
+       { text: ", so they go as they are." }],
+      [{ text: "Two were duplicates of each other and are merged already; the rest are archived with a note back to the flag." }],
     ],
   },
 };

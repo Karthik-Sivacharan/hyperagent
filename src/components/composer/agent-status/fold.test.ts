@@ -1,10 +1,11 @@
 import { describe, expect, it } from "vitest";
 
 import { roomAgentRuns } from "@/components/rooms/tracker/agent-runs";
-import { AGENT_RUNS, THREE_RUNNING_OF_FOUR } from "@/lib/mock/agent-status";
+import { AGENT_RUNS, CROWDED_FLEET, THREE_RUNNING_OF_FOUR } from "@/lib/mock/agent-status";
 import { tasksForRoom } from "@/lib/mock/room-tracker";
 
-import { foldStack, sameAgent } from "./fold";
+import { agentLeads, foldStack, sameAgent } from "./fold";
+import { runCountLabel } from "./run-count";
 import type { AgentRun } from "./types";
 
 // The folded stack's seats (fold.ts). The demo room is tested by name because
@@ -17,8 +18,55 @@ function distinctAgents(runs: readonly AgentRun[]): number {
   return runs.filter((run, index) => !runs.slice(0, index).some((earlier) => sameAgent(earlier, run))).length;
 }
 
+describe("agentLeads", () => {
+  it("draws each agent once, and every agent in the demo room stands for more than one run", () => {
+    const leads = agentLeads(demo);
+    expect(leads).toHaveLength(distinctAgents(demo));
+    for (const lead of leads) {
+      expect(demo.filter((run) => sameAgent(run, lead)).length).toBeGreaterThan(1);
+    }
+  });
+
+  it("keeps the design page's crowd at one agent per run, so it still overflows at 512", () => {
+    expect(agentLeads(CROWDED_FLEET)).toHaveLength(CROWDED_FLEET.length);
+    expect(CROWDED_FLEET).toHaveLength(15);
+  });
+
+  it("wears each agent's loudest run", () => {
+    const mediaLab = agentLeads(demo).find((lead) => lead.agentId === "media-lab");
+    expect(mediaLab?.state).toBe("input");
+  });
+
+  it("keeps a mention inside the agent it is for", () => {
+    const mention: AgentRun = {
+      id: "evalbot",
+      agentId: "evalbot",
+      name: "EvalBot",
+      glyph: "trefoil",
+      state: "running",
+      task: "Queueing the eval suite",
+    };
+    expect(agentLeads([...demo, mention])).toHaveLength(agentLeads(demo).length);
+  });
+});
+
+describe("runCountLabel", () => {
+  it("counts agents working, not runs", () => {
+    const working = demo.filter((run) => run.state === "running");
+    expect(runCountLabel(demo)).toBe(`${distinctAgents(working)} agents working`);
+  });
+});
+
 describe("foldStack", () => {
-  it("seats the demo room as working, done and stuck, three different agents", () => {
+  it("seats the demo room's agents as working, done and stuck", () => {
+    const leads = agentLeads(demo);
+    const { seated, folded } = foldStack(leads);
+    expect(seated.map((run) => run.state)).toEqual(["running", "done", "stuck"]);
+    expect(seated.map((run) => run.agentId)).toEqual(["zippy", "yuki", "triage"]);
+    expect(folded).toHaveLength(leads.length - 3);
+  });
+
+  it("puts three different agents in the seats even when handed raw runs", () => {
     const { seated, folded } = foldStack(demo);
     expect(seated.map((run) => run.state)).toEqual(["running", "done", "stuck"]);
     expect(distinctAgents(seated)).toBe(3);

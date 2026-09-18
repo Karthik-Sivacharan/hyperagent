@@ -37,7 +37,7 @@ import { answerForMention, runForMention, threadForAgent, turnForMention } from 
 // how many tabs there are.
 //
 // THE AGENT BAR HOLDS TWO LIFETIMES OF THE SAME THING (§6.1 item 2). The board
-// gives it the room's standing work, one chip per live task, and those are
+// gives it the room's standing work, one run per live task, and those are
 // there the moment you arrive. The composer's `@` gives it the run you just
 // started, which has no card yet because nothing writes to the board. They are
 // not rivals, so the bar gets both, board first, de-duplicated on id. Letting
