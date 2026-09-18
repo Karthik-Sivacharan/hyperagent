@@ -257,7 +257,7 @@ export function DetailsRailV1({
           <Button
             variant="ghost"
             size="none"
-            className="group/info h-auto w-full justify-start gap-1.5 rounded-md px-2 py-1 text-left font-normal hover:bg-tint-10"
+            className="group/info h-auto w-full justify-start gap-1.5 rounded-md px-2 py-1 text-left font-normal hover:bg-tint-10 aria-expanded:bg-transparent aria-expanded:hover:bg-tint-10"
           >
             <Overline className="flex-1">Info</Overline>
             <IconChevronRight

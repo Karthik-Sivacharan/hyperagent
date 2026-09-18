@@ -15,7 +15,10 @@ import type { WikiGroupId, WikiIndexEntry } from "@/lib/mock/wiki";
 // you are on starts open; a search opens every group it matches. The pages a
 // merge or an exclusion took out of listings fold away at the end. A group row
 // is set at 500 like the app sidebar's rows beside it; its pages stay at 400
-// in the muted ink, so a parent and its children read apart.
+// in the muted ink, so a parent and its children read apart. An open group
+// keeps no fill (the ghost button's own open fill is reset, as the app
+// sidebar's section toggles do): in this list a fill means the page you are
+// on, and two filled rows would say it twice.
 
 function PageRow({ page, active }: { page: WikiIndexEntry; active: boolean }) {
   return (
@@ -51,7 +54,7 @@ function GroupRow({
       <Button
         variant="ghost"
         size="none"
-        className="h-auto w-full justify-start gap-2 rounded-md px-2 py-1.5 text-left text-sm font-medium text-foreground hover:bg-tint-10"
+        className="h-auto w-full justify-start gap-2 rounded-md px-2 py-1.5 text-left text-sm font-medium text-foreground hover:bg-tint-10 aria-expanded:bg-transparent aria-expanded:hover:bg-tint-10"
       >
         {icon}
         <span className="min-w-0 flex-1 truncate">{label}</span>
@@ -157,7 +160,7 @@ export function IndexRailV1({
             <Button
               variant="ghost"
               size="none"
-              className="group/fold h-auto w-full justify-start gap-2 rounded-md px-2 py-1.5 text-left text-xs font-normal text-foreground-low hover:bg-tint-10"
+              className="group/fold h-auto w-full justify-start gap-2 rounded-md px-2 py-1.5 text-left text-xs font-normal text-foreground-low hover:bg-tint-10 aria-expanded:bg-transparent aria-expanded:hover:bg-tint-10"
             >
               <IconChevronRight
                 className="size-3.5 transition-transform duration-(--duration-fast) ease-out-quart group-aria-expanded/fold:rotate-90"
