@@ -44,8 +44,10 @@ export function ArticleV1({
 }) {
   const lead = bodyRepeatsSummary(page.summary, body) ? null : page.summary;
 
+  // One measure for the whole column: 36rem holds a 16px line near 68
+  // characters. Not `max-w-prose`: 65ch of Geist is 690px, about 88.
   return (
-    <article className="flex min-w-0 max-w-3xl flex-col gap-5">
+    <article className="flex min-w-0 max-w-xl flex-col gap-5">
       <ArticleHeader
         page={page}
         topic={topic}
@@ -56,14 +58,14 @@ export function ArticleV1({
       />
 
       {page.hidden ? (
-        <p className="rounded-md bg-warning/10 px-3 py-2 text-xs leading-5 text-foreground">
+        <p className="rounded-md bg-warning/10 px-3 py-2 text-sm text-foreground">
           <span className="font-medium">Hidden page.</span> Its Topic is {topic.status}
           {topic.mergedIntoTitle ? ` into ${topic.mergedIntoTitle}` : ""}. The page left listings, search and recall at
           that moment; this last version stays readable as history.
         </p>
       ) : null}
 
-      {lead ? <p className="text-base leading-7 text-muted-foreground">{lead}</p> : null}
+      {lead ? <p className="text-lg text-pretty text-muted-foreground">{lead}</p> : null}
 
       <Tabs value={tab} onValueChange={onTab}>
         <TabsList>

@@ -62,13 +62,13 @@ export function ArticleHeader({
         {page.hidden ? <Badge variant="warning">Hidden</Badge> : null}
       </div>
 
-      <h1 className="font-heading text-2xl text-foreground">{page.title}</h1>
+      <h1 className="font-heading text-3xl text-balance text-foreground">{page.title}</h1>
 
       {aliases.length ? (
         <p className="text-sm text-muted-foreground">Also known as {aliases.join(", ")}</p>
       ) : null}
 
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 pt-1 text-xs text-foreground-low">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 pt-1 text-md text-foreground-low">
         {current?.sourceDay ? (
           <span className="inline-flex items-center gap-1 tabular-nums">
             <IconClock className="size-3.5" aria-hidden="true" />

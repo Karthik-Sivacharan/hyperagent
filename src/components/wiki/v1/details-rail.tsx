@@ -143,7 +143,7 @@ export function DetailsRailV1({
                   size="none"
                   asChild
                   className={cn(
-                    "h-auto w-full justify-start rounded-md px-2 py-1 text-left text-xs font-normal text-muted-foreground hover:bg-tint-10 hover:text-foreground",
+                    "h-auto w-full justify-start rounded-md px-2 py-1 text-left text-md font-normal text-muted-foreground hover:bg-tint-10 hover:text-foreground",
                     isActive && "bg-tint-10 text-foreground",
                   )}
                 >
@@ -192,7 +192,7 @@ export function DetailsRailV1({
           variant="ghost"
           size="none"
           asChild
-          className="h-auto w-full justify-start gap-2 rounded-md px-2 py-1.5 text-left text-xs font-normal text-muted-foreground hover:bg-tint-10 hover:text-foreground"
+          className="h-auto w-full justify-start gap-2 rounded-md px-2 py-1.5 text-left text-md font-normal text-muted-foreground hover:bg-tint-10 hover:text-foreground"
         >
           <a
             href="#mentioned-in"

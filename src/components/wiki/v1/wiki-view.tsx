@@ -17,7 +17,8 @@ import type { WikiGroupId, WikiIndexEntry, WikiView as WikiViewData } from "@/li
 
 // v1 of the wiki: the page index on the left, the article in the middle, a
 // map of the page on the right, and the atom drawer over all three. Chrome is
-// one line (where you are, what composed it, which design) above the tabs.
+// one line (where you are, what composed it, which design) above the view
+// tabs, which stay out of the way while Pages is the only view.
 
 export type WikiJob = {
   workspace: string;
@@ -121,7 +122,7 @@ export function WikiViewV1({
           <div className="ml-auto">{aside}</div>
         </div>
 
-        <WikiTabs counts={counts} />
+        <WikiTabs counts={counts} hideAlone />
 
         <div className="flex items-start gap-8">
           <div className="sticky top-5 -m-1 max-h-[calc(100dvh-2.5rem)] self-start overflow-y-auto overscroll-contain p-1">

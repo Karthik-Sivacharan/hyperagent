@@ -28,7 +28,7 @@ export function CitePreview({
       size="none"
       onClick={() => onAtom(id)}
       aria-label={atom ? `Citation ${number ?? ""}: ${atom.title || atom.content}` : `Open the atom this cites (${id})`}
-      className="ml-0.5 rounded-xs bg-tint-10 px-1 text-[10px] leading-4 text-foreground-low tabular-nums hover:bg-brand-subtle hover:text-brand-subtle-foreground data-[state=open]:bg-brand-subtle data-[state=open]:text-brand-subtle-foreground"
+      className="ml-0.5 rounded-xs bg-tint-10 px-1 text-label-12-mono text-foreground-low hover:bg-brand-subtle hover:text-brand-subtle-foreground data-[state=open]:bg-brand-subtle data-[state=open]:text-brand-subtle-foreground"
     >
       {number ?? "↗"}
     </Button>

@@ -77,13 +77,13 @@ function renderInline(text: string, ctx: BodyContext, keyPrefix: string, seen?: 
       out.push(<CitePreview key={key} id={id} number={ctx.cites.get(id)} atom={ctx.atoms[id]} onAtom={ctx.onAtom} />);
     } else if (bold !== undefined) {
       out.push(
-        <strong key={key} className="font-medium text-foreground">
+        <strong key={key} className="font-strong text-foreground">
           {bold}
         </strong>,
       );
     } else if (code !== undefined) {
       out.push(
-        <code key={key} className="rounded-xs bg-tint-10 px-1 py-0.5 text-label-12-mono">
+        <code key={key} className="rounded-xs bg-tint-10 px-1 py-0.5 text-label-14-mono">
           {code}
         </code>,
       );
@@ -100,38 +100,59 @@ function renderInline(text: string, ctx: BodyContext, keyPrefix: string, seen?: 
   return out;
 }
 
-function renderBlock(block: Block, key: string, ctx: BodyContext, seen: Seen) {
+/**
+ * The space above a block: 12px between the blocks of a section, 8px under
+ * the heading that opens them, 24px above a sub-section (16px straight under
+ * its section's heading) and 40px above a section. Space alone marks where a
+ * section starts; there is no rule line.
+ */
+function spaceAbove(block: Block, previous: Block | undefined) {
+  if (!previous) return "";
+  const underHeading = previous.kind === "heading";
+  if (block.kind !== "heading") return underHeading ? "mt-2" : "mt-group";
+  if (block.level === 2) return "mt-section";
+  return underHeading ? "mt-4" : "mt-stack";
+}
+
+function renderBlock(block: Block, key: string, ctx: BodyContext, seen: Seen, space: string) {
   switch (block.kind) {
     case "heading": {
       if (block.level === 2) {
         return (
-          <h2
-            key={key}
-            id={block.id}
-            className="mt-6 scroll-mt-24 border-t border-border-subtle pt-5 font-heading text-base text-foreground first:mt-0 first:border-0 first:pt-0"
-          >
+          <h2 key={key} id={block.id} className={cn("scroll-mt-24 font-heading text-2xl text-balance text-foreground", space)}>
             {renderInline(block.text, ctx, key)}
           </h2>
         );
       }
       const Tag = block.level === 3 ? "h3" : "h4";
       return (
-        <Tag key={key} className="mt-2 font-heading text-sm text-foreground">
+        <Tag
+          key={key}
+          className={cn(
+            block.level === 3 ? "text-heading-lg" : "font-heading text-base font-semibold",
+            "text-balance text-foreground",
+            space,
+          )}
+        >
           {renderInline(block.text, ctx, key)}
         </Tag>
       );
     }
     case "paragraph":
-      return <p key={key}>{renderInline(block.text, ctx, key, seen)}</p>;
+      return (
+        <p key={key} className={cn("text-pretty", space)}>
+          {renderInline(block.text, ctx, key, seen)}
+        </p>
+      );
     case "list": {
       const Tag = block.ordered ? "ol" : "ul";
       return (
         <Tag
           key={key}
-          className={cn("flex flex-col gap-1.5 pl-5", block.ordered ? "list-decimal" : "list-disc", "marker:text-foreground-low")}
+          className={cn("flex flex-col gap-1 pl-5", block.ordered ? "list-decimal" : "list-disc", "marker:text-foreground-low", space)}
         >
           {block.items.map((item, itemIndex) => (
-            <li key={`${key}-${itemIndex}`} className="pl-1">
+            <li key={`${key}-${itemIndex}`} className="pl-1 text-pretty">
               {renderInline(item, ctx, `${key}-${itemIndex}`, seen)}
             </li>
           ))}
@@ -140,14 +161,14 @@ function renderBlock(block: Block, key: string, ctx: BodyContext, seen: Seen) {
     }
     case "quote":
       return (
-        <blockquote key={key} className="border-l-2 border-border pl-4 text-muted-foreground">
+        <blockquote key={key} className={cn("border-l-2 border-border pl-4 text-muted-foreground", space)}>
           {renderInline(block.text, ctx, key, seen)}
         </blockquote>
       );
     case "table":
       return (
-        <div key={key} className="overflow-x-auto rounded-md shadow-edge">
-          <table className="w-full border-collapse text-left text-xs">
+        <div key={key} className={cn("overflow-x-auto rounded-md shadow-edge", space)}>
+          <table className="w-full border-collapse text-left text-sm">
             <thead>
               <tr className="border-b border-border-subtle bg-tint-5">
                 {block.head.map((cell, cellIndex) => (
@@ -172,7 +193,7 @@ function renderBlock(block: Block, key: string, ctx: BodyContext, seen: Seen) {
         </div>
       );
     case "rule":
-      return <hr key={key} className="border-border-subtle" />;
+      return <hr key={key} className={cn("border-border-subtle", space)} />;
     default:
       return <Fragment key={key} />;
   }
@@ -182,10 +203,12 @@ export function BodyV1({ content, ctx }: { content: string; ctx: BodyContext }) 
   // Sections start at each `##`; the text before the first one is a section too.
   const nodes: React.ReactNode[] = [];
   const seen: Seen = { page: new Set<string>(), section: new Set<string>() };
-  for (const [index, block] of parseBlocks(content).entries()) {
+  const blocks = parseBlocks(content);
+  for (const [index, block] of blocks.entries()) {
     if (block.kind === "heading" && block.level === 2) seen.section = new Set<string>();
-    nodes.push(renderBlock(block, `b-${index}`, ctx, seen));
+    nodes.push(renderBlock(block, `b-${index}`, ctx, seen, spaceAbove(block, blocks[index - 1])));
   }
 
-  return <div className="flex flex-col gap-4 text-sm leading-6 text-foreground">{nodes}</div>;
+  // Reading text at the body size: 16/24, with the headings at 24 and 18 over it.
+  return <div className="text-base text-foreground">{nodes}</div>;
 }
