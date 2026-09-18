@@ -240,9 +240,9 @@ Every size is a `--text-*` token that carries its own line-height, tracking and,
 - **Section** (600, 20/26, -0.02em): section headings inside a page or answer. `text-xl`.
 - **Title** (600, 18/28, -0.02em): sub-sections, card and list-row titles. `text-heading-lg`.
 - **Lede** (400, 18/28): one short orientation passage under a title. `text-lg`.
-- **Body** (400, 16/24): anything read as sentences. Cap the measure at 65 to 75ch. `text-base`.
-- **UI** (400 or 500, 14/20): buttons, tabs, chips, nav rows, table cells, list rows. `text-sm`.
-- **Meta** (400, 13/18): captions, meta lines, subordinate evidence, outline entries. `text-md`.
+- **Body** (400, 16/24): anything read as sentences. Hold the line to 65 to 75 characters: about 36rem (`max-w-xl`) at 16px. Not `65ch`: Geist's zero is wide, so 65ch is 690px, about 88 characters. `text-base`.
+- **UI** (400 or 500, 14/20): buttons, tabs, chips, nav rows in either side rail (an outline included), table cells, list rows. `text-sm`.
+- **Meta** (400, 13/18): captions, meta lines, subordinate evidence, and badges on a 24px pill when a list of them is the content itself (a side rail's mentions). `text-md`.
 - **Label** (400 or 500, 12/16): keycaps, footers, disclaimers, badge text. `text-xs`. Caps variant: 500, +0.06em, uppercase, `text-label-12-caps`, for the label over a group only.
 
 Weights are 400 (copy), 500 (controls and labels that name a thing), 550 (`font-strong`, `<strong>` inside running copy) and 600 (every heading, via the role). No other weight exists.

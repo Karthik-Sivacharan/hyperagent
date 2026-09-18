@@ -93,6 +93,7 @@ function MentionGroup({ group, label, entries }: { group: WikiGroupId; label: st
             label={entry.title}
             count={entry.count}
             href={entry.slug ? `/wiki/${entry.slug}` : undefined}
+            size="md"
           />
         ))}
         {rest > 0 ? (
@@ -106,7 +107,7 @@ function MentionGroup({ group, label, entries }: { group: WikiGroupId; label: st
               flushSync(() => setAll(true));
               list.current?.querySelectorAll<HTMLElement>("[data-slot=badge]")[MENTIONS_SHOWN]?.focus();
             }}
-            className="h-5 rounded-full px-2 text-xs font-normal text-foreground-low hover:text-foreground"
+            className="h-6 rounded-full px-2 text-md font-normal text-foreground-low hover:text-foreground"
           >
             +{rest} more
           </Button>
@@ -118,7 +119,7 @@ function MentionGroup({ group, label, entries }: { group: WikiGroupId; label: st
 
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="flex gap-3 py-1 text-xs">
+    <div className="flex gap-3 py-1 text-md">
       <dt className="w-24 shrink-0 text-foreground-low">{label}</dt>
       <dd className="min-w-0 flex-1 text-foreground tabular-nums">{children}</dd>
     </div>
@@ -195,7 +196,7 @@ export function DetailsRailV1({
                   size="none"
                   asChild
                   className={cn(
-                    "h-auto w-full justify-start rounded-md px-2 py-1 text-left text-md font-normal text-muted-foreground hover:bg-tint-10 hover:text-foreground",
+                    "h-auto w-full justify-start rounded-md px-2 py-1 text-left text-sm font-normal text-muted-foreground hover:bg-tint-10 hover:text-foreground",
                     isActive && "bg-tint-10 text-foreground",
                   )}
                 >
@@ -236,7 +237,7 @@ export function DetailsRailV1({
           variant="ghost"
           size="none"
           asChild
-          className="h-auto w-full justify-start gap-2 rounded-md px-2 py-1.5 text-left text-md font-normal text-muted-foreground hover:bg-tint-10 hover:text-foreground"
+          className="h-auto w-full justify-start gap-2 rounded-md px-2 py-1.5 text-left text-sm font-normal text-muted-foreground hover:bg-tint-10 hover:text-foreground"
         >
           <a
             href="#mentioned-in"
@@ -306,7 +307,7 @@ export function DetailsRailV1({
                       v{version.version}
                     </Badge>
                     <div className="min-w-0 flex-1">
-                      <p className="text-xs leading-5 text-foreground">{version.changeNote}</p>
+                      <p className="text-md text-foreground">{version.changeNote}</p>
                       <p className="text-xs text-foreground-low">
                         {fmtStamp(version.createdAt)}
                         {version.dreamRunId ? `, ${version.dreamRunId}` : version.changedBy ? `, ${version.changedBy}` : ""}

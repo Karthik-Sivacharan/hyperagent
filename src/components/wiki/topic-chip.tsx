@@ -27,11 +27,19 @@ export function SourceKindIcon({ kind, className }: { kind: string; className?: 
   return createElement(wikiSourceKindIcon(kind), { className: cn("size-3.5 shrink-0", className), "aria-hidden": true });
 }
 
+/**
+ * `sm` is the badge as it ships (20px, 12px text), for a chip set inline in a
+ * meta line; `md` (24px, 13px text, a 14px icon) is for a list of chips that
+ * is itself the content, as in the side rail and under "Mentioned in".
+ */
+const CHIP_SIZE = { sm: "", md: "h-6 text-md [&>svg]:size-3.5!" } as const;
+
 export function TopicChip({
   group,
   label,
   href,
   count,
+  size = "sm",
   className,
 }: {
   group: WikiGroupId;
@@ -39,6 +47,7 @@ export function TopicChip({
   href?: string;
   /** How many times the page mentions it; shown from two. */
   count?: number;
+  size?: keyof typeof CHIP_SIZE;
   className?: string;
 }) {
   const content = (
@@ -51,13 +60,13 @@ export function TopicChip({
 
   if (!href) {
     return (
-      <Badge variant="outline" className={cn("max-w-full", className)}>
+      <Badge variant="outline" className={cn("max-w-full", CHIP_SIZE[size], className)}>
         {content}
       </Badge>
     );
   }
   return (
-    <Badge variant="outline" asChild className={cn("max-w-full", className)}>
+    <Badge variant="outline" asChild className={cn("max-w-full", CHIP_SIZE[size], className)}>
       <Link href={href}>{content}</Link>
     </Badge>
   );
