@@ -1,23 +1,29 @@
 "use client";
 
-import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { WikiBody, type InlineContext } from "@/components/wiki/wiki-body";
 import { ArticleHeader } from "@/components/wiki/v1/article-header";
 import { HistoryList } from "@/components/wiki/v1/history-list";
+import { MentionedIn } from "@/components/wiki/v1/mentioned-in";
 import { SourcesList } from "@/components/wiki/v1/sources-list";
-import { bodyRepeatsSummary, splitAliases } from "@/components/wiki/v1/text";
-import type { WikiAtom, WikiPage, WikiTopic } from "@/lib/mock/wiki";
+import { bodyRepeatsSummary } from "@/components/wiki/v1/text";
+import type { WikiAtom, WikiLinkedFrom, WikiPage, WikiTopic } from "@/lib/mock/wiki";
 
 // One composed page in v1: the header, the summary only when the body does
-// not already open with it, and the three tabs. Sources and History are
-// one line per entry and open in place; any atom opens the drawer.
+// not already open with it, and the three tabs. The Page tab ends on the
+// pages that mention this one; Sources and History are one line per entry
+// and open in place; any atom opens the drawer.
 
 export function ArticleV1({
   page,
   topic,
   atoms,
+  aliases,
+  body,
+  linkedFrom,
+  tab,
+  onTab,
   ctx,
   onAtom,
   assistants,
@@ -25,12 +31,17 @@ export function ArticleV1({
   page: WikiPage;
   topic: WikiTopic;
   atoms: Record<string, WikiAtom>;
+  /** The body's own "Also known as" names, lifted out of it. */
+  aliases: string[];
+  /** The body without that line. */
+  body: string;
+  linkedFrom: WikiLinkedFrom[];
+  tab: string;
+  onTab: (tab: string) => void;
   ctx: InlineContext;
   onAtom: (id: string) => void;
   assistants: string[];
 }) {
-  const [tab, setTab] = useState("page");
-  const { aliases, body } = splitAliases(page.content);
   const lead = bodyRepeatsSummary(page.summary, body) ? null : page.summary;
 
   return (
@@ -41,7 +52,7 @@ export function ArticleV1({
         atoms={atoms}
         aliases={aliases}
         assistants={assistants}
-        onDisputes={() => setTab("sources")}
+        onDisputes={() => onTab("sources")}
       />
 
       {page.hidden ? (
@@ -54,7 +65,7 @@ export function ArticleV1({
 
       {lead ? <p className="text-base leading-7 text-muted-foreground">{lead}</p> : null}
 
-      <Tabs value={tab} onValueChange={setTab}>
+      <Tabs value={tab} onValueChange={onTab}>
         <TabsList>
           <TabsTrigger value="page">Page</TabsTrigger>
           <TabsTrigger value="sources">
@@ -72,7 +83,12 @@ export function ArticleV1({
         </TabsList>
       </Tabs>
 
-      {tab === "page" ? <WikiBody content={body} ctx={ctx} /> : null}
+      {tab === "page" ? (
+        <div className="flex flex-col">
+          <WikiBody content={body} ctx={ctx} />
+          <MentionedIn entries={linkedFrom} />
+        </div>
+      ) : null}
       {tab === "sources" ? (
         <SourcesList citations={page.citations} atoms={atoms} cites={ctx.cites} onAtom={onAtom} />
       ) : null}

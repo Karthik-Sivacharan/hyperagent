@@ -6,12 +6,13 @@ import { IconInfoCircle } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { AtomDrawer } from "@/components/wiki/atom-drawer";
-import { WikiDetailsRail } from "@/components/wiki/wiki-details-rail";
 import { WikiTabs } from "@/components/wiki/wiki-tabs";
 import type { InlineContext } from "@/components/wiki/wiki-body";
 import { ArticleV1 } from "@/components/wiki/v1/article";
+import { DetailsRailV1 } from "@/components/wiki/v1/details-rail";
 import { fmtInt, fmtWindow } from "@/components/wiki/v1/format";
 import { IndexRailV1 } from "@/components/wiki/v1/index-rail";
+import { splitAliases } from "@/components/wiki/v1/text";
 import type { WikiGroupId, WikiIndexEntry, WikiView as WikiViewData } from "@/lib/mock/wiki";
 
 // v1 of the wiki: the page index on the left, the article in the middle, a
@@ -52,25 +53,47 @@ function JobNote({ job }: { job: WikiJob }) {
 
 export function WikiViewV1({
   view,
+  linkGroups,
   groups,
   hiddenPages,
   counts,
   groupLabels,
+  groupOrder,
   assistants,
   job,
   aside,
 }: {
   view: WikiViewData;
+  linkGroups: Record<string, WikiGroupId>;
   groups: { id: WikiGroupId; label: string; pages: WikiIndexEntry[] }[];
   hiddenPages: WikiIndexEntry[];
   counts: { pages: number; days: number; runs: number; atoms: number };
   groupLabels: Record<WikiGroupId, string>;
+  groupOrder: WikiGroupId[];
   assistants: string[];
   job: WikiJob;
   aside: React.ReactNode;
 }) {
   const [atomId, setAtomId] = useState<string | null>(null);
   const { page, topic, atoms, topicTitles, linkedFrom } = view;
+  const { aliases, body } = useMemo(() => splitAliases(page.content), [page.content]);
+
+  // Each page opens on its Page tab.
+  const [tab, setTab] = useState("page");
+  const [tabPage, setTabPage] = useState(page.slug);
+  if (tabPage !== page.slug) {
+    setTabPage(page.slug);
+    setTab("page");
+  }
+
+  /** Show the Page tab, then bring one of its sections (or the backlinks) into view. */
+  const reveal = (id: string) => {
+    setTab("page");
+    requestAnimationFrame(() => {
+      const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      document.getElementById(id)?.scrollIntoView({ block: "start", behavior: still ? "auto" : "smooth" });
+    });
+  };
 
   const ctx: InlineContext = useMemo(
     () => ({
@@ -82,7 +105,7 @@ export function WikiViewV1({
   );
 
   return (
-    <div className="flex-1 overflow-y-auto">
+    <div data-wiki-scroll className="flex-1 overflow-y-auto">
       <div className="mx-auto flex w-full max-w-360 flex-col gap-5 px-6 py-5">
         <div className="flex min-h-8 items-center gap-2">
           <nav aria-label="Breadcrumb" className="flex min-w-0 items-center gap-1.5 text-xs text-foreground-low">
@@ -99,7 +122,7 @@ export function WikiViewV1({
         <WikiTabs counts={counts} />
 
         <div className="flex items-start gap-8">
-          <div className="sticky top-5 self-start">
+          <div className="sticky top-5 -m-1 max-h-[calc(100dvh-2.5rem)] self-start overflow-y-auto overscroll-contain p-1">
             <IndexRailV1
               groups={groups}
               hiddenPages={hiddenPages}
@@ -110,17 +133,33 @@ export function WikiViewV1({
 
           <main className="min-w-0 flex-1">
             <ArticleV1
+              key={page.slug}
               page={page}
               topic={topic}
               atoms={atoms}
+              aliases={aliases}
+              body={body}
+              linkedFrom={linkedFrom}
+              tab={tab}
+              onTab={setTab}
               ctx={ctx}
               onAtom={setAtomId}
               assistants={assistants}
             />
           </main>
 
-          <div className="sticky top-5 hidden self-start xl:block">
-            <WikiDetailsRail page={page} topic={topic} linkedFrom={linkedFrom} groupLabels={groupLabels} />
+          <div className="sticky top-5 -m-1 hidden max-h-[calc(100dvh-2.5rem)] self-start overflow-y-auto overscroll-contain p-1 xl:block">
+            <DetailsRailV1
+              page={page}
+              topic={topic}
+              body={body}
+              atoms={atoms}
+              linkGroups={linkGroups}
+              groupLabels={groupLabels}
+              groupOrder={groupOrder}
+              mentionedIn={linkedFrom.length}
+              onReveal={reveal}
+            />
           </div>
         </div>
       </div>

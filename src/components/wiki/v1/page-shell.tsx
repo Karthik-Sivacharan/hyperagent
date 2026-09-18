@@ -5,9 +5,11 @@ import {
   wikiAgents,
   wikiCounts,
   wikiGroupLabels,
+  wikiGroupOrder,
   wikiHiddenPages,
   wikiIndexGroups,
   wikiJob,
+  wikiLinkGroups,
   wikiWorkspace,
 } from "@/lib/mock/wiki";
 
@@ -26,7 +28,9 @@ export function WikiPageShellV1({ slug, aside }: { slug: string; aside: React.Re
       groups={wikiIndexGroups()}
       hiddenPages={wikiHiddenPages()}
       counts={wikiCounts()}
+      linkGroups={wikiLinkGroups(view.page)}
       groupLabels={wikiGroupLabels}
+      groupOrder={wikiGroupOrder}
       assistants={[...new Set(wikiAgents.map((agent) => agent.name))]}
       job={{
         workspace: wikiWorkspace.name,
