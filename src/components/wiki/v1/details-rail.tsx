@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import { IconArrowDown, IconChevronRight } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -11,11 +12,12 @@ import { bodyHeadings } from "@/components/wiki/wiki-body";
 import { TopicChip } from "@/components/wiki/topic-chip";
 import { fmtDay, fmtStamp } from "@/components/wiki/v1/format";
 import { wordCount } from "@/components/wiki/v1/text";
-import type { WikiAtom, WikiGroupId, WikiPage, WikiTopic } from "@/lib/mock/wiki";
+import type { WikiAtom, WikiGroupId, WikiLinkTarget, WikiPage, WikiTopic } from "@/lib/mock/wiki";
 
 // The page seen from the side, as a map rather than a record: its outline
 // with the section you are reading marked, every Topic it mentions grouped by
-// type, and a way down to the pages that mention it. The record itself (the
+// type (the three most mentioned of each, the rest a click away), and a way
+// down to the pages that mention it. The record itself (the
 // numbers, the audit fields, the Topic's own history) is folded into Info.
 
 /** The heading whose section holds the reading line: the last one scrolled past the top fifth. */
@@ -61,6 +63,56 @@ function Section({ title, count, children }: { title: string; count?: number; ch
       </div>
       {children}
     </section>
+  );
+}
+
+/** How many Topics of one type show before the rest wait behind "+N more". */
+const MENTIONS_SHOWN = 3;
+
+type Mention = WikiLinkTarget & { key: string; count: number };
+
+/**
+ * One type's mentions, most mentioned first. The first few are chips and the
+ * rest open in place, so a page that names twenty Topics still fits its rail
+ * on one screen, with Mentioned in and Info in view.
+ */
+function MentionGroup({ group, label, entries }: { group: WikiGroupId; label: string; entries: Mention[] }) {
+  const [all, setAll] = useState(false);
+  const list = useRef<HTMLDivElement>(null);
+  const shown = all ? entries : entries.slice(0, MENTIONS_SHOWN);
+  const rest = entries.length - shown.length;
+
+  return (
+    <div className="flex flex-col gap-1.5">
+      <span className="text-xs text-foreground-low">{label}</span>
+      <div ref={list} className="flex flex-wrap gap-1">
+        {shown.map((entry) => (
+          <TopicChip
+            key={entry.key}
+            group={group}
+            label={entry.title}
+            count={entry.count}
+            href={entry.slug ? `/wiki/${entry.slug}` : undefined}
+          />
+        ))}
+        {rest > 0 ? (
+          <Button
+            variant="ghost"
+            size="none"
+            aria-label={`Show ${rest} more in ${label}`}
+            onClick={() => {
+              // The button leaves with the click: render the rest now, then
+              // hand focus to the first chip it revealed.
+              flushSync(() => setAll(true));
+              list.current?.querySelectorAll<HTMLElement>("[data-slot=badge]")[MENTIONS_SHOWN]?.focus();
+            }}
+            className="h-5 rounded-full px-2 text-xs font-normal text-foreground-low hover:text-foreground"
+          >
+            +{rest} more
+          </Button>
+        ) : null}
+      </div>
+    </div>
   );
 }
 
@@ -168,20 +220,12 @@ export function DetailsRailV1({
         <Section title="Mentions" count={counts.size}>
           <div className="flex flex-col gap-3 px-2">
             {mentions.map(({ group, entries }) => (
-              <div key={group} className="flex flex-col gap-1.5">
-                <span className="text-xs text-foreground-low">{groupLabels[group] ?? groupLabels.concept}</span>
-                <div className="flex flex-wrap gap-1">
-                  {entries.map((entry) => (
-                    <TopicChip
-                      key={entry.key}
-                      group={group}
-                      label={entry.title}
-                      count={entry.count}
-                      href={entry.slug ? `/wiki/${entry.slug}` : undefined}
-                    />
-                  ))}
-                </div>
-              </div>
+              <MentionGroup
+                key={`${page.slug}-${group}`}
+                group={group}
+                label={groupLabels[group] ?? groupLabels.concept}
+                entries={entries}
+              />
             ))}
           </div>
         </Section>
