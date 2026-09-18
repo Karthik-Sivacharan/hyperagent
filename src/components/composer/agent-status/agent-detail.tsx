@@ -55,16 +55,19 @@ import type { AgentRun } from "./types";
 // aim at the smallest thing on the line. It cannot become a row-sized button,
 // because a `running` row already carries Stop and a button inside a button is
 // invalid markup and takes the keyboard order with it. So the arrow stays the
-// control and grows an `::after` over the line (STRETCH below): one element,
-// one tab stop, one accessible name, and a press anywhere on the row lands on
-// it. Stop is lifted over that layer so it keeps its own clicks, and the two
-// are still read in the order they are drawn — Stop, then the arrow. What the
-// reader sees is the LINE lifting under the pointer, not the arrow: the fill is
-// the row's own, 8px wider either side so it reaches past the arrow's overhang
-// instead of stopping short of the control it belongs to. The cost is the one
-// every stretched target pays — the words under the layer cannot be selected,
-// and the truncated task's `title` has to move up to the row to survive, which
-// is where it is now.
+// control — one tab stop, one accessible name — and the LINE takes the
+// pointer: a click on it that no control inside claimed opens the task
+// (rowClick below), and Stop keeps its own. What the reader sees is the line
+// lifting under the pointer, not the arrow: the fill is the row's own, 8px
+// wider either side so it reaches past the arrow's overhang instead of
+// stopping short of the control it belongs to.
+//
+// NOT A STRETCHED `::after`, which is what this was, and it failed quietly.
+// The Button presses with `scale`, and any `scale` but `none` makes the button
+// the containing block of its own `::after`: the layer shrank to 24px on
+// mousedown, the mouseup landed on the words, and the browser sent the click
+// to the row they share instead of the arrow. Only a press on the arrow itself
+// ever got through.
 //
 // UNLESS THE RUN HAS SOMEWHERE TO GO, in which case that last slot is a way
 // out instead of a full stop. "Done" at the end of a row is the least useful
@@ -98,8 +101,7 @@ const LINE = "flex h-6 min-w-0 items-center gap-1.5 text-xs";
 
 /** The line a stacked row is pressable over: the whole line, 8px past each end
     so the fill covers the arrow's own -6px overhang. `-mx-2 px-2` widens the
-    box without moving a word inside it, and `relative` is what the arrow's
-    stretched layer measures itself against. The lift answers a hover anywhere
+    box without moving a word inside it. The lift answers a hover anywhere
     in the row, Stop included — both controls belong to this line — and a
     keyboard focus on either, so tabbing down the list says which row it is on
     and not only which control.
@@ -109,15 +111,18 @@ const LINE = "flex h-6 min-w-0 items-center gap-1.5 text-xs";
     `duration-(--duration-enter)` would eat any that were written here
     (button.tsx has the same trap in its transition list). 140ms against the
     controls' 150 is the same beat, so the fill simply rides the row's. */
-const ROW_TARGET = "relative -mx-2 rounded-sm px-2 transition-colors hover:bg-tint-5 has-[:focus-visible]:bg-tint-5";
+const ROW_TARGET = "-mx-2 cursor-pointer rounded-sm px-2 transition-colors hover:bg-tint-5 has-[:focus-visible]:bg-tint-5";
 
-/** What turns the arrow into the whole row's control: a layer of its own, sized
-    to the `relative` line above (ROW_TARGET) rather than to the 24px square it
-    hangs off. It carries no fill — the row paints that — and no `z-index`,
-    which puts it over the dial and the words and under the Stop that asks for
-    one. Nothing under it can be selected, which is the trade every stretched
-    target makes and the reason the row took the `title` over. */
-const STRETCH = "after:absolute after:inset-0";
+/** A click on a pressable line (ROW_TARGET) that no control inside it claimed.
+    The arrow's own press, Stop's, and Enter on either reach the row as clicks
+    from a button, and are left to that button — so Stop still only stops, and
+    nothing opens twice. */
+function rowClick(open: () => void) {
+  return (event: React.MouseEvent) => {
+    if ((event.target as Element).closest("button")) return;
+    open();
+  };
+}
 
 /** The whole sentence a truncated line promises. */
 function taskSentence(run: AgentRun): string {
@@ -130,9 +135,7 @@ function TaskText({ run }: { run: AgentRun }) {
     // `title` is the promise truncation makes good — the whole sentence is a
     // hover away. A plain title rather than the Tooltip primitive because this
     // is text, not a control: a Tooltip needs a focusable trigger, which would
-    // put a second stop in the bar's tab order for no action. On a stacked row
-    // the stretched layer is over these words and the hover never reaches them,
-    // so the row carries the same title and answers instead.
+    // put a second stop in the bar's tab order for no action.
     <span className="truncate text-muted-foreground" title={taskSentence(run)}>
       {run.task}
       {run.detail && (
@@ -174,20 +177,12 @@ function RunEnd({
   run,
   onEnd,
   onOpenTask,
-  stretch = false,
   className,
 }: {
   run: AgentRun;
   /** Stop this run. Only ever shown on `running`; omit and there is no Stop. */
   onEnd?: () => void;
   onOpenTask?: () => void;
-  /**
-   * Let the arrow cover the whole line it sits at the end of (STRETCH). For
-   * the stacked list, where the line IS the choice; off on a single row, where
-   * the bar's one row already carries Back at the other end and stretching a
-   * control across it would put two meanings on one rectangle.
-   */
-  stretch?: boolean;
   className?: string;
 }) {
   const { label, tint } = RUN_STATES[run.state];
@@ -199,11 +194,7 @@ function RunEnd({
         size="icon-xs"
         onClick={onEnd}
         aria-label={`Stop ${run.name}: ${run.task}`}
-        // Raised over the arrow's stretched layer, so it keeps its own clicks.
-        // The layer belongs to a later sibling, and positioned boxes with no
-        // z-index of their own paint in document order, so without this the
-        // arrow would be catching the presses meant for Stop.
-        className={cn("shrink-0 text-muted-foreground hover:text-foreground", stretch && "relative z-10")}
+        className="shrink-0 text-muted-foreground hover:text-foreground"
       >
         <IconPlayerStopFilled className="size-3.5" aria-hidden="true" />
       </Button>
@@ -235,7 +226,7 @@ function RunEnd({
         size="icon-xs"
         onClick={onOpenTask}
         aria-label={`${run.name}, ${label} — open this task's conversation`}
-        className={cn("-mr-1.5 shrink-0 text-muted-foreground hover:text-foreground", stretch && STRETCH)}
+        className="-mr-1.5 shrink-0 text-muted-foreground hover:text-foreground"
       >
         <IconArrowUpRight className="size-3.5" aria-hidden="true" />
       </Button>
@@ -395,7 +386,7 @@ export function AgentDetail({
             <li
               key={run.id}
               className={cn(LINE, openTask && ROW_TARGET, ENTER)}
-              title={openTask ? taskSentence(run) : undefined}
+              onClick={openTask && rowClick(openTask)}
             >
               <StateDial state={run.state} progress={run.progress} />
               <span className="min-w-0 flex-1">
@@ -405,7 +396,6 @@ export function AgentDetail({
                 run={run}
                 onEnd={onEndRun ? () => onEndRun(run) : undefined}
                 onOpenTask={openTask}
-                stretch={Boolean(openTask)}
               />
             </li>
           );
