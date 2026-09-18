@@ -5,7 +5,7 @@ import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { RoomAvatar } from "@/components/rooms/room-avatar";
-import { workingLabelForTask } from "@/lib/mock/room-reasoning";
+import { workingLabelForTask, type TaskReasoning } from "@/lib/mock/room-reasoning";
 import type { RoomMember } from "@/lib/mock/rooms";
 
 // A task that is still running, standing in the thread it came out of.
@@ -64,6 +64,9 @@ export type RoomWorkingTask = {
   title: string;
   /** How long it has been going ("42m ago"). */
   time: string;
+  /** The turn to open when it is not the board's own — a tagged agent's, which
+      has no task id for room-reasoning.ts to look up (room-agent-runs.ts). */
+  turn?: TaskReasoning;
 };
 
 /** The row, as both shapes wear it. `relative` and `overflow-hidden` are for
@@ -81,6 +84,7 @@ export function RoomWorkingMessage({
   member,
   title,
   time,
+  turn,
   onOpen,
   className,
 }: RoomWorkingTask & {
@@ -91,7 +95,7 @@ export function RoomWorkingMessage({
   // The mock's last tool-call label, which is the step it is on right now. It
   // is allowed to be missing: a task whose agent is working somewhere this
   // room does not follow still has a state, and the state is the whole line.
-  const step = workingLabelForTask(taskId);
+  const step = turn ? turn.rows.at(-1)?.label : workingLabelForTask(taskId);
 
   const content = (
     <>

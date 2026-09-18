@@ -16,9 +16,12 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { EmptyState } from "@/components/patterns/empty-state";
+import { RoomAvatar } from "@/components/rooms/room-avatar";
+import { RoomThreadReplyBox } from "@/components/rooms/room-thread-panel";
 import { StreamingMessage, streamLength, useTextStream } from "@/components/thread/streaming-message";
 import { ToolCallCount, ToolCallRow } from "@/components/thread/tool-call-row";
-import { reasoningForTask } from "@/lib/mock/room-reasoning";
+import { reasoningForTask, type TaskReasoning } from "@/lib/mock/room-reasoning";
+import type { RoomMember } from "@/lib/mock/rooms";
 import type { StreamRowIcon } from "@/lib/mock/agent-stream";
 
 // The rail's second level: what an agent is actually doing on one task.
@@ -70,12 +73,26 @@ const HEADER_BUTTON = "size-7 shrink-0 text-muted-foreground hover:text-foregrou
 
 export function RoomAgentThread({
   taskId,
+  reasoning: given,
+  member,
+  time,
+  slug,
   onBack,
   onClose,
   className,
 }: {
   /** The task whose turn to play back (`RoomTask.id`). */
   taskId: string;
+  /** A turn the caller already has, for work the board has no card for — a
+      tagged agent's (room-agent-runs.ts). Wins over the lookup by `taskId`. */
+  reasoning?: TaskReasoning;
+  /** Who is working, for the face beside the turn. Without one the turn is
+      drawn in the same column with no face in the gutter. */
+  member?: RoomMember;
+  /** How long it has been going, beside the name ("just now", "42m ago"). */
+  time?: string;
+  /** The room's slug, for the reply box's "Also send to". */
+  slug: string;
   /** Back to the thread this was opened from. */
   onBack: () => void;
   /** Close the rail entirely, from two levels in. */
@@ -85,7 +102,7 @@ export function RoomAgentThread({
   // Undefined is a real answer: the board holds tasks whose agents are working
   // somewhere this mock does not follow, and the honest thing to do with one
   // is to say so rather than to draw an empty turn that looks like a failure.
-  const reasoning = reasoningForTask(taskId);
+  const reasoning = given ?? reasoningForTask(taskId);
   const prose = reasoning?.prose ?? [];
   const total = streamLength(prose);
   const revealed = useTextStream(total, { active: total > 0 });
@@ -151,7 +168,7 @@ export function RoomAgentThread({
 
       <ScrollArea className="min-h-0 flex-1">
         {reasoning ? (
-          <div className="px-4 py-3" aria-busy={revealed < total || undefined}>
+          <div className="py-3" aria-busy={revealed < total || undefined}>
             {/* The shimmer is the only visible sign that the last row is still
                 going, and it says nothing to anyone who cannot see it. One
                 polite phrase, the same device the signup turn uses. */}
@@ -159,34 +176,50 @@ export function RoomAgentThread({
               {live ? `${reasoning.agentName} is working: ${live.label}` : `${reasoning.agentName} is working`}
             </p>
 
-            {/* Rows first, then what it has written, with the gap between them
-                a step wider than the gap inside the stack: that is where the
-                turn changes from what it did to what it has to say. */}
-            <div className="space-y-2 pb-3">
-              {rows.map((row, i) => (
-                <div key={row.id} className="min-w-0">
-                  <ToolCallRow
-                    label={row.label}
-                    detail={row.detail}
-                    status={i === rows.length - 1 ? "running" : "done"}
-                    icon={ICONS[row.icon]}
-                    // Only a count: a room turn's receipts are figures, and the
-                    // logo stack the signup flow draws belongs to a row that
-                    // went looking for connectors.
-                    receipt={
-                      row.receipt?.kind === "count" ? <ToolCallCount>{row.receipt.text}</ToolCallCount> : undefined
-                    }
-                  />
-                </div>
-              ))}
-            </div>
+            {/* IT IS STILL A MESSAGE IN A THREAD, so it wears a message row's
+                frame (room-message.tsx): the 36px face in its own gutter, the
+                name at the body size in tier 1 and the clock in tier 3 beside
+                it, and the work underneath as the body. A bare stack of rows
+                read as a log file opened in the rail rather than as the agent
+                answering, which is what it is doing, one message early. */}
+            <div className="flex items-start gap-3 px-4 py-2">
+              <div className="w-9 shrink-0">{member ? <RoomAvatar member={member} size="lg" /> : null}</div>
+              <div className="min-w-0 flex-1">
+                <p className="truncate leading-6">
+                  <span className="text-base font-semibold text-foreground">{reasoning.agentName}</span>
+                  {time ? <span className="ml-2 text-xs tabular-nums text-foreground-low">{time}</span> : null}
+                </p>
 
-            {/* The prose block brings the thread view's own right gutter with
-                it (`pr-8`, the room a finished message leaves for its hover
-                actions), so its column is a little narrower than the rows
-                above. On ragged-right text nothing shows, and reaching into
-                that component to take it off would be a worse trade. */}
-            {total > 0 ? <StreamingMessage paragraphs={prose} revealed={revealed} /> : null}
+                {/* Rows first, then what it has written, with the gap between them
+                    a step wider than the gap inside the stack: that is where the
+                    turn changes from what it did to what it has to say. */}
+                <div className="mt-1.5 space-y-2 pb-3">
+                  {rows.map((row, i) => (
+                    <div key={row.id} className="min-w-0">
+                      <ToolCallRow
+                        label={row.label}
+                        detail={row.detail}
+                        status={i === rows.length - 1 ? "running" : "done"}
+                        icon={ICONS[row.icon]}
+                        // Only a count: a room turn's receipts are figures, and the
+                        // logo stack the signup flow draws belongs to a row that
+                        // went looking for connectors.
+                        receipt={
+                          row.receipt?.kind === "count" ? <ToolCallCount>{row.receipt.text}</ToolCallCount> : undefined
+                        }
+                      />
+                    </div>
+                  ))}
+                </div>
+
+                {/* The prose block brings the thread view's own right gutter with
+                    it (`pr-8`, the room a finished message leaves for its hover
+                    actions), so its column is a little narrower than the rows
+                    above. On ragged-right text nothing shows, and reaching into
+                    that component to take it off would be a worse trade. */}
+                {total > 0 ? <StreamingMessage paragraphs={prose} revealed={revealed} /> : null}
+              </div>
+            </div>
           </div>
         ) : (
           // Its own gutter: the pattern centres its copy and owns no side
@@ -202,6 +235,8 @@ export function RoomAgentThread({
           </div>
         )}
       </ScrollArea>
+
+      <RoomThreadReplyBox slug={slug} />
     </aside>
   );
 }

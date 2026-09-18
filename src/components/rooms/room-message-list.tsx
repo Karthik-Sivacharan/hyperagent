@@ -7,7 +7,7 @@ import { RoomFacepile } from "@/components/rooms/room-avatar";
 import { RoomMessageRow } from "@/components/rooms/room-message";
 import { Pulse } from "@/components/rooms/tracker/pulse";
 import type { MessagePulse } from "@/components/rooms/tracker/tracker-context";
-import { roomMember, type Room, type RoomMessage } from "@/lib/mock/rooms";
+import { roomMember, type Room, type RoomMember, type RoomMessage } from "@/lib/mock/rooms";
 
 // The scrolling column: an orientation block, then each day behind its own
 // divider, then the rows.
@@ -101,6 +101,7 @@ export function RoomIntro({ room, className }: { room: Room; className?: string 
 
 export function RoomMessageList({
   room,
+  working,
   activeThreadId,
   onOpenThread,
   onFocusAgent,
@@ -108,6 +109,9 @@ export function RoomMessageList({
   className,
 }: {
   room: Room;
+  /** Agents still working on a message's ask, by message id: its thread link
+      says so until they answer (room-message.tsx). */
+  working?: ReadonlyMap<string, readonly RoomMember[]>;
   /** The message whose thread the side rail is showing, if any. */
   activeThreadId?: string;
   onOpenThread: (messageId: string) => void;
@@ -119,12 +123,27 @@ export function RoomMessageList({
 }): ReactNode {
   const viewportRef = useRef<HTMLDivElement>(null);
 
-  // Open at the newest message. A jump rather than a smooth scroll: this is
-  // the room's resting position, not a movement the reader asked for.
+  // What is at the foot of the column, and how tall it is about to get: the
+  // last message, its reply count, and whether a thread link is working under
+  // it. Any of the three changing can push the newest line below the fold.
+  const last = room.days.at(-1)?.messages.at(-1);
+  const tail = `${last?.id}|${last?.replies?.count ?? 0}|${last ? (working?.get(last.id)?.length ?? 0) : 0}`;
+  const lastIdRef = useRef<string | undefined>(undefined);
+
+  // Open at the newest message, and stay there. A jump rather than a smooth
+  // scroll: this is the room's resting position, not a movement the reader
+  // asked for. A NEW last message always brings the column down — it is
+  // either a new room or something you just sent. The same message growing a
+  // thread link only does if the reader was already at the bottom, so an
+  // agent answering never drags someone who had scrolled up to read.
   useEffect(() => {
     const viewport = viewportRef.current;
-    if (viewport) viewport.scrollTop = viewport.scrollHeight;
-  }, [room.id]);
+    if (!viewport) return;
+    const arrived = lastIdRef.current !== last?.id;
+    lastIdRef.current = last?.id;
+    const atBottom = viewport.scrollHeight - viewport.scrollTop - viewport.clientHeight < 160;
+    if (arrived || atBottom) viewport.scrollTop = viewport.scrollHeight;
+  }, [last?.id, tail]);
 
   // A card asked for a message. Centre it, because a message arriving at the
   // very edge of the column reads as the column having jumped rather than as
@@ -157,6 +176,7 @@ export function RoomMessageList({
               <div key={message.id} data-message-id={message.id} className="relative">
                 <RoomMessageRow
                   message={message}
+                  working={working?.get(message.id)}
                   active={activeThreadId === message.id}
                   onOpenThread={onOpenThread}
                   onFocusAgent={onFocusAgent}

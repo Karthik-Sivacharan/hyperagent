@@ -2,7 +2,7 @@
 
 import { useId } from "react";
 import { motion } from "motion/react";
-import { IconChevronDown, IconMessageOff, IconX } from "@tabler/icons-react";
+import { IconChevronDown, IconX } from "@tabler/icons-react";
 
 import { cn } from "@/lib/utils";
 import { DURATION, EASE } from "@/lib/motion";
@@ -18,7 +18,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { EmptyState } from "@/components/patterns/empty-state";
 import { RoomComposer } from "@/components/rooms/room-composer";
 import { RoomMessageRow } from "@/components/rooms/room-message";
 import { visibleRoomMessages } from "@/components/rooms/room-message-list";
@@ -147,7 +146,6 @@ export function RoomThreadPanel({
   onClose: () => void;
   className?: string;
 }) {
-  const alsoSendId = useId();
   const root = roomMessages(room).find((message) => message.id === rootId);
   // The channel's own filter, not a copy of it: a membership event is no more
   // welcome in a thread than in the room, and filtering here rather than in the
@@ -266,33 +264,35 @@ export function RoomThreadPanel({
               key={task.taskId}
               {...task}
               onOpen={
-                onOpenAgent && reasoningForTask(task.taskId) ? () => onOpenAgent(task.taskId) : undefined
+                onOpenAgent && (task.turn ?? reasoningForTask(task.taskId)) ? () => onOpenAgent(task.taskId) : undefined
               }
             />
           ))}
-
-          {replies.length === 0 && live.length === 0 ? (
-            <EmptyState
-              variant="plain"
-              icon={IconMessageOff}
-              title="No replies yet"
-              description="Replies here stay in the thread and do not post back to the room."
-            />
-          ) : null}
         </div>
       </ScrollArea>
 
-      {/* Pinned: the reply box is the panel's one action and never scrolls
-          away from the thread it belongs to. */}
-      <div className="shrink-0 border-t border-border-subtle px-3 pt-2 pb-3">
-        <RoomComposer size="compact" placeholder="Reply in thread" />
-        <div className="mt-2 flex items-center gap-2">
-          <Checkbox id={alsoSendId} />
-          <Label htmlFor={alsoSendId} className="cursor-pointer font-normal text-muted-foreground text-xs">
-            Also send to #{room.slug}
-          </Label>
-        </div>
-      </div>
+      <RoomThreadReplyBox slug={room.slug} />
     </aside>
+  );
+}
+
+/**
+ * The thread's reply box, pinned under whichever level of the rail is showing.
+ * It is the panel's one action and never scrolls away from the thread it
+ * belongs to — and the agent's live turn is still that thread, one level in,
+ * so it keeps the same box rather than becoming a page you can only read.
+ */
+export function RoomThreadReplyBox({ slug }: { slug: string }) {
+  const alsoSendId = useId();
+  return (
+    <div className="shrink-0 border-t border-border-subtle px-3 pt-2 pb-3">
+      <RoomComposer size="compact" placeholder="Reply in thread" />
+      <div className="mt-2 flex items-center gap-2">
+        <Checkbox id={alsoSendId} />
+        <Label htmlFor={alsoSendId} className="cursor-pointer font-normal text-muted-foreground text-xs">
+          Also send to #{slug}
+        </Label>
+      </div>
+    </div>
   );
 }

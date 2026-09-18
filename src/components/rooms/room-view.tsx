@@ -1,12 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { IconLayoutBoardSplit } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 import { ComposerAgentStatus } from "@/components/composer/composer-agent-status";
 import type { AgentRun } from "@/components/composer/agent-status/types";
 import { EmptyState } from "@/components/patterns/empty-state";
-import { RoomComposer } from "@/components/rooms/room-composer";
+import { RoomComposer, toRoomText } from "@/components/rooms/room-composer";
 import { RoomHeader, type RoomTab } from "@/components/rooms/room-header";
 import { RoomAgentThread } from "@/components/rooms/room-agent-thread";
 import { RoomMessageList } from "@/components/rooms/room-message-list";
@@ -14,8 +14,8 @@ import { RoomThreadPanel } from "@/components/rooms/room-thread-panel";
 import type { RoomWorkingTask } from "@/components/rooms/room-working-message";
 import { RoomTrackerProvider, useRoomTracker } from "@/components/rooms/tracker/tracker-context";
 import { TrackerPanel } from "@/components/rooms/tracker/tracker-panel";
-import { roomMember, type Room } from "@/lib/mock/rooms";
-import { runForMention, threadForAgent } from "@/lib/mock/room-agent-runs";
+import { roomMember, type Room, type RoomBlock, type RoomMember, type RoomMessage } from "@/lib/mock/rooms";
+import { answerForMention, runForMention, threadForAgent, turnForMention } from "@/lib/mock/room-agent-runs";
 
 // The room, assembled: chrome, the three tabs, the composer, and the thread
 // rail beside them. This file owns the state the columns share and nothing
@@ -53,6 +53,16 @@ import { runForMention, threadForAgent } from "@/lib/mock/room-agent-runs";
 // settles on `done`: hueless while it works, green when it stops. One interval
 // for the whole fleet rather than one per agent, so ten chips cost one timer.
 // The board's runs are static and are left alone by it.
+//
+// A SEND IS SAID OUT LOUD. Whatever the field held goes into the column under
+// your name, tagged or not, on the end of today (`liveRoom`). A message that
+// tagged an agent also hands that agent an ASK — the run above, plus the
+// message it is answering — and the ask is what ties the bar and the column
+// together: while it runs, the message's thread link says who is working and
+// the thread shows the live cell; when it lands on `done`, the agent's answer
+// is a reply in that thread and the link turns into "1 reply". Replies are
+// derived from the asks rather than stored beside them, so a run that was
+// stopped simply never answers and there is nothing to take back.
 //
 // AND A CHIP IS A WAY INTO THE CONVERSATION ONLY WHEN THE AGENT HOLDS ONE
 // TASK. Then there is nothing to choose and one click does the whole trip: the
@@ -108,6 +118,33 @@ type RailView =
   | { kind: "thread"; rootId: string; back?: true }
   | { kind: "agent"; taskId: string; fromRootId: string };
 
+/** One agent tagged in one sent message: the run the bar draws, and what it is
+    answering. `answeredAt` is the clock when the run landed on `done`. */
+type Ask = {
+  id: string;
+  messageId: string;
+  member: RoomMember;
+  /** The message as stored, `@[id]` tokens and all. */
+  text: string;
+  run: AgentRun;
+  answeredAt?: string;
+};
+
+/** The clock label every message wears ("7:05 PM"). Only ever called from an
+    event or a timer, so the server never renders a time the client disagrees with. */
+function clockLabel(): string {
+  return new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+}
+
+/** A draft's lines as the room's paragraphs. */
+function paragraphs(text: string): RoomBlock[] {
+  return text
+    .split(/\n+/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => ({ kind: "paragraph", text: line }));
+}
+
 export function RoomView({ room }: { room: Room }) {
   const [tab, setTab] = useState<RoomTab>("messages");
 
@@ -116,7 +153,9 @@ export function RoomView({ room }: { room: Room }) {
 
   return (
     <RoomTrackerProvider room={room} onShowTracker={showTracker} onShowMessages={showMessages}>
-      <RoomBody room={room} tab={tab} onTabChange={setTab} />
+      {/* Keyed on the room, so what was sent in one room is not still on
+          screen after the route moves to the next. */}
+      <RoomBody key={room.id} room={room} tab={tab} onTabChange={setTab} />
     </RoomTrackerProvider>
   );
 }
@@ -137,7 +176,10 @@ function RoomBody({ room, tab, onTabChange }: { room: Room; tab: RoomTab; onTabC
   // Bumped only when something opened the rail FOR the reader, which is what
   // the rail washes on. Opening one yourself leaves it at null.
   const [arrival, setArrival] = useState<number | null>(null);
-  const [mentionRuns, setMentionRuns] = useState<readonly AgentRun[]>([]);
+  // What this visit has said in the room, and what it asked the agents it tagged.
+  const [sent, setSent] = useState<readonly RoomMessage[]>([]);
+  const [asks, setAsks] = useState<readonly Ask[]>([]);
+  const sentCount = useRef(0);
   // Runs somebody stopped. An id set rather than an edit, because half the bar
   // is the board's and this view does not own those rows — it can only say
   // "this one is over" and let the composition below apply it.
@@ -148,6 +190,15 @@ function RoomBody({ room, tab, onTabChange }: { room: Room; tab: RoomTab; onTabC
     () => room.memberIds.map(roomMember).filter((member) => member !== undefined),
     [room.memberIds],
   );
+
+  // The bar's side of the asks: one run per agent, the latest ask's. A Map
+  // keeps an agent in the place it was first tagged, so tagging it again
+  // replaces its chip rather than moving it to the end.
+  const mentionRuns = useMemo(() => {
+    const latest = new Map<string, AgentRun>();
+    for (const ask of asks) latest.set(ask.member.id, ask.run);
+    return [...latest.values()];
+  }, [asks]);
 
   // Board first, then anything a mention started that the board has no card
   // for. De-duplicated on id, so a run that later gains a card is one chip.
@@ -167,45 +218,118 @@ function RoomBody({ room, tab, onTabChange }: { room: Room; tab: RoomTab; onTabC
     );
   }, [agentRuns, mentionRuns, endedIds]);
 
-  // A send starts a run for every agent the draft named. An agent already in
-  // the bar is handed the new message rather than added twice.
-  const handleSend = useCallback((draft: string, mentionedIds: string[]) => {
-    const tagged = mentionedIds.flatMap((id) => {
-      const member = roomMember(id);
-      return member?.kind === "agent" ? [runForMention(member, draft)] : [];
-    });
-    if (tagged.length === 0) return;
-    setMentionRuns((current) => {
-      const next = [...current];
-      for (const run of tagged) {
-        const at = next.findIndex((existing) => existing.id === run.id);
-        if (at === -1) next.push(run);
-        else next[at] = run;
-      }
-      return next;
-    });
-  }, []);
+  // A send posts the message, and starts an ask for every agent it named. The
+  // run is still built from the draft as typed, because its one line of
+  // detail is the reader's own words and `@[id]` tokens are not words.
+  const handleSend = useCallback(
+    (draft: string, mentionedIds: string[]) => {
+      const text = toRoomText(draft, members);
+      if (!text) return;
+      sentCount.current += 1;
+      const messageId = `sent_${sentCount.current}`;
+      setSent((current) => [
+        ...current,
+        { id: messageId, authorId: "you", time: clockLabel(), blocks: paragraphs(text) },
+      ]);
+      const tagged = mentionedIds.flatMap((id) => {
+        const member = roomMember(id);
+        return member?.kind === "agent" ? [member] : [];
+      });
+      if (tagged.length === 0) return;
+      setAsks((current) => [
+        ...current,
+        ...tagged.map((member) => ({
+          id: `${messageId}_${member.id}`,
+          messageId,
+          member,
+          text,
+          run: runForMention(member, draft),
+        })),
+      ]);
+    },
+    [members],
+  );
 
   // Nothing is running, so nothing needs a clock: the interval exists only
-  // while there is an unfinished mention run to advance, and clears itself the
-  // tick after the last one lands on `done`.
-  const working = mentionRuns.some((run) => run.state === "running");
+  // while there is an unfinished ask to advance, and clears itself the tick
+  // after the last one lands on `done`.
+  const working = asks.some((ask) => ask.run.state === "running");
   useEffect(() => {
     if (!working) return;
     const id = window.setInterval(() => {
-      setMentionRuns((current) =>
-        current.map((run) => {
-          if (run.state !== "running") return run;
-          const progress = (run.progress ?? 0) + TICK_PROGRESS;
-          if (progress < 1) return { ...run, progress };
+      setAsks((current) =>
+        current.map((ask) => {
+          if (ask.run.state !== "running") return ask;
+          const progress = (ask.run.progress ?? 0) + TICK_PROGRESS;
+          if (progress < 1) return { ...ask, run: { ...ask.run, progress } };
           // Done keeps the task it finished and drops the fraction: a run that
           // stopped is not 100% of anything a reader wants (agent-status.ts).
-          return { ...run, state: "done" as const, progress: undefined };
+          // The clock is taken here because this is the moment it answered.
+          return { ...ask, run: { ...ask.run, state: "done" as const, progress: undefined }, answeredAt: clockLabel() };
         }),
       );
     }, TICK_MS);
     return () => window.clearInterval(id);
   }, [working]);
+
+  // The room as this visit has changed it. Sent messages go on the end of
+  // today (a room with no "Today" yet gets one), each carrying the replies its
+  // answered asks have posted, and those replies are the thread the rail reads.
+  const liveRoom = useMemo<Room>(() => {
+    if (sent.length === 0) return room;
+    const answers = new Map<string, RoomMessage[]>();
+    for (const ask of asks) {
+      if (ask.run.state !== "done" || !ask.answeredAt) continue;
+      const reply: RoomMessage = {
+        id: `${ask.id}_reply`,
+        authorId: ask.member.id,
+        time: ask.answeredAt,
+        blocks: [{ kind: "paragraph", text: answerForMention(ask.member, ask.text) }],
+      };
+      answers.set(ask.messageId, [...(answers.get(ask.messageId) ?? []), reply]);
+    }
+    const messages = sent.map((message): RoomMessage => {
+      const replies = answers.get(message.id);
+      if (!replies) return message;
+      return {
+        ...message,
+        replies: {
+          count: replies.length,
+          participantIds: [...new Set(replies.map((reply) => reply.authorId))],
+          lastReplyLabel: `Last reply today at ${replies[replies.length - 1].time}`,
+        },
+      };
+    });
+    const last = room.days[room.days.length - 1];
+    const days =
+      last?.label === "Today"
+        ? [...room.days.slice(0, -1), { ...last, messages: [...last.messages, ...messages] }]
+        : [...room.days, { label: "Today", messages }];
+    const threads = [...room.threads, ...[...answers].map(([rootId, replies]) => ({ rootId, replies }))];
+    return { ...room, days, threads };
+  }, [room, sent, asks]);
+
+  // Who is still working on each sent message, for the thread link under it.
+  const workingOn = useMemo(() => {
+    const byMessage = new Map<string, RoomMember[]>();
+    for (const ask of asks) {
+      if (ask.run.state !== "running") continue;
+      byMessage.set(ask.messageId, [...(byMessage.get(ask.messageId) ?? []), ask.member]);
+    }
+    return byMessage;
+  }, [asks]);
+
+  // Where a run's work was asked for. A board run's task names its source
+  // message; a mention's run is answering the last message that tagged its
+  // agent. Undefined for a card that was never said out loud.
+  const sourceOf = useCallback(
+    (run: AgentRun) => {
+      const task = allTasks.find((candidate) => candidate.id === run.id);
+      if (task) return task.sourceMessageId;
+      return asks.findLast((ask) => ask.member.id === run.id)?.messageId;
+    },
+    [allTasks, asks],
+  );
 
   // Where a picked chip goes in the CONVERSATION, on the one occasion the bar
   // still asks: an agent whose whole presence in the strip is this single run.
@@ -225,7 +349,7 @@ function RoomBody({ room, tab, onTabChange }: { room: Room; tab: RoomTab; onTabC
       // now carries one. The fallback is for the two cases that never will: a
       // mention's run, which has no task at all, and a room whose board is
       // written but whose conversation is not.
-      const messageId = task?.sourceMessageId ?? threadForAgent(room, agentId);
+      const messageId = sourceOf(run) ?? threadForAgent(liveRoom, agentId);
       if (!messageId) return;
       // `openMessage` brings the messages tab back and scrolls the column to
       // the message, pulsing it — the same trip a card makes, so the two read
@@ -236,20 +360,31 @@ function RoomBody({ room, tab, onTabChange }: { room: Room; tab: RoomTab; onTabC
       setRail({ kind: "thread", rootId: messageId });
       setArrival((current) => (current ?? 0) + 1);
     },
-    [allTasks, openMessage, room],
+    [allTasks, openMessage, liveRoom, sourceOf],
   );
 
-  // Stopping one. The interval below reads the mention runs rather than this
-  // list, so a stopped mention run is also written back there or the next tick
-  // would start it going again.
-  const handleEndRun = useCallback((run: AgentRun) => {
-    setEndedIds((current) => new Set(current).add(run.id));
-    setMentionRuns((current) =>
-      current.map((existing) =>
-        existing.id === run.id ? { ...existing, state: "stopped" as const, progress: undefined } : existing,
-      ),
-    );
-  }, []);
+  // Stopping one. A board run is marked ended by id. A mention's run is the
+  // agent's, so Stop calls off every ask that agent still has going — the
+  // interval reads the asks, and one left running would go on to answer a
+  // message after the reader stopped it. It is not added to `endedIds`: that
+  // set is keyed on ids, a mention's id is the agent's, and the next tag of
+  // the same agent would come up already stopped.
+  const handleEndRun = useCallback(
+    (run: AgentRun) => {
+      if (!asks.some((ask) => ask.member.id === run.id)) {
+        setEndedIds((current) => new Set(current).add(run.id));
+        return;
+      }
+      setAsks((current) =>
+        current.map((ask) =>
+          ask.member.id === run.id && ask.run.state === "running"
+            ? { ...ask, run: { ...ask.run, state: "stopped" as const, progress: undefined } }
+            : ask,
+        ),
+      );
+    },
+    [asks],
+  );
 
   // …and where ONE ROW of that detail goes — which, for an agent holding more
   // than one, is now the only way in. The task's own source message, and
@@ -258,38 +393,50 @@ function RoomBody({ room, tab, onTabChange }: { room: Room; tab: RoomTab; onTabC
   // of one agent's detail to the same thread and call each of them precise.
   const handleOpenTask = useCallback(
     (run: AgentRun) => {
-      const task = allTasks.find((candidate) => candidate.id === run.id);
-      if (!task?.sourceMessageId) return;
-      openMessage(task.sourceMessageId);
-      setRail({ kind: "thread", rootId: task.sourceMessageId });
+      const messageId = sourceOf(run);
+      if (!messageId) return;
+      openMessage(messageId);
+      setRail({ kind: "thread", rootId: messageId });
       setArrival((current) => (current ?? 0) + 1);
     },
-    [allTasks, openMessage],
+    [openMessage, sourceOf],
   );
 
   // A run whose task was never said out loud keeps the word it always had at
   // the end of its row. The same test as the handler above, asked before the
   // arrow is drawn rather than after it is pressed, so no row ends in a control
   // that would quietly do nothing.
-  const hasThread = useCallback(
-    (run: AgentRun) =>
-      allTasks.some((candidate) => candidate.id === run.id && candidate.sourceMessageId !== undefined),
-    [allTasks],
-  );
+  const hasThread = useCallback((run: AgentRun) => sourceOf(run) !== undefined, [sourceOf]);
 
   // What is still running in the thread the rail is on. `endedIds` counts here
   // as well as in the bar: a run somebody stopped from the composer must not go
   // on shimmering in the rail as though nobody had.
   const workingHere = useMemo<RoomWorkingTask[]>(() => {
     if (!railRootId) return [];
-    return allTasks.flatMap((task) => {
+    const board = allTasks.flatMap((task) => {
       if (task.status !== "working" || task.sourceMessageId !== railRootId) return [];
       if (endedIds.has(task.id)) return [];
       const member = roomMember(task.assigneeId);
       if (!member) return [];
       return [{ taskId: task.id, member, title: task.title, time: task.updated }];
     });
-  }, [allTasks, endedIds, railRootId]);
+    // An ask carries its own turn, because the board has no card for it to be
+    // looked up by: the cell presses through to it the way a card's does.
+    const asked = asks.flatMap((ask) =>
+      ask.messageId === railRootId && ask.run.state === "running"
+        ? [
+            {
+              taskId: ask.id,
+              member: ask.member,
+              title: ask.run.task,
+              time: "just now",
+              turn: turnForMention(ask.member, ask.text),
+            },
+          ]
+        : [],
+    );
+    return [...board, ...asked];
+  }, [allTasks, asks, endedIds, railRootId]);
 
   const openThread = (messageId: string) => {
     setRail({ kind: "thread", rootId: messageId });
@@ -323,6 +470,22 @@ function RoomBody({ room, tab, onTabChange }: { room: Room; tab: RoomTab; onTabC
     setRail(null);
   }, []);
 
+  // The rail's agent level, when the turn on it is a tagged agent's. Memoised
+  // on the member and the text rather than the ask, which is a new object
+  // every tick while its run advances.
+  const railAsk = rail?.kind === "agent" ? asks.find((ask) => ask.id === rail.taskId) : undefined;
+  const railAskMember = railAsk?.member;
+  const railAskText = railAsk?.text;
+  const railTurn = useMemo(
+    () => (railAskMember && railAskText !== undefined ? turnForMention(railAskMember, railAskText) : undefined),
+    [railAskMember, railAskText],
+  );
+  // Whose face and clock the turn wears: the ask's agent, or the board card's
+  // assignee and its last update, the same pair its working cell showed.
+  const railTask = rail?.kind === "agent" && !railAsk ? allTasks.find((task) => task.id === rail.taskId) : undefined;
+  const railMember = railAskMember ?? (railTask ? roomMember(railTask.assigneeId) : undefined);
+  const railTime = railAsk ? "just now" : railTask?.updated;
+
   // What the room owes a person: the two lanes that are asking for one. The
   // header prints it beside the tab so it is not hidden behind a click.
   const waiting = tasksByStatus["needs-you"].length + tasksByStatus.blocked.length;
@@ -342,7 +505,8 @@ function RoomBody({ room, tab, onTabChange }: { room: Room; tab: RoomTab; onTabC
         {tab === "messages" ? (
           <>
             <RoomMessageList
-              room={room}
+              room={liveRoom}
+              working={workingOn}
               activeThreadId={railRootId}
               onOpenThread={openThread}
               onFocusAgent={focusAgent}
@@ -393,13 +557,17 @@ function RoomBody({ room, tab, onTabChange }: { room: Room; tab: RoomTab; onTabC
           // than streaming the new prose into the old one's position.
           key={rail.taskId}
           taskId={rail.taskId}
+          reasoning={railTurn}
+          member={railMember}
+          time={railTime}
+          slug={room.slug}
           onBack={backToThread}
           onClose={closeRail}
           className="w-full shrink-0 lg:w-[400px]"
         />
       ) : (
         <RoomThreadPanel
-          room={room}
+          room={liveRoom}
           rootId={rail.rootId}
           arrival={arrival}
           entrance={rail.back ? "level" : "rail"}
