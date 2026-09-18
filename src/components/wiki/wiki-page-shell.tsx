@@ -3,6 +3,7 @@ import { WikiView } from "@/components/wiki/wiki-view";
 import {
   getWikiView,
   wikiCounts,
+  wikiGroupLabels,
   wikiHiddenPages,
   wikiIndexGroups,
   wikiJob,
@@ -23,7 +24,7 @@ const fmtWindow = (start: string, end: string) => {
   return `${from} – ${to}`;
 };
 
-export function WikiPageShell({ slug }: { slug: string }) {
+export function WikiPageShell({ slug, aside }: { slug: string; aside?: React.ReactNode }) {
   const view = getWikiView(slug);
   if (!view) notFound();
 
@@ -34,6 +35,8 @@ export function WikiPageShell({ slug }: { slug: string }) {
       hiddenPages={wikiHiddenPages()}
       totalPages={wikiPages.filter((page) => !page.hidden).length}
       counts={wikiCounts()}
+      groupLabels={wikiGroupLabels}
+      aside={aside}
       header={{
         workspace: wikiWorkspace.name,
         subtitle: `${wikiJob.runCount} dreaming runs read ${fmtInt(wikiJob.threadCount)} threads, ${fmtInt(wikiJob.messageCount)} messages, ${wikiJob.memoryCount} saved memories and ${wikiJob.documentCount} documents from ${fmtWindow(wikiJob.windowStart, wikiJob.windowEnd)} and composed these pages.`,

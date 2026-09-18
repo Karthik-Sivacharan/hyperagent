@@ -21,6 +21,8 @@ export function WikiView({
   totalPages,
   header,
   counts,
+  groupLabels,
+  aside,
 }: {
   view: WikiViewData;
   groups: { id: WikiGroupId; label: string; pages: WikiIndexEntry[] }[];
@@ -28,6 +30,9 @@ export function WikiView({
   totalPages: number;
   header: { workspace: string; subtitle: string };
   counts: { pages: number; days: number; runs: number; atoms: number };
+  groupLabels: Record<string, string>;
+  /** Top right of the header: the page-design switch. */
+  aside?: React.ReactNode;
 }) {
   const [atomId, setAtomId] = useState<string | null>(null);
   const { page, topic, atoms, topicTitles, linkedFrom } = view;
@@ -44,16 +49,19 @@ export function WikiView({
   return (
     <div className="flex-1 overflow-y-auto">
       <div className="mx-auto flex w-full max-w-360 flex-col gap-6 px-6 py-6">
-        <header className="flex flex-col gap-1">
-          <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs text-foreground-low">
-            <span>{header.workspace}</span>
-            <span aria-hidden="true">/</span>
-            <Link href="/wiki" className="text-foreground hover:underline hover:underline-offset-4">
-              Wiki
-            </Link>
-          </nav>
-          <p className="text-sm text-muted-foreground">{header.subtitle}</p>
-        </header>
+        <div className="flex items-start gap-4">
+          <header className="flex min-w-0 flex-1 flex-col gap-1">
+            <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs text-foreground-low">
+              <span>{header.workspace}</span>
+              <span aria-hidden="true">/</span>
+              <Link href="/wiki" className="text-foreground hover:underline hover:underline-offset-4">
+                Wiki
+              </Link>
+            </nav>
+            <p className="text-sm text-muted-foreground">{header.subtitle}</p>
+          </header>
+          {aside}
+        </div>
 
         <WikiTabs counts={counts} />
 
@@ -68,11 +76,11 @@ export function WikiView({
           </div>
 
           <main className="min-w-0 flex-1">
-            <WikiArticle page={page} topic={topic} atoms={atoms} ctx={ctx} onAtom={setAtomId} />
+            <WikiArticle page={page} topic={topic} atoms={atoms} ctx={ctx} onAtom={setAtomId} groupLabels={groupLabels} />
           </main>
 
           <div className="sticky top-0 hidden self-start xl:block">
-            <WikiDetailsRail page={page} topic={topic} linkedFrom={linkedFrom} />
+            <WikiDetailsRail page={page} topic={topic} linkedFrom={linkedFrom} groupLabels={groupLabels} />
           </div>
         </div>
       </div>

@@ -10,14 +10,8 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { AtomDrawer } from "@/components/wiki/atom-drawer";
 import { TopicsOverTime } from "@/components/wiki/topics-over-time";
-import {
-  wikiGroupDot,
-  type WikiAtom,
-  type WikiConflict,
-  type WikiGraphPage,
-  type WikiRun,
-  type WikiTopic,
-} from "@/lib/mock/wiki";
+import { wikiGroupDot } from "@/components/wiki/topic-type";
+import type { WikiAtom, WikiConflict, WikiGraphPage, WikiRun, WikiTopic } from "@/lib/mock/wiki";
 
 // The job as it happened: 51 runs over a fortnight of source days, and the
 // atoms of one Topic laid out across those days — a bar from validFrom to the
@@ -490,6 +484,7 @@ export function TimeView({
   days,
   dayFinalSeq,
   job,
+  groupLabels,
 }: {
   runs: WikiRun[];
   atoms: WikiAtom[];
@@ -499,6 +494,7 @@ export function TimeView({
   days: string[];
   dayFinalSeq: number[];
   job: { id: string; model: string; tokensIn: number; tokensOut: number; calls: number };
+  groupLabels: Record<string, string>;
 }) {
   const [tab, setTab] = useState("graph");
   const [openAtom, setOpenAtom] = useState<string | null>(null);
@@ -533,6 +529,7 @@ export function TimeView({
           conflicts={conflicts}
           days={days}
           dayFinalSeq={dayFinalSeq}
+          groupLabels={groupLabels}
           onAtom={setOpenAtom}
           onTopic={(id) => {
             setTopicId(id);

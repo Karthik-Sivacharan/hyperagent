@@ -6,7 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { WikiBody, type InlineContext, renderInline } from "@/components/wiki/wiki-body";
-import { wikiGroupDot, wikiGroupLabel, type WikiAtom, type WikiPage, type WikiTopic } from "@/lib/mock/wiki";
+import { wikiGroupDot } from "@/components/wiki/topic-type";
+import type { WikiAtom, WikiPage, WikiTopic } from "@/lib/mock/wiki";
 
 // One composed page: the body dreaming wrote, the atoms the current revision
 // cites, and the revision history with the atoms each revision added and
@@ -90,12 +91,14 @@ export function WikiArticle({
   atoms,
   ctx,
   onAtom,
+  groupLabels,
 }: {
   page: WikiPage;
   topic: WikiTopic;
   atoms: Record<string, WikiAtom>;
   ctx: InlineContext;
   onAtom: (id: string) => void;
+  groupLabels: Record<string, string>;
 }) {
   const [tab, setTab] = useState("page");
   const [openVersion, setOpenVersion] = useState<number | null>(null);
@@ -105,7 +108,7 @@ export function WikiArticle({
     <article className="flex min-w-0 flex-col gap-4">
       <div className="flex items-center gap-2 text-label-12-caps text-foreground-low">
         <span className={cn("size-1.5 rounded-full", wikiGroupDot[page.group])} aria-hidden="true" />
-        {wikiGroupLabel(page.group)} · Topic page · workspace-shared
+        {groupLabels[page.group] ?? groupLabels.concept} · Topic page · workspace-shared
       </div>
 
       <h1 className="font-heading text-2xl text-foreground">{page.title}</h1>

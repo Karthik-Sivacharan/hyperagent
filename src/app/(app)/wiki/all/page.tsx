@@ -4,7 +4,8 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { PageHeading } from "@/components/patterns/page-heading";
 import { WikiTabs } from "@/components/wiki/wiki-tabs";
-import { wikiCounts, wikiGroupDot, wikiHiddenPages, wikiIndexGroups, wikiPages } from "@/lib/mock/wiki";
+import { wikiGroupDot } from "@/components/wiki/topic-type";
+import { wikiCounts, wikiHiddenPages, wikiIndexGroups, wikiPages } from "@/lib/mock/wiki";
 
 // The page index: every listed page with its summary and its slug, grouped by
 // the type of Topic it sits on.

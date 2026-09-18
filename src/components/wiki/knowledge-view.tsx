@@ -9,7 +9,8 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrig
 import { Switch } from "@/components/ui/switch";
 import { SearchInput } from "@/components/patterns/search-input";
 import { AtomDrawer } from "@/components/wiki/atom-drawer";
-import { wikiGroupDot, type WikiAtom, type WikiGroupId, type WikiTopic } from "@/lib/mock/wiki";
+import { wikiGroupDot } from "@/components/wiki/topic-type";
+import type { WikiAtom, WikiGroupId, WikiTopic } from "@/lib/mock/wiki";
 
 // Every atom in the store, under the filters the serving paths use: type,
 // the agent group that extracted it, scope, Topic, validity and source kind.

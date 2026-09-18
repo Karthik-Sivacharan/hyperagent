@@ -9,7 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Overline } from "@/components/ui/overline";
 import { SearchInput } from "@/components/patterns/search-input";
-import { wikiGroupDot, type WikiGroupId, type WikiIndexEntry } from "@/lib/mock/wiki";
+import { wikiGroupDot } from "@/components/wiki/topic-type";
+import type { WikiGroupId, WikiIndexEntry } from "@/lib/mock/wiki";
 
 // The page index: every listed page grouped by the type of Topic it sits on,
 // plus the fold of pages a merge or an exclusion took out of listings. Search

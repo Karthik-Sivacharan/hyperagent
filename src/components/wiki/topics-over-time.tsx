@@ -37,16 +37,8 @@ import {
   type PageEdge,
   type Point,
 } from "@/components/wiki/graph-model";
-import {
-  wikiGroupDot,
-  wikiGroupLabel,
-  type WikiAtom,
-  type WikiConflict,
-  type WikiGraphPage,
-  type WikiGroupId,
-  type WikiRun,
-  type WikiTopic,
-} from "@/lib/mock/wiki";
+import { wikiGroupDot } from "@/components/wiki/topic-type";
+import type { WikiAtom, WikiConflict, WikiGraphPage, WikiGroupId, WikiRun, WikiTopic } from "@/lib/mock/wiki";
 
 // Topics over time: the graph of what the workspace knew at a frame, played
 // back over the window. Ported from the prototype — same force layout, same
@@ -96,6 +88,7 @@ export function TopicsOverTime({
   dayFinalSeq,
   onAtom,
   onTopic,
+  groupLabels,
 }: {
   atoms: WikiAtom[];
   topics: WikiTopic[];
@@ -106,6 +99,7 @@ export function TopicsOverTime({
   dayFinalSeq: number[];
   onAtom: (id: string) => void;
   onTopic: (id: string) => void;
+  groupLabels: Record<string, string>;
 }) {
   const [mode, setMode] = useState<"day" | "run">("day");
   const [day, setDay] = useState(0);
@@ -528,7 +522,7 @@ export function TopicsOverTime({
               )}
             >
               <span className={cn("size-1.5 rounded-full", wikiGroupDot[id])} aria-hidden="true" />
-              {wikiGroupLabel(id)}
+              {groupLabels[id] ?? groupLabels.concept}
             </Button>
           ))}
           {!pagesOnly ? (

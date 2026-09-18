@@ -7,7 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Overline } from "@/components/ui/overline";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { wikiGroupDot, type WikiAtom, type WikiGroupId, type WikiSource } from "@/lib/mock/wiki";
+import { wikiGroupDot } from "@/components/wiki/topic-type";
+import type { WikiAtom, WikiGroupId, WikiSource } from "@/lib/mock/wiki";
 
 // One MemoryAtom, opened from a citation, a revision diff or another atom:
 // what it claims, the Topics it is linked to, its validity window, the

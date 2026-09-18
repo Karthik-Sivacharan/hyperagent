@@ -9,7 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Overline } from "@/components/ui/overline";
 import { bodyHeadings } from "@/components/wiki/wiki-body";
-import { wikiGroupDot, wikiGroupLabel, type WikiLinkedFrom, type WikiPage, type WikiTopic } from "@/lib/mock/wiki";
+import { wikiGroupDot } from "@/components/wiki/topic-type";
+import type { WikiLinkedFrom, WikiPage, WikiTopic } from "@/lib/mock/wiki";
 
 // What the page is about, seen from the side: the sections of the body, the
 // Topic and Page records behind it, the Topic's own revision history, and the
@@ -35,10 +36,12 @@ export function WikiDetailsRail({
   page,
   topic,
   linkedFrom,
+  groupLabels,
 }: {
   page: WikiPage;
   topic: WikiTopic;
   linkedFrom: WikiLinkedFrom[];
+  groupLabels: Record<string, string>;
 }) {
   const [showAllLinked, setShowAllLinked] = useState(false);
   const headings = bodyHeadings(page.content);
@@ -138,7 +141,7 @@ export function WikiDetailsRail({
                   >
                     {entry.title}
                   </Link>
-                  <span className="text-label-12-mono text-foreground-low">{wikiGroupLabel(entry.group)}</span>
+                  <span className="text-label-12-mono text-foreground-low">{groupLabels[entry.group] ?? groupLabels.concept}</span>
                 </div>
                 <p className="text-xs leading-5 text-foreground-low">
                   {entry.sentence || "cites an atom linked to this Topic"}

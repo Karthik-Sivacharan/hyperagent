@@ -7,6 +7,7 @@ import {
   wikiCounts,
   wikiDayFinalSeq,
   wikiDays,
+  wikiGroupLabels,
   wikiJob,
   wikiPagesForGraph,
   wikiRuns,
@@ -39,6 +40,7 @@ export default function Page() {
           days={wikiDays}
           dayFinalSeq={wikiDayFinalSeq}
           job={{ id: wikiJob.id, model: wikiJob.model, ...totals }}
+          groupLabels={wikiGroupLabels}
         />
       </div>
     </div>

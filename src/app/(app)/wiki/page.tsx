@@ -1,6 +1,6 @@
-import { WikiPageShell } from "@/components/wiki/wiki-page-shell";
+import { WikiVersionedPage } from "@/components/wiki/wiki-versions";
 import { wikiDefaultSlug } from "@/lib/mock/wiki";
 
 export default function Page() {
-  return <WikiPageShell slug={wikiDefaultSlug} />;
+  return <WikiVersionedPage slug={wikiDefaultSlug} />;
 }

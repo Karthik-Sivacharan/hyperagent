@@ -200,20 +200,9 @@ export const wikiCounts = () => ({
 /** The page the wiki opens on: the workspace's own page. */
 export const wikiDefaultSlug = "brightwell-supply-co";
 
-/** The dot colour per Topic group. Six categorical chart tokens, light and dark (docs/brand/design.md §15). */
-export const wikiGroupDot: Record<WikiGroupId, string> = {
-  workspace: "bg-chart-2",
-  person: "bg-chart-3",
-  agent: "bg-chart-1",
-  organization: "bg-chart-4",
-  team: "bg-chart-4",
-  project: "bg-chart-5",
-  system: "bg-chart-6",
-  process: "bg-chart-4",
-  location: "bg-chart-3",
-  product: "bg-chart-6",
-  concept: "bg-chart-2",
-};
+/** The label of each Topic group ("People"), and the order the index lists the groups in. */
+export const wikiGroupLabels: Record<WikiGroupId, string> = store.groupLabels;
+export const wikiGroupOrder: WikiGroupId[] = store.groupOrder;
 
 export const wikiGroupLabel = (id: WikiGroupId) => store.groupLabels[id] ?? "Concepts";
 
@@ -300,4 +289,11 @@ export function getWikiView(slug: string): WikiView | null {
     topicTitles,
     linkedFrom: store.linkedFrom[page.topicId] ?? [],
   };
+}
+
+/** The group of every Topic a page links to, keyed as the page's `links` are: what an inline mention's icon shows. */
+export function wikiLinkGroups(page: WikiPage): Record<string, WikiGroupId> {
+  return Object.fromEntries(
+    Object.keys(page.links).map((key) => [key, store.topics[key]?.group ?? "concept"]),
+  );
 }
