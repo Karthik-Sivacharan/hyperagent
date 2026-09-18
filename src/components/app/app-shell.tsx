@@ -39,7 +39,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         style={{ backgroundImage: NOISE }}
       />
       <div className="relative z-10 flex size-full flex-col md:flex-row">
-        <Sidebar workspaces={WORKSPACES} />
+        {/* The wiki brings a page index and a page map of its own, so it
+            opens with this column on its rail. */}
+        <Sidebar workspaces={WORKSPACES} railOn={["/wiki"]} />
         <main
           className="safe-area-top-below-banners-md flex flex-1 flex-col overflow-hidden"
           style={{ paddingRight: "env(safe-area-inset-right)" }}

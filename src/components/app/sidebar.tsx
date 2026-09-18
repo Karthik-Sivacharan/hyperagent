@@ -264,6 +264,7 @@ function RailThreadsMenu({ children, ...triggerProps }: React.ComponentProps<typ
 
 export function Sidebar({
   defaultCollapsed = false,
+  railOn = [],
   forceCollapsed = false,
   collapseRidesSlide = false,
   onWidthChange,
@@ -278,6 +279,15 @@ export function Sidebar({
    * Off by default, so the seventeen cloned routes arrive open as before.
    */
   defaultCollapsed?: boolean;
+  /**
+   * Section roots (`/wiki`) whose pages start on the rail, because they bring
+   * rails of their own and need the width. Like `defaultCollapsed` it is a
+   * starting state, not a lock: arriving in the section lays the column down,
+   * the rail's toggle still opens it for as long as the reader stays, and
+   * leaving the section gives back whatever the reader had before they came.
+   * Empty by default, so every other route behaves exactly as it did.
+   */
+  railOn?: string[];
   /**
    * Holds the column at its rail whatever the reader last chose.
    *
@@ -378,7 +388,24 @@ export function Sidebar({
   // `collapsed` is what the column can actually be. Only the reader's own
   // choice is remembered, so lifting `forceCollapsed` restores it rather than
   // leaving the column railed for good.
-  const [userCollapsed, setUserCollapsed] = useState(defaultCollapsed);
+  const onRailRoute = railOn.some((root) => pathname === root || pathname.startsWith(`${root}/`));
+  const [userCollapsed, setUserCollapsed] = useState(defaultCollapsed || onRailRoute);
+  // Crossing into a `railOn` section lays the column down and keeps the
+  // reader's choice from outside it; crossing back out restores that choice.
+  // Moving between pages inside the section changes nothing, so a column the
+  // reader opened there stays open. No width transition on either crossing:
+  // the page underneath is changing at the same moment.
+  const [inRailRoute, setInRailRoute] = useState(onRailRoute);
+  const [choiceOutside, setChoiceOutside] = useState(defaultCollapsed);
+  if (inRailRoute !== onRailRoute) {
+    setInRailRoute(onRailRoute);
+    if (onRailRoute) {
+      setChoiceOutside(userCollapsed);
+      setUserCollapsed(true);
+    } else {
+      setUserCollapsed(choiceOutside);
+    }
+  }
   const collapsed = userCollapsed || forceCollapsed;
   // ...and the one state the rail's control cannot get out of. `collapsed` is
   // reversible whenever the reader is the one holding it there; `forceCollapsed`
