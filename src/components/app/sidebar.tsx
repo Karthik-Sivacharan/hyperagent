@@ -47,6 +47,7 @@ import { LearningMenu } from "@/components/app/learning-menu";
 import { NewAgentMenu } from "@/components/app/new-agent-menu";
 import { SearchPalette } from "@/components/app/search-palette";
 import { ThreadContextMenu, ThreadOptionsMenu } from "@/components/app/thread-menu";
+import { WorkspaceSwitcher, type Workspace } from "@/components/app/workspace-switcher";
 import { currentUser } from "@/lib/mock/user";
 import { recentRooms } from "@/lib/mock/rooms";
 import { recentThreads } from "@/lib/mock/threads";
@@ -267,6 +268,7 @@ export function Sidebar({
   collapseRidesSlide = false,
   onWidthChange,
   onExpandedWidthChange,
+  workspaces,
 }: {
   /**
    * Start at the 64px rail. A STARTING STATE, NOT A LOCK: it only seeds the
@@ -341,6 +343,12 @@ export function Sidebar({
    * is stable. See use-shell-fit.ts.
    */
   onExpandedWidthChange?: (width: number) => void;
+  /**
+   * The workspaces for the switcher under the logo, the selected one first.
+   * AppShell reads them on the server; omit it (the signup handoff does) and
+   * the header is the logo row alone, as before.
+   */
+  workspaces?: Workspace[];
 }) {
   const pathname = usePathname();
   // Exact match, except section roots with sub-routes (/settings/*, /wiki/*).
@@ -568,6 +576,12 @@ export function Sidebar({
                     <IconLayoutSidebarLeftCollapse className="size-4" aria-hidden="true" />
                   </Button>
                 </div>
+
+                {workspaces && (
+                  <div className="shrink-0 px-2 pt-0.5 pb-1">
+                    <WorkspaceSwitcher workspaces={workspaces} collapsed={collapsed} />
+                  </div>
+                )}
 
                 <div
                   aria-hidden="true"

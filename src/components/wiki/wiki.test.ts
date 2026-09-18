@@ -50,6 +50,17 @@ describe("the wiki store stays on the server", () => {
     expect(offenders, `value imports from @/lib/mock/wiki: ${offenders.join(", ")}`).toEqual([]);
   });
 
+  it("stays out of every client component, the shell's included", () => {
+    // The sidebar's workspace switcher shows the store's workspace; AppShell
+    // reads it on the server and hands the sidebar plain rows.
+    const offenders = walk(join(repo, "src"))
+      .map((path) => ({ path: path.slice(repo.length), text: readFileSync(path, "utf8") }))
+      .filter(({ text }) => /^\s*["']use client["']/.test(text))
+      .filter(({ text }) => [...text.matchAll(STORE_IMPORT)].some((match) => !match[1]) || text.includes("wiki-data.json"))
+      .map(({ path }) => path);
+    expect(offenders).toEqual([]);
+  });
+
   it("never imports the JSON store from a component", () => {
     const offenders = components.filter(({ text }) => text.includes("wiki-data.json")).map(({ path }) => path);
     expect(offenders).toEqual([]);
