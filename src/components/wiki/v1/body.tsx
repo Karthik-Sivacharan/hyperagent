@@ -77,9 +77,12 @@ function renderInline(text: string, ctx: BodyContext, keyPrefix: string, seen?: 
       const id = citeId.trim();
       out.push(<CitePreview key={key} id={id} number={ctx.cites.get(id)} atom={ctx.atoms[id]} onAtom={ctx.onAtom} />);
     } else if (bold !== undefined) {
+      // Emphasis starts before any link inside it, so the pattern takes the
+      // whole run: its words go through again, for the links and citations
+      // they carry. Neither run can hold a `*`, so this goes one level deep.
       out.push(
         <strong key={key} className="font-strong text-foreground">
-          {bold}
+          {renderInline(bold, ctx, key, seen)}
         </strong>,
       );
     } else if (code !== undefined) {
@@ -91,7 +94,7 @@ function renderInline(text: string, ctx: BodyContext, keyPrefix: string, seen?: 
     } else if (em !== undefined) {
       out.push(
         <em key={key} className="italic">
-          {em}
+          {renderInline(em, ctx, key, seen)}
         </em>,
       );
     }

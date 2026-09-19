@@ -12,7 +12,7 @@ import { bodyHeadings } from "@/components/wiki/wiki-body";
 import { SourceKindIcon, TopicChip } from "@/components/wiki/topic-chip";
 import { fmtDay, fmtStamp } from "@/components/wiki/v1/format";
 import { wordCount } from "@/components/wiki/v1/text";
-import type { WikiAtom, WikiGroupId, WikiLinkTarget, WikiPage, WikiTopic } from "@/lib/mock/wiki";
+import type { WikiAtom, WikiGroupId, WikiLinkTarget, WikiPage, WikiTopic, WikiTopicRef } from "@/lib/mock/wiki";
 
 // The page seen from the side, as a map rather than a record: its outline
 // with the section you are reading marked, every Topic it mentions grouped by
@@ -154,9 +154,10 @@ function MentionGroup({ group, label, entries }: { group: WikiGroupId; label: st
   );
 }
 
-function Row({ label, children }: { label: string; children: React.ReactNode }) {
+/** A label and its value side by side, or `stacked`, the label over a value too wide to sit beside it. */
+function Row({ label, stacked, children }: { label: string; stacked?: boolean; children: React.ReactNode }) {
   return (
-    <div className="flex gap-3 py-1 text-md">
+    <div className={cn("flex gap-3 py-1 text-md", stacked && "flex-col items-start gap-1")}>
       <dt className="w-24 shrink-0 text-foreground-low">{label}</dt>
       <dd className="min-w-0 flex-1 text-foreground tabular-nums">{children}</dd>
     </div>
@@ -166,6 +167,7 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
 export function DetailsRailV1({
   page,
   topic,
+  mergedInto,
   body,
   atoms,
   linkGroups,
@@ -176,6 +178,7 @@ export function DetailsRailV1({
 }: {
   page: WikiPage;
   topic: WikiTopic;
+  mergedInto: WikiTopicRef | null;
   /** The body as the article renders it, so the outline's ids match its headings. */
   body: string;
   atoms: Record<string, WikiAtom>;
@@ -289,12 +292,19 @@ export function DetailsRailV1({
                   className={cn("size-1.5 shrink-0 rounded-full", topic.status === "active" ? "bg-success" : "bg-warning")}
                   aria-hidden="true"
                 />
-                <span>
-                  <span className="capitalize">{topic.status}</span>
-                  {topic.mergedIntoTitle ? ` into ${topic.mergedIntoTitle}` : ""}
-                </span>
+                <span className="capitalize">{topic.status}</span>
               </span>
             </Row>
+            {/* The rail is too narrow for a Topic's name beside the label, so its chip goes under it. */}
+            {mergedInto ? (
+              <Row label="Merged into" stacked>
+                <TopicChip
+                  group={mergedInto.group}
+                  label={mergedInto.title}
+                  href={mergedInto.slug ? `/wiki/${mergedInto.slug}` : undefined}
+                />
+              </Row>
+            ) : null}
             <Row label="Versions">
               {page.versions.length}
               {firstDay ? `, since ${fmtDay(firstDay)}` : ""}

@@ -2,13 +2,14 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { TopicMention } from "@/components/wiki/topic-chip";
 import { ArticleHeader } from "@/components/wiki/v1/article-header";
 import { BodyV1, type BodyContext } from "@/components/wiki/v1/body";
 import { HistoryList } from "@/components/wiki/v1/history-list";
 import { MentionedIn } from "@/components/wiki/v1/mentioned-in";
 import { SourcesList } from "@/components/wiki/v1/sources-list";
 import { bodyRepeatsSummary } from "@/components/wiki/v1/text";
-import type { WikiAtom, WikiLinkedFrom, WikiPage, WikiTopic } from "@/lib/mock/wiki";
+import type { WikiAtom, WikiLinkedFrom, WikiPage, WikiTopic, WikiTopicRef } from "@/lib/mock/wiki";
 
 // One composed page in v1: the header, the summary only when the body does
 // not already open with it, and the three tabs. The Page tab ends on the
@@ -18,6 +19,7 @@ import type { WikiAtom, WikiLinkedFrom, WikiPage, WikiTopic } from "@/lib/mock/w
 export function ArticleV1({
   page,
   topic,
+  mergedInto,
   atoms,
   aliases,
   body,
@@ -30,6 +32,8 @@ export function ArticleV1({
 }: {
   page: WikiPage;
   topic: WikiTopic;
+  /** Where a merged Topic went: the banner names it with its chip. */
+  mergedInto: WikiTopicRef | null;
   atoms: Record<string, WikiAtom>;
   /** The body's own "Also known as" names, lifted out of it. */
   aliases: string[];
@@ -62,8 +66,16 @@ export function ArticleV1({
       {page.hidden ? (
         <p className="rounded-md bg-warning/10 px-3 py-2 text-sm text-foreground">
           <span className="font-medium">Hidden page.</span> Its Topic is {topic.status}
-          {topic.mergedIntoTitle ? ` into ${topic.mergedIntoTitle}` : ""}. The page left listings, search and recall at
-          that moment; this last version stays readable as history.
+          {mergedInto ? (
+            <>
+              {" "}
+              into{" "}
+              <TopicMention group={mergedInto.group} href={mergedInto.slug ? `/wiki/${mergedInto.slug}` : undefined}>
+                {mergedInto.title}
+              </TopicMention>
+            </>
+          ) : null}
+          . The page left listings, search and recall at that moment; this last version stays readable as history.
         </p>
       ) : null}
 

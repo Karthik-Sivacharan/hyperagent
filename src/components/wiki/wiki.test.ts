@@ -4,6 +4,16 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { findGlyph } from "@/components/brand/agent-glyph";
 import { WIKI_ATOM_TYPE_ORDER, WIKI_DRAWN_GROUPS, WIKI_SOURCE_KIND_ORDER, wikiAgentGlyph } from "@/components/wiki/topic-type";
+import { plainText } from "@/components/wiki/v1/text";
+import {
+  wikiAgents,
+  wikiLinkNames,
+  wikiPages,
+  wikiReadableNote,
+  wikiScopedPages,
+  wikiTopics,
+  type WikiPage,
+} from "@/lib/mock/wiki";
 
 // The wiki's store is a 1.7 MB JSON file that only the server should hold. A
 // client component that imports a value from the store module pulls the whole
@@ -87,5 +97,64 @@ describe("topic-type.ts matches the store", () => {
       return !glyph || !findGlyph(glyph);
     });
     expect(faceless.map(({ id }) => id)).toEqual([]);
+  });
+});
+
+describe("v1 names what the store writes as ids", () => {
+  it("leaves no roster id or Topic id in a Topic's history notes", () => {
+    const notes = Object.values(wikiTopics).flatMap((topic) =>
+      topic.versions.map((version) => wikiReadableNote(version.changeNote)),
+    );
+    const ids = /\bag-[a-z]|(?:Folded into|Merged into|near miss:) [a-z0-9]/;
+    expect(notes.filter((note) => ids.test(note))).toEqual([]);
+  });
+});
+
+describe("v1 links the Topic names the composer left as words", () => {
+  // Every page a reader can open: the shared ones and each assistant's own.
+  const pages = [...new Set([...wikiPages, ...wikiAgents.flatMap(({ id }) => wikiScopedPages(id))])];
+  const linked = pages.map((page) => ({ page, after: wikiLinkNames(page) }));
+  const keys = (page: WikiPage) =>
+    new Set([...page.content.matchAll(/\[\[([^\]|]+)/g)].map((match) => match[1].trim().toLowerCase().replace(/\s+/g, "-")));
+  const byId = (slug: string) => {
+    const page = wikiPages.find((candidate) => candidate.slug === slug);
+    if (!page) throw new Error(`no page ${slug}`);
+    return wikiLinkNames(page).content;
+  };
+
+  it("changes no word of any page", () => {
+    const changed = linked
+      .filter(({ page, after }) => plainText(after.content, after.links) !== plainText(page.content, page.links))
+      .map(({ page }) => page.slug);
+    expect(changed).toEqual([]);
+  });
+
+  it("leaves headings and the alias line as written", () => {
+    const kept = (content: string) => content.split("\n").filter((line, index) => line.startsWith("#") || (index === 0 && line.startsWith("Also known as:")));
+    const changed = linked.filter(({ page, after }) => kept(after.content).join("\n") !== kept(page.content).join("\n")).map(({ page }) => page.slug);
+    expect(changed).toEqual([]);
+  });
+
+  it("links only active Topics the page did not link, and never the page's own", () => {
+    const wrong = linked.flatMap(({ page, after }) => {
+      const before = keys(page);
+      return [...keys(after)]
+        .filter((key) => !before.has(key))
+        .filter((key) => wikiTopics[key]?.status !== "active" || key === page.topicId || !after.links[key])
+        .map((key) => `${page.slug}: ${key}`);
+    });
+    expect(wrong).toEqual([]);
+  });
+
+  it("names what the composer left out, and nothing that only looks like a name", () => {
+    const nexbin = byId("nexbin");
+    expect(nexbin).toContain("[[edi-856|EDI 856]]");
+    expect(nexbin).toContain("[[ops-assistant|Ops Assistant]]");
+    expect(nexbin).toContain("[[nexbin-cutover-checklist|NexBin Cutover Checklist]]");
+    const stockpro = byId("stockpro");
+    expect(stockpro).toContain("[[zone-c|Zone C]]");
+    expect(stockpro).toContain("Zone A/B");
+    // An excluded Topic stays unnamed.
+    expect(byId("brightwell-supply-co")).not.toContain("[[halvorsen-packaging");
   });
 });

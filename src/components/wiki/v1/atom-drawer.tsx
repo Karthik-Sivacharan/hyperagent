@@ -8,14 +8,16 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "
 import { supersessionChain } from "@/components/wiki/atom-drawer";
 import { AtomTypeIcon, SourceKindIcon, TopicChip } from "@/components/wiki/topic-chip";
 import { fmtDay, fmtStamp } from "@/components/wiki/v1/format";
-import type { WikiAtom, WikiGroupId, WikiSource } from "@/lib/mock/wiki";
+import type { WikiAtom, WikiGroupId, WikiSource, WikiTopicRef } from "@/lib/mock/wiki";
 
 // One atom in v1, opened from a citation, a source or another atom: the same
 // record the shared drawer shows, set on the article's scale. The atom's short
 // title leads as the heading and the claim reads under it at the body size;
 // the pills above are the chips' size; the record is a table like the rail's
 // Details, in words rather than field names; the Topics and the pages citing
-// it are Topic chips; and sections part by space, as the article's do. The
+// it are Topic chips, and so are the assistants it was extracted by or is
+// private to, as the header's "From" names them; and sections part by space,
+// as the article's do. The
 // original drawer stays as it was for the original design and the two other
 // wiki views.
 
@@ -40,9 +42,10 @@ function Section({ title, count, children }: { title: string; count?: number; ch
   );
 }
 
-function Row({ label, children }: { label: string; children: React.ReactNode }) {
+/** A label and its value; `centred` for a value taller than the label's line, such as a chip. */
+function Row({ label, centred, children }: { label: string; centred?: boolean; children: React.ReactNode }) {
   return (
-    <div className="flex gap-3 py-1 text-md">
+    <div className={cn("flex gap-3 py-1 text-md", centred && "items-center")}>
       <dt className="w-28 shrink-0 text-foreground-low">{label}</dt>
       <dd className="min-w-0 flex-1 text-foreground tabular-nums">{children}</dd>
     </div>
@@ -101,20 +104,24 @@ export function AtomDrawerV1({
   atoms,
   topicTitles,
   pageGroups,
+  assistants,
   onOpenAtom,
   onClose,
 }: {
   atomId: string | null;
   atoms: Record<string, WikiAtom>;
-  topicTitles: Record<string, { title: string; group: WikiGroupId }>;
+  topicTitles: Record<string, WikiTopicRef>;
   /** Each listed page's Topic group, so the pages citing an atom can be chips. */
   pageGroups: Record<string, WikiGroupId>;
+  /** The assistants' names: an extraction group named here is someone, drawn as their chip. */
+  assistants: string[];
   onOpenAtom: (id: string) => void;
   onClose: () => void;
 }) {
   const atom = atomId ? atoms[atomId] : undefined;
   const chain = atom ? supersessionChain(atom, atoms) : [];
   const successor = atom?.supersededById ? atoms[atom.supersededById] : undefined;
+  const byAssistant = Boolean(atom && assistants.includes(atom.extractionGroup));
 
   return (
     <Sheet open={Boolean(atom)} onOpenChange={(open) => (open ? undefined : onClose())}>
@@ -136,9 +143,10 @@ export function AtomDrawerV1({
                   </Badge>
                 ) : null}
                 {atom.namedAgent ? (
-                  <Badge variant="secondary" className={PILL}>
-                    Private to {atom.namedAgent}
-                  </Badge>
+                  <span className="inline-flex items-center gap-1.5 text-md text-foreground-low">
+                    Private to
+                    <TopicChip group="agent" label={atom.namedAgent} />
+                  </span>
                 ) : null}
                 {atom.withheld.map((reason) => (
                   <Badge key={reason} variant="warning" className={PILL}>
@@ -167,9 +175,17 @@ export function AtomDrawerV1({
               {atom.topicIds.length ? (
                 <Section title="Topics" count={atom.topicIds.length}>
                   <div className="flex flex-wrap gap-1.5">
-                    {atom.topicIds.map((id) => (
-                      <TopicChip key={id} group={topicTitles[id]?.group ?? "concept"} label={topicTitles[id]?.title ?? id} />
-                    ))}
+                    {atom.topicIds.map((id) => {
+                      const topic = topicTitles[id];
+                      return (
+                        <TopicChip
+                          key={id}
+                          group={topic?.group ?? "concept"}
+                          label={topic?.title ?? id}
+                          href={topic?.slug ? `/wiki/${topic.slug}` : undefined}
+                        />
+                      );
+                    })}
                   </div>
                 </Section>
               ) : null}
@@ -190,7 +206,9 @@ export function AtomDrawerV1({
                       </Button>
                     </Row>
                   ) : null}
-                  <Row label="Extracted from">{sentence(atom.extractionGroup)}</Row>
+                  <Row label="Extracted from" centred={byAssistant}>
+                    {byAssistant ? <TopicChip group="agent" label={atom.extractionGroup} /> : sentence(atom.extractionGroup)}
+                  </Row>
                   <Row label="Run">{atom.dreamRunId ?? "None"}</Row>
                   <Row label="Id">
                     <span className="text-label-12-mono break-all">{atom.id}</span>

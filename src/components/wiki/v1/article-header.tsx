@@ -9,9 +9,12 @@ import { fmtDay, fmtStamp } from "@/components/wiki/v1/format";
 import type { WikiAtom, WikiPage, WikiTopic } from "@/lib/mock/wiki";
 
 // What the page is before you read it: the kind of Topic above the title, the
-// names it also goes by under it, then one line of facets (how fresh it is,
-// what is in dispute, whose conversations it came from). The audit fields
-// (slug, version, run) sit one click away in the Info popover.
+// names it also goes by under it, then two lines of facets: how fresh it is
+// and what is in dispute, then whose conversations it came from. Two rows,
+// not one row that wraps, so every page puts "From" on the second line
+// whatever the widths; a page with no date or dispute has only that line.
+// The audit fields (slug, version, run) sit one click away in the Info
+// popover at the end of it.
 
 const CONTRIBUTORS_SHOWN = 2;
 
@@ -67,65 +70,71 @@ export function ArticleHeader({
         <p className="text-sm text-muted-foreground">Also known as {aliases.join(", ")}</p>
       ) : null}
 
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 pt-1 text-md text-foreground-low">
-        {current?.sourceDay ? (
-          <span className="inline-flex items-center gap-1 tabular-nums">
-            <IconClock className="size-3.5" aria-hidden="true" />
-            Updated {fmtDay(current.sourceDay)}
-          </span>
+      <div className="flex flex-col gap-2 pt-1 text-md text-foreground-low">
+        {current?.sourceDay || disputed ? (
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+            {current?.sourceDay ? (
+              <span className="inline-flex items-center gap-1 tabular-nums">
+                <IconClock className="size-3.5" aria-hidden="true" />
+                Updated {fmtDay(current.sourceDay)}
+              </span>
+            ) : null}
+
+            {/* Sized with the Topic chips beside it rather than as a badge, so
+                the meta line reads as one set of pills. */}
+            {disputed ? (
+              <Button
+                variant="ghost"
+                size="none"
+                onClick={onDisputes}
+                className="h-6 gap-1 rounded-full bg-warning/10 px-2 text-md text-warning hover:bg-warning/15"
+              >
+                <IconAlertTriangle className="size-3.5" aria-hidden="true" />
+                {disputed} in dispute
+              </Button>
+            ) : null}
+          </div>
         ) : null}
 
-        {/* Sized with the Topic chips beside it rather than as a badge, so
-            the meta line reads as one set of pills. */}
-        {disputed ? (
-          <Button
-            variant="ghost"
-            size="none"
-            onClick={onDisputes}
-            className="h-6 gap-1 rounded-full bg-warning/10 px-2 text-md text-warning hover:bg-warning/15"
-          >
-            <IconAlertTriangle className="size-3.5" aria-hidden="true" />
-            {disputed} in dispute
-          </Button>
-        ) : null}
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+          {contributors.length ? (
+            <span className="inline-flex flex-wrap items-center gap-1.5">
+              From
+              {contributors.slice(0, CONTRIBUTORS_SHOWN).map(([name]) => (
+                <TopicChip key={name} group="agent" label={name} />
+              ))}
+              {rest > 0 ? <span>and {rest} more</span> : null}
+            </span>
+          ) : null}
 
-        {contributors.length ? (
-          <span className="inline-flex flex-wrap items-center gap-1.5">
-            From
-            {contributors.slice(0, CONTRIBUTORS_SHOWN).map(([name]) => (
-              <TopicChip key={name} group="agent" label={name} />
-            ))}
-            {rest > 0 ? <span>and {rest} more</span> : null}
-          </span>
-        ) : null}
-
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button variant="ghost" size="icon-xs" aria-label="Page details" className="text-foreground-low hover:text-foreground">
-              <IconInfoCircle className="size-3.5" aria-hidden="true" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent align="start" className="w-80 p-3 text-xs">
-            <dl className="flex flex-col divide-y divide-border-subtle">
-              <Field label="Slug">
-                <span className="text-label-12-mono">{page.slug}</span>
-              </Field>
-              <Field label="Version">
-                {current?.version ?? "none"} of {page.versions.length}
-              </Field>
-              <Field label="Composed by">{page.dreamRunId ?? "none"}</Field>
-              <Field label="Composed">{fmtStamp(page.updatedAt)}</Field>
-              <Field label="Topic">
-                {[topic.type, topic.subtype, topic.status].filter(Boolean).join(" · ")}
-              </Field>
-              {contributors.length ? (
-                <Field label="Extracted from">
-                  {contributors.map(([name, count]) => `${name} ${count}`).join(", ")}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="ghost" size="icon-xs" aria-label="Page details" className="text-foreground-low hover:text-foreground">
+                <IconInfoCircle className="size-3.5" aria-hidden="true" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent align="start" className="w-80 p-3 text-xs">
+              <dl className="flex flex-col divide-y divide-border-subtle">
+                <Field label="Slug">
+                  <span className="text-label-12-mono">{page.slug}</span>
                 </Field>
-              ) : null}
-            </dl>
-          </PopoverContent>
-        </Popover>
+                <Field label="Version">
+                  {current?.version ?? "none"} of {page.versions.length}
+                </Field>
+                <Field label="Composed by">{page.dreamRunId ?? "none"}</Field>
+                <Field label="Composed">{fmtStamp(page.updatedAt)}</Field>
+                <Field label="Topic">
+                  {[topic.type, topic.subtype, topic.status].filter(Boolean).join(" · ")}
+                </Field>
+                {contributors.length ? (
+                  <Field label="Extracted from">
+                    {contributors.map(([name, count]) => `${name} ${count}`).join(", ")}
+                  </Field>
+                ) : null}
+              </dl>
+            </PopoverContent>
+          </Popover>
+        </div>
       </div>
     </header>
   );
