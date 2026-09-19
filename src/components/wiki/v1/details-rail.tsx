@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import { IconArrowDown, IconChevronRight } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
@@ -52,6 +52,39 @@ function useActiveHeading(ids: string[], rail: React.RefObject<HTMLElement | nul
   }, [ids, rail]);
 
   return active;
+}
+
+/**
+ * The bar beside the outline row you are reading: a short bar on a hairline
+ * track that slides to the next row as the reading line crosses a heading,
+ * so a change of section shows as movement rather than a fill that jumps.
+ * It is placed by measuring the row and written straight to the bar's style,
+ * so scrolling never re-renders the rail. It arrives without sliding the
+ * first time, and a reader who asks for less motion gets the jump.
+ */
+function useOutlineMarker(
+  active: string | null,
+  ids: string[],
+  nav: React.RefObject<HTMLElement | null>,
+  bar: React.RefObject<HTMLSpanElement | null>,
+) {
+  useLayoutEffect(() => {
+    const marker = bar.current;
+    const row = nav.current?.querySelector<HTMLElement>('[aria-current="location"]');
+    if (!marker) return;
+    if (!row) {
+      marker.style.setProperty("opacity", "0");
+      return;
+    }
+    marker.style.setProperty("opacity", "1");
+    marker.style.setProperty("translate", `0 ${row.offsetTop + 4}px`);
+    marker.style.setProperty("height", `${row.offsetHeight - 8}px`);
+    if (!marker.hasAttribute("data-placed")) {
+      // Commit the first position before the slide switches on.
+      marker.getBoundingClientRect();
+      marker.setAttribute("data-placed", "");
+    }
+  }, [active, ids, nav, bar]);
 }
 
 function Section({ title, count, children }: { title: string; count?: number; children: React.ReactNode }) {
@@ -157,6 +190,9 @@ export function DetailsRailV1({
   const headings = useMemo(() => bodyHeadings(body), [body]);
   const ids = useMemo(() => headings.map((heading) => heading.id), [headings]);
   const active = useActiveHeading(ids, rail);
+  const outline = useRef<HTMLElement>(null);
+  const outlineBar = useRef<HTMLSpanElement>(null);
+  useOutlineMarker(active, ids, outline, outlineBar);
 
   // Every Topic the body links to, counted, grouped by type in the store's order.
   const counts = new Map<string, number>();
@@ -191,7 +227,15 @@ export function DetailsRailV1({
     <aside ref={rail} className="flex w-64 shrink-0 flex-col gap-6">
       {headings.length ? (
         <Section title="Outline">
-          <nav aria-label="Outline" className="flex flex-col">
+          <nav ref={outline} aria-label="Outline" className="relative flex flex-col pl-3">
+            <span className="absolute inset-y-0 left-0 flex w-0.5 justify-center" aria-hidden="true">
+              <span className="w-px bg-border-subtle" />
+            </span>
+            <span
+              ref={outlineBar}
+              className="pointer-events-none absolute top-0 left-0 w-0.5 rounded-full bg-foreground opacity-0 data-placed:transition-[translate,height] data-placed:duration-(--duration-move) data-placed:ease-out-quart motion-reduce:transition-none"
+              aria-hidden="true"
+            />
             {headings.map((heading) => {
               const isActive = heading.id === active;
               return (
@@ -202,7 +246,7 @@ export function DetailsRailV1({
                   asChild
                   className={cn(
                     "h-auto w-full justify-start rounded-md px-2 py-1 text-left text-sm font-normal text-muted-foreground hover:bg-tint-10 hover:text-foreground",
-                    isActive && "bg-tint-10 text-foreground",
+                    isActive && "text-foreground",
                   )}
                 >
                   <a
