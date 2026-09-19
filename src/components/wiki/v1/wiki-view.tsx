@@ -146,7 +146,7 @@ export function WikiViewV1({
             centring the select and the switch on their margin boxes still
             centres them on the title block. */}
         <PageHeading className="col-start-1 row-start-1 mb-5 w-60" title="Wiki" titleAs="p" subtitle={<JobNote job={job} />} />
-        <div className="col-start-2 row-start-1 mx-auto mb-5 w-full max-w-xl self-center">
+        <div className="col-start-2 row-start-1 mx-auto mb-5 w-full max-w-160 self-center">
           <WikiScopeSelect {...scope} />
         </div>
         <div className="col-start-2 row-start-1 mb-5 self-center justify-self-end xl:col-start-3">{aside}</div>
