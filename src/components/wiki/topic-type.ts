@@ -158,3 +158,27 @@ export const WIKI_SOURCE_KIND_ORDER = Object.keys(SOURCE_KINDS);
 
 export const wikiSourceKindIcon = (kind: string): TablerIcon => SOURCE_KINDS[kind] ?? IconFileText;
 
+/**
+ * Each assistant's face: a shape from the agent glyph registry
+ * (src/components/brand/agent-glyph), keyed by the roster's id. Every
+ * assistant keeps one face wherever the wiki shows it; the shapes are only
+ * distinct, picked for a loose fit with the job, not a code a reader has to
+ * learn. The copy of an assistant wears the original's face, since its name
+ * already says which it is. The workspace has no face and no entry here, so
+ * an id without one is drawn as the workspace (wiki.test.ts checks every
+ * assistant in the store has a face).
+ */
+const AGENT_GLYPHS: Record<string, string> = {
+  "ag-ops": "cog",
+  "ag-sales": "bell",
+  "ag-finance": "hourglass",
+  "ag-support": "trefoil",
+  "ag-servicedesk": "plug-arrow",
+  "ag-quality": "pedestal",
+  "ag-purchasing": "slot-stack",
+  "ag-purchasing-copy": "slot-stack",
+  "ag-dispatch": "sweep",
+  "ag-rollout-gate": "portal",
+};
+
+export const wikiAgentGlyph = (id: string): string | undefined => AGENT_GLYPHS[id];

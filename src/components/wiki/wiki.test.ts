@@ -2,7 +2,8 @@ import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { WIKI_ATOM_TYPE_ORDER, WIKI_DRAWN_GROUPS, WIKI_SOURCE_KIND_ORDER } from "@/components/wiki/topic-type";
+import { findGlyph } from "@/components/brand/agent-glyph";
+import { WIKI_ATOM_TYPE_ORDER, WIKI_DRAWN_GROUPS, WIKI_SOURCE_KIND_ORDER, wikiAgentGlyph } from "@/components/wiki/topic-type";
 
 // The wiki's store is a 1.7 MB JSON file that only the server should hold. A
 // client component that imports a value from the store module pulls the whole
@@ -28,6 +29,7 @@ function walk(dir: string): string[] {
 const store = JSON.parse(readFileSync(join(repo, "src/lib/mock/wiki-data.json"), "utf8")) as {
   groupOrder: string[];
   atoms: Record<string, { type: string; sources: { kind: string }[] }>;
+  agents: { id: string; name: string }[];
 };
 
 const components = walk(join(repo, "src/components/wiki")).map((path) => ({
@@ -77,5 +79,13 @@ describe("topic-type.ts matches the store", () => {
     const kinds = new Set(Object.values(store.atoms).flatMap((atom) => atom.sources.map((source) => source.kind)));
     expect([...types].filter((type) => !WIKI_ATOM_TYPE_ORDER.includes(type))).toEqual([]);
     expect([...kinds].filter((kind) => !WIKI_SOURCE_KIND_ORDER.includes(kind))).toEqual([]);
+  });
+
+  it("gives every assistant on the roster a face the glyph registry knows", () => {
+    const faceless = store.agents.filter(({ id }) => {
+      const glyph = wikiAgentGlyph(id);
+      return !glyph || !findGlyph(glyph);
+    });
+    expect(faceless.map(({ id }) => id)).toEqual([]);
   });
 });
