@@ -6,6 +6,7 @@ import { IconChevronRight, IconEyeOff } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Overline } from "@/components/ui/overline";
 import { SearchInput } from "@/components/patterns/search-input";
 import { TopicIcon } from "@/components/wiki/topic-chip";
 import type { WikiGroupId, WikiIndexEntry } from "@/lib/mock/wiki";
@@ -21,8 +22,14 @@ import type { WikiGroupId, WikiIndexEntry } from "@/lib/mock/wiki";
 // keeps no fill (the ghost button's own open fill is reset, as the app
 // sidebar's section toggles do): in this list a fill means the page you are
 // on, and two filled rows would say it twice.
+//
+// In an assistant's scope the list opens on the pages that assistant composed
+// for itself, under a caps "Private" label, then a caps "Shared pages" label
+// over the groups. The private pages are of mixed types, so each row carries
+// its own type icon where a group row would, and its title lines up with the
+// pages of the open groups.
 
-function PageRow({ page, active }: { page: WikiIndexEntry; active: boolean }) {
+function PageRow({ page, active, icon }: { page: WikiIndexEntry; active: boolean; icon?: React.ReactNode }) {
   return (
     <Button
       variant="ghost"
@@ -30,13 +37,25 @@ function PageRow({ page, active }: { page: WikiIndexEntry; active: boolean }) {
       asChild
       className={cn(
         "h-auto w-full justify-start rounded-md py-1.5 pr-2 pl-7.5 text-left text-sm font-normal text-muted-foreground hover:bg-tint-10 hover:text-foreground",
+        icon && "pl-2",
         active && "bg-tint-10 text-foreground",
       )}
     >
       <Link href={`/wiki/${page.slug}`} aria-current={active ? "page" : undefined}>
+        {icon}
         <span className="truncate">{page.title}</span>
       </Link>
     </Button>
+  );
+}
+
+/** A caps label over a part of the list; its count sits in the column of the group rows' counts. */
+function SectionLabel({ label, count, className }: { label: string; count?: number; className?: string }) {
+  return (
+    <div className={cn("flex items-center gap-2 px-2 pb-1", count !== undefined && "pr-7.5", className)}>
+      <Overline className="flex-1">{label}</Overline>
+      {count !== undefined ? <span className="text-label-12-mono text-foreground-low">{count}</span> : null}
+    </div>
   );
 }
 
@@ -75,14 +94,17 @@ function GroupRow({
 
 export function IndexRailV1({
   groups,
+  privatePages,
   hiddenPages,
   activeSlug,
   activeGroup,
 }: {
   groups: { id: WikiGroupId; label: string; pages: WikiIndexEntry[] }[];
+  /** The assistant's own pages, listed above the groups; null in the workspace scope, which has none. */
+  privatePages: WikiIndexEntry[] | null;
   hiddenPages: WikiIndexEntry[];
   activeSlug: string;
-  /** The group to open: the current page's, when the page is listed. */
+  /** The group to open: the current page's, when the page is listed in a group. */
   activeGroup: WikiGroupId | null;
 }) {
   const [query, setQuery] = useState("");
@@ -105,6 +127,12 @@ export function IndexRailV1({
       }))
       .filter((group) => group.pages.length > 0);
   }, [groups, needle]);
+  const privateShown = useMemo(() => {
+    if (!privatePages || !needle) return privatePages;
+    return privatePages.filter((page) => `${page.title} ${page.summary} ${page.slug}`.toLowerCase().includes(needle));
+  }, [privatePages, needle]);
+  // A search that matches no private page drops the part, as it drops a group.
+  const showPrivate = privateShown !== null && (privateShown.length > 0 || !needle);
 
   const toggle = (id: WikiGroupId, next: boolean) =>
     setOpen((previous) => {
@@ -114,7 +142,7 @@ export function IndexRailV1({
       return copy;
     });
 
-  const listed = groups.reduce((sum, group) => sum + group.pages.length, 0);
+  const listed = groups.reduce((sum, group) => sum + group.pages.length, privatePages?.length ?? 0);
   const hiddenActive = hiddenPages.some((page) => page.slug === activeSlug);
 
   return (
@@ -133,6 +161,18 @@ export function IndexRailV1({
       </div>
 
       <div className="flex flex-col gap-0.5">
+        {showPrivate ? (
+          <>
+            <SectionLabel label="Private" count={privateShown.length} />
+            {privateShown.map((page) => (
+              <PageRow key={page.slug} page={page} active={page.slug === activeSlug} icon={<TopicIcon group={page.group} />} />
+            ))}
+            {privateShown.length === 0 ? (
+              <p className="px-2 py-1.5 text-xs text-foreground-low">No private page composed for this assistant.</p>
+            ) : null}
+            <SectionLabel label="Shared pages" className="pt-group" />
+          </>
+        ) : null}
         {filtered.map((group) => {
           const isOpen = Boolean(needle) || open.has(group.id);
           return (
@@ -151,7 +191,7 @@ export function IndexRailV1({
             </Collapsible>
           );
         })}
-        {filtered.length === 0 ? (
+        {filtered.length === 0 && !privateShown?.length ? (
           <p className="px-2 py-1.5 text-xs text-foreground-low">No page matches “{query}”.</p>
         ) : null}
       </div>

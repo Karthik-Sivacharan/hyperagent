@@ -5,6 +5,9 @@ import data from "./wiki-data.json";
 // workspace. Ported from a local prototype; every value here is static mock
 // data (docs/clone-conventions.md rule 2), trimmed to what the pages render:
 // workspace-shared pages, the topics they sit on, and the atoms they cite.
+// Each assistant's private pages sit beside the shared set, never in it, so
+// every selector that reads `pages` reads the workspace wiki alone; only the
+// scoped selectors at the end of this file read the private pages.
 
 export type WikiGroupId = string;
 
@@ -77,6 +80,12 @@ export type WikiPage = {
   hidden: boolean;
   versions: WikiPageVersion[];
 };
+
+/** A page one assistant composed for itself: the shared shape, plus its owner and the kind of page it is. */
+export type WikiPrivatePage = WikiPage & { namedAgentId: string; pageKind: string | null };
+
+/** A Topic whose visibility depends on the assistant reading it; a Topic without one is shared and excluded for no one. */
+type WikiTopicScope = { namedAgentId: string | null; excludedForAgents: string[] };
 
 export type WikiTopic = {
   id: string;
@@ -161,6 +170,8 @@ type WikiStore = {
   topics: Record<string, WikiTopic>;
   atoms: Record<string, WikiAtom>;
   linkedFrom: Record<string, WikiLinkedFrom[]>;
+  privatePages: WikiPrivatePage[];
+  topicScopes: Record<string, WikiTopicScope>;
 };
 
 const store = data as unknown as WikiStore;
@@ -253,8 +264,10 @@ export type WikiView = {
 /** One page with the slice of the store it can open, so a route ships its own data and no more. */
 export function getWikiView(slug: string): WikiView | null {
   const page = store.pages.find((candidate) => candidate.slug === slug);
-  if (!page) return null;
+  return page ? viewOf(page) : null;
+}
 
+function viewOf(page: WikiPage): WikiView {
   const atoms: Record<string, WikiAtom> = {};
   const queue = [
     ...page.citations,
@@ -296,4 +309,96 @@ export function wikiLinkGroups(page: WikiPage): Record<string, WikiGroupId> {
   return Object.fromEntries(
     Object.keys(page.links).map((key) => [key, store.topics[key]?.group ?? "concept"]),
   );
+}
+
+// Scope: whose wiki is being read. The workspace scope is the shared pages
+// and nothing else, exactly what every selector above returns. An assistant's
+// scope adds the pages that assistant composed for itself, lets each one stand
+// in for the shared page on its Topic, and drops every Topic excluded for that
+// assistant. A scope is an assistant id, or null for the workspace.
+
+export type WikiIndexGroup = { id: WikiGroupId; label: string; pages: WikiIndexEntry[] };
+
+/** The workspace scope's id where a scope travels as a string (a cookie, a select). */
+export const WIKI_WORKSPACE_SCOPE = "workspace";
+
+/** The assistant a stored scope names, or null (the workspace) when it names none on the roster. */
+export const wikiScopeOf = (value: string | null | undefined): string | null =>
+  value && store.agents.some((agent) => agent.id === value) ? value : null;
+
+/** The scopes a reader can pick: the workspace, then each assistant; a repeated name is marked as the copy it is. */
+export function wikiScopeOptions(): { id: string; label: string }[] {
+  const named = new Set<string>();
+  return [
+    { id: WIKI_WORKSPACE_SCOPE, label: "Workspace wiki (shared pages)" },
+    ...store.agents.map(({ id, name }) => {
+      const label = named.has(name) ? `${name} (copy)` : name;
+      named.add(name);
+      return { id, label };
+    }),
+  ];
+}
+
+const toEntry = ({ slug, title, summary, group, hidden }: WikiPage): WikiIndexEntry => ({ slug, title, summary, group, hidden });
+
+function scopeOf(scope: string | null) {
+  const excluded = (page: WikiPage) => Boolean(scope && store.topicScopes[page.topicId]?.excludedForAgents.includes(scope));
+  const own = scope
+    ? store.privatePages.filter((page) => page.namedAgentId === scope && !excluded(page)).sort((a, b) => a.title.localeCompare(b.title))
+    : [];
+  // A private page is a supplement, not a replacement: it opens by pointing
+  // at the shared page on its Topic and adds only what this assistant knows
+  // beyond it. So the shared pages all stay listed beside it, as they do in
+  // the prototype, and only an exclusion takes one away.
+  const shared = store.pages.filter((page) => !excluded(page));
+  return { own, shared };
+}
+
+/** The pages one scope can open: its own private pages, then every shared page it is not excluded from. */
+export function wikiScopedPages(scope: string | null): WikiPage[] {
+  const { own, shared } = scopeOf(scope);
+  return [...own, ...shared];
+}
+
+/**
+ * The index for one scope. `privatePages` is null in the workspace (it has no
+ * such group) and a list, possibly empty, for an assistant; `groups` and
+ * `hiddenPages` are the workspace's own, less the pages the scope leaves out.
+ */
+export function wikiScopedIndex(scope: string | null): {
+  privatePages: WikiIndexEntry[] | null;
+  groups: WikiIndexGroup[];
+  hiddenPages: WikiIndexEntry[];
+} {
+  const { own, shared } = scopeOf(scope);
+  const kept = new Set(shared.map((page) => page.slug));
+  return {
+    privatePages: scope ? own.filter((page) => !page.hidden).map(toEntry) : null,
+    groups: wikiIndexGroups()
+      .map((group) => ({ ...group, pages: group.pages.filter((page) => kept.has(page.slug)) }))
+      .filter((group) => group.pages.length > 0),
+    hiddenPages: wikiHiddenPages().filter((page) => kept.has(page.slug)),
+  };
+}
+
+/**
+ * Where a slug lands in one scope: itself when the scope can open it, else
+ * the shared page on the same Topic, else null. So another assistant's
+ * private page opens as the shared page it supplements, and a private page
+ * with no shared counterpart is not found outside its own assistant.
+ */
+export function wikiScopedSlug(slug: string, scope: string | null): string | null {
+  const page =
+    store.pages.find((candidate) => candidate.slug === slug) ??
+    store.privatePages.find((candidate) => candidate.slug === slug);
+  if (!page) return null;
+  const pages = wikiScopedPages(scope);
+  if (pages.includes(page)) return slug;
+  return pages.find((candidate) => candidate.topicId === page.topicId)?.slug ?? null;
+}
+
+/** `getWikiView` within a scope: a page the scope can open, a private one included. */
+export function getWikiScopedView(slug: string, scope: string | null): WikiView | null {
+  const page = wikiScopedPages(scope).find((candidate) => candidate.slug === slug);
+  return page ? viewOf(page) : null;
 }

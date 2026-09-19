@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { WikiView } from "@/components/wiki/wiki-view";
 import {
   getWikiView,
@@ -8,6 +8,7 @@ import {
   wikiIndexGroups,
   wikiJob,
   wikiPages,
+  wikiScopedSlug,
   wikiWorkspace,
 } from "@/lib/mock/wiki";
 
@@ -26,7 +27,13 @@ const fmtWindow = (start: string, end: string) => {
 
 export function WikiPageShell({ slug, aside }: { slug: string; aside?: React.ReactNode }) {
   const view = getWikiView(slug);
-  if (!view) notFound();
+  if (!view) {
+    // Not a shared page. This design reads the workspace scope only, so an
+    // assistant's private page opens as the shared page on its Topic.
+    const shared = wikiScopedSlug(slug, null);
+    if (shared) redirect(`/wiki/${shared}`);
+    notFound();
+  }
 
   return (
     <WikiView
