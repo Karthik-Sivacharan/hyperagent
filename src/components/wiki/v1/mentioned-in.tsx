@@ -31,7 +31,7 @@ export function MentionedIn({ entries }: { entries: WikiLinkedFrom[] }) {
         {shown.map((entry) => (
           <li key={entry.slug} className="flex flex-col items-start gap-1">
             <TopicChip group={entry.group} label={entry.title} href={`/wiki/${entry.slug}`} />
-            <p className="line-clamp-2 text-md text-muted-foreground">
+            <p className="line-clamp-2 text-sm text-muted-foreground">
               {entry.sentence.replace(/^[.\s]+/, "") || "cites an atom linked to this Topic"}
             </p>
           </li>
