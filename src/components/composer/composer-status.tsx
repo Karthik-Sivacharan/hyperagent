@@ -33,10 +33,17 @@ const DOT_DELAYS = ["[animation-delay:0ms]", "[animation-delay:150ms]", "[animat
 
 export function ComposerWorkingStatus({
   label = "Working…",
+  figure,
   onStop,
 }: {
   /** Present tense, with the ellipsis, like every running label in a turn. */
-  label?: string;
+  label?: React.ReactNode;
+  /**
+   * Who is working, drawn where the dots are: a composer that belongs to one
+   * named agent shows its glyph, whose own motion then says "busy" and the
+   * dots would say it twice. Omit and the row is the product's dots.
+   */
+  figure?: React.ReactNode;
   /** Omit and there is no Stop: a stop that stops nothing is a lie. */
   onStop?: () => void;
 }) {
@@ -49,11 +56,13 @@ export function ComposerWorkingStatus({
         role="status"
         className="flex min-w-0 flex-1 items-center gap-2 text-xs text-muted-foreground animate-in fade-in-0 duration-(--duration-enter) ease-out-quart"
       >
-        <span className="flex shrink-0 items-center gap-1" aria-hidden="true">
-          {DOT_DELAYS.map((delay) => (
-            <span key={delay} className={cn("size-1.5 rounded-full bg-foreground animate-typing-dot", delay)} />
-          ))}
-        </span>
+        {figure ?? (
+          <span className="flex shrink-0 items-center gap-1" aria-hidden="true">
+            {DOT_DELAYS.map((delay) => (
+              <span key={delay} className={cn("size-1.5 rounded-full bg-foreground animate-typing-dot", delay)} />
+            ))}
+          </span>
+        )}
         <span className="truncate">{label}</span>
       </div>
       {onStop && (

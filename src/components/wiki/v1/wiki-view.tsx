@@ -5,6 +5,7 @@ import { IconHistory } from "@tabler/icons-react";
 import { PageHeading } from "@/components/patterns/page-heading";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { WikiChat } from "@/components/wiki/wiki-chat";
 import { WikiTabs } from "@/components/wiki/wiki-tabs";
 import { ArticleV1 } from "@/components/wiki/v1/article";
 import { AtomDrawerV1 } from "@/components/wiki/v1/atom-drawer";
@@ -146,7 +147,7 @@ export function WikiViewV1({
             centring the select and the switch on their margin boxes still
             centres them on the title block. */}
         <PageHeading className="col-start-1 row-start-1 mb-5 w-60" title="Wiki" titleAs="p" subtitle={<JobNote job={job} />} />
-        <div className="col-start-2 row-start-1 mx-auto mb-5 w-full max-w-xl self-center">
+        <div className="col-start-2 row-start-1 mx-auto mb-5 w-full max-w-160 self-center">
           <WikiScopeSelect {...scope} />
         </div>
         <div className="col-start-2 row-start-1 mb-5 self-center justify-self-end xl:col-start-3">{aside}</div>
@@ -155,14 +156,19 @@ export function WikiViewV1({
           <WikiTabs counts={counts} hideAlone />
         </div>
 
-        <div className="row-start-3 -m-1 min-h-0 overflow-y-auto overscroll-contain p-1 pb-5">
-          <IndexRailV1
-            groups={groups}
-            privatePages={privatePages}
-            hiddenPages={hiddenPages}
-            activeSlug={page.slug}
-            activeGroup={page.hidden || isPrivate ? null : page.group}
-          />
+        {/* The left pane: the index scrolls on its own, and Wiki Agent's dock
+            stays at the pane's foot under it. */}
+        <div className="row-start-3 flex min-h-0 flex-col pb-5">
+          <div className="-m-1 min-h-0 flex-1 overflow-y-auto overscroll-contain p-1">
+            <IndexRailV1
+              groups={groups}
+              privatePages={privatePages}
+              hiddenPages={hiddenPages}
+              activeSlug={page.slug}
+              activeGroup={page.hidden || isPrivate ? null : page.group}
+            />
+          </div>
+          <WikiChat className="mt-3 shrink-0" />
         </div>
 
         <main data-wiki-scroll className="row-start-3 min-h-0 min-w-0 overflow-y-auto overscroll-contain pb-5">

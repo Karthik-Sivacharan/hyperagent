@@ -48,12 +48,15 @@ export function ArticleV1({
 }) {
   const lead = bodyRepeatsSummary(page.summary, body) ? null : page.summary;
 
-  // One measure for the whole column: 36rem holds a 16px line near 68
-  // characters. Not `max-w-prose`: 65ch of Geist is 690px, about 88. The
-  // column is centred between the two rails, so the width the app sidebar's
-  // rail gives back falls on both sides of it rather than all on one.
+  // One measure for the whole column: 40rem holds a 16px line near 80
+  // characters, the widest that still reads comfortably, and takes back most
+  // of the gutter 36rem left between the rails at 1456. Not `max-w-prose`:
+  // 65ch of Geist is 690px, about 88. A maximum, not a width, so the column
+  // gives way when something narrows the space between the rails. The column
+  // is centred between them, so the width the app sidebar's rail gives back
+  // falls on both sides of it rather than all on one.
   return (
-    <article className="mx-auto flex w-full min-w-0 max-w-xl flex-col gap-5">
+    <article className="mx-auto flex w-full min-w-0 max-w-160 flex-col gap-5">
       <ArticleHeader
         page={page}
         topic={topic}
