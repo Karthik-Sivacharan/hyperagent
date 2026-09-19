@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { IconChevronRight } from "@tabler/icons-react";
+import { IconChevronRight, IconEyeOff } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -13,7 +13,9 @@ import type { WikiGroupId, WikiIndexEntry } from "@/lib/mock/wiki";
 // The page index as a list of Topic types: each group is one row (its icon,
 // its label, how many pages) and opens to its pages. The group of the page
 // you are on starts open; a search opens every group it matches. The pages a
-// merge or an exclusion took out of listings fold away at the end. A group row
+// merge or an exclusion took out of listings fold away at the end, behind a
+// row set like a group row but in the low ink; what "hidden" means is said
+// on the hidden page itself, so the row only names and counts. A group row
 // is set at 500 like the app sidebar's rows beside it; its pages stay at 400
 // in the muted ink, so a parent and its children read apart. An open group
 // keeps no fill (the ghost button's own open fill is reset, as the app
@@ -160,15 +162,15 @@ export function IndexRailV1({
             <Button
               variant="ghost"
               size="none"
-              className="group/fold h-auto w-full justify-start gap-2 rounded-md px-2 py-1.5 text-left text-xs font-normal text-foreground-low hover:bg-tint-10 aria-expanded:bg-transparent aria-expanded:hover:bg-tint-10"
+              className="group/fold h-auto w-full justify-start gap-2 rounded-md px-2 py-1.5 text-left text-sm font-medium text-foreground-low hover:bg-tint-10 aria-expanded:bg-transparent aria-expanded:hover:bg-tint-10"
             >
+              <IconEyeOff className="size-3.5 shrink-0" aria-hidden="true" />
+              <span className="min-w-0 flex-1 truncate">Hidden</span>
+              <span className="text-xs tabular-nums">{hiddenPages.length}</span>
               <IconChevronRight
                 className="size-3.5 transition-transform duration-(--duration-fast) ease-out-quart group-aria-expanded/fold:rotate-90"
                 aria-hidden="true"
               />
-              <span className="flex-1 whitespace-normal">
-                {hiddenPages.length} page{hiddenPages.length === 1 ? "" : "s"} hidden from listings, search and recall
-              </span>
             </Button>
           </CollapsibleTrigger>
           <CollapsibleContent className="flex flex-col gap-0.5">
