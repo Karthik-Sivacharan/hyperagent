@@ -182,6 +182,7 @@ export function WikiChat({ className }: { className?: string }) {
   const running = reading !== undefined;
   const task = reading ? `Reading ${reading.reads.length} ${reading.reads.length === 1 ? "page" : "pages"}…` : undefined;
   const open = mode === "open";
+  const home = offset.x === 0 && offset.y === 0;
 
   useEffect(() => {
     const pending = timer;
@@ -299,9 +300,10 @@ export function WikiChat({ className }: { className?: string }) {
   return (
     <div ref={dockRef} className={cn("w-60", className)}>
       {/* The dock: "Ask" at rest, the conversation's own bar while minimised.
-          Under an open window it stays where it is (the window covers it), so
-          the rail never shifts; the beam fades out there. */}
-      <BorderBeam {...BEAM} active={!open}>
+          Under an open window it stays where it is, so the rail never shifts;
+          the beam fades out there. While the window sits at home it is also
+          hidden, since its tighter corner would show past the window's. */}
+      <BorderBeam {...BEAM} active={!open} className={cn(open && home && "invisible")}>
         {mode === "minimized" ? (
           <div className="flex h-11 w-full items-center gap-0.5 rounded-xl bg-overlay pr-1 shadow-edge">
             <Button
@@ -351,9 +353,13 @@ export function WikiChat({ className }: { className?: string }) {
               height: size.height,
               translate: `${offset.x}px ${offset.y}px`,
             }}
-            className="fixed z-40 flex origin-bottom-left flex-col overflow-hidden rounded-4xl bg-overlay text-foreground shadow-lg ring-1 ring-border-subtle transition-[width,height] duration-(--duration-move) ease-out-quart animate-in fade-in-0 zoom-in-95 motion-reduce:transition-none"
+            // The corner is the ask box's own (rounded-5xl) plus the 12px it
+            // sits in from the edge, so the two curves share a centre and the
+            // gap between them stays even round the bend.
+            className="fixed z-40 flex origin-bottom-left flex-col overflow-hidden rounded-[calc(var(--radius-5xl)+--spacing(3))] bg-overlay text-foreground shadow-lg ring-1 ring-border-subtle transition-[width,height] duration-(--duration-move) ease-out-quart animate-in fade-in-0 zoom-in-95 motion-reduce:transition-none"
           >
-            {/* The title bar is the drag handle; its buttons are left out of the drag. */}
+            {/* The title bar is the drag handle; its buttons are left out of the drag.
+                It keeps 12px from both sides so nothing crowds the wide corners. */}
             <div
               onPointerDown={onPointerDown}
               onPointerMove={onPointerMove}
@@ -362,7 +368,7 @@ export function WikiChat({ className }: { className?: string }) {
               onDoubleClick={(event) => {
                 if (!(event.target as HTMLElement).closest("button")) setOffset({ x: 0, y: 0 });
               }}
-              className="flex h-12 shrink-0 cursor-grab touch-none items-center gap-2 border-b border-border-subtle pr-2 pl-3 select-none active:cursor-grabbing"
+              className="flex h-12 shrink-0 cursor-grab touch-none items-center gap-2 border-b border-border-subtle px-3 select-none active:cursor-grabbing"
             >
               <AgentGlyph shape={WIKI_AGENT.glyph} size={24} />
               <span className="min-w-0 flex-1 truncate font-medium text-sm">{WIKI_AGENT.name}</span>
