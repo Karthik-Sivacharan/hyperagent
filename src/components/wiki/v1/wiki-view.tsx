@@ -5,6 +5,7 @@ import { IconHistory } from "@tabler/icons-react";
 import { PageHeading } from "@/components/patterns/page-heading";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { WikiChat } from "@/components/wiki/wiki-chat";
 import { WikiTabs } from "@/components/wiki/wiki-tabs";
 import { ArticleV1 } from "@/components/wiki/v1/article";
 import { AtomDrawerV1 } from "@/components/wiki/v1/atom-drawer";
@@ -205,6 +206,8 @@ export function WikiViewV1({
         onOpenAtom={setAtomId}
         onClose={() => setAtomId(null)}
       />
+
+      <WikiChat />
     </div>
   );
 }
