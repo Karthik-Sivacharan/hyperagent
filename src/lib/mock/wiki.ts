@@ -340,6 +340,93 @@ export function wikiReadableNote(note: string): string {
     });
 }
 
+// Topic names the composer left as words. It links a Topic only where the
+// Topic has a page of its own, so an assistant, a person or a zone without
+// one is named in the prose as plain text, and v1's first-mention chip and
+// the rail's Mentions, which both read links, never see it. v1 links those
+// names on the server before the page ships, the way the composer writes
+// its own links: `[[topic-id|the words as written]]`, so the text reads the
+// same and a Topic with no page renders as a chip that goes nowhere.
+//
+// A name is an active Topic's title, case and all, as whole words: not
+// beside a letter, digit, "/" or "-", so "Zone A/B" stays as it is. Of two
+// overlapping names the longer wins. Aliases and merged Topics do not count,
+// because the store's merges fold people into plans and orders into modules,
+// and an alias would put the wrong Topic's chip on a name; excluded Topics
+// are not active. A Topic the page already links keeps only the composer's
+// links, and the page's own Topic is not linked to itself. Headings, the
+// alias line, a table's head, links, citations, code, bold and italic stay
+// as written. In a table row the link goes without its label, because a
+// cell ends at a "|"; the label it falls back to is the title, which is the
+// words matched.
+
+const escapePattern = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+const TOPIC_NAMES = Object.values(store.topics)
+  .filter((topic) => topic.status === "active")
+  .sort((a, b) => b.title.length - a.title.length)
+  .map((topic) => ({ topic, pattern: new RegExp(`(?<![\\w/-])${escapePattern(topic.title)}(?![\\w/-])`, "g") }));
+
+/** The runs of a line that are not plain prose. */
+const NOT_PROSE = /\[\[[^\]]*\]\]|\[cite:[^\]]*\]|`[^`]*`|\*\*[^*]+\*\*|(?<![\w*])\*[^*\n]+\*(?![\w*])/g;
+
+const TABLE_LINE = /^\s*\|/;
+
+/** One run of prose, each name in it passed to `link`, which returns the marked text or null to leave it. */
+function linkNames(text: string, link: (topic: WikiTopic, words: string) => string | null) {
+  const found: { start: number; end: number; topic: WikiTopic }[] = [];
+  for (const { topic, pattern } of TOPIC_NAMES) {
+    for (const match of text.matchAll(pattern)) {
+      const start = match.index;
+      const end = start + match[0].length;
+      if (!found.some((other) => other.start < end && start < other.end)) found.push({ start, end, topic });
+    }
+  }
+  found.sort((a, b) => a.start - b.start);
+
+  let out = "";
+  let last = 0;
+  for (const { start, end, topic } of found) {
+    const marked = link(topic, text.slice(start, end));
+    if (marked === null) continue;
+    out += text.slice(last, start) + marked;
+    last = end;
+  }
+  return out + text.slice(last);
+}
+
+/** A page with the Topic names its composer left as words linked, and those Topics added to its `links`. */
+export function wikiLinkNames(page: WikiPage): WikiPage {
+  const linked = new Set(
+    [...page.content.matchAll(/\[\[([^\]|]+)/g)].map((match) => match[1].trim().toLowerCase().replace(/\s+/g, "-")),
+  );
+  const links = { ...page.links };
+  const lines = page.content.split("\n");
+
+  const content = lines
+    .map((line, index) => {
+      const row = TABLE_LINE.test(line);
+      const head = row && !TABLE_LINE.test(lines[index - 1] ?? "");
+      if (line.startsWith("#") || head || (index === 0 && line.startsWith("Also known as:"))) return line;
+
+      const link = (topic: WikiTopic, words: string) => {
+        if (topic.id === page.topicId || linked.has(topic.id)) return null;
+        links[topic.id] = { title: topic.title, slug: topic.pageSlug };
+        return row ? `[[${topic.id}]]` : `[[${topic.id}|${words}]]`;
+      };
+      let out = "";
+      let last = 0;
+      for (const match of line.matchAll(NOT_PROSE)) {
+        out += linkNames(line.slice(last, match.index), link) + match[0];
+        last = match.index + match[0].length;
+      }
+      return out + linkNames(line.slice(last), link);
+    })
+    .join("\n");
+
+  return { ...page, content, links };
+}
+
 /** The group of every Topic a page links to, keyed as the page's `links` are: what an inline mention's icon shows. */
 export function wikiLinkGroups(page: WikiPage): Record<string, WikiGroupId> {
   return Object.fromEntries(

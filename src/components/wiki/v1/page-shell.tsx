@@ -10,6 +10,7 @@ import {
   wikiGroupOrder,
   wikiJob,
   wikiLinkGroups,
+  wikiLinkNames,
   wikiReadableNote,
   wikiScopedIndex,
   wikiScopedSlug,
@@ -20,9 +21,10 @@ import {
 // The v1 article route: the same slice of the store the original ships
 // (`getWikiView`, here within a scope), plus the few store readings v1 draws
 // with: the group of every Topic the page links to, the group labels and
-// order, and the names of the workspace's assistants. Its Topic's history
-// notes name assistants and Topics where the store writes their ids. Every
-// value on the page comes from here.
+// order, and the names of the workspace's assistants. Two readings change
+// what the page says: the body links the Topic names its composer left as
+// words, and the Topic's history notes name assistants and Topics where the
+// store writes their ids. Every value on the page comes from here.
 //
 // Scope, whose wiki is read, works as the design switch does: a `wiki-scope`
 // cookie on /wiki, written by a Server Function and read here when the route
@@ -56,7 +58,7 @@ export async function WikiPageShellV1({ slug, aside }: { slug: string; aside: Re
     ...found.topic,
     versions: found.topic.versions.map((version) => ({ ...version, changeNote: wikiReadableNote(version.changeNote) })),
   };
-  const view = { ...found, topic };
+  const view = { ...found, page: wikiLinkNames(found.page), topic };
   const index = wikiScopedIndex(scope);
 
   return (
