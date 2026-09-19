@@ -147,18 +147,13 @@ export function IndexRailV1({
 
   return (
     <nav aria-label="Wiki pages" className="flex w-60 shrink-0 flex-col gap-3">
-      <div className="flex items-center gap-2">
-        <SearchInput
-          placeholder={`Search ${listed} pages`}
-          aria-label="Search pages"
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-          className="h-8 flex-1"
-        />
-        <Button variant="outline" size="sm" asChild>
-          <Link href="/wiki/all">All</Link>
-        </Button>
-      </div>
+      <SearchInput
+        placeholder={`Search ${listed} pages`}
+        aria-label="Search pages"
+        value={query}
+        onChange={(event) => setQuery(event.target.value)}
+        className="h-8"
+      />
 
       <div className="flex flex-col gap-0.5">
         {showPrivate ? (
