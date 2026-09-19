@@ -107,6 +107,14 @@ describe("the component tree", () => {
     expect(offenders).toEqual([]);
   });
 
+  // The beam reaches the app through src/components/ui/border-beam.tsx alone,
+  // which is where it learns the app theme and waits for the client.
+  it("imports border-beam only under src/components/ui/", () => {
+    const beam = specifier("border-beam");
+    const offenders = sources.filter(({ path, text }) => !inUi(path) && beam.test(text)).map(({ path }) => path);
+    expect(offenders).toEqual([]);
+  });
+
   it("renders no raw button, input, textarea, select or label outside src/components/ui/", () => {
     // The swatch page keeps three raw buttons on purpose: they are the
     // press / hover / focus motion specimens of the brand's motion section
