@@ -199,7 +199,7 @@ export function WikiViewV1({
             linkGroups={linkGroups}
             groupLabels={groupLabels}
             groupOrder={groupOrder}
-            mentionedIn={linkedFrom.length}
+            linkedFromCount={linkedFrom.length}
             onReveal={reveal}
           />
         </div>
