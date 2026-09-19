@@ -4,17 +4,19 @@ import Link from "next/link";
 import { Fragment } from "react";
 import { cn } from "@/lib/utils";
 import { parseBlocks, type Block, type InlineContext } from "@/components/wiki/wiki-body";
-import { TopicIcon } from "@/components/wiki/topic-chip";
+import { TopicMention } from "@/components/wiki/topic-chip";
 import { CitePreview } from "@/components/wiki/v1/cite-preview";
 import type { WikiAtom, WikiGroupId } from "@/lib/mock/wiki";
 
 // The composed body in v1. The blocks are the original renderer's; two
 // things differ inline. The first time the page names a Topic, the mention
-// carries the Topic's type icon; the first time each section names it, the
-// mention is underlined as a link; later mentions in that section are links
-// in plain ink that underline on hover, so a section that names the same
-// person nine times is not nine underlines. A citation previews its atom on
-// hover or focus and opens the drawer on a click.
+// is that Topic's chip, its type icon and name on a wash of its group's
+// colour; only that once, so a body never turns into a wall of chips. After
+// that, the first time each section names it, the mention is underlined as a
+// link; later mentions in that section are links in plain ink that underline
+// on hover, so a section that names the same person nine times is not nine
+// underlines. A citation previews its atom on hover or focus and opens the
+// drawer on a click.
 
 const INLINE =
   /\[\[([^\]|]+)(?:\|([^\]]*))?\]\]|\[cite:memoryAtom:([^\]]+)\]|\*\*([^*]+)\*\*|`([^`]+)`|(?<![\w*])\*([^*\n]+)\*(?![\w*])/g;
@@ -27,7 +29,7 @@ export type BodyContext = InlineContext & {
 const FIRST = "text-foreground underline decoration-border underline-offset-4 transition-colors duration-(--duration-fast) ease-out-quart hover:decoration-brand-accent";
 const REPEAT = "text-foreground decoration-border underline-offset-4 hover:underline";
 
-/** The Topics already named: in the whole page (for the icon) and in this section (for the underline). */
+/** The Topics already named: in the whole page (for the chip) and in this section (for the underline). */
 type Seen = { page: Set<string>; section: Set<string> };
 
 /** One run of inline text. A heading passes no `seen`: its mentions are plain text and do not count. */
@@ -54,23 +56,22 @@ function renderInline(text: string, ctx: BodyContext, keyPrefix: string, seen?: 
         const introduce = !seen.page.has(slugKey);
         seen.section.add(slugKey);
         seen.page.add(slugKey);
-        const content = introduce ? (
-          <>
-            <TopicIcon group={ctx.linkGroups[slugKey] ?? "concept"} className="mr-0.5 inline align-[-0.125em]" />
-            {label}
-          </>
-        ) : (
-          label
-        );
-        out.push(
-          target.slug ? (
-            <Link key={key} href={`/wiki/${target.slug}`} className={first ? FIRST : REPEAT}>
-              {content}
-            </Link>
-          ) : (
-            <span key={key}>{content}</span>
-          ),
-        );
+        const href = target.slug ? `/wiki/${target.slug}` : undefined;
+        if (introduce) {
+          out.push(
+            <TopicMention key={key} group={ctx.linkGroups[slugKey] ?? "concept"} href={href}>
+              {label}
+            </TopicMention>,
+          );
+        } else if (href) {
+          out.push(
+            <Link key={key} href={href} className={first ? FIRST : REPEAT}>
+              {label}
+            </Link>,
+          );
+        } else {
+          out.push(<span key={key}>{label}</span>);
+        }
       }
     } else if (citeId !== undefined) {
       const id = citeId.trim();

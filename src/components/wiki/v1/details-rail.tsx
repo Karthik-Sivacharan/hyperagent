@@ -93,7 +93,7 @@ function MentionGroup({ group, label, entries }: { group: WikiGroupId; label: st
             label={entry.title}
             count={entry.count}
             href={entry.slug ? `/wiki/${entry.slug}` : undefined}
-            size="md"
+            tone="neutral"
           />
         ))}
         {rest > 0 ? (

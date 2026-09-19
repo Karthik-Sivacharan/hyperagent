@@ -4,7 +4,7 @@ import { IconAlertTriangle, IconClock, IconInfoCircle } from "@tabler/icons-reac
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { TopicChip, TopicIcon } from "@/components/wiki/topic-chip";
+import { TopicChip } from "@/components/wiki/topic-chip";
 import { fmtDay, fmtStamp } from "@/components/wiki/v1/format";
 import type { WikiAtom, WikiPage, WikiTopic } from "@/lib/mock/wiki";
 
@@ -55,10 +55,9 @@ export function ArticleHeader({
   return (
     <header className="flex flex-col gap-2">
       <div className="flex flex-wrap items-center gap-1.5">
-        <Badge variant="outline">
-          <TopicIcon group={page.group} />
-          <span className="capitalize">{topic.subtype ?? topic.type}</span>
-        </Badge>
+        {/* The page's biggest tag, on the same tinted chip as every Topic
+            that stands on its own, here and under "Mentioned in". */}
+        <TopicChip group={page.group} label={topic.subtype ?? topic.type} className="capitalize" />
         {page.hidden ? <Badge variant="warning">Hidden</Badge> : null}
       </div>
 
@@ -76,14 +75,16 @@ export function ArticleHeader({
           </span>
         ) : null}
 
+        {/* Sized with the Topic chips beside it rather than as a badge, so
+            the meta line reads as one set of pills. */}
         {disputed ? (
           <Button
             variant="ghost"
             size="none"
             onClick={onDisputes}
-            className="h-5 gap-1 rounded-full bg-warning/10 px-2 text-xs text-warning hover:bg-warning/15"
+            className="h-6 gap-1 rounded-full bg-warning/10 px-2 text-md text-warning hover:bg-warning/15"
           >
-            <IconAlertTriangle className="size-3" aria-hidden="true" />
+            <IconAlertTriangle className="size-3.5" aria-hidden="true" />
             {disputed} in dispute
           </Button>
         ) : null}
