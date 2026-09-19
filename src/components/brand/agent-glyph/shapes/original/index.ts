@@ -1,5 +1,6 @@
 import type { GlyphShape } from "../../types";
 import { bell } from "./bell";
+import { folio } from "./folio";
 import { fork } from "./fork";
 import { hammerhead } from "./hammerhead";
 import { pinwheel } from "./pinwheel";
@@ -25,4 +26,5 @@ export const ORIGINAL_SHAPES: readonly GlyphShape[] = [
   portal,
   pinwheel,
   trefoil,
+  folio,
 ];
