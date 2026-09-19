@@ -98,7 +98,7 @@ export function WikiViewV1({
   aside: React.ReactNode;
 }) {
   const [atomId, setAtomId] = useState<string | null>(null);
-  const { page, topic, atoms, topicTitles, linkedFrom } = view;
+  const { page, topic, mergedInto, atoms, topicTitles, linkedFrom } = view;
   const isPrivate = privatePages?.some((entry) => entry.slug === page.slug) ?? false;
   const { aliases, body } = useMemo(() => splitAliases(page.content), [page.content]);
 
@@ -170,6 +170,7 @@ export function WikiViewV1({
             key={page.slug}
             page={page}
             topic={topic}
+            mergedInto={mergedInto}
             atoms={atoms}
             aliases={aliases}
             body={body}
@@ -186,6 +187,7 @@ export function WikiViewV1({
           <DetailsRailV1
             page={page}
             topic={topic}
+            mergedInto={mergedInto}
             body={body}
             atoms={atoms}
             linkGroups={linkGroups}

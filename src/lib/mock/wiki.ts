@@ -261,6 +261,8 @@ export type WikiView = {
   /** The page's cited atoms plus everything its drawer can reach: chains, merges, conflicts. */
   atoms: Record<string, WikiAtom>;
   topicTitles: Record<string, WikiTopicRef>;
+  /** The Topic this page's Topic was merged into, when it was. */
+  mergedInto: WikiTopicRef | null;
   linkedFrom: WikiLinkedFrom[];
 };
 
@@ -308,6 +310,7 @@ function viewOf(page: WikiPage): WikiView {
     topic: store.topics[page.topicId],
     atoms,
     topicTitles,
+    mergedInto: topicRef(store.topics[page.topicId].mergedIntoId),
     linkedFrom: store.linkedFrom[page.topicId] ?? [],
   };
 }
