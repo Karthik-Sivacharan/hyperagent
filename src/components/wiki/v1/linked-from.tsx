@@ -12,26 +12,26 @@ import type { WikiLinkedFrom } from "@/lib/mock/wiki";
 
 const SHOWN = 4;
 
-export function MentionedIn({ entries }: { entries: WikiLinkedFrom[] }) {
+export function LinkedFrom({ entries }: { entries: WikiLinkedFrom[] }) {
   const [all, setAll] = useState(false);
   if (!entries.length) return null;
   const shown = all ? entries : entries.slice(0, SHOWN);
 
   return (
     <section
-      id="mentioned-in"
-      aria-labelledby="mentioned-in-title"
+      id="linked-from"
+      aria-labelledby="linked-from-title"
       className="mt-section flex scroll-mt-24 flex-col gap-4 border-t border-border-subtle pt-5"
     >
-      <h2 id="mentioned-in-title" className="flex items-baseline gap-2 text-sm font-medium text-foreground">
-        Mentioned in
+      <h2 id="linked-from-title" className="flex items-baseline gap-2 text-sm font-medium text-foreground">
+        Linked from
         <span className="text-sm font-normal text-foreground-low tabular-nums">{entries.length}</span>
       </h2>
       <ul className="flex flex-col gap-3">
         {shown.map((entry) => (
           <li key={entry.slug} className="flex flex-col items-start gap-1">
             <TopicChip group={entry.group} label={entry.title} href={`/wiki/${entry.slug}`} />
-            <p className="line-clamp-2 text-md text-muted-foreground">
+            <p className="line-clamp-2 text-sm text-muted-foreground">
               {entry.sentence.replace(/^[.\s]+/, "") || "cites an atom linked to this Topic"}
             </p>
           </li>

@@ -6,7 +6,7 @@ import { TopicMention } from "@/components/wiki/topic-chip";
 import { ArticleHeader } from "@/components/wiki/v1/article-header";
 import { BodyV1, type BodyContext } from "@/components/wiki/v1/body";
 import { HistoryList } from "@/components/wiki/v1/history-list";
-import { MentionedIn } from "@/components/wiki/v1/mentioned-in";
+import { LinkedFrom } from "@/components/wiki/v1/linked-from";
 import { SourcesList } from "@/components/wiki/v1/sources-list";
 import { bodyRepeatsSummary } from "@/components/wiki/v1/text";
 import type { WikiAtom, WikiLinkedFrom, WikiPage, WikiTopic, WikiTopicRef } from "@/lib/mock/wiki";
@@ -105,7 +105,7 @@ export function ArticleV1({
       {tab === "page" ? (
         <div className="flex flex-col">
           <BodyV1 content={body} ctx={ctx} />
-          <MentionedIn entries={linkedFrom} />
+          <LinkedFrom entries={linkedFrom} />
         </div>
       ) : null}
       {tab === "sources" ? (

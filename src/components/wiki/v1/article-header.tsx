@@ -59,7 +59,7 @@ export function ArticleHeader({
     <header className="flex flex-col gap-2">
       <div className="flex flex-wrap items-center gap-1.5">
         {/* The page's biggest tag, on the same tinted chip as every Topic
-            that stands on its own, here and under "Mentioned in". */}
+            that stands on its own, here and under "Linked from". */}
         <TopicChip group={page.group} label={topic.subtype ?? topic.type} className="capitalize" />
         {page.hidden ? <Badge variant="warning">Hidden</Badge> : null}
       </div>

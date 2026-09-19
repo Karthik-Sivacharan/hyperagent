@@ -111,7 +111,7 @@ type Mention = WikiLinkTarget & { key: string; count: number };
 /**
  * One type's mentions, most mentioned first. The first few are chips and the
  * rest open in place, so a page that names twenty Topics still fits its rail
- * on one screen, with Mentioned in and Info in view.
+ * on one screen, with Linked from and Details in view.
  */
 function MentionGroup({ group, label, entries }: { group: WikiGroupId; label: string; entries: Mention[] }) {
   const [all, setAll] = useState(false);
@@ -173,7 +173,7 @@ export function DetailsRailV1({
   linkGroups,
   groupLabels,
   groupOrder,
-  mentionedIn,
+  linkedFromCount,
   onReveal,
 }: {
   page: WikiPage;
@@ -186,7 +186,7 @@ export function DetailsRailV1({
   groupLabels: Record<WikiGroupId, string>;
   groupOrder: WikiGroupId[];
   /** How many pages link here; the list itself sits at the foot of the page. */
-  mentionedIn: number;
+  linkedFromCount: number;
   /** Show the Page tab and scroll to an element in it. */
   onReveal: (id: string) => void;
 }) {
@@ -369,7 +369,7 @@ export function DetailsRailV1({
         </Section>
       ) : null}
 
-      {mentionedIn ? (
+      {linkedFromCount ? (
         <Button
           variant="ghost"
           size="none"
@@ -377,14 +377,14 @@ export function DetailsRailV1({
           className="h-auto w-full justify-start gap-2 rounded-md px-2 py-1.5 text-left text-sm font-normal text-muted-foreground hover:bg-tint-10 hover:text-foreground"
         >
           <a
-            href="#mentioned-in"
+            href="#linked-from"
             onClick={(event) => {
               event.preventDefault();
-              onReveal("mentioned-in");
+              onReveal("linked-from");
             }}
           >
             <IconArrowDown className="size-3.5" aria-hidden="true" />
-            Mentioned in {mentionedIn} page{mentionedIn === 1 ? "" : "s"}
+            Linked from {linkedFromCount} page{linkedFromCount === 1 ? "" : "s"}
           </a>
         </Button>
       ) : null}

@@ -46,7 +46,7 @@ type GroupMeta = {
 
 // Why eleven category hues are allowed a fill here. What kind of thing a
 // Topic is is the first thing you read off a chip that stands on its own, in
-// the header or under "Mentioned in", so the hue has to carry from the corner
+// the header or under "Linked from", so the hue has to carry from the corner
 // of the eye rather than wait to be found inside a 14px glyph. It is a 10%
 // tint and never a solid, and a chip that takes one drops its outline
 // hairline so it still reads as one box. On those chips the label stays ink
