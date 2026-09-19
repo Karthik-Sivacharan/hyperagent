@@ -156,14 +156,19 @@ export function WikiViewV1({
           <WikiTabs counts={counts} hideAlone />
         </div>
 
-        <div className="row-start-3 -m-1 min-h-0 overflow-y-auto overscroll-contain p-1 pb-5">
-          <IndexRailV1
-            groups={groups}
-            privatePages={privatePages}
-            hiddenPages={hiddenPages}
-            activeSlug={page.slug}
-            activeGroup={page.hidden || isPrivate ? null : page.group}
-          />
+        {/* The left pane: the index scrolls on its own, and Wiki Agent's dock
+            stays at the pane's foot under it. */}
+        <div className="row-start-3 flex min-h-0 flex-col pb-5">
+          <div className="-m-1 min-h-0 flex-1 overflow-y-auto overscroll-contain p-1">
+            <IndexRailV1
+              groups={groups}
+              privatePages={privatePages}
+              hiddenPages={hiddenPages}
+              activeSlug={page.slug}
+              activeGroup={page.hidden || isPrivate ? null : page.group}
+            />
+          </div>
+          <WikiChat className="mt-3 shrink-0" />
         </div>
 
         <main data-wiki-scroll className="row-start-3 min-h-0 min-w-0 overflow-y-auto overscroll-contain pb-5">
@@ -206,8 +211,6 @@ export function WikiViewV1({
         onOpenAtom={setAtomId}
         onClose={() => setAtomId(null)}
       />
-
-      <WikiChat />
     </div>
   );
 }

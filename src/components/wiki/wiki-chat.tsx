@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   IconArrowsDiagonal,
   IconArrowsDiagonalMinimize2,
   IconArrowsExchange,
-  IconChevronUp,
   IconEdit,
   IconFileAlert,
   IconFilePlus,
@@ -20,6 +20,7 @@ import { AssistantMessage } from "@/components/thread/assistant-message";
 import { ToolCallRow, type ToolCallStatus } from "@/components/thread/tool-call-row";
 import { UserMessage } from "@/components/thread/user-message";
 import { Badge } from "@/components/ui/badge";
+import { BorderBeam } from "@/components/ui/border-beam";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { WIKI_AGENT } from "@/components/wiki/wiki-agent";
@@ -28,18 +29,21 @@ import type { MessageBlock } from "@/lib/mock/conversation";
 import { WIKI_CHAT_SUGGESTIONS, wikiChatReply, type WikiChatSuggestionKind } from "@/lib/mock/wiki-chat";
 import { cn } from "@/lib/utils";
 
-// Wiki Agent's chat, as a window that floats over the wiki in the bottom
-// right corner, the way a mail app's compose window does. Four states: closed
-// (a pill in the corner, with a count of what needs you), open, minimised to
-// its title bar, and expanded to the height of the screen. The title bar is
-// the handle: drag it to move the window anywhere on screen (it stays at
-// least 8px inside the edges), double-click it to send the window back to its
-// corner. Expanding also sends it back, so the bigger window never starts
-// half off screen.
+// Wiki Agent's chat. It lives in the wiki's left pane: a dock at the foot
+// of the index rail, the rail's own 240px wide, with the beam running round
+// it for as long as the chat is not open, so the agent is always one glance
+// away. Open, it is a window that grows out of the dock's corner (its bottom
+// left on the dock's bottom left) over the article, the way a mail app's
+// compose window grows out of its corner. From there it minimises back into
+// the dock, expands to the height of the screen, or closes to the dock's
+// resting "Ask" state. The title bar is the handle: drag it anywhere on
+// screen (it stays 8px inside the edges), double-click it to send the window
+// home. Expanding also sends it home, so the bigger window never starts half
+// off screen.
 //
-// The window is not modal: the wiki stays live around it, which is the point
-// of a floating chat. It sits on the sticky rung of the z ladder (40), under
-// menus and dialogs, so the composer's own menus open over it.
+// The window is portalled to <body> and not modal: the wiki stays live
+// around it. It sits on the sticky rung of the z ladder (40), under menus and
+// dialogs, so the composer's own menus open over it.
 //
 // The conversation is mock and local: a message gets the agent's "Reading"
 // rows for the pages it opens, the beam and the Working row on the ask box,
@@ -69,6 +73,13 @@ const SUGGESTION_ICONS: Record<WikiChatSuggestionKind, TablerIcon> = {
 const READING_MS = 1800;
 /** The window keeps this much of the viewport around it while dragged. */
 const EDGE = 8;
+/** Room kept above and beside an opened window, so it never meets an edge. */
+const TOP_GAP = 24;
+/** The chat's one palette, on the dock and on the ask box alike. */
+const BEAM = { colorVariant: "colorful" } as const;
+
+/** Where the window grows from: the dock's bottom-left corner, in viewport terms. */
+type Anchor = { left: number; bottom: number; above: number; right: number };
 
 const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
 
@@ -149,18 +160,20 @@ function AgentTurn({ turn }: { turn: Extract<Turn, { role: "agent" }> }) {
   );
 }
 
-export function WikiChat() {
+export function WikiChat({ className }: { className?: string }) {
   const [mode, setMode] = useState<Mode>("closed");
   const [expanded, setExpanded] = useState(false);
   const [offset, setOffset] = useState<Offset>({ x: 0, y: 0 });
+  const [anchor, setAnchor] = useState<Anchor | null>(null);
   const [turns, setTurns] = useState<Turn[]>([]);
   const [draft, setDraft] = useState("");
 
+  const dockRef = useRef<HTMLDivElement>(null);
   const windowRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const nextId = useRef(0);
-  const drag = useRef<{ x: number; y: number; start: Offset; min: Offset; max: Offset; moved: boolean } | null>(null);
+  const drag = useRef<{ x: number; y: number; start: Offset; min: Offset; max: Offset } | null>(null);
 
   // One turn reads at a time: send waits for the last to land or be stopped.
   const reading = turns.find(
@@ -168,6 +181,7 @@ export function WikiChat() {
   );
   const running = reading !== undefined;
   const task = reading ? `Reading ${reading.reads.length} ${reading.reads.length === 1 ? "page" : "pages"}…` : undefined;
+  const open = mode === "open";
 
   useEffect(() => {
     const pending = timer;
@@ -176,11 +190,31 @@ export function WikiChat() {
     };
   }, []);
 
+  // The dock does not move while the window is open (the rail beside it is
+  // fixed; only the article scrolls), but the viewport can: re-measure on a
+  // resize so the window keeps growing out of the dock's corner.
+  useEffect(() => {
+    if (!open) return;
+    const measure = () => {
+      const rect = dockRef.current?.getBoundingClientRect();
+      if (!rect) return;
+      setAnchor({
+        left: rect.left,
+        bottom: window.innerHeight - rect.bottom,
+        above: rect.bottom,
+        right: window.innerWidth - rect.left,
+      });
+    };
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, [open]);
+
   // Keep the newest turn in view as the conversation grows.
   useEffect(() => {
     const el = scrollRef.current;
     if (el) el.scrollTop = el.scrollHeight;
-  }, [turns, mode]);
+  }, [turns, mode, anchor]);
 
   const id = () => `wiki-chat-${nextId.current++}`;
 
@@ -215,6 +249,12 @@ export function WikiChat() {
     setDraft("");
   }
 
+  function close() {
+    setMode("closed");
+    setExpanded(false);
+    setOffset({ x: 0, y: 0 });
+  }
+
   function toggleExpanded() {
     setExpanded((value) => !value);
     setOffset({ x: 0, y: 0 });
@@ -232,7 +272,6 @@ export function WikiChat() {
       start: offset,
       min: { x: offset.x - (rect.left - EDGE), y: offset.y - (rect.top - EDGE) },
       max: { x: offset.x + (window.innerWidth - EDGE - rect.right), y: offset.y + (window.innerHeight - EDGE - rect.bottom) },
-      moved: false,
     };
     event.currentTarget.setPointerCapture(event.pointerId);
   }
@@ -240,119 +279,130 @@ export function WikiChat() {
   function onPointerMove(event: React.PointerEvent<HTMLDivElement>) {
     const d = drag.current;
     if (!d) return;
-    const dx = event.clientX - d.x;
-    const dy = event.clientY - d.y;
-    if (Math.abs(dx) + Math.abs(dy) > 3) d.moved = true;
-    setOffset({ x: clamp(d.start.x + dx, d.min.x, d.max.x), y: clamp(d.start.y + dy, d.min.y, d.max.y) });
+    setOffset({
+      x: clamp(d.start.x + event.clientX - d.x, d.min.x, d.max.x),
+      y: clamp(d.start.y + event.clientY - d.y, d.min.y, d.max.y),
+    });
   }
 
   function onPointerUp(event: React.PointerEvent<HTMLDivElement>) {
-    const d = drag.current;
     drag.current = null;
     if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
-    // A click (not a drag) on a minimised bar opens it again, as a mail app's does.
-    if (d && !d.moved && mode === "minimized") setMode("open");
   }
 
-  if (mode === "closed") {
-    return (
-      <Button
-        variant="outline"
-        onClick={() => setMode("open")}
-        className="fixed right-6 bottom-6 z-40 h-11 gap-2 rounded-full bg-overlay pr-3 pl-2 shadow-lg animate-in fade-in-0 zoom-in-95 duration-(--duration-enter) ease-out-quart"
-      >
-        <AgentGlyph shape={WIKI_AGENT.glyph} size={28} />
-        <span>Ask {WIKI_AGENT.name}</span>
-        <Badge variant="brand">
-          {WIKI_CHAT_SUGGESTIONS.length}
-          <span className="sr-only"> need you</span>
-        </Badge>
-      </Button>
-    );
-  }
-
-  const minimized = mode === "minimized";
+  // The window's size, from the room the dock leaves above it and to its right.
+  const size = anchor && {
+    width: expanded ? Math.min(720, anchor.right - TOP_GAP) : 400,
+    height: expanded ? anchor.above - TOP_GAP : Math.min(640, anchor.above - TOP_GAP),
+  };
 
   return (
-    <div
-      ref={windowRef}
-      role="dialog"
-      aria-label={WIKI_AGENT.name}
-      data-state={mode}
-      data-expanded={expanded || undefined}
-      style={{ translate: `${offset.x}px ${offset.y}px` }}
-      className={cn(
-        "fixed right-6 bottom-6 z-40 flex origin-bottom-right flex-col overflow-hidden rounded-4xl bg-overlay text-foreground shadow-lg ring-1 ring-border-subtle",
-        "transition-[width,height] duration-(--duration-move) ease-out-quart animate-in fade-in-0 zoom-in-95 motion-reduce:transition-none",
-        minimized
-          ? "h-12 w-80"
-          : expanded
-            ? "h-[calc(100dvh-3rem)] w-[min(720px,calc(100vw-3rem))]"
-            : "h-[min(640px,calc(100dvh-3rem))] w-100",
-      )}
-    >
-      {/* The title bar is the drag handle; its buttons are left out of the drag. */}
-      <div
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={onPointerUp}
-        onPointerCancel={onPointerUp}
-        onDoubleClick={(event) => {
-          if (!(event.target as HTMLElement).closest("button")) setOffset({ x: 0, y: 0 });
-        }}
-        className={cn(
-          "flex h-12 shrink-0 cursor-grab touch-none items-center gap-2 pr-2 pl-3 select-none active:cursor-grabbing",
-          !minimized && "border-b border-border-subtle",
-        )}
-      >
-        <AgentGlyph shape={WIKI_AGENT.glyph} size={24} />
-        <span className="min-w-0 flex-1 truncate font-medium text-sm">{WIKI_AGENT.name}</span>
-        {minimized && running && <span className="text-muted-foreground text-xs">{task}</span>}
-        {!minimized && (
-          <HeaderButton label="New chat" icon={IconEdit} onClick={newChat} disabled={turns.length === 0} />
-        )}
-        {minimized ? (
-          <HeaderButton label="Restore" icon={IconChevronUp} onClick={() => setMode("open")} />
+    <div ref={dockRef} className={cn("w-60", className)}>
+      {/* The dock: "Ask" at rest, the conversation's own bar while minimised.
+          Under an open window it stays where it is (the window covers it), so
+          the rail never shifts; the beam fades out there. */}
+      <BorderBeam {...BEAM} active={!open}>
+        {mode === "minimized" ? (
+          <div className="flex h-11 w-full items-center gap-0.5 rounded-xl bg-overlay pr-1 shadow-edge">
+            <Button
+              variant="ghost"
+              size="none"
+              onClick={() => setMode("open")}
+              aria-label={`Open ${WIKI_AGENT.name}`}
+              className="h-full min-w-0 flex-1 justify-start gap-2 rounded-xl pr-1 pl-2 font-normal"
+            >
+              <AgentGlyph shape={WIKI_AGENT.glyph} size={28} />
+              <span className="min-w-0 truncate text-sm">
+                <span className="font-medium">{WIKI_AGENT.name}</span>
+                {task && <span className="text-muted-foreground"> {task}</span>}
+              </span>
+            </Button>
+            <HeaderButton label="Close" icon={IconX} onClick={close} />
+          </div>
         ) : (
-          <HeaderButton label="Minimize" icon={IconMinus} onClick={() => setMode("minimized")} />
+          <Button
+            variant="outline"
+            onClick={() => setMode("open")}
+            className="h-11 w-full justify-start gap-2 rounded-xl bg-overlay pr-3 pl-2"
+          >
+            <AgentGlyph shape={WIKI_AGENT.glyph} size={28} />
+            <span>Ask {WIKI_AGENT.name}</span>
+            <Badge variant="brand" className="ml-auto">
+              {WIKI_CHAT_SUGGESTIONS.length}
+              <span className="sr-only"> need you</span>
+            </Badge>
+          </Button>
         )}
-        {!minimized && (
-          <HeaderButton
-            label={expanded ? "Shrink" : "Expand"}
-            icon={expanded ? IconArrowsDiagonalMinimize2 : IconArrowsDiagonal}
-            onClick={toggleExpanded}
-          />
-        )}
-        <HeaderButton label="Close" icon={IconX} onClick={() => setMode("closed")} />
-      </div>
+      </BorderBeam>
 
-      {!minimized && (
-        <>
-          <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-4">
-            {turns.length === 0 ? (
-              <Suggestions onPick={send} />
-            ) : (
-              turns.map((turn) =>
-                turn.role === "user" ? (
-                  <UserMessage key={turn.id} id={turn.id} text={turn.text} sentAtLabel="Just now" />
-                ) : (
-                  <AgentTurn key={turn.id} turn={turn} />
-                ),
-              )
-            )}
-          </div>
-          <div className="shrink-0 px-3 pb-3">
-            <WikiAsk
-              value={draft}
-              onValueChange={setDraft}
-              onSend={() => send(draft)}
-              task={task}
-              onStop={stop}
-              autoFocus
-            />
-          </div>
-        </>
-      )}
+      {open &&
+        anchor &&
+        size &&
+        createPortal(
+          <div
+            ref={windowRef}
+            role="dialog"
+            aria-label={WIKI_AGENT.name}
+            data-expanded={expanded || undefined}
+            style={{
+              left: anchor.left,
+              bottom: anchor.bottom,
+              width: size.width,
+              height: size.height,
+              translate: `${offset.x}px ${offset.y}px`,
+            }}
+            className="fixed z-40 flex origin-bottom-left flex-col overflow-hidden rounded-4xl bg-overlay text-foreground shadow-lg ring-1 ring-border-subtle transition-[width,height] duration-(--duration-move) ease-out-quart animate-in fade-in-0 zoom-in-95 motion-reduce:transition-none"
+          >
+            {/* The title bar is the drag handle; its buttons are left out of the drag. */}
+            <div
+              onPointerDown={onPointerDown}
+              onPointerMove={onPointerMove}
+              onPointerUp={onPointerUp}
+              onPointerCancel={onPointerUp}
+              onDoubleClick={(event) => {
+                if (!(event.target as HTMLElement).closest("button")) setOffset({ x: 0, y: 0 });
+              }}
+              className="flex h-12 shrink-0 cursor-grab touch-none items-center gap-2 border-b border-border-subtle pr-2 pl-3 select-none active:cursor-grabbing"
+            >
+              <AgentGlyph shape={WIKI_AGENT.glyph} size={24} />
+              <span className="min-w-0 flex-1 truncate font-medium text-sm">{WIKI_AGENT.name}</span>
+              <HeaderButton label="New chat" icon={IconEdit} onClick={newChat} disabled={turns.length === 0} />
+              <HeaderButton label="Minimize" icon={IconMinus} onClick={() => setMode("minimized")} />
+              <HeaderButton
+                label={expanded ? "Shrink" : "Expand"}
+                icon={expanded ? IconArrowsDiagonalMinimize2 : IconArrowsDiagonal}
+                onClick={toggleExpanded}
+              />
+              <HeaderButton label="Close" icon={IconX} onClick={close} />
+            </div>
+
+            <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-4">
+              {turns.length === 0 ? (
+                <Suggestions onPick={send} />
+              ) : (
+                turns.map((turn) =>
+                  turn.role === "user" ? (
+                    <UserMessage key={turn.id} id={turn.id} text={turn.text} sentAtLabel="Just now" />
+                  ) : (
+                    <AgentTurn key={turn.id} turn={turn} />
+                  ),
+                )
+              )}
+            </div>
+            <div className="shrink-0 px-3 pb-3">
+              <WikiAsk
+                value={draft}
+                onValueChange={setDraft}
+                onSend={() => send(draft)}
+                task={task}
+                onStop={stop}
+                beam={BEAM}
+                autoFocus
+              />
+            </div>
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }
