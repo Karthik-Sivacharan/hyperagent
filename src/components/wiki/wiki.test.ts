@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { findGlyph } from "@/components/brand/agent-glyph";
 import { WIKI_ATOM_TYPE_ORDER, WIKI_DRAWN_GROUPS, WIKI_SOURCE_KIND_ORDER, wikiAgentGlyph } from "@/components/wiki/topic-type";
+import { wikiReadableNote, wikiTopics } from "@/lib/mock/wiki";
 
 // The wiki's store is a 1.7 MB JSON file that only the server should hold. A
 // client component that imports a value from the store module pulls the whole
@@ -87,5 +88,15 @@ describe("topic-type.ts matches the store", () => {
       return !glyph || !findGlyph(glyph);
     });
     expect(faceless.map(({ id }) => id)).toEqual([]);
+  });
+});
+
+describe("v1 names what the store writes as ids", () => {
+  it("leaves no roster id or Topic id in a Topic's history notes", () => {
+    const notes = Object.values(wikiTopics).flatMap((topic) =>
+      topic.versions.map((version) => wikiReadableNote(version.changeNote)),
+    );
+    const ids = /\bag-[a-z]|(?:Folded into|Merged into|near miss:) [a-z0-9]/;
+    expect(notes.filter((note) => ids.test(note))).toEqual([]);
   });
 });

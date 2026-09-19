@@ -315,6 +315,31 @@ function viewOf(page: WikiPage): WikiView {
   };
 }
 
+/** Each assistant's name by roster id; the second assistant to share a name is its copy. */
+const agentNames = new Map<string, string>();
+for (const { id, name } of store.agents) {
+  agentNames.set(id, [...agentNames.values()].includes(name) ? `${name} copy` : name);
+}
+
+/**
+ * A Topic's change note with names where the store writes ids. The notes
+ * name the assistant that minted a Topic by its roster id ("Minted from
+ * extraction (ag-ops group)") and the Topic it was folded or merged into, or
+ * nearly matched, by its Topic id ("Folded into zone-a"). An id the store
+ * does not know stays as written.
+ */
+export function wikiReadableNote(note: string): string {
+  return note
+    .replace(/\((ag-[a-z-]+) group\)/g, (match, id: string) => {
+      const name = agentNames.get(id);
+      return name ? `(${name})` : match;
+    })
+    .replace(/\b(Folded into|Merged into|near miss:) ([a-z0-9]+(?:-[a-z0-9]+)*)/g, (match, lead: string, id: string) => {
+      const topic = store.topics[id];
+      return topic ? `${lead} ${topic.title}` : match;
+    });
+}
+
 /** The group of every Topic a page links to, keyed as the page's `links` are: what an inline mention's icon shows. */
 export function wikiLinkGroups(page: WikiPage): Record<string, WikiGroupId> {
   return Object.fromEntries(
