@@ -23,7 +23,9 @@ import type { WikiGroupId, WikiIndexEntry, WikiView as WikiViewData } from "@/li
 // row and the page under it are one grid, so each thing in the row sits on
 // its column: the title over the index, whose wiki you are reading on the
 // article's own left edge, and the design switch over the page map (at the
-// end of the article's column where the map is hidden). The workspace is
+// end of the article's column where the map is hidden). The page itself does
+// not scroll: the heading row stays put, each rail scrolls on its own, and
+// the article's column is the one scroller. The workspace is
 // already named in the sidebar, so there is no breadcrumb. The title is not
 // an h1, because the article's own title is the page's one h1. The view tabs
 // below stay out of the way while Pages is the only view.
@@ -138,19 +140,22 @@ export function WikiViewV1({
   );
 
   return (
-    <div data-wiki-scroll className="flex-1 overflow-y-auto">
-      <div className="mx-auto grid w-full max-w-360 grid-cols-[auto_minmax(0,1fr)] items-start gap-x-8 gap-y-5 px-6 py-5 xl:grid-cols-[auto_minmax(0,1fr)_auto]">
-        <PageHeading className="col-start-1 row-start-1 w-60" title="Wiki" titleAs="p" subtitle={<JobNote job={job} />} />
-        <div className="col-start-2 row-start-1 mx-auto w-full max-w-xl self-center">
+    <div data-wiki-view className="min-h-0 flex-1">
+      <div className="mx-auto grid h-full w-full max-w-360 grid-cols-[auto_minmax(0,1fr)] grid-rows-[auto_auto_minmax(0,1fr)] gap-x-8 px-6 pt-5 xl:grid-cols-[auto_minmax(0,1fr)_auto]">
+        {/* Every cell in the heading row carries the same bottom margin, so
+            centring the select and the switch on their margin boxes still
+            centres them on the title block. */}
+        <PageHeading className="col-start-1 row-start-1 mb-5 w-60" title="Wiki" titleAs="p" subtitle={<JobNote job={job} />} />
+        <div className="col-start-2 row-start-1 mx-auto mb-5 w-full max-w-xl self-center">
           <WikiScopeSelect {...scope} />
         </div>
-        <div className="col-start-2 row-start-1 self-center justify-self-end xl:col-start-3">{aside}</div>
+        <div className="col-start-2 row-start-1 mb-5 self-center justify-self-end xl:col-start-3">{aside}</div>
 
-        <div className="col-span-full empty:hidden">
+        <div className="col-span-full row-start-2 mb-5 empty:hidden">
           <WikiTabs counts={counts} hideAlone />
         </div>
 
-        <div className="sticky top-5 -m-1 max-h-[calc(100dvh-2.5rem)] self-start overflow-y-auto overscroll-contain p-1">
+        <div className="row-start-3 -m-1 min-h-0 overflow-y-auto overscroll-contain p-1 pb-5">
           <IndexRailV1
             groups={groups}
             privatePages={privatePages}
@@ -160,7 +165,7 @@ export function WikiViewV1({
           />
         </div>
 
-        <main className="min-w-0">
+        <main data-wiki-scroll className="row-start-3 min-h-0 min-w-0 overflow-y-auto overscroll-contain pb-5">
           <ArticleV1
             key={page.slug}
             page={page}
@@ -177,7 +182,7 @@ export function WikiViewV1({
           />
         </main>
 
-        <div className="sticky top-5 -m-1 hidden max-h-[calc(100dvh-2.5rem)] self-start overflow-y-auto overscroll-contain p-1 xl:block">
+        <div className="row-start-3 -m-1 hidden min-h-0 overflow-y-auto overscroll-contain p-1 pb-5 xl:block">
           <DetailsRailV1
             page={page}
             topic={topic}

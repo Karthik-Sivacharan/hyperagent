@@ -25,7 +25,8 @@ function useActiveHeading(ids: string[], rail: React.RefObject<HTMLElement | nul
   const [active, setActive] = useState<string | null>(ids[0] ?? null);
 
   useEffect(() => {
-    const scroller = rail.current?.closest<HTMLElement>("[data-wiki-scroll]");
+    // The article's column is the scroller, beside this rail rather than around it.
+    const scroller = rail.current?.closest("[data-wiki-view]")?.querySelector<HTMLElement>("[data-wiki-scroll]");
     if (!scroller || ids.length === 0) return;
     let frame = 0;
     const measure = () => {
