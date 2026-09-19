@@ -39,7 +39,8 @@ export type WikiJob = {
 };
 
 // The subtitle is the trigger, so it wears the subtitle's own size and colour
-// and lights up on hover. A popover rather than a hover card, because touch
+// and lights up on hover. It names only the runs; the days they read are in
+// the detail, which keeps the subtitle inside the index's column. A popover rather than a hover card, because touch
 // cannot hover.
 function JobNote({ job }: { job: WikiJob }) {
   return (
@@ -51,7 +52,7 @@ function JobNote({ job }: { job: WikiJob }) {
           className="gap-1.5 font-normal text-muted-foreground hover:text-foreground hover:no-underline aria-expanded:text-foreground"
         >
           <IconHistory className="size-4" aria-hidden="true" />
-          Composed by {job.runCount} runs, {fmtWindow(job.windowStart, job.windowEnd)}
+          Composed by {job.runCount} runs
         </Button>
       </PopoverTrigger>
       <PopoverContent align="start" className="w-80 p-3 text-xs leading-5">
