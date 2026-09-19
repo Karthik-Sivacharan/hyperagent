@@ -102,15 +102,16 @@ function renderInline(text: string, ctx: BodyContext, keyPrefix: string, seen?: 
 }
 
 /**
- * The space above a block: 12px between the blocks of a section, 8px under
+ * The space above a block: 16px between the blocks of a section, 8px under
  * the heading that opens them, 24px above a sub-section (16px straight under
  * its section's heading) and 40px above a section. Space alone marks where a
- * section starts; there is no rule line.
+ * section starts; there is no rule line. Paragraphs sit two thirds of a line
+ * apart: at 12px, half a line, a section read as one block of text.
  */
 function spaceAbove(block: Block, previous: Block | undefined) {
   if (!previous) return "";
   const underHeading = previous.kind === "heading";
-  if (block.kind !== "heading") return underHeading ? "mt-2" : "mt-group";
+  if (block.kind !== "heading") return underHeading ? "mt-2" : "mt-4";
   if (block.level === 2) return "mt-section";
   return underHeading ? "mt-4" : "mt-stack";
 }
