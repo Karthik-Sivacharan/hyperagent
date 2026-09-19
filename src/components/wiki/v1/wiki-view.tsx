@@ -18,13 +18,15 @@ import type { WikiGroupId, WikiIndexEntry, WikiView as WikiViewData } from "@/li
 
 // v1 of the wiki: the page index on the left, the article in the middle, a
 // map of the page on the right, and the atom drawer over all three. It opens
-// on the heading every app page shares: the title, a subtitle naming the runs
-// that composed the wiki (click or tap it for the detail), and on the right
-// whose wiki you are reading beside the design switch, as a top bar would hold
-// them. The workspace is already named in the sidebar, so there is no
-// breadcrumb. The title is not an h1, because the article's own title is
-// the page's one h1. The view tabs below stay out of the way while Pages is
-// the only view.
+// on the heading every app page shares: the title and a subtitle naming the
+// runs that composed the wiki (click or tap it for the detail). The heading
+// row and the page under it are one grid, so each thing in the row sits on
+// its column: the title over the index, whose wiki you are reading on the
+// article's own left edge, and the design switch over the page map (at the
+// end of the article's column where the map is hidden). The workspace is
+// already named in the sidebar, so there is no breadcrumb. The title is not
+// an h1, because the article's own title is the page's one h1. The view tabs
+// below stay out of the way while Pages is the only view.
 
 export type WikiJob = {
   runCount: number;
@@ -127,62 +129,56 @@ export function WikiViewV1({
 
   return (
     <div data-wiki-scroll className="flex-1 overflow-y-auto">
-      <div className="mx-auto flex w-full max-w-360 flex-col gap-5 px-6 py-5">
-        <PageHeading
-          title="Wiki"
-          titleAs="p"
-          subtitle={<JobNote job={job} />}
-          actions={
-            <>
-              <WikiScopeSelect {...scope} />
-              {aside}
-            </>
-          }
-        />
+      <div className="mx-auto grid w-full max-w-360 grid-cols-[auto_minmax(0,1fr)] items-start gap-x-8 gap-y-5 px-6 py-5 xl:grid-cols-[auto_minmax(0,1fr)_auto]">
+        <PageHeading className="col-start-1 row-start-1 w-60" title="Wiki" titleAs="p" subtitle={<JobNote job={job} />} />
+        <div className="col-start-2 row-start-1 mx-auto w-full max-w-xl self-center">
+          <WikiScopeSelect {...scope} />
+        </div>
+        <div className="col-start-2 row-start-1 self-center justify-self-end xl:col-start-3">{aside}</div>
 
-        <WikiTabs counts={counts} hideAlone />
+        <div className="col-span-full empty:hidden">
+          <WikiTabs counts={counts} hideAlone />
+        </div>
 
-        <div className="flex items-start gap-8">
-          <div className="sticky top-5 -m-1 max-h-[calc(100dvh-2.5rem)] self-start overflow-y-auto overscroll-contain p-1">
-            <IndexRailV1
-              groups={groups}
-              privatePages={privatePages}
-              hiddenPages={hiddenPages}
-              activeSlug={page.slug}
-              activeGroup={page.hidden || isPrivate ? null : page.group}
-            />
-          </div>
+        <div className="sticky top-5 -m-1 max-h-[calc(100dvh-2.5rem)] self-start overflow-y-auto overscroll-contain p-1">
+          <IndexRailV1
+            groups={groups}
+            privatePages={privatePages}
+            hiddenPages={hiddenPages}
+            activeSlug={page.slug}
+            activeGroup={page.hidden || isPrivate ? null : page.group}
+          />
+        </div>
 
-          <main className="min-w-0 flex-1">
-            <ArticleV1
-              key={page.slug}
-              page={page}
-              topic={topic}
-              atoms={atoms}
-              aliases={aliases}
-              body={body}
-              linkedFrom={linkedFrom}
-              tab={tab}
-              onTab={setTab}
-              ctx={ctx}
-              onAtom={setAtomId}
-              assistants={assistants}
-            />
-          </main>
+        <main className="min-w-0">
+          <ArticleV1
+            key={page.slug}
+            page={page}
+            topic={topic}
+            atoms={atoms}
+            aliases={aliases}
+            body={body}
+            linkedFrom={linkedFrom}
+            tab={tab}
+            onTab={setTab}
+            ctx={ctx}
+            onAtom={setAtomId}
+            assistants={assistants}
+          />
+        </main>
 
-          <div className="sticky top-5 -m-1 hidden max-h-[calc(100dvh-2.5rem)] self-start overflow-y-auto overscroll-contain p-1 xl:block">
-            <DetailsRailV1
-              page={page}
-              topic={topic}
-              body={body}
-              atoms={atoms}
-              linkGroups={linkGroups}
-              groupLabels={groupLabels}
-              groupOrder={groupOrder}
-              mentionedIn={linkedFrom.length}
-              onReveal={reveal}
-            />
-          </div>
+        <div className="sticky top-5 -m-1 hidden max-h-[calc(100dvh-2.5rem)] self-start overflow-y-auto overscroll-contain p-1 xl:block">
+          <DetailsRailV1
+            page={page}
+            topic={topic}
+            body={body}
+            atoms={atoms}
+            linkGroups={linkGroups}
+            groupLabels={groupLabels}
+            groupOrder={groupOrder}
+            mentionedIn={linkedFrom.length}
+            onReveal={reveal}
+          />
         </div>
       </div>
 
