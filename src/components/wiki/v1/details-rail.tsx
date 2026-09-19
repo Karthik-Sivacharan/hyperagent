@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Overline } from "@/components/ui/overline";
 import { bodyHeadings } from "@/components/wiki/wiki-body";
-import { TopicChip } from "@/components/wiki/topic-chip";
+import { SourceKindIcon, TopicChip } from "@/components/wiki/topic-chip";
 import { fmtDay, fmtStamp } from "@/components/wiki/v1/format";
 import { wordCount } from "@/components/wiki/v1/text";
 import type { WikiAtom, WikiGroupId, WikiLinkTarget, WikiPage, WikiTopic } from "@/lib/mock/wiki";
@@ -65,6 +65,9 @@ function Section({ title, count, children }: { title: string; count?: number; ch
     </section>
   );
 }
+
+/** "Thread" to "threads", "Saved memory" to "saved memories". */
+const plural = (label: string) => (label.endsWith("y") ? `${label.slice(0, -1)}ies` : `${label}s`);
 
 /** How many Topics of one type show before the rest wait behind "+N more". */
 const MENTIONS_SHOWN = 3;
@@ -154,7 +157,6 @@ export function DetailsRailV1({
   const headings = useMemo(() => bodyHeadings(body), [body]);
   const ids = useMemo(() => headings.map((heading) => heading.id), [headings]);
   const active = useActiveHeading(ids, rail);
-  const current = page.versions[page.versions.length - 1];
 
   // Every Topic the body links to, counted, grouped by type in the store's order.
   const counts = new Map<string, number>();
@@ -181,6 +183,9 @@ export function DetailsRailV1({
       sourceKinds.set(source.kind, entry);
     }
   }
+
+  const sources = [...sourceKinds].map(([kind, entry]) => ({ kind, ...entry })).sort((a, b) => b.count - a.count);
+  const firstDay = page.versions[0]?.sourceDay ?? null;
 
   return (
     <aside ref={rail} className="flex w-64 shrink-0 flex-col gap-6">
@@ -217,6 +222,83 @@ export function DetailsRailV1({
         </Section>
       ) : null}
 
+      <Collapsible className="flex flex-col gap-2">
+        <CollapsibleTrigger asChild>
+          <Button
+            variant="ghost"
+            size="none"
+            className="group/details h-auto w-full justify-start gap-1 rounded-md px-2 py-1 text-left font-normal hover:bg-tint-10 aria-expanded:bg-transparent aria-expanded:hover:bg-tint-10"
+          >
+            <Overline>Details</Overline>
+            <IconChevronRight
+              className="size-3.5 text-foreground-low transition-transform duration-(--duration-fast) ease-out-quart group-aria-expanded/details:rotate-90"
+              aria-hidden="true"
+            />
+          </Button>
+        </CollapsibleTrigger>
+        <CollapsibleContent className="flex flex-col gap-4 px-2">
+          <dl className="flex flex-col divide-y divide-border-subtle">
+            <Row label="Status">
+              <span className="inline-flex items-center gap-1.5">
+                <span
+                  className={cn("size-1.5 shrink-0 rounded-full", topic.status === "active" ? "bg-success" : "bg-warning")}
+                  aria-hidden="true"
+                />
+                <span>
+                  <span className="capitalize">{topic.status}</span>
+                  {topic.mergedIntoTitle ? ` into ${topic.mergedIntoTitle}` : ""}
+                </span>
+              </span>
+            </Row>
+            <Row label="Versions">
+              {page.versions.length}
+              {firstDay ? `, since ${fmtDay(firstDay)}` : ""}
+            </Row>
+            <Row label="Citations">{page.citations.length}</Row>
+            <Row label="Atoms">
+              {topic.currentAtomCount} current of {topic.atomCount}
+            </Row>
+            {sources.length ? (
+              <Row label="Sources">
+                <ul className="flex flex-col gap-0.5">
+                  {sources.map(({ kind, label, count }) => (
+                    <li key={kind} className="flex items-center gap-1.5">
+                      <SourceKindIcon kind={kind} className="text-foreground-low" />
+                      {count} {(count === 1 ? label : plural(label)).toLowerCase()}
+                    </li>
+                  ))}
+                </ul>
+              </Row>
+            ) : null}
+            <Row label="Words">{wordCount(body).toLocaleString("en-US")}</Row>
+            {topic.aliases.length ? <Row label="Also known as">{topic.aliases.join(", ")}</Row> : null}
+          </dl>
+
+          {topic.versions.length ? (
+            <div className="flex flex-col gap-2">
+              <Overline>Topic history</Overline>
+              <ol className="flex flex-col gap-2">
+                {[...topic.versions].reverse().map((version) => (
+                  <li key={version.version} className="flex gap-2">
+                    <Badge variant="secondary" className="shrink-0">
+                      v{version.version}
+                    </Badge>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-md text-foreground">{version.changeNote}</p>
+                      <p className="text-xs text-foreground-low">
+                        {fmtStamp(version.createdAt)}
+                        {version.dreamRunId ? `, ${version.dreamRunId}` : version.changedBy ? `, ${version.changedBy}` : ""}
+                        {version.status ? `, ${version.status}` : ""}
+                      </p>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          ) : null}
+        </CollapsibleContent>
+      </Collapsible>
+
       {mentions.length ? (
         <Section title="Mentions" count={counts.size}>
           <div className="flex flex-col gap-3 px-2">
@@ -252,75 +334,6 @@ export function DetailsRailV1({
         </Button>
       ) : null}
 
-      <Collapsible className="flex flex-col gap-2">
-        <CollapsibleTrigger asChild>
-          <Button
-            variant="ghost"
-            size="none"
-            className="group/info h-auto w-full justify-start gap-1.5 rounded-md px-2 py-1 text-left font-normal hover:bg-tint-10 aria-expanded:bg-transparent aria-expanded:hover:bg-tint-10"
-          >
-            <Overline className="flex-1">Info</Overline>
-            <IconChevronRight
-              className="size-3.5 text-foreground-low transition-transform duration-(--duration-fast) ease-out-quart group-aria-expanded/info:rotate-90"
-              aria-hidden="true"
-            />
-          </Button>
-        </CollapsibleTrigger>
-        <CollapsibleContent className="flex flex-col gap-4 px-2">
-          <dl className="flex flex-col divide-y divide-border-subtle">
-            <Row label="Words">{wordCount(body).toLocaleString("en-US")}</Row>
-            <Row label="Sections">{headings.length}</Row>
-            <Row label="Citations">{page.citations.length}</Row>
-            {sourceKinds.size ? (
-              <Row label="Sources">
-                {[...sourceKinds.values()].map(({ label, count }) => `${label} ${count}`).join(", ")}
-              </Row>
-            ) : null}
-            <Row label="Versions">{page.versions.length}</Row>
-            <Row label="First composed">{fmtDay(page.versions[0]?.sourceDay ?? null)}</Row>
-            <Row label="Updated">{fmtDay(current?.sourceDay ?? null)}</Row>
-          </dl>
-
-          <dl className="flex flex-col divide-y divide-border-subtle">
-            <Row label="Slug">
-              <span className="text-label-12-mono">{page.slug}</span>
-            </Row>
-            <Row label="Version">
-              {current?.version ?? "none"} of {page.versions.length}
-            </Row>
-            <Row label="Composed by">{page.dreamRunId ?? "none"}</Row>
-            <Row label="Composed">{fmtStamp(page.updatedAt)}</Row>
-            <Row label="Topic">{[topic.type, topic.subtype, topic.status].filter(Boolean).join(" · ")}</Row>
-            {topic.aliases.length ? <Row label="Aliases">{topic.aliases.join(", ")}</Row> : null}
-            <Row label="Atoms on Topic">
-              {topic.currentAtomCount} current of {topic.atomCount}
-            </Row>
-          </dl>
-
-          {topic.versions.length ? (
-            <div className="flex flex-col gap-2">
-              <Overline>Topic history</Overline>
-              <ol className="flex flex-col gap-2">
-                {[...topic.versions].reverse().map((version) => (
-                  <li key={version.version} className="flex gap-2">
-                    <Badge variant="secondary" className="shrink-0">
-                      v{version.version}
-                    </Badge>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-md text-foreground">{version.changeNote}</p>
-                      <p className="text-xs text-foreground-low">
-                        {fmtStamp(version.createdAt)}
-                        {version.dreamRunId ? `, ${version.dreamRunId}` : version.changedBy ? `, ${version.changedBy}` : ""}
-                        {version.status ? `, ${version.status}` : ""}
-                      </p>
-                    </div>
-                  </li>
-                ))}
-              </ol>
-            </div>
-          ) : null}
-        </CollapsibleContent>
-      </Collapsible>
     </aside>
   );
 }
