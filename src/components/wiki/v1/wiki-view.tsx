@@ -202,6 +202,7 @@ export function WikiViewV1({
         atoms={atoms}
         topicTitles={topicTitles}
         pageGroups={pageGroups}
+        assistants={assistants}
         onOpenAtom={setAtomId}
         onClose={() => setAtomId(null)}
       />

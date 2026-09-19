@@ -252,13 +252,21 @@ export const wikiPagesForGraph = (): WikiGraphPage[] =>
     links,
   }));
 
+/** A Topic as a chip draws it: its name, its group, and its page when one is composed. */
+export type WikiTopicRef = { title: string; group: WikiGroupId; slug: string | null };
+
 export type WikiView = {
   page: WikiPage;
   topic: WikiTopic;
   /** The page's cited atoms plus everything its drawer can reach: chains, merges, conflicts. */
   atoms: Record<string, WikiAtom>;
-  topicTitles: Record<string, { title: string; group: WikiGroupId }>;
+  topicTitles: Record<string, WikiTopicRef>;
   linkedFrom: WikiLinkedFrom[];
+};
+
+const topicRef = (id: string | null): WikiTopicRef | null => {
+  const topic = id ? store.topics[id] : undefined;
+  return topic ? { title: topic.title, group: topic.group, slug: topic.pageSlug } : null;
 };
 
 /** One page with the slice of the store it can open, so a route ships its own data and no more. */
@@ -287,11 +295,11 @@ function viewOf(page: WikiPage): WikiView {
     );
   }
 
-  const topicTitles: Record<string, { title: string; group: WikiGroupId }> = {};
+  const topicTitles: Record<string, WikiTopicRef> = {};
   for (const atom of Object.values(atoms)) {
     for (const id of atom.topicIds) {
-      const topic = store.topics[id];
-      if (topic) topicTitles[id] = { title: topic.title, group: topic.group };
+      const ref = topicRef(id);
+      if (ref) topicTitles[id] = ref;
     }
   }
 
