@@ -359,7 +359,8 @@ export function WikiChat({ className }: { className?: string }) {
             className="fixed z-40 flex origin-bottom-left flex-col overflow-hidden rounded-[calc(var(--radius-5xl)+--spacing(3))] bg-overlay text-foreground shadow-lg ring-1 ring-border-subtle transition-[width,height] duration-(--duration-move) ease-out-quart animate-in fade-in-0 zoom-in-95 motion-reduce:transition-none"
           >
             {/* The title bar is the drag handle; its buttons are left out of the drag.
-                It keeps 12px from both sides so nothing crowds the wide corners. */}
+                It is 56px tall and 16px in, the body's own inset, so the glyph
+                and the buttons clear the wide corners instead of being cut. */}
             <div
               onPointerDown={onPointerDown}
               onPointerMove={onPointerMove}
@@ -368,7 +369,7 @@ export function WikiChat({ className }: { className?: string }) {
               onDoubleClick={(event) => {
                 if (!(event.target as HTMLElement).closest("button")) setOffset({ x: 0, y: 0 });
               }}
-              className="flex h-12 shrink-0 cursor-grab touch-none items-center gap-2 border-b border-border-subtle px-3 select-none active:cursor-grabbing"
+              className="flex h-14 shrink-0 cursor-grab touch-none items-center gap-2 border-b border-border-subtle px-4 select-none active:cursor-grabbing"
             >
               <AgentGlyph shape={WIKI_AGENT.glyph} size={24} />
               <span className="min-w-0 flex-1 truncate font-medium text-sm">{WIKI_AGENT.name}</span>
