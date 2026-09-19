@@ -100,6 +100,28 @@ function AtomRow({
   );
 }
 
+/** Newest first: what superseded this atom, this atom, then what it replaced. */
+export function supersessionChain(atom: WikiAtom, atoms: Record<string, WikiAtom>): WikiAtom[] {
+  const forward: WikiAtom[] = [];
+  const backward: WikiAtom[] = [];
+  let cursor: WikiAtom | undefined = atom;
+  const seen = new Set([atom.id]);
+  while (cursor?.supersededById && atoms[cursor.supersededById] && !seen.has(cursor.supersededById)) {
+    cursor = atoms[cursor.supersededById];
+    seen.add(cursor.id);
+    forward.unshift(cursor);
+  }
+  cursor = atom;
+  while (cursor?.supersedesIds.length) {
+    const previous: WikiAtom | undefined = atoms[cursor.supersedesIds[0]];
+    if (!previous || seen.has(previous.id)) break;
+    seen.add(previous.id);
+    backward.push(previous);
+    cursor = previous;
+  }
+  return [...forward, atom, ...backward];
+}
+
 export function AtomDrawer({
   atomId,
   atoms,
@@ -114,28 +136,7 @@ export function AtomDrawer({
   onClose: () => void;
 }) {
   const atom = atomId ? atoms[atomId] : undefined;
-
-  // Newest first: what superseded this atom, this atom, then what it replaced.
-  const forward: WikiAtom[] = [];
-  const backward: WikiAtom[] = [];
-  if (atom) {
-    let cursor: WikiAtom | undefined = atom;
-    const seen = new Set([atom.id]);
-    while (cursor?.supersededById && atoms[cursor.supersededById] && !seen.has(cursor.supersededById)) {
-      cursor = atoms[cursor.supersededById];
-      seen.add(cursor.id);
-      forward.unshift(cursor);
-    }
-    cursor = atom;
-    while (cursor?.supersedesIds.length) {
-      const previous: WikiAtom | undefined = atoms[cursor.supersedesIds[0]];
-      if (!previous || seen.has(previous.id)) break;
-      seen.add(previous.id);
-      backward.push(previous);
-      cursor = previous;
-    }
-  }
-  const chain = atom ? [...forward, atom, ...backward] : [];
+  const chain = atom ? supersessionChain(atom, atoms) : [];
 
   return (
     <Sheet open={Boolean(atom)} onOpenChange={(open) => (open ? undefined : onClose())}>

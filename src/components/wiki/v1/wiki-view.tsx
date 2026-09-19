@@ -5,9 +5,9 @@ import { IconHistory } from "@tabler/icons-react";
 import { PageHeading } from "@/components/patterns/page-heading";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { AtomDrawer } from "@/components/wiki/atom-drawer";
 import { WikiTabs } from "@/components/wiki/wiki-tabs";
 import { ArticleV1 } from "@/components/wiki/v1/article";
+import { AtomDrawerV1 } from "@/components/wiki/v1/atom-drawer";
 import type { BodyContext } from "@/components/wiki/v1/body";
 import { DetailsRailV1 } from "@/components/wiki/v1/details-rail";
 import { fmtInt, fmtWindow } from "@/components/wiki/v1/format";
@@ -117,6 +117,15 @@ export function WikiViewV1({
     });
   };
 
+  // Each listed page's Topic group, so the pages citing an atom show as chips.
+  const pageGroups = useMemo(() => {
+    const map: Record<string, WikiGroupId> = {};
+    for (const entry of [...groups.flatMap((group) => group.pages), ...hiddenPages, ...(privatePages ?? [])]) {
+      map[entry.slug] = entry.group;
+    }
+    return map;
+  }, [groups, hiddenPages, privatePages]);
+
   const ctx: BodyContext = useMemo(
     () => ({
       cites: new Map(page.citations.map((id, index) => [id, index + 1])),
@@ -183,10 +192,11 @@ export function WikiViewV1({
         </div>
       </div>
 
-      <AtomDrawer
+      <AtomDrawerV1
         atomId={atomId}
         atoms={atoms}
         topicTitles={topicTitles}
+        pageGroups={pageGroups}
         onOpenAtom={setAtomId}
         onClose={() => setAtomId(null)}
       />
