@@ -17,7 +17,7 @@ Where they are meant to go. None of these is wired up yet (see `HANDOFF.md`).
 |---|---|---|---|---|
 | Landing hero roster (one row per agent) | 24px | `AgentGlyph`, or `MorphingAgentGlyph` if the row's agent changes | `sand`, `quick` | The agent's name sits beside it, so no `label` |
 | Landing team section | 40px | `AgentGlyph` | `sand` | One tile per agent |
-| Landing use-case tabs | 40px | `AgentGlyph` or `MorphingAgentGlyph` | `sand`, `quick` | Twenty agents share eight shapes, so the tab's name carries identity. The preview's Roster section is this case |
+| Landing use-case tabs | 40px | `AgentGlyph` or `MorphingAgentGlyph` | `sand`, `quick` | Twenty agents share nine shapes, so the tab's name carries identity. The preview's Roster section is this case |
 | Landing closing band | 64 to 96px | `MorphingAgentGlyph` | `ink` on the dark band, `expressive` (the default from 64px) | Glances are fine at this size |
 | A landing hero or feature row | fills its column | `GlyphStage` | any tone, always `expressive` | Loops the shipping set |
 | Product avatars in lists, sheets and chips | 20 to 40px | `AgentGlyph` | `sand` | No `label` next to a visible name |
@@ -47,8 +47,9 @@ The originals, in loop order. Eye row is the eye-centre height in box units; sca
 | 6 | `portal` | A full-width semicircle on straight sides, with a round-topped doorway between two band-wide legs | large | 56 | scaleY 0.93, translateY 4.7 | The doorway between your tools: carries work from one to the next. |
 | 7 | `pinwheel` | A square with a quarter-circle scoop biting the clockwise half of each side | large | 60 | rotate -20 | A routine runner that keeps the schedule turning. |
 | 8 | `trefoil` | Three 8-module lobes on an equilateral triangle, a head lobe over two foot lobes | large | 60 | scaleX 0.96, scaleY 1.05, translateY -5 | A researcher that pulls its sources together into one answer. |
+| 9 | `folio` | A page with its top-right corner turned: the full box less one 5-module scoop centred on that corner. Added 2026-09-18 as Wiki Agent's face (`src/components/wiki/wiki-agent.ts`) | small | 64 | rotate -6 | A librarian that reads every page, finds what disagrees and asks you to settle it. |
 
-The order alternates block and curve and moves the mass between top and bottom (top-heavy fork, then bottom-heavy bell), so every step of the loop is a visible change.
+The order alternates block and curve and moves the mass between top and bottom (top-heavy fork, then bottom-heavy bell), so every step of the loop is a visible change. Folio closes the loop as the one near-solid block, between trefoil's round lobes and fork's open prongs.
 
 Two alternates are kept as files but left out of `ORIGINAL_SHAPES`. That also keeps them out of the registry: `getGlyph` does not know them and the preview does not show them. Both pass `glyphIssues` today. To try one in the loop, import it in `shapes/original/index.ts` and put it in the list; the tests then cover it.
 
@@ -169,7 +170,7 @@ A client component that changes shape. It server-renders the first shape's drawi
 | `from` | `shape` | Where a frozen transition starts |
 | `onSettle` | none | `(shape) => void`, called each time the glyph comes to rest on a shape |
 
-A loop step is `hold` plus the transition: 1580ms a shape at the expressive pace and 1320ms at the quick one, so the eight originals come round every 12.6s or 10.6s.
+A loop step is `hold` plus the transition: 1580ms a shape at the expressive pace and 1320ms at the quick one, so the nine originals come round every 14.2s or 11.9s.
 
 After mount, React never rewrites the animated attributes. Move a glyph through `shape`, `sequence` or `progress`. A new `key` remounts it at its first shape, which is how the playground's Play button restarts a transition.
 

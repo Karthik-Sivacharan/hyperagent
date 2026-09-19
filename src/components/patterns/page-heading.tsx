@@ -7,19 +7,23 @@ import { cn } from "@/lib/utils";
 // `text-2xl` carries the brand tracking and heading weight on its own. The
 // wrapper around it (border, padding) differs per page and stays in the page
 // component; `titleClassName` is for the one page whose title sits a step up
-// the scale (the marketplace's `text-3xl`).
+// the scale (the marketplace's `text-3xl`). `titleAs` is for a page whose h1
+// is something else, like a wiki article's own title: the heading keeps its
+// look as a `<p>` so the page still has one h1.
 export function PageHeading({
   title,
   subtitle,
   actions,
   className,
   titleClassName,
+  titleAs: Title = "h1",
 }: {
   title: React.ReactNode;
   subtitle?: React.ReactNode;
   actions?: React.ReactNode;
   className?: string;
   titleClassName?: string;
+  titleAs?: "h1" | "p";
 }) {
   return (
     <div
@@ -29,7 +33,7 @@ export function PageHeading({
       )}
     >
       <div className="min-w-0">
-        <h1 className={cn("font-heading text-2xl text-foreground", titleClassName)}>{title}</h1>
+        <Title className={cn("font-heading text-2xl text-foreground", titleClassName)}>{title}</Title>
         {subtitle ? <p className="text-sm text-muted-foreground">{subtitle}</p> : null}
       </div>
       {actions ? <div className="flex shrink-0 items-center gap-3">{actions}</div> : null}
