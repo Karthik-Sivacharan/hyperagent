@@ -362,8 +362,9 @@ The rules that everything below follows:
    and `@layer base`. Replace them; don't merge the two sets.
 
 3. **Dark mode.** Put the `dark` class on `<html>` (next-themes:
-   `attribute="class"`). Nothing else changes; every semantic token re-maps
-   under `.dark`.
+   `attribute="class"` and `disableTransitionOnChange`, so switching themes
+   doesn't animate every colour on the page). Nothing else changes; every
+   semantic token re-maps under `.dark`.
 
 4. **`cn()`.** Teach tailwind-merge the new names. Without this it drops
    classes it misreads: `text-display` looks like a colour, and
@@ -623,15 +624,102 @@ sheets, `ease-in-out` for on-screen movement, `ease-linear` for spinners.
   closing with `data-[state=closed]:animate-out data-[state=closed]:fade-out-0
   data-[state=closed]:zoom-out-95 data-[state=closed]:duration-(--duration-exit)`.
 - **Dialog:** fade and `zoom-in-95` at `duration-(--duration-normal)
-  ease-out-expo`; the scrim fades over the same duration.
+  ease-out-expo`; the scrim fades on the same duration and easing.
 - **Sheet:** a 40px slide (`slide-in-from-right-10`) at
-  `duration-(--duration-move) ease-out-quint`.
+  `duration-(--duration-move) ease-out-quint`; its backdrop fades on the same
+  duration and easing.
 - **Card hover:** `transition-[box-shadow] duration-(--duration-slow) ease-out
   hover:shadow-card-hover`.
 - **First paint:** fade and a 16px rise at `duration-(--duration-entrance)
   ease-out-expo`, siblings 80ms apart. Never scale from 0; start at 0.95.
 - Never `transition-all`. The base block collapses every duration under
   `prefers-reduced-motion`; add `motion-reduce:animate-none` to entrances too.
+
+**Rules**
+
+- **Frequent means instant.** Something people open many times a day, or open
+  from the keyboard (the command palette, a quick switcher), appears and leaves
+  with no animation. Menus and popovers opened with the pointer keep the menu
+  motion.
+- **Grow from the trigger.** Popovers, menus, select content and tooltips set
+  their transform origin to Radix's variable for that part:
+  `origin-(--radix-popover-content-transform-origin)`, and likewise
+  `--radix-dropdown-menu-…`, `--radix-context-menu-…`, `--radix-select-…`,
+  `--radix-tooltip-…` and `--radix-hover-card-content-transform-origin`.
+- **What moves together shares timing.** A dialog and its scrim, a sheet and
+  its backdrop, a popover and the chevron that turns as it opens: one
+  duration, one easing.
+- **Animate `transform` and `opacity`.** Hover may also transition colour and
+  shadow. Never animate `width`, `height`, `padding` or `margin`: open a
+  collapsing panel with `grid-rows-[0fr]` → `grid-rows-[1fr]` and
+  `transition-[grid-template-rows]`, or Motion's `layout`. Never animate a
+  blur.
+- **Hover is for pointers.** Tailwind v4's `hover:` only applies on devices
+  that can hover, so hover styles don't stick after a tap. Keep it that way;
+  never make a feature reachable only by hovering.
+
+### Motion in JavaScript
+
+CSS transitions cover most of the UI. Use Motion (`motion/react`) only for what
+CSS can't do: exits of elements leaving the tree, layout changes, drag and
+gestures, and movement the user can interrupt. Motion takes numbers, not CSS
+variables, so copy these constants once (for example to `lib/motion.ts`) and
+build every transition from them:
+
+```ts
+// Seconds, Motion's unit. The same values as the --duration-* and --ease-* tokens.
+export const DURATION = {
+  exit: 0.09, instant: 0.1, enter: 0.14, fast: 0.15, normal: 0.2, move: 0.22,
+  slow: 0.3, reveal: 0.4, slide: 0.48, entrance: 0.5, stagger: 0.08,
+} as const;
+
+export const EASE = {
+  out: [0, 0, 0.2, 1],
+  outQuart: [0.165, 0.84, 0.44, 1],
+  outQuint: [0.22, 1, 0.36, 1],
+  outLayout: [0.23, 1, 0.32, 1],
+  outExpo: [0.16, 1, 0.3, 1],
+  inOut: [0.4, 0, 0.2, 1],
+} as const;
+
+/** Every sliding indicator and reflowing card. */
+export const LAYOUT_TRANSITION = { duration: DURATION.move, ease: EASE.outLayout } as const;
+
+/** Springs are for motion the user drives. No bounce by default. */
+export const SPRING = { type: "spring", visualDuration: 0.3, bounce: 0 } as const;
+/** Releasing a drag: the one place a little bounce belongs. */
+export const SPRING_RELEASE = { type: "spring", visualDuration: 0.35, bounce: 0.15 } as const;
+```
+
+- **Always pass a transition.** Motion's default for `x`, `y`, `scale` and
+  `rotate` is a bouncy spring, so an animation left on its default is
+  off-brand. Set the default once at the root; `reducedMotion="user"` is also
+  what makes JavaScript animations honour reduced motion, which the CSS block
+  can't reach:
+
+  ```tsx
+  <MotionConfig reducedMotion="user" transition={{ duration: DURATION.normal, ease: EASE.outQuart }}>
+  ```
+
+- **Tweens by default.** Enter from `{ opacity: 0, scale: 0.95 }` or
+  `{ opacity: 0, y: 8 }` at `{ duration: DURATION.enter, ease: EASE.outQuart }`;
+  exit at `{ duration: DURATION.exit, ease: EASE.out }`; size and position
+  changes with `layout` and `transition={LAYOUT_TRANSITION}`; press with
+  `whileTap={{ scale: 0.98 }}`; first-paint lists with
+  `staggerChildren: DURATION.stagger`.
+- **Springs only when the user drives the motion:** a released drag
+  (`SPRING_RELEASE`), a sheet snapping to rest, a gesture they can reverse
+  halfway (`SPRING`). Never on menus, dialogs, tooltips or colour. Bounce stays
+  at 0.15 or below.
+- **Drag decides on release:** dismiss when the element has travelled past its
+  threshold or was flicked (Motion's `info.velocity` above about 100px/s),
+  otherwise spring back with `SPRING_RELEASE`.
+- **Exits in a list:** `<AnimatePresence mode="popLayout" initial={false}>`, so
+  siblings reflow while the item leaves and nothing animates on first render.
+- **Only `x`, `y`, `scale`, `rotate` and `opacity`.** Change size through
+  `layout`, never by animating `width` or `height`. Keep per-frame values out of
+  React state (`useMotionValue`, `useTransform`), and pause loops that scroll
+  out of view (`useInView`).
 
 ## Icons
 
@@ -795,7 +883,8 @@ fill · `link`.
   hover:bg-tint-10 aria-expanded:bg-tint-10` · `tint` `bg-tint-10
   text-muted-foreground hover:bg-tint-15 hover:text-foreground
   aria-expanded:bg-tint-15`.
-- **Content:** the menu surface below, `position="popper"`, `sideOffset={4}`.
+- **Content:** the menu surface below, `position="popper"`, `sideOffset={4}`,
+  `origin-(--radix-select-content-transform-origin)`.
 - **Item:** `rounded-md py-1.5 pr-8 pl-2 text-sm focus:bg-tint-10
   focus:text-foreground`. The selected check sits at the right in
   `text-brand-accent`, `size-3.5`.
@@ -803,8 +892,10 @@ fill · `link`.
 ### Dropdown Menu and Context Menu
 
 - **Content:** `z-50 min-w-[8rem] overflow-x-hidden overflow-y-auto rounded-xl
-  bg-popover p-1.5 text-popover-foreground shadow-lg ring-1 ring-border-subtle`,
-  with the menu motion. `sideOffset={4}`.
+  bg-popover p-1.5 text-popover-foreground shadow-lg ring-1 ring-border-subtle
+  origin-(--radix-dropdown-menu-content-transform-origin)` (the context menu:
+  `origin-(--radix-context-menu-content-transform-origin)`), with the menu
+  motion. `sideOffset={4}`.
 - **Item:** `relative flex cursor-pointer items-center gap-2 rounded-md px-2
   py-1.5 text-sm outline-hidden select-none transition-[color,background-color]
   duration-(--duration-instant) ease-out focus:bg-tint-10 focus:text-foreground
@@ -818,17 +909,22 @@ fill · `link`.
 ### Popover and Tooltip
 
 - **Popover:** `z-50 rounded-xl bg-popover text-popover-foreground shadow-lg
-  ring-1 ring-border-subtle outline-none`, with the menu motion. `sideOffset={4}`.
+  ring-1 ring-border-subtle outline-none
+  origin-(--radix-popover-content-transform-origin)`, with the menu motion.
+  `sideOffset={4}`.
   Set width and padding per use; `w-72 p-4` is the usual default.
 - **Tooltip:** an ink card, no arrow: `z-50 w-fit max-w-[282px] rounded-lg
   bg-primary px-3 py-1.5 text-xs text-primary-foreground shadow-md
-  break-words`, with the menu motion. `sideOffset={6}`, provider
+  break-words origin-(--radix-tooltip-content-transform-origin)`, with the menu
+  motion. `sideOffset={6}`, provider
   `delayDuration={0}`. A keycap inside it is `bg-background/20 text-background`.
 
 ### Dialog and Sheet
 
-- **Overlay (both):** `fixed inset-0 z-50 bg-scrim backdrop-blur-xs`, fading in
-  over `duration-(--duration-normal)` and out over `duration-(--duration-exit)`.
+- **Overlay (both):** `fixed inset-0 z-50 bg-scrim backdrop-blur-xs`. It fades
+  on its surface's timing (the dialog's `duration-(--duration-normal)
+  ease-out-expo`, the sheet's `duration-(--duration-move) ease-out-quint`) and
+  out over `duration-(--duration-exit)`.
 - **Dialog content:** `m-auto grid w-[calc(100%-2rem)] gap-4 rounded-4xl
   bg-overlay p-6 text-foreground shadow-lg ring-1 ring-border-subtle
   outline-none sm:max-w-lg`, with the dialog motion. Title `font-heading
@@ -872,6 +968,9 @@ fill · `link`.
 ### Command
 
 - In a dialog: `top-[25%] max-w-xl gap-0 overflow-hidden rounded-3xl p-0`.
+  People open it many times a day, from the keyboard, so it appears and leaves
+  without animation: add `data-[state=open]:animate-none
+  data-[state=closed]:animate-none` to its content and its overlay.
 - **Input row:** `flex h-12 items-center gap-2 border-b border-border-subtle
   px-3`, a `size-5 text-foreground-low` search icon, and the input `h-12
   bg-transparent text-base placeholder:text-foreground-low`.
@@ -904,7 +1003,8 @@ follow from them:
 - **Sidebar:** `bg-sidebar`. Items are pills: `flex w-full items-center gap-2
   rounded-full px-3.5 py-1.5 text-sm text-foreground hover:bg-tint-10`, the
   muted tone `text-muted-foreground hover:text-foreground`, the active item
-  `bg-tint-15 font-medium`. Group labels are `text-label-12-caps
+  `bg-tint-15 text-foreground`. The weight never changes between states, so
+  the label doesn't shift. Group labels are `text-label-12-caps
   text-foreground-low`.
 - **Alert:** `rounded-xl bg-surface-secondary p-4 text-sm shadow-edge` with a
   `size-4` icon. `destructive` turns the icon and title `text-destructive` and
@@ -925,7 +1025,8 @@ follow from them:
 - **Toast (Sonner):** the popover surface, `rounded-xl bg-popover shadow-lg
   ring-1 ring-border-subtle text-sm`, title `font-medium`, description
   `text-muted-foreground`, with the menu motion.
-- **Hover card:** the popover recipe at `w-72 p-4`.
+- **Hover card:** the popover recipe at `w-72 p-4`, with
+  `origin-(--radix-hover-card-content-transform-origin)`.
 - **Breadcrumb:** `text-sm text-muted-foreground`, the current page
   `font-medium text-foreground`, separators `size-3.5 text-foreground-low`.
 - **Pagination:** `ghost` `icon-sm` buttons; the current page is `outline`.
@@ -944,12 +1045,16 @@ follow from them:
 - **Focus:** visible for keyboard users only (`:focus-visible`), always
   tangerine. Controls inside a card, where an offset ring would clip, use the
   `focus-ring` utility: a canvas-coloured gap, then a 2px `brand-accent` ring.
-- **Targets:** 32px is the smallest pointer target; 24px icon buttons only
-  inside dense toolbars.
+- **Targets:** 32px is the smallest pointer target, and 24px icon buttons
+  appear only inside dense toolbars. On touch screens, give anything under 44px
+  a 44px hit area with a pseudo-element: add `relative
+  pointer-coarse:after:absolute pointer-coarse:after:-inset-1.5` to a 32px
+  control (`-inset-2.5` on a 24px one).
 - **Fields:** `text-base` on mobile, `md:text-sm` on desktop, so iOS doesn't
   zoom when a field takes focus.
-- **Motion:** respect `prefers-reduced-motion` (the base block does the global
-  part).
+- **Motion:** respect `prefers-reduced-motion`. The base block covers CSS;
+  JavaScript animations need `<MotionConfig reducedMotion="user">` (see
+  [Motion in JavaScript](#motion-in-javascript)).
 
 ## Do's and Don'ts
 
@@ -969,6 +1074,9 @@ follow from them:
   `brand-accent`.
 - Don't use weights other than 400, 500, 550 and 600, or track body text.
 - Don't mix icon sets, and don't use `transition-all`.
+- Don't leave a Motion animation on its default transition, and don't put a
+  spring on a menu, dialog or tooltip.
+- Don't animate what people open many times a day from the keyboard.
 
 ## Verification
 
@@ -978,7 +1086,8 @@ Before calling UI work done:
 2. No colour values outside the token CSS:
    `grep -rnE "#[0-9a-fA-F]{3,8}\b|oklch\(|rgba?\(|\b(zinc|slate|gray|stone|orange|sky)-[0-9]" components/`
    finds nothing but false positives (an anchor link, an id).
-3. `grep -rnE "transition-all|dark:" components/ui` finds nothing.
+3. `grep -rnE "transition-all|dark:" components/ui` finds nothing, and every
+   hit for `grep -rn 'type: "spring"'` is a drag or a gesture.
 4. The screen looks right in light and in dark, at 390px and at desktop width,
    and tabbing through it shows a ring on every control.
 5. Any new colour pair clears 4.5:1 for text or 3:1 for UI.
