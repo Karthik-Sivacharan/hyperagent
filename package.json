@@ -12,6 +12,8 @@
     "brand:gen-ramps": "node scripts/brand/gen-ramps.mjs",
     "brand:check-contrast": "node scripts/brand/check-contrast.mjs",
     "brand:lint-tokens": "node scripts/brand/lint-tokens.mjs",
+    "brand:design-md": "node scripts/brand/build-design-md.mjs",
+    "brand:lint-design-md": "npx -y @google/design.md@0.4.0 lint docs/brand/hyperagent-DESIGN.md",
     "probe:signup": "node scripts/dev/probe-signup.mjs"
   },
   "dependencies": {

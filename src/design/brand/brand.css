@@ -206,12 +206,17 @@
      Geist Mono only for code, commands, paths, raw tokens, timestamps and
      short identifiers. next/font (fonts.ts, on <html>) sets
      --font-geist-sans and --font-geist-mono; these stacks consume them.
+     Each var() carries the family name as its fallback: an undefined
+     variable with no fallback voids the WHOLE stack (the element drops to
+     the browser default), so without it the portable sheet
+     (docs/brand/hyperagent-DESIGN.md) would lose Geist in any app that
+     loads the font some other way than next/font.
      `--font-heading` is an alias of the sans: `font-heading` marks a heading
      in markup, and this line is the single place a display face would be
      pointed at if that decision (closed 2026-09-07) were ever reopened. */
-  --font-sans: var(--font-geist-sans), "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-sans: var(--font-geist-sans, "Geist"), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-heading: var(--font-sans);
-  --font-mono: var(--font-geist-mono), "Geist Mono", ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  --font-mono: var(--font-geist-mono, "Geist Mono"), ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
 
   /* Typography - weights: the four Vercel's Geist roles use and nothing
      else. Regular 400 for copy and labels, medium 500 for buttons and for
